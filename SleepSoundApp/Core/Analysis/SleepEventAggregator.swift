@@ -3,6 +3,7 @@ import Foundation
 public struct SleepEventSummary: Equatable {
     public var measurementDuration: TimeInterval
     public var estimatedSleepDuration: TimeInterval
+    public var detectedEventDuration: TimeInterval
     public var snoreTotalSeconds: TimeInterval
     public var snoreRatio: Double
     public var bruxismLikeCount: Int
@@ -30,10 +31,12 @@ public struct SleepEventSummary: Equatable {
         awakeningSuspectedCount: Int,
         movementLikeCount: Int,
         longestSuspectedPause: TimeInterval,
-        mostDisturbedHourRange: String?
+        mostDisturbedHourRange: String?,
+        detectedEventDuration: TimeInterval = 0
     ) {
         self.measurementDuration = measurementDuration
         self.estimatedSleepDuration = estimatedSleepDuration
+        self.detectedEventDuration = detectedEventDuration.isFinite ? max(0, detectedEventDuration) : 0
         self.snoreTotalSeconds = snoreTotalSeconds
         self.snoreRatio = snoreRatio
         self.bruxismLikeCount = bruxismLikeCount
@@ -56,6 +59,7 @@ public struct SleepEventAggregator {
         let sessionEvents = normalizedEvents(for: session, events: events)
         let measurementDuration = normalizedMeasurementDuration(for: session)
         let estimatedSleepDuration = normalizedEstimatedSleepDuration(for: session, measurementDuration: measurementDuration)
+        let detectedEventDuration = detectedEventDuration(events: sessionEvents)
         let denominator = max(estimatedSleepDuration, 1)
         let snoreTotalSeconds = sessionEvents
             .filter { $0.type == .snore }
@@ -77,7 +81,8 @@ public struct SleepEventAggregator {
             awakeningSuspectedCount: count(.awakeningSuspected, in: sessionEvents),
             movementLikeCount: count(.movementLike, in: sessionEvents),
             longestSuspectedPause: suspectedPauses.map(\.duration).max() ?? 0,
-            mostDisturbedHourRange: mostDisturbedHourRange(from: sessionEvents)
+            mostDisturbedHourRange: mostDisturbedHourRange(from: sessionEvents),
+            detectedEventDuration: detectedEventDuration
         )
     }
 
@@ -130,6 +135,34 @@ public struct SleepEventAggregator {
 
     private func count(_ type: SleepEventType, in events: [SleepEvent]) -> Int {
         events.filter { $0.type == type }.count
+    }
+
+    public func detectedEventDuration(events: [SleepEvent]) -> TimeInterval {
+        let sortedIntervals = events
+            .filter { $0.type != .unknown }
+            .map { ($0.startedAt, $0.endedAt) }
+            .filter { $0.1 > $0.0 }
+            .sorted { $0.0 < $1.0 }
+
+        guard var current = sortedIntervals.first else { return 0 }
+
+        var total: TimeInterval = 0
+        for interval in sortedIntervals.dropFirst() {
+            if interval.0 <= current.1 {
+                current.1 = max(current.1, interval.1)
+            } else {
+                total += current.1.timeIntervalSince(current.0)
+                current = interval
+            }
+        }
+
+        total += current.1.timeIntervalSince(current.0)
+        return Self.sanitizedSeconds(total)
+    }
+
+    private static func sanitizedSeconds(_ value: TimeInterval) -> TimeInterval {
+        guard value.isFinite, value > 0 else { return 0 }
+        return value
     }
 
     private func mostDisturbedHourRange(from events: [SleepEvent]) -> String? {

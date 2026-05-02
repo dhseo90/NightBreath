@@ -4,6 +4,8 @@ public protocol SleepAnalyzing {
     func analyze(session: SleepSession, chunks: [AudioChunk]) -> [SleepEvent]
     func analyze(chunks: [AudioChunk]) -> [DetectorOutput]
     func detectOutputs(from chunks: [AudioChunk]) -> [DetectorOutput]
+    func detectOutputs(from chunk: AudioChunk) -> [DetectorOutput]
+    func detectOutputs(from chunk: AudioChunk, updating metrics: inout AudioCaptureMetrics) -> [DetectorOutput]
     func smooth(outputs: [DetectorOutput]) -> [DetectorOutput]
     func makeEvents(session: SleepSession, outputs: [DetectorOutput]) -> [SleepEvent]
     func makeReport(session: SleepSession, outputs: [DetectorOutput]) -> NightReport
@@ -41,6 +43,12 @@ public struct SleepAnalyzer: SleepAnalyzing {
     public func detectOutputs(from chunk: AudioChunk) -> [DetectorOutput] {
         let features = extractor.extractFeatures(from: chunk)
         return detector.detect(features: features)
+    }
+
+    public func detectOutputs(from chunk: AudioChunk, updating metrics: inout AudioCaptureMetrics) -> [DetectorOutput] {
+        let outputs = detectOutputs(from: chunk)
+        metrics.recordAnalyzed(chunk: chunk)
+        return outputs
     }
 
     public func smooth(outputs: [DetectorOutput]) -> [DetectorOutput] {

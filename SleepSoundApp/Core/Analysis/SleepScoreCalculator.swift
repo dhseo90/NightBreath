@@ -16,15 +16,29 @@ public struct SleepScoreCalculator {
     public func makeReport(
         session: SleepSession,
         events: [SleepEvent],
-        aggregator: SleepEventAggregator = SleepEventAggregator()
+        aggregator: SleepEventAggregator = SleepEventAggregator(),
+        captureMetrics: AudioCaptureMetrics? = nil
     ) -> NightReport {
         let summary = aggregator.summarize(session: session, events: events)
         let result = calculateScore(summary: summary)
+        let metrics = captureMetrics?.snapshot(at: session.endedAt ?? Date())
+            ?? AudioCaptureMetrics.fallback(sessionElapsedSeconds: summary.measurementDuration)
+        let savedAudioDuration = events.reduce(0) { partialResult, event in
+            partialResult + max(0, event.audioSnippetDuration ?? 0)
+        }
 
         return NightReport(
             sessionId: session.id,
             measurementDuration: summary.measurementDuration,
             estimatedSleepDuration: summary.estimatedSleepDuration,
+            detectedEventDuration: summary.detectedEventDuration,
+            savedAudioDuration: savedAudioDuration,
+            receivedAudioDuration: metrics.receivedAudioSeconds,
+            analyzedAudioDuration: metrics.analyzedAudioSeconds,
+            audioCoverageRatio: metrics.audioCoverageRatio,
+            interruptionCount: metrics.interruptionCount,
+            longestAudioGapSeconds: metrics.longestChunkGapSeconds,
+            measurementQuality: metrics.measurementQuality,
             sleepSoundScore: result.score,
             snoreTotalSeconds: summary.snoreTotalSeconds,
             snoreRatio: summary.snoreRatio,
@@ -80,8 +94,8 @@ public struct SleepScoreCalculator {
         )
         addCountPenalty(
             count: summary.gaspLikeCount,
-            unitPenalty: 2,
-            cap: 12,
+            unitPenalty: 3,
+            cap: 15,
             category: .gaspLike,
             reason: "gasp-like 회복 호흡이 감지되었습니다.",
             to: &penalties

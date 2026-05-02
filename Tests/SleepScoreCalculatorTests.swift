@@ -50,6 +50,40 @@ struct SleepScoreCalculatorTests {
     }
 
     @Test
+    func coughGaspAndNoiseEventsLowerScoreWithoutDiagnosticLanguage() {
+        let quiet = SleepScoreCalculator().calculateScore(summary: makeSummary())
+        let result = SleepScoreCalculator().calculateScore(
+            summary: makeSummary(
+                gaspLikeCount: 2,
+                coughLikeCount: 10,
+                environmentalNoiseCount: 9
+            )
+        )
+        let forbiddenDiagnosticTerm = "수면" + "무호흡"
+
+        #expect(result.score < quiet.score)
+        #expect(result.score <= 90)
+        #expect(
+            result.mainDisturbanceReason.contains("gasp-like 회복 호흡") ||
+                result.mainDisturbanceReason.contains("기침 의심 소리") ||
+                result.mainDisturbanceReason.contains("환경 소음")
+        )
+        #expect(!result.mainDisturbanceReason.contains(forbiddenDiagnosticTerm))
+    }
+
+    @Test
+    func bruxismLikeEventsLowerScoreModerately() {
+        let quiet = SleepScoreCalculator().calculateScore(summary: makeSummary())
+        let result = SleepScoreCalculator().calculateScore(
+            summary: makeSummary(bruxismLikeCount: 6)
+        )
+
+        #expect(result.score < quiet.score)
+        #expect(result.score >= 88)
+        #expect(result.mainDisturbanceReason.contains("이갈이 의심 소리"))
+    }
+
+    @Test
     func shortMeasurementDurationLowersScore() {
         let quiet = SleepScoreCalculator().calculateScore(summary: makeSummary())
         let result = SleepScoreCalculator().calculateScore(
@@ -122,10 +156,54 @@ struct SleepScoreCalculatorTests {
         #expect(report.bruxismLikeCount == 1)
         #expect(report.suspectedPauseCount == 1)
         #expect(report.gaspLikeCount == 1)
+        #expect(report.detectedEventDuration == 330)
         #expect(report.longestSuspectedPause == 18)
         #expect(report.sleepSoundScore >= 0)
         #expect(report.sleepSoundScore <= 100)
         #expect(!report.mainDisturbanceReason.isEmpty)
+    }
+
+    @Test
+    func makeReportIncludesMeasurementQualityFromCaptureMetrics() {
+        let startedAt = Date(timeIntervalSince1970: 1_772_496_000)
+        let endedAt = startedAt.addingTimeInterval(100)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: endedAt,
+            measurementDuration: 100,
+            estimatedSleepDuration: 90
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: endedAt,
+            sessionElapsedSeconds: 100,
+            captureActiveSeconds: 100,
+            receivedAudioSeconds: 70,
+            analyzedAudioSeconds: 68,
+            receivedChunkCount: 7,
+            analyzedChunkCount: 7,
+            totalReceivedFrameCount: 3_360_000,
+            totalAnalyzedFrameCount: 3_264_000,
+            sampleRate: 48_000,
+            interruptionCount: 1,
+            longestChunkGapSeconds: 8,
+            audioCoverageRatio: 0.7
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementDuration == 100)
+        #expect(report.savedAudioDuration == 0)
+        #expect(report.receivedAudioDuration == 70)
+        #expect(report.analyzedAudioDuration == 68)
+        #expect(report.audioCoverageRatio == 0.7)
+        #expect(report.interruptionCount == 1)
+        #expect(report.longestAudioGapSeconds == 8)
+        #expect(report.measurementQuality == .limited)
     }
 
     @Test

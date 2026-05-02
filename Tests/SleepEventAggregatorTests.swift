@@ -42,6 +42,7 @@ struct SleepEventAggregatorTests {
         #expect(summary.environmentalNoiseCount == 1)
         #expect(summary.awakeningSuspectedCount == 1)
         #expect(summary.movementLikeCount == 1)
+        #expect(summary.detectedEventDuration == 283)
     }
 
     @Test
@@ -58,6 +59,57 @@ struct SleepEventAggregatorTests {
 
         #expect(summary.suspectedPauseCount == 3)
         #expect(summary.longestSuspectedPause == 42)
+    }
+
+    @Test
+    func countsCoughGaspAndEnvironmentalNoiseSeparately() {
+        let session = makeSession()
+        let events = [
+            makeEvent(.coughLike, session: session, hour: 1, minute: 0, duration: 1),
+            makeEvent(.coughLike, session: session, hour: 1, minute: 2, duration: 1),
+            makeEvent(.gaspLike, session: session, hour: 2, minute: 0, duration: 2),
+            makeEvent(.environmentalNoise, session: session, hour: 3, minute: 0, duration: 10),
+            makeEvent(.environmentalNoise, session: session, hour: 3, minute: 5, duration: 8),
+            makeEvent(.environmentalNoise, session: session, hour: 3, minute: 10, duration: 6),
+            makeEvent(.unknown, session: session, hour: 4, minute: 0, duration: 5)
+        ]
+
+        let summary = SleepEventAggregator().summarize(session: session, events: events)
+
+        #expect(summary.coughLikeCount == 2)
+        #expect(summary.gaspLikeCount == 1)
+        #expect(summary.environmentalNoiseCount == 3)
+    }
+
+    @Test
+    func countsBruxismLikeEventsSeparately() {
+        let session = makeSession()
+        let events = [
+            makeEvent(.bruxismLike, session: session, hour: 1, minute: 0, duration: 1),
+            makeEvent(.bruxismLike, session: session, hour: 1, minute: 5, duration: 1),
+            makeEvent(.movementLike, session: session, hour: 2, minute: 0, duration: 4),
+            makeEvent(.unknown, session: session, hour: 2, minute: 5, duration: 2)
+        ]
+
+        let summary = SleepEventAggregator().summarize(session: session, events: events)
+
+        #expect(summary.bruxismLikeCount == 2)
+        #expect(summary.movementLikeCount == 1)
+    }
+
+    @Test
+    func detectedEventDurationMergesOverlappingEvents() {
+        let session = makeSession()
+        let events = [
+            makeEvent(.coughLike, session: session, hour: 1, minute: 0, duration: 10),
+            makeEvent(.snore, session: session, hour: 1, minute: 0, duration: 15),
+            makeEvent(.movementLike, session: session, hour: 1, minute: 1, duration: 5),
+            makeEvent(.unknown, session: session, hour: 1, minute: 2, duration: 20)
+        ]
+
+        let summary = SleepEventAggregator().summarize(session: session, events: events)
+
+        #expect(summary.detectedEventDuration == 20)
     }
 
     @Test
