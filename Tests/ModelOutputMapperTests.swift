@@ -9,6 +9,9 @@ struct ModelOutputMapperTests {
         let mapper = ModelOutputMapper()
         let expectations: [(String, SleepEventType)] = [
             ("snore", .snore),
+            ("1", .snore),
+            ("non_snore", .unknown),
+            ("0", .unknown),
             ("bruxism_like", .bruxismLike),
             ("breathing_pause_suspected", .breathingPauseSuspected),
             ("gasp_like", .gaspLike),
@@ -16,6 +19,7 @@ struct ModelOutputMapperTests {
             ("sleep_talk_like", .sleepTalkLike),
             ("movement_like", .movementLike),
             ("environmental_noise", .environmentalNoise),
+            ("noise", .environmentalNoise),
             ("awakening_suspected", .awakeningSuspected),
             ("unknown", .unknown)
         ]
@@ -28,6 +32,19 @@ struct ModelOutputMapperTests {
     @Test
     func unknownLabelMapsToUnknown() {
         #expect(ModelOutputMapper().eventType(for: "unexpected_label") == .unknown)
+    }
+
+    @Test
+    func labelsAreNormalizedBeforeMapping() {
+        let mapper = ModelOutputMapper()
+
+        #expect(mapper.eventType(for: " SNORE ") == .snore)
+        #expect(mapper.eventType(for: "non-snore") == .unknown)
+        #expect(mapper.eventType(for: "environmental noise") == .environmentalNoise)
+        #expect(mapper.eventType(for: "coughLike") == .coughLike)
+        #expect(mapper.eventType(for: "gaspLike") == .gaspLike)
+        #expect(mapper.eventType(for: "environmentalNoise") == .environmentalNoise)
+        #expect(mapper.eventType(for: "bruxismLike") == .bruxismLike)
     }
 
     @Test

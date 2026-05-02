@@ -1,0 +1,38 @@
+dataset:
+  input_dir: ../../Samples/Personal
+  feature_columns:
+    - rms
+    - energy
+    - zeroCrossingRate
+    - spectralCentroid
+    - lowBandEnergy
+    - midBandEnergy
+    - highBandEnergy
+
+labels:
+  positive: snore
+  negative:
+    - bruxismLike
+    - breathingPauseSuspected
+    - gaspLike
+    - coughLike
+    - sleepTalkLike
+    - movementLike
+    - environmentalNoise
+    - awakeningSuspected
+    - unknown
+
+training:
+  min_total_samples: 20
+  min_positive_samples: 5
+  min_negative_samples: 5
+  test_size: 0.25
+  random_state: 42
+  class_weight: balanced
+  threshold: 0.5
+
+output:
+  directory: output
+  model_filename: snore_detector_baseline.joblib
+  metrics_filename: snore_detector_metrics.json
+  feature_export_filename: snore_features.csv

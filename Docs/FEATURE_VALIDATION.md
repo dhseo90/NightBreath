@@ -49,6 +49,8 @@ Feature Validation은 실제 Core ML 모델을 붙이기 전에 현재 `AudioFea
 - iPhone 모델, 케이스, 침대 위치, 방 구조에 따라 level이 달라질 수 있습니다.
 - 코골기와 환경 소음이 비슷하게 보일 수 있습니다.
 - 마찰음, 기침 의심 소리, gasp-like 회복 호흡은 임시 heuristic입니다.
+- `bruxismLike`는 “이갈이 의심 소리” 후보입니다. iPhone 마이크 기반 소리 감지이므로 조용한 clenching은 감지하기 어렵습니다.
+- `bruxismLike`는 침구 마찰음, 손톱 긁힘, 침대 소음, 반려동물 소리와 헷갈릴 수 있어 사용자 확인 feedback이 필요합니다.
 - `breathingPauseSuspected`는 긴 저에너지 구간 후보일 뿐이며 상태를 확정하지 않습니다.
 - 추후 Core ML 또는 SoundAnalysis 기반 detector로 교체할 수 있어야 합니다.
 
@@ -77,6 +79,16 @@ Samples/
 4. 긴 원본 전체 녹음 대신 짧은 검증용 구간만 수동으로 준비합니다.
 5. sleep talk 내용은 기록하거나 텍스트화하지 않습니다.
 6. `git status --short`로 샘플 파일이 추적되지 않는지 확인합니다.
+
+## DEBUG 샘플 수집 화면
+
+DEBUG 빌드에서는 설정 탭의 “개발자용 샘플 수집” 화면에서 2초/3초/5초 샘플을 직접 캡처할 수 있습니다.
+
+- 사용자가 버튼을 누른 짧은 구간만 저장합니다.
+- 저장 위치는 앱 sandbox 내부의 `Documents/Samples/Personal/`입니다.
+- 오디오 파일은 `.caf`, metadata는 `.metadata.json`, feature summary는 `.features.csv`로 저장합니다.
+- Release 빌드에서는 이 화면이 노출되지 않습니다.
+- 이 기능은 서버 전송, 클라우드 동기화, STT 변환을 하지 않습니다.
 
 ## 공개 샘플을 다루는 방법
 
@@ -120,6 +132,14 @@ CSV columns:
 timestamp,label,rms,energy,zeroCrossingRate,spectralCentroid,lowBandEnergy,midBandEnergy,highBandEnergy,detectorOutput,confidence
 ```
 
+label별 feature 평균을 비교할 때는 `FeatureCSVExporter.summarizeByLabel(records:)` 또는 `makeLabelSummaryCSV(records:)`를 사용합니다.
+
+label summary columns:
+
+```text
+label,sampleCount,averageRMS,averageEnergy,averageZeroCrossingRate,averageSpectralCentroid,averageLowBandEnergy,averageMidBandEnergy,averageHighBandEnergy
+```
+
 원본 PCM sample, 전체 오디오 파일, 텍스트 변환 결과는 export하지 않습니다.
 
 ## 이후 Core ML 확장 방향
@@ -131,3 +151,4 @@ timestamp,label,rms,energy,zeroCrossingRate,spectralCentroid,lowBandEnergy,midBa
 - Core ML detector는 별도 타입으로 추가합니다.
 - UI와 저장소는 `DetectorOutput`과 `SleepEvent`에 계속 의존하게 둡니다.
 - 학습용 샘플과 모델 파일 추가는 별도 작업에서 개인정보와 라이선스를 다시 검토한 뒤 진행합니다.
+- `snore` binary baseline은 유지하고, `coughLike`, `gaspLike`, `environmentalNoise`, `unknown`은 향후 multiclass detector 후보로 분리 검토합니다.

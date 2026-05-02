@@ -18,7 +18,7 @@ public struct CoreMLDetectorConfiguration: Equatable, Sendable {
     public static let `default` = CoreMLDetectorConfiguration()
 
     public init(
-        modelName: String = "NightBreathSleepSoundClassifier",
+        modelName: String = "SnoreDetector",
         confidenceThreshold: Double = 0.5,
         inputWindowDuration: TimeInterval = 1.0,
         overlapRatio: Double = 0.5,

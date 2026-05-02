@@ -62,6 +62,34 @@ struct CompositeSleepEventDetectorTests {
     }
 
     @Test
+    func hybridBackendFallsBackWhenCoreMLConfidenceIsLow() {
+        let detector = CompositeSleepEventDetector(
+            backend: .hybrid,
+            ruleBasedDetector: StubSleepEventDetector(eventType: .environmentalNoise),
+            coreMLDetector: makeCoreMLDetector(label: "snore", confidence: 0.2, threshold: 0.8)
+        )
+
+        let outputs = detector.detect(features: makeFeatures())
+
+        #expect(outputs.map(\.eventType) == [.environmentalNoise])
+        #expect(outputs.first?.debugReason?.contains("confidence below threshold") == true)
+    }
+
+    @Test
+    func hybridBackendFallsBackWhenCoreMLReturnsNonSnoreLabel() {
+        let detector = CompositeSleepEventDetector(
+            backend: .hybrid,
+            ruleBasedDetector: StubSleepEventDetector(eventType: .movementLike),
+            coreMLDetector: makeCoreMLDetector(label: "non_snore")
+        )
+
+        let outputs = detector.detect(features: makeFeatures())
+
+        #expect(outputs.map(\.eventType) == [.movementLike])
+        #expect(outputs.first?.debugReason?.contains("confident snore") == true)
+    }
+
+    @Test
     func sleepAnalyzerDependsOnDetectorProtocol() {
         let session = SleepSession(startedAt: Date(timeIntervalSince1970: 0))
         let chunk = AudioChunk(
@@ -85,11 +113,15 @@ struct CompositeSleepEventDetectorTests {
         #expect(events.first?.type == .movementLike)
     }
 
-    private func makeCoreMLDetector(label: String) -> CoreMLSleepEventDetector {
+    private func makeCoreMLDetector(
+        label: String,
+        confidence: Double = 0.9,
+        threshold: Double = 0.5
+    ) -> CoreMLSleepEventDetector {
         CoreMLSleepEventDetector(
-            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: threshold),
             modelProvider: CompositeMockModelProvider(
-                prediction: ModelPrediction(label: label, confidence: 0.9)
+                prediction: ModelPrediction(label: label, confidence: confidence)
             )
         )
     }

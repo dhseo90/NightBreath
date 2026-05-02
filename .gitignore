@@ -1,12 +1,19 @@
 .build/
+.swiftpm/
 DerivedData/
+.derivedData/
 *.xcuserdata/
 *.xcuserstate
+__pycache__/
+*.pyc
+Tools/Training/.venv/
 
 # Audio samples are local-only. Do not commit personal recordings or downloaded datasets.
 Samples/Personal/
 Samples/Public/
 Tools/FeatureLab/output/
+Tools/Training/output/
+.device-data/
 *.wav
 *.caf
 *.m4a

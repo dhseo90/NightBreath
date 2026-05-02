@@ -60,7 +60,10 @@ struct RuleBasedSleepEventDetectorTests {
                 rms: 0.38,
                 peak: 0.95,
                 zeroCrossingRate: 0.45,
-                lowFrequencyEnergyRatio: 0.2
+                lowFrequencyEnergyRatio: 0.2,
+                midBandEnergy: 0.35,
+                highBandEnergy: 0.45,
+                spectralCentroid: 3_000
             )
         )
 
@@ -69,17 +72,61 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func detectsCoughLikeShortBurstCandidate() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 0.7,
+                rms: 0.09,
+                peak: 0.44,
+                zeroCrossingRate: 0.18,
+                lowFrequencyEnergyRatio: 0.24,
+                midBandEnergy: 0.48,
+                highBandEnergy: 0.28,
+                spectralCentroid: 1_800
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.coughLike))
+        #expect(output.first { $0.eventType == .coughLike }?.debugReason?.contains("placeholder") == true)
+    }
+
+    @Test
+    func detectsGaspLikeRecoveryBreathCandidate() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 0.9,
+                rms: 0.045,
+                peak: 0.20,
+                zeroCrossingRate: 0.13,
+                lowFrequencyEnergyRatio: 0.30,
+                midBandEnergy: 0.52,
+                highBandEnergy: 0.18,
+                spectralCentroid: 1_200
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.gaspLike))
+        #expect(output.first { $0.eventType == .gaspLike }?.debugReason?.contains("회복 호흡") == true)
+    }
+
+    @Test
     func detectsBruxismLikePlaceholderCandidate() {
         let output = RuleBasedSleepEventDetector().detect(
             features: makeFeatures(
-                rms: 0.06,
-                peak: 0.28,
-                zeroCrossingRate: 0.62,
-                lowFrequencyEnergyRatio: 0.25
+                duration: 0.8,
+                rms: 0.055,
+                peak: 0.24,
+                zeroCrossingRate: 0.58,
+                lowFrequencyEnergyRatio: 0.22,
+                midBandEnergy: 0.18,
+                highBandEnergy: 0.54,
+                spectralCentroid: 2_200
             )
         )
 
         #expect(output.map(\.eventType).contains(.bruxismLike))
+        #expect(output.first { $0.eventType == .bruxismLike }?.debugReason?.contains("사용자 확인") == true)
+        #expect(output.first { $0.eventType == .bruxismLike }?.debugReason?.contains("임시 rule-based") == true)
     }
 
     @Test
@@ -106,6 +153,9 @@ struct RuleBasedSleepEventDetectorTests {
         peak: Double,
         zeroCrossingRate: Double,
         lowFrequencyEnergyRatio: Double,
+        midBandEnergy: Double? = nil,
+        highBandEnergy: Double? = nil,
+        spectralCentroid: Double? = nil,
         isLikelySilence: Bool? = nil
     ) -> AudioFeatures {
         AudioFeatures(
@@ -115,6 +165,9 @@ struct RuleBasedSleepEventDetectorTests {
             peak: peak,
             zeroCrossingRate: zeroCrossingRate,
             lowFrequencyEnergyRatio: lowFrequencyEnergyRatio,
+            spectralCentroid: spectralCentroid,
+            midBandEnergy: midBandEnergy,
+            highBandEnergy: highBandEnergy,
             isLikelySilence: isLikelySilence
         )
     }

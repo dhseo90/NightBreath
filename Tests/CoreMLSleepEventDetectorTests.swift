@@ -22,6 +22,22 @@ struct CoreMLSleepEventDetectorTests {
     }
 
     @Test
+    func snoreModelProviderReportsMissingBundleModel() {
+        let provider = CoreMLSnoreModelProvider(modelName: "DefinitelyMissingNightBreathSnoreModel")
+
+        #expect(provider.isModelAvailable == false)
+
+        do {
+            _ = try provider.prediction(for: ModelInputAdapter().makeInput(from: makeFeatures()))
+            Issue.record("Expected missing Core ML model to throw")
+        } catch let error as CoreMLDetectorError {
+            #expect(error.message.contains("DefinitelyMissingNightBreathSnoreModel"))
+        } catch {
+            Issue.record("Expected CoreMLDetectorError")
+        }
+    }
+
+    @Test
     func mockProviderPredictionCreatesDetectorOutput() {
         let detector = CoreMLSleepEventDetector(
             configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
@@ -36,6 +52,22 @@ struct CoreMLSleepEventDetectorTests {
         #expect(result.outputs.count == 1)
         #expect(result.outputs.first?.eventType == .coughLike)
         #expect(result.outputs.first?.confidence == 0.78)
+    }
+
+    @Test
+    func numericSnorePredictionMapsToSnoreOutput() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
+            modelProvider: MockModelProvider(
+                prediction: ModelPrediction(label: "1", confidence: 0.82)
+            )
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.status == .success)
+        #expect(result.outputs.first?.eventType == .snore)
+        #expect(result.outputs.first?.confidence == 0.82)
     }
 
     @Test

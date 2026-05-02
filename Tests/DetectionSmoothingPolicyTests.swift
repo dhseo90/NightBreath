@@ -44,6 +44,26 @@ struct DetectionSmoothingPolicyTests {
     }
 
     @Test
+    func mergesShortAdjacentChunksBeforeFilteringMinimumDuration() {
+        let start = Date(timeIntervalSince1970: 0)
+        let policy = DetectionSmoothingPolicy(
+            minimumEventDuration: 0.2,
+            maximumMergeGap: 0.05,
+            confidenceThreshold: 0.35
+        )
+
+        let outputs = policy.apply(to: [
+            makeOutput(.environmentalNoise, start: start, duration: 0.09, confidence: 0.6),
+            makeOutput(.environmentalNoise, start: start.addingTimeInterval(0.10), duration: 0.09, confidence: 0.6),
+            makeOutput(.environmentalNoise, start: start.addingTimeInterval(0.20), duration: 0.09, confidence: 0.6)
+        ])
+
+        #expect(outputs.count == 1)
+        #expect(outputs.first?.eventType == .environmentalNoise)
+        #expect((outputs.first?.duration ?? 0) >= 0.29)
+    }
+
+    @Test
     func keepsDifferentTypesSeparate() {
         let start = Date(timeIntervalSince1970: 0)
         let policy = DetectionSmoothingPolicy(
@@ -58,6 +78,62 @@ struct DetectionSmoothingPolicyTests {
         ])
 
         #expect(outputs.count == 2)
+    }
+
+    @Test
+    func mergesCloseBruxismLikeEventsWithSpecificGap() {
+        let start = Date(timeIntervalSince1970: 0)
+        let policy = DetectionSmoothingPolicy(
+            minimumEventDuration: 0.05,
+            maximumMergeGap: 0.2,
+            confidenceThreshold: 0.1
+        )
+
+        let outputs = policy.apply(to: [
+            makeOutput(.bruxismLike, start: start, duration: 0.16, confidence: 0.62),
+            makeOutput(.bruxismLike, start: start.addingTimeInterval(1.0), duration: 0.18, confidence: 0.68)
+        ])
+
+        #expect(outputs.count == 1)
+        #expect(outputs.first?.eventType == .bruxismLike)
+        #expect((outputs.first?.duration ?? 0) >= 1.17)
+        #expect(outputs.first?.confidence == 0.68)
+    }
+
+    @Test
+    func filtersVeryShortOrLowConfidenceBruxismLikeEvents() {
+        let start = Date(timeIntervalSince1970: 0)
+        let policy = DetectionSmoothingPolicy(
+            minimumEventDuration: 0.05,
+            maximumMergeGap: 0.2,
+            confidenceThreshold: 0.1
+        )
+
+        let outputs = policy.apply(to: [
+            makeOutput(.bruxismLike, start: start, duration: 0.05, confidence: 0.8),
+            makeOutput(.bruxismLike, start: start.addingTimeInterval(1), duration: 0.4, confidence: 0.3),
+            makeOutput(.bruxismLike, start: start.addingTimeInterval(2), duration: 0.4, confidence: 0.6)
+        ])
+
+        #expect(outputs.count == 1)
+        #expect(outputs.first?.startedAt == start.addingTimeInterval(2))
+    }
+
+    @Test
+    func environmentalNoiseOverlapSuppressesWeakBruxismCandidate() {
+        let start = Date(timeIntervalSince1970: 0)
+        let policy = DetectionSmoothingPolicy(
+            minimumEventDuration: 0.1,
+            maximumMergeGap: 0.2,
+            confidenceThreshold: 0.1
+        )
+
+        let outputs = policy.apply(to: [
+            makeOutput(.environmentalNoise, start: start, duration: 1, confidence: 0.7),
+            makeOutput(.bruxismLike, start: start.addingTimeInterval(0.2), duration: 0.4, confidence: 0.5)
+        ])
+
+        #expect(outputs.map(\.eventType) == [.environmentalNoise])
     }
 
     @Test

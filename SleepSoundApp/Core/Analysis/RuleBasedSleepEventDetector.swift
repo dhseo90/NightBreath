@@ -89,19 +89,34 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
         }
 
         var outputs: [DetectorOutput] = []
+        let peakContrast = max(0, features.peak - features.rms)
+        let isBroadbandNoise =
+            features.zeroCrossingRate >= 0.42 ||
+            features.spectralCentroid >= 2_200 ||
+            (features.highBandEnergy >= 0.30 && features.midBandEnergy >= 0.20 && features.lowBandEnergy <= 0.55)
+        let isSustainedExternalNoise =
+            features.duration >= 1.2 &&
+            features.estimatedNoiseLevel >= noiseRMS * 0.8
+        let isVeryLoudInput =
+            features.rms >= noiseRMS ||
+            features.peak >= 0.65 ||
+            features.estimatedNoiseLevel >= noiseRMS
 
-        if features.rms >= noiseRMS || features.peak >= 0.85 {
+        // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
+        // 큰 broadband noise나 지속적인 외부 소음은 수면 이벤트보다 환경 소음 후보로 우선 표시합니다.
+        if isVeryLoudInput,
+           isBroadbandNoise || isSustainedExternalNoise || features.rms >= noiseRMS * 1.25 {
             outputs.append(
                 makeOutput(
                     .environmentalNoise,
                     features: features,
-                    confidence: 0.55 + min(features.rms, 0.35),
+                    confidence: 0.50 + min(features.rms * 0.7, 0.22) + (isBroadbandNoise ? 0.10 : 0),
                     intensity: max(features.rms, features.peak),
-                    debugReason: "높은 RMS/peak 기반 환경 소음 placeholder"
+                    debugReason: "큰 broadband/지속 소음 기반 환경 소음 placeholder"
                 )
             )
 
-            if features.rms >= 0.35 || features.peak >= 0.92 {
+            if features.rms >= 0.18 || features.peak >= 0.55 {
                 outputs.append(
                     makeOutput(
                         .awakeningSuspected,
@@ -113,12 +128,11 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
                 )
             }
 
-            return outputs
         }
 
         if features.rms >= snoreRMS,
-           features.lowFrequencyEnergyRatio >= 0.55,
-           features.zeroCrossingRate <= 0.35 {
+           features.lowFrequencyEnergyRatio >= 0.45,
+           features.zeroCrossingRate <= 0.45 {
             outputs.append(
                 makeOutput(
                     .snore,
@@ -130,51 +144,77 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             )
         }
 
-        if features.peak >= 0.55,
-           features.duration <= 1.6,
-           features.zeroCrossingRate >= 0.22 {
+        let hasEnvironmentalNoise = outputs.contains { $0.eventType == .environmentalNoise }
+
+        // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
+        // 기침 의심 소리는 짧고 강한 burst, 높은 peak 대비 RMS, mid/high band 활동을 함께 봅니다.
+        if features.duration <= 1.8,
+           features.rms >= 0.03,
+           features.peak >= 0.22,
+           peakContrast >= 0.08,
+           features.zeroCrossingRate >= 0.10 || features.midBandEnergy >= 0.20 || features.highBandEnergy >= 0.18 {
             outputs.append(
                 makeOutput(
                     .coughLike,
                     features: features,
-                    confidence: 0.42 + min(features.peak * 0.25, 0.25),
+                    confidence: 0.44 + min(features.peak * 0.25, 0.20) + min(peakContrast, 0.12),
                     intensity: features.peak,
-                    debugReason: "짧고 급격한 peak 기반 기침 의심 소리 placeholder"
+                    debugReason: "짧고 강한 burst 기반 기침 의심 소리 placeholder"
                 )
             )
         }
 
-        if features.rms >= 0.035,
-           features.zeroCrossingRate >= 0.35,
-           features.lowFrequencyEnergyRatio < 0.5 {
+        let hasCoughLike = outputs.contains { $0.eventType == .coughLike }
+        let isLocalizedFrictionCandidate =
+            features.duration <= 2.0 &&
+            features.rms >= 0.025 &&
+            features.peak >= 0.10 &&
+            peakContrast >= 0.03 &&
+            features.lowFrequencyEnergyRatio <= 0.45 &&
+            (features.zeroCrossingRate >= 0.24 || features.highBandEnergy >= 0.24 || features.spectralCentroid >= 1_700)
+
+        // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
+        // 이갈이 의심 소리는 짧고 날카로운 고주파 마찰음 후보만 표시하며, 침구/침대/주변 소음과 혼동될 수 있습니다.
+        if isLocalizedFrictionCandidate,
+           !hasEnvironmentalNoise {
             outputs.append(
                 makeOutput(
                     .bruxismLike,
                     features: features,
-                    confidence: 0.40 + min(features.zeroCrossingRate * 0.25, 0.25),
-                    intensity: min(features.rms * 3, 1),
-                    debugReason: "고 zero-crossing 기반 이갈이 의심 소리 placeholder"
+                    confidence: 0.43 + min(features.zeroCrossingRate * 0.18, 0.14) + min(features.highBandEnergy * 0.16, 0.12),
+                    intensity: min(max(features.peak, features.rms * 2.5), 1),
+                    debugReason: "짧은 고주파 마찰음 패턴으로 이갈이 의심 소리 후보입니다. 침구 마찰음 또는 외부 소음일 수 있어 사용자 확인이 필요합니다. 임시 rule-based 판단입니다."
                 )
             )
         }
 
-        if features.rms >= 0.04,
-           features.zeroCrossingRate >= 0.18,
+        let hasSnore = outputs.contains { $0.eventType == .snore }
+
+        // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
+        // gasp-like 후보는 짧은 회복 호흡으로 의심되는 burst를 보되, 코골기/환경 소음/기침 후보와 분리합니다.
+        if features.duration <= 2.2,
+           features.rms >= 0.02,
+           features.peak >= 0.14,
+           features.zeroCrossingRate >= 0.06,
+           features.zeroCrossingRate <= 0.34,
            features.lowFrequencyEnergyRatio < 0.65,
-           outputs.isEmpty {
+           features.highBandEnergy < 0.55,
+           !hasSnore,
+           !hasEnvironmentalNoise,
+           !hasCoughLike {
             outputs.append(
                 makeOutput(
                     .gaspLike,
                     features: features,
-                    confidence: 0.40 + min(features.rms * 2, 0.25),
-                    intensity: min(features.rms * 3, 1),
-                    debugReason: "짧은 회복 호흡 후보 placeholder"
+                    confidence: 0.40 + min(features.rms * 2.2, 0.22) + min(peakContrast * 0.35, 0.10),
+                    intensity: min(max(features.rms * 2.5, features.peak), 1),
+                    debugReason: "짧은 회복 호흡으로 의심되는 소리 placeholder"
                 )
             )
         }
 
-        if features.rms >= 0.035,
-           features.zeroCrossingRate >= 0.12,
+        if features.rms >= 0.02,
+           features.zeroCrossingRate >= 0.08,
            features.zeroCrossingRate < 0.35,
            features.lowFrequencyEnergyRatio < 0.55,
            outputs.isEmpty {
@@ -189,8 +229,8 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             )
         }
 
-        if features.rms >= 0.03,
-           features.peak >= 0.45,
+        if features.rms >= 0.015,
+           features.peak >= 0.15,
            outputs.isEmpty {
             outputs.append(
                 makeOutput(

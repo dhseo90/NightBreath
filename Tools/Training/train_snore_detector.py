@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""Train the first local snore vs non-snore baseline detector."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+from dataset import (
+    DatasetError,
+    InsufficientDataError,
+    NEGATIVE_LABELS,
+    POSITIVE_LABEL,
+    build_feature_matrix,
+    class_counts,
+    load_config,
+    load_samples,
+    resolve_path,
+    training_root,
+    validate_for_training,
+)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Train a local snore detector baseline.")
+    parser.add_argument("--config", default=str(training_root() / "config" / "snore_detector.yaml"))
+    parser.add_argument("--input", help="Samples/Personal style folder containing metadata.")
+    parser.add_argument("--metadata", help="Optional metadata.csv/json path inside --input.")
+    parser.add_argument("--output-dir", help="Directory for trained model and metrics.")
+    args = parser.parse_args()
+
+    try:
+        config = load_config(args.config)
+        input_dir = resolve_path(args.input or config["dataset"]["input_dir"], training_root())
+        output_dir = resolve_path(args.output_dir or config["output"]["directory"], training_root())
+
+        records = load_samples(input_dir=input_dir, metadata_path=args.metadata)
+        validate_for_training(
+            records,
+            min_total=int(config["training"]["min_total_samples"]),
+            min_positive=int(config["training"]["min_positive_samples"]),
+            min_negative=int(config["training"]["min_negative_samples"]),
+        )
+    except (DatasetError, InsufficientDataError) as error:
+        print(f"Training skipped: {error}", file=sys.stderr)
+        return 2
+
+    try:
+        deps = _load_training_dependencies()
+    except RuntimeError as error:
+        print(f"Training skipped: {error}", file=sys.stderr)
+        return 2
+
+    x, y, feature_columns = build_feature_matrix(records, config["dataset"]["feature_columns"])
+    np = deps["np"]
+    joblib = deps["joblib"]
+    LogisticRegression = deps["LogisticRegression"]
+    Pipeline = deps["Pipeline"]
+    StandardScaler = deps["StandardScaler"]
+    train_test_split = deps["train_test_split"]
+    accuracy_score = deps["accuracy_score"]
+    precision_score = deps["precision_score"]
+    recall_score = deps["recall_score"]
+    f1_score = deps["f1_score"]
+    confusion_matrix = deps["confusion_matrix"]
+
+    x_array = np.asarray(x, dtype=float)
+    y_array = np.asarray(y, dtype=int)
+    test_size = float(config["training"]["test_size"])
+    random_state = int(config["training"]["random_state"])
+    class_weight = config["training"].get("class_weight") or None
+    threshold = float(config["training"]["threshold"])
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_array,
+        y_array,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=y_array,
+    )
+
+    model = Pipeline(
+        steps=[
+            ("scaler", StandardScaler()),
+            (
+                "classifier",
+                LogisticRegression(
+                    max_iter=1_000,
+                    class_weight=class_weight,
+                    random_state=random_state,
+                ),
+            ),
+        ]
+    )
+    model.fit(x_train, y_train)
+
+    probabilities = model.predict_proba(x_test)[:, 1]
+    predictions = (probabilities >= threshold).astype(int)
+    metrics = {
+        "trainedAt": datetime.now(timezone.utc).isoformat(),
+        "sampleCounts": class_counts(records),
+        "trainSampleCount": int(len(y_train)),
+        "validationSampleCount": int(len(y_test)),
+        "threshold": threshold,
+        "accuracy": float(accuracy_score(y_test, predictions)),
+        "precision": float(precision_score(y_test, predictions, zero_division=0)),
+        "recall": float(recall_score(y_test, predictions, zero_division=0)),
+        "f1": float(f1_score(y_test, predictions, zero_division=0)),
+        "confusionMatrix": confusion_matrix(y_test, predictions, labels=[0, 1]).tolist(),
+    }
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    model_path = output_dir / config["output"]["model_filename"]
+    metrics_path = output_dir / config["output"]["metrics_filename"]
+    bundle = {
+        "model": model,
+        "feature_columns": feature_columns,
+        "threshold": threshold,
+        "positive_label": POSITIVE_LABEL,
+        "negative_labels": sorted(NEGATIVE_LABELS),
+        "trained_at": metrics["trainedAt"],
+        "config": config,
+    }
+    joblib.dump(bundle, model_path)
+    metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print(f"Trained snore detector with {len(records)} samples.")
+    print(f"Model: {model_path}")
+    print(f"Metrics: {metrics_path}")
+    print(
+        "Validation: "
+        f"accuracy={metrics['accuracy']:.3f} "
+        f"precision={metrics['precision']:.3f} "
+        f"recall={metrics['recall']:.3f} "
+        f"f1={metrics['f1']:.3f}"
+    )
+    return 0
+
+
+def _load_training_dependencies() -> dict[str, object]:
+    try:
+        import joblib
+        import numpy as np
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+        from sklearn.model_selection import train_test_split
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler
+    except ImportError as error:
+        raise RuntimeError(
+            "필요한 Python package가 없습니다. "
+            "Tools/Training에서 `python3 -m pip install -r requirements.txt`를 실행해 주세요."
+        ) from error
+
+    return {
+        "joblib": joblib,
+        "np": np,
+        "LogisticRegression": LogisticRegression,
+        "accuracy_score": accuracy_score,
+        "precision_score": precision_score,
+        "recall_score": recall_score,
+        "f1_score": f1_score,
+        "confusion_matrix": confusion_matrix,
+        "train_test_split": train_test_split,
+        "Pipeline": Pipeline,
+        "StandardScaler": StandardScaler,
+    }
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

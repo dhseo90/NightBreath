@@ -10,7 +10,9 @@ public enum CoreMLDetectionStatus: Equatable, Sendable {
         switch self {
         case .modelUnavailable(let reason), .predictionFailed(let reason):
             reason
-        case .success, .belowConfidenceThreshold:
+        case .belowConfidenceThreshold(let confidence):
+            "Core ML confidence below threshold: \(String(format: "%.3f", confidence))"
+        case .success:
             nil
         }
     }
@@ -39,7 +41,7 @@ public struct CoreMLSleepEventDetector: SleepEventDetector {
         outputMapper: ModelOutputMapper = ModelOutputMapper()
     ) {
         self.configuration = configuration
-        self.modelProvider = modelProvider ?? UnavailableMLModelProvider(modelName: configuration.modelName)
+        self.modelProvider = modelProvider ?? CoreMLSnoreModelProvider(modelName: configuration.modelName)
         self.inputAdapter = inputAdapter
         self.outputMapper = outputMapper
     }
@@ -70,7 +72,7 @@ public struct CoreMLSleepEventDetector: SleepEventDetector {
             let output = outputMapper.makeOutput(
                 prediction: prediction,
                 features: features,
-                debugReason: "Core ML placeholder backend label=\(prediction.label)"
+                debugReason: "Core ML snore backend label=\(prediction.label)"
             )
 
             return CoreMLDetectionResult(outputs: [output], status: .success)

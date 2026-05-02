@@ -28,6 +28,11 @@ public struct ModelInput: Equatable, Sendable {
 }
 
 public struct ModelInputAdapter: Sendable {
+    public static let featureVectorInputName = "features"
+
+    /// The first snore baseline expects these scalar Double inputs in this exact order.
+    /// The bundle provider also exposes the same values as an MLMultiArray named `features`
+    /// so a later spectrogram or vector-based Core ML model can reuse the adapter.
     public static let featureNames: [String] = [
         "rms",
         "energy",

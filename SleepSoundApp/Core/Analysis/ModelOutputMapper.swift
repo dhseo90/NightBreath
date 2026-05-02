@@ -3,6 +3,9 @@ import Foundation
 public struct ModelOutputMapper: Sendable {
     public static let knownLabels: [String] = [
         "snore",
+        "1",
+        "non_snore",
+        "0",
         "bruxism_like",
         "breathing_pause_suspected",
         "gasp_like",
@@ -10,16 +13,50 @@ public struct ModelOutputMapper: Sendable {
         "sleep_talk_like",
         "movement_like",
         "environmental_noise",
+        "noise",
         "awakening_suspected",
         "unknown"
     ]
 
     public init() {}
 
+    public static func normalizedLabel(_ label: String) -> String {
+        let normalizedSeparators = label
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "-", with: "_")
+            .replacingOccurrences(of: " ", with: "_")
+
+        var output = ""
+        var previousWasLowercaseOrDigit = false
+
+        for scalar in normalizedSeparators.unicodeScalars {
+            if CharacterSet.uppercaseLetters.contains(scalar) {
+                if previousWasLowercaseOrDigit, output.last != "_" {
+                    output.append("_")
+                }
+                output.append(String(scalar).lowercased())
+                previousWasLowercaseOrDigit = false
+            } else {
+                output.append(String(scalar).lowercased())
+                previousWasLowercaseOrDigit =
+                    CharacterSet.lowercaseLetters.contains(scalar) ||
+                    CharacterSet.decimalDigits.contains(scalar)
+            }
+        }
+
+        while output.contains("__") {
+            output = output.replacingOccurrences(of: "__", with: "_")
+        }
+
+        return output.trimmingCharacters(in: CharacterSet(charactersIn: "_"))
+    }
+
     public func eventType(for label: String) -> SleepEventType {
-        switch label {
-        case "snore":
+        switch Self.normalizedLabel(label) {
+        case "snore", "1":
             .snore
+        case "non_snore", "0":
+            .unknown
         case "bruxism_like":
             .bruxismLike
         case "breathing_pause_suspected":
@@ -33,6 +70,8 @@ public struct ModelOutputMapper: Sendable {
         case "movement_like":
             .movementLike
         case "environmental_noise":
+            .environmentalNoise
+        case "noise":
             .environmentalNoise
         case "awakening_suspected":
             .awakeningSuspected

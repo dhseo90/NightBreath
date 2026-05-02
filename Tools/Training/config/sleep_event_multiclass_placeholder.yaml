@@ -1,0 +1,31 @@
+# Placeholder only. This config documents the future multiclass detector shape.
+# Do not use it for training until enough local, reviewed samples exist.
+
+dataset:
+  input_dir: ../../Samples/Personal
+  feature_columns:
+    - rms
+    - energy
+    - zeroCrossingRate
+    - spectralCentroid
+    - lowBandEnergy
+    - midBandEnergy
+    - highBandEnergy
+
+labels:
+  classes:
+    - snore
+    - coughLike
+    - gaspLike
+    - environmentalNoise
+    - unknown
+
+training:
+  status: placeholder
+  min_samples_per_class: 50
+  recommended_samples_per_class: 200
+  note: 실제 multiclass 학습은 이번 범위가 아니며, 라벨 품질과 개인정보 검토 후 별도 작업으로 진행합니다.
+
+output:
+  directory: output
+  model_filename: sleep_event_multiclass_placeholder.joblib

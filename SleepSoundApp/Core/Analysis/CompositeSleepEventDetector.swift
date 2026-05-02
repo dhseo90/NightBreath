@@ -28,13 +28,12 @@ public struct CompositeSleepEventDetector: SleepEventDetector {
         case .hybrid:
             let coreMLResult = coreMLDetector.detectWithStatus(features: features)
 
-            if !coreMLResult.outputs.isEmpty {
-                return coreMLResult.outputs
+            if let snoreOutput = coreMLResult.outputs.first(where: { $0.eventType == .snore }) {
+                return [snoreOutput]
             }
 
-            guard let fallbackReason = coreMLResult.status.fallbackReason else {
-                return []
-            }
+            let fallbackReason = coreMLResult.status.fallbackReason
+                ?? "Core ML did not return a confident snore label."
 
             return ruleBasedDetector.detect(features: features).map { output in
                 withFallbackReason(output, reason: fallbackReason)

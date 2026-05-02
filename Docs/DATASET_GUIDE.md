@@ -46,6 +46,10 @@ Feature Lab에서 사용하는 라벨은 앱의 `SleepEventType`과 맞춥니다
 
 - 한 샘플에는 가능한 가장 중요한 라벨 하나를 우선 지정합니다.
 - 여러 이벤트가 섞인 경우 짧은 구간으로 나누어 라벨링합니다.
+- 기침 의심 소리, gasp-like 회복 호흡, 환경 소음은 서로 섞이기 쉬우므로 peak가 큰 생활 소음은 `environmentalNoise`로 우선 분리합니다.
+- `bruxismLike`는 이갈이 의심 소리 후보로만 사용합니다. 조용한 clenching은 iPhone 마이크만으로 감지하기 어렵습니다.
+- `bruxismLike`는 침구 마찰음, 손톱 긁힘, 침대 소음, 반려동물 소리와 혼동될 수 있어 아침 feedback으로 다시 확인합니다.
+- gasp-like 라벨은 “회복 호흡으로 의심되는 소리” 후보를 뜻하며 상태를 확정하는 의미가 아닙니다.
 - 사람 말소리는 `sleepTalkLike` 여부만 표시하고 내용을 기록하지 않습니다.
 - 주변 대화 내용, 이름, 주소, 민감 정보가 들어간 샘플은 Feature Lab에 넣지 않습니다.
 - 라벨이 애매하면 `unknown`으로 둡니다.
@@ -77,3 +81,13 @@ sample-001.wav,snore,00:00:02.0,00:00:05.0,low-frequency repeating pattern
 - low frequency tone
 
 개인 샘플은 rule-based detector 튜닝이 꼭 필요할 때만 로컬에서 수동으로 추가합니다.
+
+## iPhone DEBUG 샘플 수집
+
+실제 iPhone에서 짧은 검증 샘플이 필요하면 DEBUG 빌드의 “개발자용 샘플 수집” 화면을 사용합니다.
+
+- 라벨을 먼저 선택합니다.
+- 2초/3초/5초 중 하나를 눌러 명시적으로 캡처합니다.
+- 파일명은 timestamp와 label을 포함합니다.
+- metadata JSON과 feature CSV가 함께 저장됩니다.
+- 전체 밤 오디오를 저장하는 용도로 사용하지 않습니다.

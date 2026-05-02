@@ -149,6 +149,53 @@ struct AudioFeatureExtractorTests {
         #expect(csv.contains("environmentalNoise"))
         #expect(!csv.contains("samples"))
     }
+
+    @Test
+    func featureCSVExporterSummarizesRecordsByLabel() {
+        let exporter = FeatureCSVExporter()
+        let coughFeatures = AudioFeatures(
+            startedAt: Date(timeIntervalSince1970: 1),
+            duration: 1,
+            rms: 0.10,
+            energy: 0.010,
+            peak: 0.4,
+            zeroCrossingRate: 0.2,
+            lowFrequencyEnergyRatio: 0.2,
+            spectralCentroid: 1_500,
+            lowBandEnergy: 0.2,
+            midBandEnergy: 0.5,
+            highBandEnergy: 0.3
+        )
+        let noiseFeatures = AudioFeatures(
+            startedAt: Date(timeIntervalSince1970: 2),
+            duration: 1,
+            rms: 0.30,
+            energy: 0.090,
+            peak: 0.8,
+            zeroCrossingRate: 0.5,
+            lowFrequencyEnergyRatio: 0.1,
+            spectralCentroid: 3_000,
+            lowBandEnergy: 0.1,
+            midBandEnergy: 0.3,
+            highBandEnergy: 0.6
+        )
+
+        let summaries = exporter.summarizeByLabel(records: [
+            FeatureCSVRecord(label: "coughLike", features: coughFeatures),
+            FeatureCSVRecord(label: "coughLike", features: coughFeatures),
+            FeatureCSVRecord(label: "environmentalNoise", features: noiseFeatures)
+        ])
+        let summaryCSV = FeatureCSVExporter.makeLabelSummaryCSV(records: [
+            FeatureCSVRecord(label: "coughLike", features: coughFeatures),
+            FeatureCSVRecord(label: "environmentalNoise", features: noiseFeatures)
+        ])
+
+        #expect(summaries.first { $0.label == "coughLike" }?.sampleCount == 2)
+        #expect(summaries.first { $0.label == "environmentalNoise" }?.averageRMS == 0.30)
+        #expect(summaryCSV.contains("label,sampleCount,averageRMS"))
+        #expect(summaryCSV.contains("coughLike"))
+        #expect(summaryCSV.contains("environmentalNoise"))
+    }
 }
 
 private extension AudioFeatures {
