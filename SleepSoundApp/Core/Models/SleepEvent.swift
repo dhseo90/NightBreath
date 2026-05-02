@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SleepEventType: String, Codable, CaseIterable, Identifiable {
+public enum SleepEventType: String, Codable, CaseIterable, Identifiable, Sendable {
     case snore
     case bruxismLike
     case breathingPauseSuspected

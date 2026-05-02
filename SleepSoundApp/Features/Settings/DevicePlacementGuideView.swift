@@ -10,7 +10,7 @@ struct DevicePlacementGuideView: View {
             }
 
             Section("리포트 해석") {
-                Text("리포트는 감지된 소리 기반 지표를 보여주며, 질병을 확정하거나 진단하지 않습니다.")
+                Text("리포트는 감지된 소리 기반 지표를 보여주는 웰니스 참고 정보입니다.")
                     .foregroundStyle(.secondary)
             }
         }

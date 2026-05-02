@@ -7,8 +7,12 @@ public protocol LocalDataStoreProtocol {
     func save(checkIn: MorningCheckIn)
     func fetchSessions() -> [SleepSession]
     func fetchEvents(for sessionId: UUID) -> [SleepEvent]
+    func fetchReports() -> [NightReport]
+    func fetchReport(for sessionId: UUID) -> NightReport?
     func fetchLatestReport() -> NightReport?
     func fetchCheckIn(for sessionId: UUID) -> MorningCheckIn?
+    func deleteSession(id: UUID)
+    func deleteAllSleepData()
 }
 
 public final class InMemoryLocalDataStore: LocalDataStoreProtocol {
@@ -45,11 +49,195 @@ public final class InMemoryLocalDataStore: LocalDataStoreProtocol {
         eventsBySession[sessionId] ?? []
     }
 
+    public func fetchReports() -> [NightReport] {
+        reports.sorted { $0.generatedAt > $1.generatedAt }
+    }
+
+    public func fetchReport(for sessionId: UUID) -> NightReport? {
+        reports.first { $0.sessionId == sessionId }
+    }
+
     public func fetchLatestReport() -> NightReport? {
-        reports.sorted { $0.generatedAt > $1.generatedAt }.first
+        fetchReports().first
     }
 
     public func fetchCheckIn(for sessionId: UUID) -> MorningCheckIn? {
         checkInsBySession[sessionId]
+    }
+
+    public func deleteSession(id: UUID) {
+        sessions.removeAll { $0.id == id }
+        eventsBySession.removeValue(forKey: id)
+        reports.removeAll { $0.sessionId == id }
+        checkInsBySession.removeValue(forKey: id)
+    }
+
+    public func deleteAllSleepData() {
+        sessions.removeAll()
+        eventsBySession.removeAll()
+        reports.removeAll()
+        checkInsBySession.removeAll()
+    }
+}
+
+public final class JSONFileLocalDataStore: LocalDataStoreProtocol {
+    public let fileURL: URL
+
+    private let fileManager: FileManager
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+    private let lock = NSLock()
+
+    public init(
+        fileURL: URL? = nil,
+        fileManager: FileManager = .default
+    ) {
+        self.fileManager = fileManager
+        self.fileURL = fileURL ?? Self.defaultStoreURL(fileManager: fileManager)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        self.encoder = encoder
+        self.decoder = JSONDecoder()
+
+        try? fileManager.createDirectory(
+            at: self.fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+    }
+
+    public func save(session: SleepSession) {
+        updateArchive { archive in
+            archive.sessions.removeAll { $0.id == session.id }
+            archive.sessions.append(session)
+        }
+    }
+
+    public func save(events: [SleepEvent], for sessionId: UUID) {
+        updateArchive { archive in
+            archive.eventsBySessionID[sessionId.uuidString] = events
+        }
+    }
+
+    public func save(report: NightReport) {
+        updateArchive { archive in
+            archive.reports.removeAll { $0.sessionId == report.sessionId }
+            archive.reports.append(report)
+        }
+    }
+
+    public func save(checkIn: MorningCheckIn) {
+        updateArchive { archive in
+            archive.checkInsBySessionID[checkIn.sessionId.uuidString] = checkIn
+        }
+    }
+
+    public func fetchSessions() -> [SleepSession] {
+        readArchive().sessions.sorted { $0.startedAt > $1.startedAt }
+    }
+
+    public func fetchEvents(for sessionId: UUID) -> [SleepEvent] {
+        readArchive().eventsBySessionID[sessionId.uuidString] ?? []
+    }
+
+    public func fetchReports() -> [NightReport] {
+        readArchive().reports.sorted { $0.generatedAt > $1.generatedAt }
+    }
+
+    public func fetchReport(for sessionId: UUID) -> NightReport? {
+        readArchive().reports.first { $0.sessionId == sessionId }
+    }
+
+    public func fetchLatestReport() -> NightReport? {
+        fetchReports().first
+    }
+
+    public func fetchCheckIn(for sessionId: UUID) -> MorningCheckIn? {
+        readArchive().checkInsBySessionID[sessionId.uuidString]
+    }
+
+    public func deleteSession(id: UUID) {
+        updateArchive { archive in
+            archive.sessions.removeAll { $0.id == id }
+            archive.eventsBySessionID.removeValue(forKey: id.uuidString)
+            archive.reports.removeAll { $0.sessionId == id }
+            archive.checkInsBySessionID.removeValue(forKey: id.uuidString)
+        }
+    }
+
+    public func deleteAllSleepData() {
+        lock.lock()
+        defer { lock.unlock() }
+
+        try? fileManager.removeItem(at: fileURL)
+    }
+
+    private static func defaultStoreURL(fileManager: FileManager) -> URL {
+        let baseURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.temporaryDirectory
+
+        return baseURL
+            .appendingPathComponent("NightBreath", isDirectory: true)
+            .appendingPathComponent("sleep-data.json")
+    }
+
+    private func readArchive() -> SleepDataArchive {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else {
+            return SleepDataArchive()
+        }
+
+        return (try? decoder.decode(SleepDataArchive.self, from: data)) ?? SleepDataArchive()
+    }
+
+    private func updateArchive(_ update: (inout SleepDataArchive) -> Void) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        var archive = loadArchiveWithoutLock()
+        update(&archive)
+        persistArchiveWithoutLock(archive)
+    }
+
+    private func loadArchiveWithoutLock() -> SleepDataArchive {
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else {
+            return SleepDataArchive()
+        }
+
+        return (try? decoder.decode(SleepDataArchive.self, from: data)) ?? SleepDataArchive()
+    }
+
+    private func persistArchiveWithoutLock(_ archive: SleepDataArchive) {
+        guard let data = try? encoder.encode(archive) else { return }
+
+        try? fileManager.createDirectory(
+            at: fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try? data.write(to: fileURL, options: [.atomic])
+    }
+}
+
+public struct SleepDataArchive: Codable, Equatable {
+    public var schemaVersion: Int
+    public var sessions: [SleepSession]
+    public var eventsBySessionID: [String: [SleepEvent]]
+    public var reports: [NightReport]
+    public var checkInsBySessionID: [String: MorningCheckIn]
+
+    public init(
+        schemaVersion: Int = 1,
+        sessions: [SleepSession] = [],
+        eventsBySessionID: [String: [SleepEvent]] = [:],
+        reports: [NightReport] = [],
+        checkInsBySessionID: [String: MorningCheckIn] = [:]
+    ) {
+        self.schemaVersion = schemaVersion
+        self.sessions = sessions
+        self.eventsBySessionID = eventsBySessionID
+        self.reports = reports
+        self.checkInsBySessionID = checkInsBySessionID
     }
 }

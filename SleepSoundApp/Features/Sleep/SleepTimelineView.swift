@@ -34,7 +34,7 @@ struct SleepTimelineView: View {
     }
 }
 
-private struct EventTimelineBand: View {
+struct EventTimelineBand: View {
     let events: [SleepEvent]
 
     var body: some View {

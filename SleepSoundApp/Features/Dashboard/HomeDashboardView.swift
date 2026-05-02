@@ -111,6 +111,9 @@ struct HomeDashboardView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("최근 수면 리포트")
                         .font(.title3.bold())
+                    Label(appState.latestReportSource.displayText, systemImage: appState.latestReportSource.systemImage)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
                     Text(SleepFormatters.shortDate(appState.latestReport.generatedAt))
                         .foregroundStyle(.secondary)
                     Text(appState.latestReport.mainDisturbanceReason)
@@ -150,12 +153,21 @@ struct HomeDashboardView: View {
     }
 
     private var trendScores: [Int] {
-        [
-            min(100, appState.latestReport.sleepSoundScore + 8),
-            min(100, appState.latestReport.sleepSoundScore + 4),
-            max(0, appState.latestReport.sleepSoundScore - 2),
-            appState.latestReport.sleepSoundScore
-        ]
+        let storedScores = appState.recentReports
+            .sorted { $0.generatedAt < $1.generatedAt }
+            .suffix(7)
+            .map(\.sleepSoundScore)
+
+        guard !storedScores.isEmpty else {
+            return [
+                min(100, appState.latestReport.sleepSoundScore + 8),
+                min(100, appState.latestReport.sleepSoundScore + 4),
+                max(0, appState.latestReport.sleepSoundScore - 2),
+                appState.latestReport.sleepSoundScore
+            ]
+        }
+
+        return storedScores
     }
 }
 
@@ -204,6 +216,16 @@ private struct SettingsListView: View {
                     Label("iPhone 배치 가이드", systemImage: "iphone")
                 }
             }
+
+            #if DEBUG
+            Section("개발") {
+                NavigationLink {
+                    AudioDebugView()
+                } label: {
+                    Label("오디오 감지 Debug", systemImage: "waveform.and.magnifyingglass")
+                }
+            }
+            #endif
         }
     }
 }

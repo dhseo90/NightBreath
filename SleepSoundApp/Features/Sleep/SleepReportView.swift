@@ -1,92 +1,411 @@
+import Charts
 import SwiftUI
 
 struct SleepReportView: View {
+    @EnvironmentObject private var appState: AppState
+
     let report: NightReport
     let events: [SleepEvent]
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                header
-                metrics
+                summaryCard
+                scoreCard
+                trendLinkCard
+                keyEventsSection
+                disturbedHourSection
+                timelineSection
                 reasonCard
-
-                NavigationLink {
-                    SleepTimelineView(report: report, events: events)
-                } label: {
-                    Label("이벤트 타임라인 보기", systemImage: "timeline.selection")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-
-                NavigationLink {
-                    MorningCheckInView(sessionId: report.sessionId)
-                } label: {
-                    Label("아침 컨디션 기록", systemImage: "sun.max")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
+                cautionCard
+                actionLinks
             }
             .padding()
         }
-        .navigationTitle("수면 리포트")
+        .navigationTitle("어젯밤 수면 리포트")
         .background(Color(.systemGroupedBackground))
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("\(report.sleepSoundScore)")
-                    .font(.system(size: 54, weight: .bold, design: .rounded))
-                Text("/100")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "moon.zzz.fill")
+                    .font(.title2)
+                    .foregroundStyle(.indigo)
+                    .frame(width: 34, height: 34)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("어젯밤 수면 리포트")
+                        .font(.title2.bold())
+                    Text("감지된 수면 중 소리를 바탕으로 정리한 아침 리포트입니다.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+
                 Spacer()
-                Image(systemName: "waveform.path.ecg")
-                    .font(.largeTitle)
-                    .foregroundStyle(.blue)
             }
 
-            Text("수면 소리 점수")
-                .font(.headline)
-            Text("감지된 소리와 수면 중 소리 기반 지표로 만든 웰니스 리포트입니다.")
-                .font(.callout)
+            HStack(spacing: 12) {
+                SummaryPill(
+                    title: "측정 시간",
+                    value: SleepFormatters.durationString(report.measurementDuration),
+                    systemImage: "clock"
+                )
+                SummaryPill(
+                    title: "추정 수면 시간",
+                    value: SleepFormatters.durationString(report.estimatedSleepDuration),
+                    systemImage: "bed.double"
+                )
+            }
+
+            Text(SleepFormatters.shortDate(report.generatedAt))
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
-    private var metrics: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            ReportMetricCard(title: "측정 시간", value: SleepFormatters.durationString(report.measurementDuration), color: .blue)
-            ReportMetricCard(title: "추정 수면 시간", value: SleepFormatters.durationString(report.estimatedSleepDuration), color: .teal)
-            ReportMetricCard(title: "코골기", value: SleepFormatters.durationString(report.snoreTotalSeconds), color: SleepEventType.snore.tintColor)
-            ReportMetricCard(title: "이갈이 의심", value: "\(report.bruxismLikeCount)회", color: SleepEventType.bruxismLike.tintColor)
-            ReportMetricCard(title: "호흡정지 의심", value: "\(report.suspectedPauseCount)회", color: SleepEventType.breathingPauseSuspected.tintColor)
-            ReportMetricCard(title: "gasp-like", value: "\(report.gaspLikeCount)회", color: SleepEventType.gaspLike.tintColor)
-            ReportMetricCard(title: "기침 의심", value: "\(report.coughLikeCount)회", color: SleepEventType.coughLike.tintColor)
-            ReportMetricCard(title: "환경 소음", value: "\(report.environmentalNoiseCount)회", color: SleepEventType.environmentalNoise.tintColor)
-            ReportMetricCard(title: "각성 의심", value: "\(report.awakeningSuspectedCount)회", color: SleepEventType.awakeningSuspected.tintColor)
-            ReportMetricCard(title: "최장 의심 구간", value: SleepFormatters.compactDurationString(report.longestSuspectedPause), color: .red)
+    private var scoreCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionHeader(title: "수면 소리 점수", systemImage: "waveform.path.ecg")
+
+            HStack(alignment: .center, spacing: 20) {
+                ZStack {
+                    Circle()
+                        .stroke(Color(.systemGray5), lineWidth: 14)
+                    Circle()
+                        .trim(from: 0, to: CGFloat(report.sleepSoundScore) / 100)
+                        .stroke(scoreTint, style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                    VStack(spacing: 0) {
+                        Text("\(report.sleepSoundScore)")
+                            .font(.system(size: 42, weight: .bold, design: .rounded))
+                        Text("/100")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(width: 132, height: 132)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(scoreHeadline)
+                        .font(.headline)
+                    Text("점수는 코골기, 환경 소음, 각성 의심 구간 같은 수면 중 소리 기반 지표를 종합한 웰니스 참고값입니다.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var trendLinkCard: some View {
+        NavigationLink {
+            SevenDaySleepTrendView(reports: trendReports)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.title3)
+                    .foregroundStyle(.blue)
+                    .frame(width: 32)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("최근 7일 추세")
+                        .font(.headline)
+                    Text("수면 소리 점수, 코골기 시간, 호흡정지 의심 구간, 환경 소음을 함께 확인합니다.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var keyEventsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "주요 이벤트", systemImage: "list.bullet.rectangle")
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ReportMetricCard(
+                    title: "코골기 시간",
+                    value: SleepFormatters.durationString(report.snoreTotalSeconds),
+                    systemImage: SleepEventType.snore.symbolName,
+                    color: SleepEventType.snore.tintColor
+                )
+                ReportMetricCard(
+                    title: "이갈이 의심 소리",
+                    value: "\(report.bruxismLikeCount)회",
+                    systemImage: SleepEventType.bruxismLike.symbolName,
+                    color: SleepEventType.bruxismLike.tintColor
+                )
+                ReportMetricCard(
+                    title: "호흡정지 의심 구간",
+                    value: "\(report.suspectedPauseCount)회",
+                    systemImage: SleepEventType.breathingPauseSuspected.symbolName,
+                    color: SleepEventType.breathingPauseSuspected.tintColor
+                )
+                ReportMetricCard(
+                    title: "gasp-like 회복 호흡",
+                    value: "\(report.gaspLikeCount)회",
+                    systemImage: SleepEventType.gaspLike.symbolName,
+                    color: SleepEventType.gaspLike.tintColor
+                )
+                ReportMetricCard(
+                    title: "기침 의심 소리",
+                    value: "\(report.coughLikeCount)회",
+                    systemImage: SleepEventType.coughLike.symbolName,
+                    color: SleepEventType.coughLike.tintColor
+                )
+                ReportMetricCard(
+                    title: "환경 소음",
+                    value: "\(report.environmentalNoiseCount)회",
+                    systemImage: SleepEventType.environmentalNoise.symbolName,
+                    color: SleepEventType.environmentalNoise.tintColor
+                )
+                ReportMetricCard(
+                    title: "각성 의심 구간",
+                    value: "\(report.awakeningSuspectedCount)회",
+                    systemImage: SleepEventType.awakeningSuspected.symbolName,
+                    color: SleepEventType.awakeningSuspected.tintColor
+                )
+                ReportMetricCard(
+                    title: "가장 긴 의심 구간",
+                    value: SleepFormatters.compactDurationString(report.longestSuspectedPause),
+                    systemImage: "timer",
+                    color: .red
+                )
+            }
+        }
+    }
+
+    private var disturbedHourSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "가장 방해가 컸던 시간대", systemImage: "clock.badge.exclamationmark")
+
+            HStack(spacing: 12) {
+                Image(systemName: "moon.stars")
+                    .font(.title3)
+                    .foregroundStyle(.orange)
+                    .frame(width: 32)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(report.mostDisturbedHourRange ?? "뚜렷하게 몰린 시간대 없음")
+                        .font(.headline)
+                    Text(disturbedHourDescription)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private var timelineSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "이벤트 타임라인", systemImage: "timeline.selection")
+
+            EventTimelineBand(events: events)
+                .frame(height: 132)
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            NavigationLink {
+                SleepTimelineView(report: report, events: events)
+            } label: {
+                Label("타임라인 전체 보기", systemImage: "arrow.right")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
         }
     }
 
     private var reasonCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("주요 원인 설명")
-                .font(.headline)
-            Text(report.mainDisturbanceReason)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "주요 원인 설명", systemImage: "text.alignleft")
+
+            Text(polishedReason)
                 .font(.body)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
 
-            if let hourRange = report.mostDisturbedHourRange {
-                Divider()
-                Label("가장 방해가 컸던 시간대 \(hourRange)", systemImage: "clock.badge.exclamationmark")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.orange)
+    private var cautionCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "주의 문구", systemImage: "info.circle")
+
+            if shouldShowRepeatedPauseNote {
+                Text("호흡정지 의심 구간이나 gasp-like 회복 호흡이 반복적으로 높게 나타나면 전문가 상담을 고려해보세요.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
+
+            Text("이 앱은 진단 목적의 의료기기가 아닙니다. 측정 위치, 주변 소리, 기기 상태에 따라 결과가 달라질 수 있으며, 수면 습관을 돌아보기 위한 참고 정보로 사용해 주세요.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var actionLinks: some View {
+        VStack(spacing: 10) {
+            NavigationLink {
+                MorningCheckInView(sessionId: report.sessionId)
+            } label: {
+                Label("아침 컨디션 기록", systemImage: "sun.max")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+
+    private var scoreTint: Color {
+        switch report.sleepSoundScore {
+        case 85...100:
+            .green
+        case 70..<85:
+            .blue
+        case 55..<70:
+            .orange
+        default:
+            .red
+        }
+    }
+
+    private var scoreHeadline: String {
+        switch report.sleepSoundScore {
+        case 85...100:
+            "비교적 조용한 밤이었습니다"
+        case 70..<85:
+            "일부 방해 소리가 감지되었습니다"
+        case 55..<70:
+            "수면 중 소리 이벤트가 꽤 있었습니다"
+        default:
+            "방해 소리가 여러 차례 감지되었습니다"
+        }
+    }
+
+    private var disturbedHourDescription: String {
+        if report.mostDisturbedHourRange == nil {
+            return "특정 시간대에 이벤트가 집중되기보다는 분산된 패턴으로 보입니다."
+        }
+        return "이 시간대에 감지된 소리 이벤트가 상대적으로 많이 모였습니다."
+    }
+
+    private var polishedReason: String {
+        let reason = report.mainDisturbanceReason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !reason.isEmpty else {
+            return "어젯밤은 감지된 수면 중 소리 이벤트를 기준으로 수면 소리 점수가 계산되었습니다."
+        }
+        return reason
+    }
+
+    private var shouldShowRepeatedPauseNote: Bool {
+        report.suspectedPauseCount >= 5 || report.gaspLikeCount >= 2
+    }
+
+    private var trendReports: [NightReport] {
+        let sortedReports = (appState.recentReports + [report])
+            .sorted { $0.generatedAt < $1.generatedAt }
+
+        let uniqueReports = sortedReports.reduce(into: [NightReport]()) { result, nextReport in
+            if let index = result.firstIndex(where: { $0.sessionId == nextReport.sessionId }) {
+                result[index] = nextReport
+            } else {
+                result.append(nextReport)
+            }
+        }
+
+        return Array(uniqueReports.suffix(7))
+    }
+}
+
+private struct SummaryPill: View {
+    let title: String
+    let value: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .foregroundStyle(.blue)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.tertiarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct SectionHeader: View {
+    let title: String
+    let systemImage: String
+
+    var body: some View {
+        Label(title, systemImage: systemImage)
+            .font(.headline)
+            .foregroundStyle(.primary)
+    }
+}
+
+private struct ReportMetricCard: View {
+    let title: String
+    let value: String
+    let systemImage: String
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.title3)
+                .foregroundStyle(color)
+                .frame(width: 28, height: 28)
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+            Text(value)
+                .font(.headline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -95,27 +414,141 @@ struct SleepReportView: View {
     }
 }
 
-private struct ReportMetricCard: View {
-    let title: String
-    let value: String
-    let color: Color
+private struct SevenDaySleepTrendView: View {
+    let reports: [NightReport]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Circle()
-                .fill(color)
-                .frame(width: 10, height: 10)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.headline)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("최근 7일 추세")
+                        .font(.title2.bold())
+                    Text("수면 소리 점수와 주요 소리 이벤트가 어떻게 변했는지 간단히 확인합니다.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+
+                TrendMetricChart(
+                    title: "수면 소리 점수",
+                    unit: "점",
+                    tint: .blue,
+                    points: trendPoints.map { point in
+                        TrendMetricPoint(label: point.label, value: Double(point.sleepSoundScore))
+                    }
+                )
+
+                TrendMetricChart(
+                    title: "코골기 시간",
+                    unit: "분",
+                    tint: SleepEventType.snore.tintColor,
+                    points: trendPoints.map { point in
+                        TrendMetricPoint(label: point.label, value: point.snoreMinutes)
+                    }
+                )
+
+                TrendMetricChart(
+                    title: "호흡정지 의심 구간",
+                    unit: "회",
+                    tint: SleepEventType.breathingPauseSuspected.tintColor,
+                    points: trendPoints.map { point in
+                        TrendMetricPoint(label: point.label, value: Double(point.suspectedPauseCount))
+                    }
+                )
+
+                TrendMetricChart(
+                    title: "환경 소음",
+                    unit: "회",
+                    tint: SleepEventType.environmentalNoise.tintColor,
+                    points: trendPoints.map { point in
+                        TrendMetricPoint(label: point.label, value: Double(point.environmentalNoiseCount))
+                    }
+                )
+            }
+            .padding()
+        }
+        .navigationTitle("7일 추세")
+        .background(Color(.systemGroupedBackground))
+    }
+
+    private var trendPoints: [SleepTrendPoint] {
+        reports.map { report in
+            SleepTrendPoint(report: report)
+        }
+    }
+}
+
+private struct TrendMetricChart: View {
+    let title: String
+    let unit: String
+    let tint: Color
+    let points: [TrendMetricPoint]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(title)
+                    .font(.headline)
+                Spacer()
+                if let latest = points.last {
+                    Text("\(formatted(latest.value))\(unit)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Chart(points) { point in
+                BarMark(
+                    x: .value("날짜", point.label),
+                    y: .value(title, point.value)
+                )
+                .foregroundStyle(tint)
+                .cornerRadius(4)
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+            .frame(height: 170)
+
+            if points.count < 2 {
+                Text("저장된 리포트가 쌓이면 최근 7일 변화를 더 잘 볼 수 있습니다.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
+
+    private func formatted(_ value: Double) -> String {
+        if value.rounded() == value {
+            return "\(Int(value))"
+        }
+        return String(format: "%.1f", value)
+    }
+}
+
+private struct SleepTrendPoint: Identifiable {
+    let id: UUID
+    let label: String
+    let sleepSoundScore: Int
+    let snoreMinutes: Double
+    let suspectedPauseCount: Int
+    let environmentalNoiseCount: Int
+
+    init(report: NightReport) {
+        id = report.sessionId
+        label = SleepFormatters.shortDate(report.generatedAt)
+        sleepSoundScore = report.sleepSoundScore
+        snoreMinutes = (report.snoreTotalSeconds / 60).rounded()
+        suspectedPauseCount = report.suspectedPauseCount
+        environmentalNoiseCount = report.environmentalNoiseCount
+    }
+}
+
+private struct TrendMetricPoint: Identifiable {
+    let id = UUID()
+    let label: String
+    let value: Double
 }

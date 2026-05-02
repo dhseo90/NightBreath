@@ -53,8 +53,10 @@ public struct SleepEventAggregator {
     public init() {}
 
     public func summarize(session: SleepSession, events: [SleepEvent]) -> SleepEventSummary {
-        let sessionEvents = events.filter { $0.sessionId == session.id }
-        let denominator = max(session.estimatedSleepDuration, session.measurementDuration, 1)
+        let sessionEvents = normalizedEvents(for: session, events: events)
+        let measurementDuration = normalizedMeasurementDuration(for: session)
+        let estimatedSleepDuration = normalizedEstimatedSleepDuration(for: session, measurementDuration: measurementDuration)
+        let denominator = max(estimatedSleepDuration, 1)
         let snoreTotalSeconds = sessionEvents
             .filter { $0.type == .snore }
             .reduce(0) { $0 + $1.duration }
@@ -62,8 +64,8 @@ public struct SleepEventAggregator {
         let suspectedPauses = sessionEvents.filter { $0.type == .breathingPauseSuspected }
 
         return SleepEventSummary(
-            measurementDuration: session.measurementDuration,
-            estimatedSleepDuration: session.estimatedSleepDuration,
+            measurementDuration: measurementDuration,
+            estimatedSleepDuration: estimatedSleepDuration,
             snoreTotalSeconds: snoreTotalSeconds,
             snoreRatio: min(max(snoreTotalSeconds / denominator, 0), 1),
             bruxismLikeCount: count(.bruxismLike, in: sessionEvents),
@@ -79,6 +81,53 @@ public struct SleepEventAggregator {
         )
     }
 
+    private func normalizedEvents(for session: SleepSession, events: [SleepEvent]) -> [SleepEvent] {
+        events.filter { event in
+            guard event.sessionId == session.id else { return false }
+            guard event.type != .unknown else { return false }
+
+            let rawDuration = event.endedAt.timeIntervalSince(event.startedAt)
+            guard rawDuration.isFinite, rawDuration > 0 else { return false }
+
+            return event.startedAt.timeIntervalSinceReferenceDate.isFinite &&
+                event.endedAt.timeIntervalSinceReferenceDate.isFinite
+        }
+    }
+
+    private func normalizedMeasurementDuration(for session: SleepSession) -> TimeInterval {
+        if session.measurementDuration.isFinite, session.measurementDuration > 0 {
+            return session.measurementDuration
+        }
+
+        if let endedAt = session.endedAt {
+            let inferredDuration = endedAt.timeIntervalSince(session.startedAt)
+            if inferredDuration.isFinite, inferredDuration > 0 {
+                return inferredDuration
+            }
+        }
+
+        return 0
+    }
+
+    private func normalizedEstimatedSleepDuration(
+        for session: SleepSession,
+        measurementDuration: TimeInterval
+    ) -> TimeInterval {
+        if session.estimatedSleepDuration.isFinite, session.estimatedSleepDuration > 0 {
+            return session.estimatedSleepDuration
+        }
+
+        if let estimatedSleepStart = session.estimatedSleepStart,
+           let estimatedWakeTime = session.estimatedWakeTime {
+            let inferredDuration = estimatedWakeTime.timeIntervalSince(estimatedSleepStart)
+            if inferredDuration.isFinite, inferredDuration > 0 {
+                return inferredDuration
+            }
+        }
+
+        return measurementDuration
+    }
+
     private func count(_ type: SleepEventType, in events: [SleepEvent]) -> Int {
         events.filter { $0.type == type }.count
     }
@@ -89,6 +138,7 @@ public struct SleepEventAggregator {
 
         let calendar = Calendar(identifier: .gregorian)
         let scoresByHour = weightedEvents.reduce(into: [Int: Double]()) { partialResult, event in
+            guard event.duration.isFinite, event.duration > 0 else { return }
             let hour = calendar.component(.hour, from: event.startedAt)
             partialResult[hour, default: 0] += disturbanceWeight(for: event)
         }
@@ -101,6 +151,8 @@ public struct SleepEventAggregator {
     }
 
     private func disturbanceWeight(for event: SleepEvent) -> Double {
+        guard event.duration.isFinite, event.duration > 0 else { return 0 }
+
         let durationWeight = max(1, event.duration / 60)
         let typeWeight: Double
 

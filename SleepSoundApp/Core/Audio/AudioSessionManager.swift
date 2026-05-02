@@ -1,14 +1,86 @@
+import AVFoundation
 import Foundation
 
-public enum MicrophonePermissionState: Equatable {
+public enum MicrophonePermissionState: Equatable, Sendable {
     case notDetermined
     case granted
     case denied
 }
 
-public protocol AudioSessionManaging {
+public enum AudioSessionError: Error, Equatable, Sendable {
+    case microphonePermissionDenied
+    case microphoneUnavailable
+    case failedToConfigure(String)
+
+    public var message: String {
+        switch self {
+        case .microphonePermissionDenied:
+            "마이크 권한이 허용되지 않았습니다."
+        case .microphoneUnavailable:
+            "사용 가능한 마이크 입력을 찾을 수 없습니다."
+        case .failedToConfigure(let reason):
+            "오디오 세션 설정에 실패했습니다. \(reason)"
+        }
+    }
+}
+
+public protocol AudioSessionManaging: Sendable {
     func microphonePermissionState() -> MicrophonePermissionState
+    func requestMicrophonePermission() async -> MicrophonePermissionState
     func prepareForSleepRecording() throws
+    func finishSleepRecording()
+}
+
+public final class AudioSessionManager: AudioSessionManaging, @unchecked Sendable {
+    public init() {}
+
+    public func microphonePermissionState() -> MicrophonePermissionState {
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            .granted
+        case .denied, .restricted:
+            .denied
+        case .notDetermined:
+            .notDetermined
+        @unknown default:
+            .denied
+        }
+    }
+
+    public func requestMicrophonePermission() async -> MicrophonePermissionState {
+        await withCheckedContinuation { continuation in
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                continuation.resume(returning: granted ? .granted : .denied)
+            }
+        }
+    }
+
+    public func prepareForSleepRecording() throws {
+        guard microphonePermissionState() == .granted else {
+            throw AudioSessionError.microphonePermissionDenied
+        }
+
+        // 밤새 백그라운드 측정이 필요할 수 있으나, Background Modes capability 변경은
+        // 배터리/심사/사용자 고지 영향을 검토한 뒤 별도 작업에서 신중하게 처리합니다.
+        #if os(iOS)
+        let session = AVAudioSession.sharedInstance()
+
+        do {
+            try session.setCategory(.record, mode: .measurement, options: [.allowBluetoothHFP])
+            try session.setPreferredSampleRate(16_000)
+            try session.setPreferredIOBufferDuration(0.1)
+            try session.setActive(true, options: [])
+        } catch {
+            throw AudioSessionError.failedToConfigure(error.localizedDescription)
+        }
+        #endif
+    }
+
+    public func finishSleepRecording() {
+        #if os(iOS)
+        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        #endif
+    }
 }
 
 public struct PreviewAudioSessionManager: AudioSessionManaging {
@@ -18,7 +90,24 @@ public struct PreviewAudioSessionManager: AudioSessionManaging {
         .notDetermined
     }
 
-    public func prepareForSleepRecording() throws {
-        // Phase 1 keeps this as a no-op. Real audio session setup lands in Phase 2.
+    public func requestMicrophonePermission() async -> MicrophonePermissionState {
+        .granted
+    }
+
+    public func prepareForSleepRecording() throws {}
+
+    public func finishSleepRecording() {}
+}
+
+public extension MicrophonePermissionState {
+    var displayText: String {
+        switch self {
+        case .notDetermined:
+            "아직 결정되지 않음"
+        case .granted:
+            "허용됨"
+        case .denied:
+            "허용되지 않음"
+        }
     }
 }
