@@ -2,22 +2,23 @@ import Foundation
 
 enum SleepFormatters {
     static func durationString(_ duration: TimeInterval) -> String {
-        let totalMinutes = max(0, Int((duration / 60).rounded()))
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
+        let totalSeconds = max(0, Int(duration.rounded()))
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
+        let seconds = totalSeconds % 60
 
         if hours > 0 {
-            return "\(hours)시간 \(minutes)분"
+            return "\(hours)시간 \(minutes)분 \(seconds)초"
         }
 
-        return "\(minutes)분"
+        if minutes > 0 {
+            return "\(minutes)분 \(seconds)초"
+        }
+
+        return "\(seconds)초"
     }
 
     static func compactDurationString(_ duration: TimeInterval) -> String {
-        if duration < 60 {
-            return "\(max(0, Int(duration.rounded())))초"
-        }
-
         return durationString(duration)
     }
 

@@ -38,14 +38,14 @@ struct HomeDashboardView: View {
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     DashboardMetricTile(
-                        title: "측정 시간",
-                        value: SleepFormatters.durationString(appState.latestReport.measurementDuration),
+                        title: "앱 동작 시간",
+                        value: SleepFormatters.compactDurationString(appState.latestReport.measurementDuration),
                         systemImage: "clock",
                         tint: .blue
                     )
                     DashboardMetricTile(
                         title: "추정 수면 시간",
-                        value: SleepFormatters.durationString(appState.latestReport.estimatedSleepDuration),
+                        value: SleepFormatters.compactDurationString(appState.latestReport.estimatedSleepDuration),
                         systemImage: "bed.double",
                         tint: .teal
                     )
@@ -56,10 +56,34 @@ struct HomeDashboardView: View {
                         tint: SleepEventType.snore.tintColor
                     )
                     DashboardMetricTile(
+                        title: "감지 이벤트",
+                        value: SleepFormatters.compactDurationString(displayDetectedEventDuration),
+                        systemImage: "waveform.and.magnifyingglass",
+                        tint: .purple
+                    )
+                    DashboardMetricTile(
+                        title: "저장 오디오",
+                        value: SleepFormatters.compactDurationString(appState.latestReport.savedAudioDuration),
+                        systemImage: "externaldrive.badge.xmark",
+                        tint: .gray
+                    )
+                    DashboardMetricTile(
                         title: "호흡정지 의심",
                         value: "\(appState.latestReport.suspectedPauseCount)회",
                         systemImage: SleepEventType.breathingPauseSuspected.symbolName,
                         tint: SleepEventType.breathingPauseSuspected.tintColor
+                    )
+                    DashboardMetricTile(
+                        title: "측정 품질",
+                        value: appState.latestReport.measurementQuality.displayName,
+                        systemImage: "checkmark.seal",
+                        tint: measurementQualityTint
+                    )
+                    DashboardMetricTile(
+                        title: "오디오 커버리지",
+                        value: percentString(appState.latestReport.audioCoverageRatio),
+                        systemImage: "waveform",
+                        tint: .indigo
                     )
                 }
 
@@ -116,6 +140,9 @@ struct HomeDashboardView: View {
                         .foregroundStyle(.secondary)
                     Text(SleepFormatters.shortDate(appState.latestReport.generatedAt))
                         .foregroundStyle(.secondary)
+                    Text("측정 품질: \(appState.latestReport.measurementQuality.displayName) · 오디오 커버리지 \(percentString(appState.latestReport.audioCoverageRatio))")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
                     Text(appState.latestReport.mainDisturbanceReason)
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -169,6 +196,31 @@ struct HomeDashboardView: View {
 
         return storedScores
     }
+
+    private var measurementQualityTint: Color {
+        switch appState.latestReport.measurementQuality {
+        case .excellent:
+            return .green
+        case .good:
+            return .blue
+        case .limited:
+            return .orange
+        case .poor:
+            return .red
+        }
+    }
+
+    private var displayDetectedEventDuration: TimeInterval {
+        if appState.latestReport.detectedEventDuration > 0 {
+            return appState.latestReport.detectedEventDuration
+        }
+
+        return SleepEventAggregator().detectedEventDuration(events: appState.latestEvents)
+    }
+
+    private func percentString(_ ratio: Double) -> String {
+        String(format: "%.0f%%", min(max(ratio, 0), 1) * 100)
+    }
 }
 
 private struct DashboardMetricTile: View {
@@ -220,10 +272,20 @@ private struct SettingsListView: View {
             #if DEBUG
             Section("개발") {
                 NavigationLink {
+                    SampleCaptureView()
+                } label: {
+                    Label("개발자용 샘플 수집", systemImage: "record.circle")
+                }
+
+                NavigationLink {
                     AudioDebugView()
                 } label: {
                     Label("오디오 감지 Debug", systemImage: "waveform.and.magnifyingglass")
                 }
+
+                Text("개인 오디오 샘플은 서버로 전송되지 않습니다. 전체 밤 오디오는 저장하지 않으며, 이 기능은 Release 빌드에 포함되지 않습니다.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
             #endif
         }

@@ -32,6 +32,7 @@ public enum AudioCaptureError: Error, Equatable, Sendable {
 @MainActor
 public protocol AudioCaptureServiceProtocol: AnyObject {
     var state: AudioCaptureState { get }
+    var metrics: AudioCaptureMetrics { get }
     var isCapturing: Bool { get }
     var onChunk: AudioChunkConsumer? { get set }
     var onStateChange: AudioCaptureStateConsumer? { get set }

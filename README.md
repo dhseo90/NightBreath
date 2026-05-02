@@ -188,6 +188,25 @@ DEBUG 빌드에서는 개발자용 오디오 디버그 화면을 통해 다음 �
 
 이 화면은 튜닝용이며 App Store용 최종 UI가 아닙니다. 원본 전체 오디오를 파일로 저장하거나 서버로 전송하지 않습니다.
 
+## Core ML detector 준비 상태
+
+현재 앱은 `RuleBasedSleepEventDetector`를 기본 detector로 사용합니다. 로컬 Mac에서 학습한 코골기 baseline 모델을 `Tools/Training/convert_snore_detector_to_coreml.py`로 변환하면 다음 위치에 모델을 둘 수 있습니다.
+
+```text
+Models/CoreML/SnoreDetector.mlmodel
+```
+
+실제 앱에서 Core ML backend를 테스트하려면 Xcode에서 `SnoreDetector.mlmodel`을 앱 target에 추가해야 합니다. 모델이 없거나 target에 포함되지 않은 경우 앱은 종료되지 않고 rule-based detector로 fallback합니다. DEBUG 오디오 화면에서 `Snore Core ML model` 설치 여부와 최근 Core ML confidence를 확인할 수 있습니다.
+
+## 이갈이 의심 소리 한계
+
+`bruxismLike`는 “이갈이 의심 소리” 후보입니다.
+
+- iPhone 마이크 기반 소리 감지이므로 조용한 clenching은 감지하기 어렵습니다.
+- 침구 마찰음, 손톱 긁힘, 침대 소음, 반려동물 소리와 혼동될 수 있습니다.
+- 타임라인에서 “이갈이 소리 같음 / 아님 / 모르겠음” feedback을 로컬에 저장해 이후 라벨 검토에 사용할 수 있습니다.
+- 이 앱은 진단 목적의 의료기기가 아닙니다.
+
 ## 개인정보 원칙
 
 - 모든 분석은 iPhone 앱 내부에서 수행하는 방향을 우선합니다.

@@ -241,3 +241,123 @@ public struct SleepDataArchive: Codable, Equatable {
         self.checkInsBySessionID = checkInsBySessionID
     }
 }
+
+public final class SleepEventFeedbackStore: @unchecked Sendable {
+    public let fileURL: URL
+
+    private let fileManager: FileManager
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+    private let lock = NSLock()
+
+    public init(
+        fileURL: URL? = nil,
+        fileManager: FileManager = .default
+    ) {
+        self.fileManager = fileManager
+        self.fileURL = fileURL ?? Self.defaultStoreURL(fileManager: fileManager)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        self.encoder = encoder
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        self.decoder = decoder
+
+        try? fileManager.createDirectory(
+            at: self.fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+    }
+
+    public func save(_ feedback: SleepEventFeedback) throws {
+        try updateArchive { archive in
+            archive.feedbackByEventID[feedback.eventId.uuidString] = feedback
+        }
+    }
+
+    public func feedback(for eventId: UUID) -> SleepEventFeedback? {
+        readArchive().feedbackByEventID[eventId.uuidString]
+    }
+
+    public func fetchAll() -> [SleepEventFeedback] {
+        readArchive().feedbackByEventID.values.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    public func deleteFeedback(for eventIds: [UUID]) throws {
+        try updateArchive { archive in
+            for eventId in eventIds {
+                archive.feedbackByEventID.removeValue(forKey: eventId.uuidString)
+            }
+        }
+    }
+
+    public func deleteAllFeedback() throws {
+        lock.lock()
+        defer { lock.unlock() }
+
+        try? fileManager.removeItem(at: fileURL)
+    }
+
+    private static func defaultStoreURL(fileManager: FileManager) -> URL {
+        let baseURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.temporaryDirectory
+
+        return baseURL
+            .appendingPathComponent("NightBreath", isDirectory: true)
+            .appendingPathComponent("sleep-event-feedback.json")
+    }
+
+    private func readArchive() -> SleepEventFeedbackArchive {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else {
+            return SleepEventFeedbackArchive()
+        }
+
+        return (try? decoder.decode(SleepEventFeedbackArchive.self, from: data)) ?? SleepEventFeedbackArchive()
+    }
+
+    private func updateArchive(_ update: (inout SleepEventFeedbackArchive) -> Void) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
+        var archive = loadArchiveWithoutLock()
+        update(&archive)
+        try persistArchiveWithoutLock(archive)
+    }
+
+    private func loadArchiveWithoutLock() -> SleepEventFeedbackArchive {
+        guard let data = try? Data(contentsOf: fileURL), !data.isEmpty else {
+            return SleepEventFeedbackArchive()
+        }
+
+        return (try? decoder.decode(SleepEventFeedbackArchive.self, from: data)) ?? SleepEventFeedbackArchive()
+    }
+
+    private func persistArchiveWithoutLock(_ archive: SleepEventFeedbackArchive) throws {
+        try fileManager.createDirectory(
+            at: fileURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+
+        let data = try encoder.encode(archive)
+        try data.write(to: fileURL, options: [.atomic])
+    }
+}
+
+public struct SleepEventFeedbackArchive: Codable, Equatable, Sendable {
+    public var schemaVersion: Int
+    public var feedbackByEventID: [String: SleepEventFeedback]
+
+    public init(
+        schemaVersion: Int = 1,
+        feedbackByEventID: [String: SleepEventFeedback] = [:]
+    ) {
+        self.schemaVersion = schemaVersion
+        self.feedbackByEventID = feedbackByEventID
+    }
+}

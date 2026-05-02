@@ -60,8 +60,8 @@ public final class AudioSessionManager: AudioSessionManaging, @unchecked Sendabl
             throw AudioSessionError.microphonePermissionDenied
         }
 
-        // 밤새 백그라운드 측정이 필요할 수 있으나, Background Modes capability 변경은
-        // 배터리/심사/사용자 고지 영향을 검토한 뒤 별도 작업에서 신중하게 처리합니다.
+        // 화면 잠금/백그라운드 QA를 위해 target Info.plist의 UIBackgroundModes에 audio를 설정합니다.
+        // 이 설정은 캡처 유지 조건일 뿐이며, 원본 전체 밤 오디오 파일 저장을 의미하지 않습니다.
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
 

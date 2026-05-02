@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,19 +20,6 @@
 		00000000000000000000020B /* AudioChunk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010B /* AudioChunk.swift */; };
 		00000000000000000000020C /* AudioRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010C /* AudioRingBuffer.swift */; };
 		00000000000000000000020D /* AudioSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010D /* AudioSessionManager.swift */; };
-		000000000000000000000225 /* AudioCaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012A /* AudioCaptureState.swift */; };
-		000000000000000000000226 /* AudioCaptureServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012B /* AudioCaptureServiceProtocol.swift */; };
-		000000000000000000000227 /* SleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012D /* SleepEventDetector.swift */; };
-		000000000000000000000228 /* AudioFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012E /* AudioFeatures.swift */; };
-		000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012F /* DetectionSmoothingPolicy.swift */; };
-		00000000000000000000022B /* FeatureCSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000136 /* FeatureCSVExporter.swift */; };
-		00000000000000000000022C /* SleepDetectionBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000138 /* SleepDetectionBackend.swift */; };
-		00000000000000000000022D /* CoreMLDetectorConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000139 /* CoreMLDetectorConfiguration.swift */; };
-		00000000000000000000022E /* ModelInputAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013A /* ModelInputAdapter.swift */; };
-		00000000000000000000022F /* MLModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013B /* MLModelProvider.swift */; };
-		000000000000000000000230 /* ModelOutputMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013C /* ModelOutputMapper.swift */; };
-		000000000000000000000231 /* CoreMLSleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013D /* CoreMLSleepEventDetector.swift */; };
-		000000000000000000000232 /* CompositeSleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013E /* CompositeSleepEventDetector.swift */; };
 		00000000000000000000020E /* HealthDashboardPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010E /* HealthDashboardPlaceholder.swift */; };
 		00000000000000000000020F /* HealthKitServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000010F /* HealthKitServiceProtocol.swift */; };
 		000000000000000000000210 /* HealthMetricType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000110 /* HealthMetricType.swift */; };
@@ -50,13 +37,33 @@
 		00000000000000000000021C /* TrendChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000011E /* TrendChartView.swift */; };
 		00000000000000000000021D /* DevicePlacementGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000011F /* DevicePlacementGuideView.swift */; };
 		00000000000000000000021E /* PrivacySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000120 /* PrivacySettingsView.swift */; };
-		00000000000000000000022A /* AudioDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000135 /* AudioDebugView.swift */; };
 		00000000000000000000021F /* MorningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* MorningCheckInView.swift */; };
 		000000000000000000000220 /* SleepEventStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* SleepEventStyle.swift */; };
 		000000000000000000000221 /* SleepRecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* SleepRecordingView.swift */; };
 		000000000000000000000222 /* SleepReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000124 /* SleepReportView.swift */; };
 		000000000000000000000223 /* SleepStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000125 /* SleepStartView.swift */; };
 		000000000000000000000224 /* SleepTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* SleepTimelineView.swift */; };
+		000000000000000000000225 /* AudioCaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012A /* AudioCaptureState.swift */; };
+		000000000000000000000226 /* AudioCaptureServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012B /* AudioCaptureServiceProtocol.swift */; };
+		000000000000000000000227 /* SleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012D /* SleepEventDetector.swift */; };
+		000000000000000000000228 /* AudioFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012E /* AudioFeatures.swift */; };
+		000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012F /* DetectionSmoothingPolicy.swift */; };
+		00000000000000000000022A /* AudioDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000135 /* AudioDebugView.swift */; };
+		00000000000000000000022B /* FeatureCSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000136 /* FeatureCSVExporter.swift */; };
+		00000000000000000000022C /* SleepDetectionBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000138 /* SleepDetectionBackend.swift */; };
+		00000000000000000000022D /* CoreMLDetectorConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000139 /* CoreMLDetectorConfiguration.swift */; };
+		00000000000000000000022E /* ModelInputAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013A /* ModelInputAdapter.swift */; };
+		00000000000000000000022F /* MLModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013B /* MLModelProvider.swift */; };
+		000000000000000000000230 /* ModelOutputMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013C /* ModelOutputMapper.swift */; };
+		000000000000000000000231 /* CoreMLSleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013D /* CoreMLSleepEventDetector.swift */; };
+		000000000000000000000232 /* CompositeSleepEventDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000013E /* CompositeSleepEventDetector.swift */; };
+		000000000000000000000233 /* SampleLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000142 /* SampleLabel.swift */; };
+		000000000000000000000234 /* LabeledAudioSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000143 /* LabeledAudioSample.swift */; };
+		000000000000000000000235 /* SampleMetadataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000144 /* SampleMetadataStore.swift */; };
+		000000000000000000000236 /* SampleCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000145 /* SampleCaptureView.swift */; };
+		000000000000000000000237 /* AudioCaptureMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000147 /* AudioCaptureMetrics.swift */; };
+		000000000000000000000238 /* DebugSampleStoragePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000149 /* DebugSampleStoragePolicy.swift */; };
+		000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000014C /* EventAudioSnippetStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,29 +81,6 @@
 		00000000000000000000010B /* AudioChunk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChunk.swift; sourceTree = "<group>"; };
 		00000000000000000000010C /* AudioRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRingBuffer.swift; sourceTree = "<group>"; };
 		00000000000000000000010D /* AudioSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionManager.swift; sourceTree = "<group>"; };
-		00000000000000000000012A /* AudioCaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureState.swift; sourceTree = "<group>"; };
-		00000000000000000000012B /* AudioCaptureServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureServiceProtocol.swift; sourceTree = "<group>"; };
-		00000000000000000000012C /* AudioRingBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRingBufferTests.swift; sourceTree = "<group>"; };
-		00000000000000000000012D /* SleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEventDetector.swift; sourceTree = "<group>"; };
-		00000000000000000000012E /* AudioFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFeatures.swift; sourceTree = "<group>"; };
-		00000000000000000000012F /* DetectionSmoothingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSmoothingPolicy.swift; sourceTree = "<group>"; };
-		000000000000000000000136 /* FeatureCSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureCSVExporter.swift; sourceTree = "<group>"; };
-		000000000000000000000138 /* SleepDetectionBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetectionBackend.swift; sourceTree = "<group>"; };
-		000000000000000000000139 /* CoreMLDetectorConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLDetectorConfiguration.swift; sourceTree = "<group>"; };
-		00000000000000000000013A /* ModelInputAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInputAdapter.swift; sourceTree = "<group>"; };
-		00000000000000000000013B /* MLModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLModelProvider.swift; sourceTree = "<group>"; };
-		00000000000000000000013C /* ModelOutputMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelOutputMapper.swift; sourceTree = "<group>"; };
-		00000000000000000000013D /* CoreMLSleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLSleepEventDetector.swift; sourceTree = "<group>"; };
-		00000000000000000000013E /* CompositeSleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeSleepEventDetector.swift; sourceTree = "<group>"; };
-		000000000000000000000130 /* AudioFeatureExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFeatureExtractorTests.swift; sourceTree = "<group>"; };
-		000000000000000000000131 /* RuleBasedSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedSleepEventDetectorTests.swift; sourceTree = "<group>"; };
-		000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedDetectorValidationTests.swift; sourceTree = "<group>"; };
-		00000000000000000000013F /* ModelOutputMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelOutputMapperTests.swift; sourceTree = "<group>"; };
-		000000000000000000000140 /* CoreMLSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLSleepEventDetectorTests.swift; sourceTree = "<group>"; };
-		000000000000000000000141 /* CompositeSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeSleepEventDetectorTests.swift; sourceTree = "<group>"; };
-		000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSmoothingPolicyTests.swift; sourceTree = "<group>"; };
-		000000000000000000000133 /* SleepAnalysisPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepAnalysisPipelineTests.swift; sourceTree = "<group>"; };
-		000000000000000000000134 /* SleepRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRepositoryTests.swift; sourceTree = "<group>"; };
 		00000000000000000000010E /* HealthDashboardPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardPlaceholder.swift; sourceTree = "<group>"; };
 		00000000000000000000010F /* HealthKitServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitServiceProtocol.swift; sourceTree = "<group>"; };
 		000000000000000000000110 /* HealthMetricType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricType.swift; sourceTree = "<group>"; };
@@ -114,7 +98,6 @@
 		00000000000000000000011E /* TrendChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendChartView.swift; sourceTree = "<group>"; };
 		00000000000000000000011F /* DevicePlacementGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePlacementGuideView.swift; sourceTree = "<group>"; };
 		000000000000000000000120 /* PrivacySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettingsView.swift; sourceTree = "<group>"; };
-		000000000000000000000135 /* AudioDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDebugView.swift; sourceTree = "<group>"; };
 		000000000000000000000121 /* MorningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInView.swift; sourceTree = "<group>"; };
 		000000000000000000000122 /* SleepEventStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEventStyle.swift; sourceTree = "<group>"; };
 		000000000000000000000123 /* SleepRecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRecordingView.swift; sourceTree = "<group>"; };
@@ -124,6 +107,42 @@
 		000000000000000000000127 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		000000000000000000000128 /* SleepScoreCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScoreCalculatorTests.swift; sourceTree = "<group>"; };
 		000000000000000000000129 /* SleepEventAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEventAggregatorTests.swift; sourceTree = "<group>"; };
+		00000000000000000000012A /* AudioCaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureState.swift; sourceTree = "<group>"; };
+		00000000000000000000012B /* AudioCaptureServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureServiceProtocol.swift; sourceTree = "<group>"; };
+		00000000000000000000012C /* AudioRingBufferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRingBufferTests.swift; sourceTree = "<group>"; };
+		00000000000000000000012D /* SleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEventDetector.swift; sourceTree = "<group>"; };
+		00000000000000000000012E /* AudioFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFeatures.swift; sourceTree = "<group>"; };
+		00000000000000000000012F /* DetectionSmoothingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSmoothingPolicy.swift; sourceTree = "<group>"; };
+		000000000000000000000130 /* AudioFeatureExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFeatureExtractorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000131 /* RuleBasedSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedSleepEventDetectorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSmoothingPolicyTests.swift; sourceTree = "<group>"; };
+		000000000000000000000133 /* SleepAnalysisPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepAnalysisPipelineTests.swift; sourceTree = "<group>"; };
+		000000000000000000000134 /* SleepRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRepositoryTests.swift; sourceTree = "<group>"; };
+		000000000000000000000135 /* AudioDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDebugView.swift; sourceTree = "<group>"; };
+		000000000000000000000136 /* FeatureCSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureCSVExporter.swift; sourceTree = "<group>"; };
+		000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedDetectorValidationTests.swift; sourceTree = "<group>"; };
+		000000000000000000000138 /* SleepDetectionBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetectionBackend.swift; sourceTree = "<group>"; };
+		000000000000000000000139 /* CoreMLDetectorConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLDetectorConfiguration.swift; sourceTree = "<group>"; };
+		00000000000000000000013A /* ModelInputAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInputAdapter.swift; sourceTree = "<group>"; };
+		00000000000000000000013B /* MLModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLModelProvider.swift; sourceTree = "<group>"; };
+		00000000000000000000013C /* ModelOutputMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelOutputMapper.swift; sourceTree = "<group>"; };
+		00000000000000000000013D /* CoreMLSleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLSleepEventDetector.swift; sourceTree = "<group>"; };
+		00000000000000000000013E /* CompositeSleepEventDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeSleepEventDetector.swift; sourceTree = "<group>"; };
+		00000000000000000000013F /* ModelOutputMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelOutputMapperTests.swift; sourceTree = "<group>"; };
+		000000000000000000000140 /* CoreMLSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreMLSleepEventDetectorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000141 /* CompositeSleepEventDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositeSleepEventDetectorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000142 /* SampleLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleLabel.swift; sourceTree = "<group>"; };
+		000000000000000000000143 /* LabeledAudioSample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabeledAudioSample.swift; sourceTree = "<group>"; };
+		000000000000000000000144 /* SampleMetadataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleMetadataStore.swift; sourceTree = "<group>"; };
+		000000000000000000000145 /* SampleCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleCaptureView.swift; sourceTree = "<group>"; };
+		000000000000000000000146 /* SampleMetadataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleMetadataStoreTests.swift; sourceTree = "<group>"; };
+		000000000000000000000147 /* AudioCaptureMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureMetrics.swift; sourceTree = "<group>"; };
+		000000000000000000000148 /* AudioCaptureMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureMetricsTests.swift; sourceTree = "<group>"; };
+		000000000000000000000149 /* DebugSampleStoragePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSampleStoragePolicy.swift; sourceTree = "<group>"; };
+		00000000000000000000014A /* DebugSampleStoragePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSampleStoragePolicyTests.swift; sourceTree = "<group>"; };
+		00000000000000000000014B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00000000000000000000014C /* EventAudioSnippetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioSnippetStore.swift; sourceTree = "<group>"; };
+		00000000000000000000014D /* EventAudioSnippetStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioSnippetStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,6 +190,7 @@
 				000000000000000000000103 /* SleepSoundApp.swift */,
 				000000000000000000000101 /* AppState.swift */,
 				000000000000000000000102 /* Formatting.swift */,
+				00000000000000000000014B /* Info.plist */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -226,28 +246,33 @@
 				000000000000000000000120 /* PrivacySettingsView.swift */,
 				00000000000000000000011F /* DevicePlacementGuideView.swift */,
 				000000000000000000000135 /* AudioDebugView.swift */,
+				000000000000000000000145 /* SampleCaptureView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
 		};
-			000000000000000000000016 /* Analysis */ = {
-				isa = PBXGroup;
-				children = (
-					000000000000000000000107 /* SleepAnalyzer.swift */,
-					00000000000000000000012D /* SleepEventDetector.swift */,
-					000000000000000000000138 /* SleepDetectionBackend.swift */,
-					00000000000000000000012F /* DetectionSmoothingPolicy.swift */,
-					00000000000000000000012E /* AudioFeatures.swift */,
-					000000000000000000000104 /* AudioFeatureExtractor.swift */,
-					000000000000000000000136 /* FeatureCSVExporter.swift */,
-					000000000000000000000106 /* RuleBasedSleepEventDetector.swift */,
-					000000000000000000000139 /* CoreMLDetectorConfiguration.swift */,
-					00000000000000000000013A /* ModelInputAdapter.swift */,
-					00000000000000000000013B /* MLModelProvider.swift */,
-					00000000000000000000013C /* ModelOutputMapper.swift */,
-					00000000000000000000013D /* CoreMLSleepEventDetector.swift */,
-					00000000000000000000013E /* CompositeSleepEventDetector.swift */,
-					000000000000000000000108 /* SleepEventAggregator.swift */,
+		000000000000000000000016 /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000107 /* SleepAnalyzer.swift */,
+				00000000000000000000012D /* SleepEventDetector.swift */,
+				000000000000000000000138 /* SleepDetectionBackend.swift */,
+				00000000000000000000012F /* DetectionSmoothingPolicy.swift */,
+				00000000000000000000012E /* AudioFeatures.swift */,
+				000000000000000000000104 /* AudioFeatureExtractor.swift */,
+				000000000000000000000136 /* FeatureCSVExporter.swift */,
+				000000000000000000000106 /* RuleBasedSleepEventDetector.swift */,
+				000000000000000000000139 /* CoreMLDetectorConfiguration.swift */,
+				00000000000000000000013A /* ModelInputAdapter.swift */,
+				00000000000000000000013B /* MLModelProvider.swift */,
+				00000000000000000000013C /* ModelOutputMapper.swift */,
+				00000000000000000000013D /* CoreMLSleepEventDetector.swift */,
+				00000000000000000000013E /* CompositeSleepEventDetector.swift */,
+				000000000000000000000142 /* SampleLabel.swift */,
+				000000000000000000000143 /* LabeledAudioSample.swift */,
+				000000000000000000000144 /* SampleMetadataStore.swift */,
+				000000000000000000000149 /* DebugSampleStoragePolicy.swift */,
+				000000000000000000000108 /* SleepEventAggregator.swift */,
 				000000000000000000000109 /* SleepScoreCalculator.swift */,
 				000000000000000000000105 /* DetectorOutput.swift */,
 			);
@@ -260,6 +285,7 @@
 				00000000000000000000010A /* AudioCaptureService.swift */,
 				00000000000000000000012B /* AudioCaptureServiceProtocol.swift */,
 				00000000000000000000012A /* AudioCaptureState.swift */,
+				000000000000000000000147 /* AudioCaptureMetrics.swift */,
 				00000000000000000000010D /* AudioSessionManager.swift */,
 				00000000000000000000010C /* AudioRingBuffer.swift */,
 				00000000000000000000010B /* AudioChunk.swift */,
@@ -285,6 +311,7 @@
 			children = (
 				00000000000000000000011B /* LocalDataStore.swift */,
 				00000000000000000000011C /* SleepRepository.swift */,
+				00000000000000000000014C /* EventAudioSnippetStore.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -308,22 +335,26 @@
 			path = FutureHealth;
 			sourceTree = "<group>";
 		};
-			00000000000000000000001C /* Tests */ = {
-				isa = PBXGroup;
-				children = (
-					00000000000000000000012C /* AudioRingBufferTests.swift */,
-					000000000000000000000130 /* AudioFeatureExtractorTests.swift */,
-					000000000000000000000131 /* RuleBasedSleepEventDetectorTests.swift */,
-					000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */,
-					00000000000000000000013F /* ModelOutputMapperTests.swift */,
-					000000000000000000000140 /* CoreMLSleepEventDetectorTests.swift */,
-					000000000000000000000141 /* CompositeSleepEventDetectorTests.swift */,
-					000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */,
-					000000000000000000000133 /* SleepAnalysisPipelineTests.swift */,
-					000000000000000000000134 /* SleepRepositoryTests.swift */,
-					000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
-					000000000000000000000129 /* SleepEventAggregatorTests.swift */,
-				);
+		00000000000000000000001C /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000012C /* AudioRingBufferTests.swift */,
+				000000000000000000000130 /* AudioFeatureExtractorTests.swift */,
+				000000000000000000000131 /* RuleBasedSleepEventDetectorTests.swift */,
+				000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */,
+				00000000000000000000013F /* ModelOutputMapperTests.swift */,
+				000000000000000000000140 /* CoreMLSleepEventDetectorTests.swift */,
+				000000000000000000000141 /* CompositeSleepEventDetectorTests.swift */,
+				000000000000000000000146 /* SampleMetadataStoreTests.swift */,
+				000000000000000000000148 /* AudioCaptureMetricsTests.swift */,
+				00000000000000000000014A /* DebugSampleStoragePolicyTests.swift */,
+				00000000000000000000014D /* EventAudioSnippetStoreTests.swift */,
+				000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */,
+				000000000000000000000133 /* SleepAnalysisPipelineTests.swift */,
+				000000000000000000000134 /* SleepRepositoryTests.swift */,
+				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
+				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
+			);
 			path = Tests;
 			sourceTree = "<group>";
 		};
@@ -362,7 +393,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 000000000000000000000008 /* Build configuration list for PBXProject "NightBreath" */;
+			buildConfigurationList = 000000000000000000000008 /* Build configuration list for PBXProject "SleepSoundApp" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -398,26 +429,31 @@
 				000000000000000000000201 /* SleepSoundApp.swift in Sources */,
 				000000000000000000000202 /* AppState.swift in Sources */,
 				000000000000000000000203 /* Formatting.swift in Sources */,
-					000000000000000000000204 /* AudioFeatureExtractor.swift in Sources */,
-					000000000000000000000228 /* AudioFeatures.swift in Sources */,
-					000000000000000000000205 /* DetectorOutput.swift in Sources */,
-					000000000000000000000227 /* SleepEventDetector.swift in Sources */,
-					000000000000000000000206 /* RuleBasedSleepEventDetector.swift in Sources */,
-					000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */,
-					00000000000000000000022B /* FeatureCSVExporter.swift in Sources */,
-					00000000000000000000022C /* SleepDetectionBackend.swift in Sources */,
-					00000000000000000000022D /* CoreMLDetectorConfiguration.swift in Sources */,
-					00000000000000000000022E /* ModelInputAdapter.swift in Sources */,
-					00000000000000000000022F /* MLModelProvider.swift in Sources */,
-					000000000000000000000230 /* ModelOutputMapper.swift in Sources */,
-					000000000000000000000231 /* CoreMLSleepEventDetector.swift in Sources */,
-					000000000000000000000232 /* CompositeSleepEventDetector.swift in Sources */,
-					000000000000000000000207 /* SleepAnalyzer.swift in Sources */,
+				000000000000000000000204 /* AudioFeatureExtractor.swift in Sources */,
+				000000000000000000000228 /* AudioFeatures.swift in Sources */,
+				000000000000000000000205 /* DetectorOutput.swift in Sources */,
+				000000000000000000000227 /* SleepEventDetector.swift in Sources */,
+				000000000000000000000206 /* RuleBasedSleepEventDetector.swift in Sources */,
+				000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */,
+				00000000000000000000022B /* FeatureCSVExporter.swift in Sources */,
+				00000000000000000000022C /* SleepDetectionBackend.swift in Sources */,
+				00000000000000000000022D /* CoreMLDetectorConfiguration.swift in Sources */,
+				00000000000000000000022E /* ModelInputAdapter.swift in Sources */,
+				00000000000000000000022F /* MLModelProvider.swift in Sources */,
+				000000000000000000000230 /* ModelOutputMapper.swift in Sources */,
+				000000000000000000000231 /* CoreMLSleepEventDetector.swift in Sources */,
+				000000000000000000000232 /* CompositeSleepEventDetector.swift in Sources */,
+				000000000000000000000233 /* SampleLabel.swift in Sources */,
+				000000000000000000000234 /* LabeledAudioSample.swift in Sources */,
+				000000000000000000000235 /* SampleMetadataStore.swift in Sources */,
+				000000000000000000000238 /* DebugSampleStoragePolicy.swift in Sources */,
+				000000000000000000000207 /* SleepAnalyzer.swift in Sources */,
 				000000000000000000000208 /* SleepEventAggregator.swift in Sources */,
 				000000000000000000000209 /* SleepScoreCalculator.swift in Sources */,
 				00000000000000000000020A /* AudioCaptureService.swift in Sources */,
 				000000000000000000000226 /* AudioCaptureServiceProtocol.swift in Sources */,
 				000000000000000000000225 /* AudioCaptureState.swift in Sources */,
+				000000000000000000000237 /* AudioCaptureMetrics.swift in Sources */,
 				00000000000000000000020B /* AudioChunk.swift in Sources */,
 				00000000000000000000020C /* AudioRingBuffer.swift in Sources */,
 				00000000000000000000020D /* AudioSessionManager.swift in Sources */,
@@ -434,11 +470,13 @@
 				000000000000000000000218 /* PrivacyPolicyModel.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
+				000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */,
 				00000000000000000000021B /* HomeDashboardView.swift in Sources */,
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
 				00000000000000000000021D /* DevicePlacementGuideView.swift in Sources */,
 				00000000000000000000021E /* PrivacySettingsView.swift in Sources */,
 				00000000000000000000022A /* AudioDebugView.swift in Sources */,
+				000000000000000000000236 /* SampleCaptureView.swift in Sources */,
 				00000000000000000000021F /* MorningCheckInView.swift in Sources */,
 				000000000000000000000220 /* SleepEventStyle.swift in Sources */,
 				000000000000000000000221 /* SleepRecordingView.swift in Sources */,
@@ -575,12 +613,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
+				DEVELOPMENT_TEAM = AJ28VHUP9L;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SleepSoundApp/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NightBreath;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 감지된 소리 기반 지표를 온디바이스로 분석하기 위해 마이크 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -605,12 +645,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
+				DEVELOPMENT_TEAM = AJ28VHUP9L;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SleepSoundApp/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NightBreath;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 감지된 소리 기반 지표를 온디바이스로 분석하기 위해 마이크 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = audio;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -632,7 +674,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		000000000000000000000008 /* Build configuration list for PBXProject "NightBreath" */ = {
+		000000000000000000000008 /* Build configuration list for PBXProject "SleepSoundApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00000000000000000000000A /* Debug */,

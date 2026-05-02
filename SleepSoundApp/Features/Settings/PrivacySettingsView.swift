@@ -6,6 +6,7 @@ struct PrivacySettingsView: View {
     private let policy = PrivacyPolicyModel()
     @State private var showDeleteAllConfirmation = false
     @State private var showDeleteLatestConfirmation = false
+    @State private var showDeleteEventAudioConfirmation = false
 
     var body: some View {
         List {
@@ -42,7 +43,13 @@ struct PrivacySettingsView: View {
                     Label("전체 로컬 수면 데이터 삭제", systemImage: "trash.slash")
                 }
 
-                Text("저장된 수면 세션, 이벤트 요약, 리포트, 아침 컨디션만 삭제합니다. 원본 전체 오디오는 저장하지 않습니다.")
+                Button(role: .destructive) {
+                    showDeleteEventAudioConfirmation = true
+                } label: {
+                    Label("이벤트 오디오 샘플 삭제", systemImage: "waveform.slash")
+                }
+
+                Text("저장된 수면 세션, 이벤트 요약, 리포트, 아침 컨디션, 사용자 확인 feedback, 짧은 이벤트 오디오 샘플을 삭제할 수 있습니다. 원본 전체 오디오는 저장하지 않습니다.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -57,6 +64,13 @@ struct PrivacySettingsView: View {
             Button("전체 삭제", role: .destructive) {
                 appState.deleteAllSleepData()
             }
+        }
+        .confirmationDialog("저장된 이벤트 오디오 샘플을 삭제할까요?", isPresented: $showDeleteEventAudioConfirmation, titleVisibility: .visible) {
+            Button("이벤트 오디오 샘플 삭제", role: .destructive) {
+                appState.deleteAllEventAudioSnippets()
+            }
+        } message: {
+            Text("짧게 저장된 이벤트 전후 오디오만 삭제합니다. 수면 세션과 리포트 요약은 유지됩니다.")
         }
     }
 }

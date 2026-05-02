@@ -11,6 +11,7 @@ struct SleepReportView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 summaryCard
+                measurementQualitySection
                 scoreCard
                 trendLinkCard
                 keyEventsSection
@@ -23,6 +24,7 @@ struct SleepReportView: View {
             .padding()
         }
         .navigationTitle("어젯밤 수면 리포트")
+        .toolbar(.hidden, for: .tabBar)
         .background(Color(.systemGroupedBackground))
     }
 
@@ -47,13 +49,13 @@ struct SleepReportView: View {
 
             HStack(spacing: 12) {
                 SummaryPill(
-                    title: "측정 시간",
-                    value: SleepFormatters.durationString(report.measurementDuration),
+                    title: "앱 동작 시간",
+                    value: SleepFormatters.compactDurationString(report.measurementDuration),
                     systemImage: "clock"
                 )
                 SummaryPill(
                     title: "추정 수면 시간",
-                    value: SleepFormatters.durationString(report.estimatedSleepDuration),
+                    value: SleepFormatters.compactDurationString(report.estimatedSleepDuration),
                     systemImage: "bed.double"
                 )
             }
@@ -103,6 +105,78 @@ struct SleepReportView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var measurementQualitySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "측정 품질", systemImage: "waveform.badge.checkmark")
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                ReportMetricCard(
+                    title: "앱 동작 시간",
+                    value: SleepFormatters.compactDurationString(report.measurementDuration),
+                    systemImage: "clock",
+                    color: .blue
+                )
+                ReportMetricCard(
+                    title: "실제 오디오 수신",
+                    value: SleepFormatters.compactDurationString(report.receivedAudioDuration),
+                    systemImage: "waveform",
+                    color: .teal
+                )
+                ReportMetricCard(
+                    title: "실제 분석 시간",
+                    value: SleepFormatters.compactDurationString(report.analyzedAudioDuration),
+                    systemImage: "waveform.path.ecg",
+                    color: .indigo
+                )
+                ReportMetricCard(
+                    title: "감지 이벤트 시간",
+                    value: SleepFormatters.compactDurationString(displayDetectedEventDuration),
+                    systemImage: "waveform.and.magnifyingglass",
+                    color: .purple
+                )
+                ReportMetricCard(
+                    title: "저장된 오디오",
+                    value: SleepFormatters.compactDurationString(report.savedAudioDuration),
+                    systemImage: "waveform.circle",
+                    color: .gray
+                )
+                ReportMetricCard(
+                    title: "녹음 커버리지",
+                    value: percentString(report.audioCoverageRatio),
+                    systemImage: "gauge.with.dots.needle.67percent",
+                    color: .green
+                )
+                ReportMetricCard(
+                    title: "오디오 중단",
+                    value: "\(report.interruptionCount)회",
+                    systemImage: "mic.slash",
+                    color: .orange
+                )
+                ReportMetricCard(
+                    title: "측정 품질",
+                    value: report.measurementQuality.displayName,
+                    systemImage: "checkmark.seal",
+                    color: measurementQualityTint
+                )
+            }
+
+            Text("가장 긴 입력 공백: \(SleepFormatters.compactDurationString(report.longestAudioGapSeconds))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text("실제 오디오 수신은 분석을 위해 마이크 입력이 들어온 시간입니다. 감지 이벤트 시간은 소리 이벤트 후보로 판단한 구간의 합계이고, 저장된 오디오는 이벤트 전후의 짧은 로컬 샘플 합계입니다.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if shouldShowLowMeasurementQualityNote {
+                Text("오디오 수신 시간이 부족해 오늘 리포트의 신뢰도가 낮을 수 있습니다. 화면 잠금 또는 백그라운드 상태에서 녹음이 중단되었을 수 있습니다.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 
     private var trendLinkCard: some View {
@@ -264,6 +338,16 @@ struct SleepReportView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if report.bruxismLikeCount > 0 {
+                Text("이갈이 의심 소리는 사용자 확인 필요 항목입니다. 침구 마찰음이나 주변 소음과 구분이 어려울 수 있으며, 정확한 진단은 전문가 상담이 필요합니다.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("수면 중 소리 기반 지표입니다.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
             Text("이 앱은 진단 목적의 의료기기가 아닙니다. 측정 위치, 주변 소리, 기기 상태에 따라 결과가 달라질 수 있으며, 수면 습관을 돌아보기 위한 참고 정보로 사용해 주세요.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -299,6 +383,19 @@ struct SleepReportView: View {
         }
     }
 
+    private var measurementQualityTint: Color {
+        switch report.measurementQuality {
+        case .excellent:
+            return .green
+        case .good:
+            return .blue
+        case .limited:
+            return .orange
+        case .poor:
+            return .red
+        }
+    }
+
     private var scoreHeadline: String {
         switch report.sleepSoundScore {
         case 85...100:
@@ -329,6 +426,22 @@ struct SleepReportView: View {
 
     private var shouldShowRepeatedPauseNote: Bool {
         report.suspectedPauseCount >= 5 || report.gaspLikeCount >= 2
+    }
+
+    private var shouldShowLowMeasurementQualityNote: Bool {
+        report.measurementQuality == .limited || report.measurementQuality == .poor
+    }
+
+    private var displayDetectedEventDuration: TimeInterval {
+        if report.detectedEventDuration > 0 {
+            return report.detectedEventDuration
+        }
+
+        return SleepEventAggregator().detectedEventDuration(events: events)
+    }
+
+    private func percentString(_ ratio: Double) -> String {
+        String(format: "%.1f%%", min(max(ratio, 0), 1) * 100)
     }
 
     private var trendReports: [NightReport] {

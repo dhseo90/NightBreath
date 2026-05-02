@@ -9,6 +9,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
             onStateChange?(state)
         }
     }
+    @Published public private(set) var metrics = AudioCaptureMetrics()
 
     public var onChunk: AudioChunkConsumer?
     public var onStateChange: AudioCaptureStateConsumer?
@@ -58,14 +59,17 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
 
     public func startCapture() throws {
         guard !isCapturing else { return }
+        metrics = AudioCaptureMetrics()
 
         switch sessionManager.microphonePermissionState() {
         case .granted:
             break
         case .notDetermined:
+            metrics.recordCaptureError()
             state = .failed(message: AudioCaptureError.microphonePermissionNotDetermined.message)
             throw AudioCaptureError.microphonePermissionNotDetermined
         case .denied:
+            metrics.recordCaptureError()
             state = .failed(message: AudioCaptureError.microphonePermissionDenied.message)
             throw AudioCaptureError.microphonePermissionDenied
         }
@@ -73,41 +77,42 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         do {
             try sessionManager.prepareForSleepRecording()
         } catch let error as AudioSessionError {
+            metrics.recordCaptureError()
             state = .failed(message: error.message)
             throw error
         } catch {
+            metrics.recordCaptureError()
             state = .failed(message: error.localizedDescription)
             throw error
         }
 
         let inputNode = engine.inputNode
-        let format = inputNode.inputFormat(forBus: 0)
+        let format = inputNode.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0 else {
+            metrics.recordCaptureError()
             state = .failed(message: AudioCaptureError.microphoneUnavailable.message)
             throw AudioCaptureError.microphoneUnavailable
         }
 
         inputNode.removeTap(onBus: 0)
 
-        let sampleLimit = retainedSampleLimitPerChunk
-        inputNode.installTap(onBus: 0, bufferSize: 4_096, format: format) { [weak self] buffer, _ in
-            guard let chunk = Self.makeChunk(from: buffer, format: format, retainedSampleLimit: sampleLimit) else {
-                return
-            }
-
-            Task { @MainActor [weak self] in
-                self?.emit(chunk)
-            }
-        }
+        let tapBlock = AudioCaptureTapFactory.makeTapBlock(
+            retainedSampleLimit: retainedSampleLimitPerChunk,
+            service: self
+        )
+        inputNode.installTap(onBus: 0, bufferSize: 4_096, format: nil, block: tapBlock)
 
         engine.prepare()
 
         do {
             try engine.start()
-            state = .capturing(startedAt: Date())
+            let startedAt = Date()
+            metrics.start(at: startedAt)
+            state = .capturing(startedAt: startedAt)
         } catch {
             inputNode.removeTap(onBus: 0)
             sessionManager.finishSleepRecording()
+            metrics.recordCaptureError()
             state = .failed(message: AudioCaptureError.engineStartFailed(error.localizedDescription).message)
             throw AudioCaptureError.engineStartFailed(error.localizedDescription)
         }
@@ -115,6 +120,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
 
     public func stopCapture() {
         guard isCapturing else {
+            metrics.stop(at: Date())
             state = .stopped
             sessionManager.finishSleepRecording()
             return
@@ -124,10 +130,12 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         sessionManager.finishSleepRecording()
+        metrics.stop(at: Date())
         state = .stopped
     }
 
-    private func emit(_ chunk: AudioChunk) {
+    fileprivate func emit(_ chunk: AudioChunk) {
+        metrics.recordReceived(chunk: chunk)
         onChunk?(chunk)
 
         for continuation in continuations.values {
@@ -135,9 +143,69 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         }
     }
 
-    private static func makeChunk(
+    private func installInterruptionObserver() {
+        #if os(iOS)
+        let observer = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+
+            Task { @MainActor [weak self] in
+                self?.handleInterruption(rawType: rawType)
+            }
+        }
+        interruptionObserver = NotificationObserverToken(observer: observer)
+        #endif
+    }
+
+    private func handleInterruption(rawType: UInt?) {
+        #if os(iOS)
+        guard let rawType,
+              let type = AVAudioSession.InterruptionType(rawValue: rawType),
+              type == .began,
+              isCapturing else {
+            return
+        }
+
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        sessionManager.finishSleepRecording()
+        metrics.recordInterruption()
+        metrics.recordCaptureError()
+        state = .failed(message: AudioCaptureError.captureInterrupted.message)
+        #endif
+    }
+}
+
+private struct NotificationObserverToken: @unchecked Sendable {
+    let observer: NSObjectProtocol
+}
+
+private enum AudioCaptureTapFactory {
+    static func makeTapBlock(
+        retainedSampleLimit: Int,
+        service: AudioCaptureService
+    ) -> AVAudioNodeTapBlock {
+        { [weak service] buffer, _ in
+            guard let chunk = AudioChunkFactory.makeChunk(
+                from: buffer,
+                retainedSampleLimit: retainedSampleLimit
+            ) else {
+                return
+            }
+
+            Task { @MainActor [weak service] in
+                service?.emit(chunk)
+            }
+        }
+    }
+}
+
+private enum AudioChunkFactory {
+    static func makeChunk(
         from buffer: AVAudioPCMBuffer,
-        format: AVAudioFormat,
         retainedSampleLimit: Int
     ) -> AudioChunk? {
         guard let floatChannelData = buffer.floatChannelData else {
@@ -145,6 +213,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         }
 
         let frameCount = Int(buffer.frameLength)
+        let format = buffer.format
         let channelCount = Int(format.channelCount)
         guard frameCount > 0, channelCount > 0 else {
             return nil
@@ -187,43 +256,6 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
             samples: retainedSamples
         )
     }
-
-    private func installInterruptionObserver() {
-        #if os(iOS)
-        let observer = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
-            object: AVAudioSession.sharedInstance(),
-            queue: .main
-        ) { [weak self] notification in
-            let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
-
-            Task { @MainActor [weak self] in
-                self?.handleInterruption(rawType: rawType)
-            }
-        }
-        interruptionObserver = NotificationObserverToken(observer: observer)
-        #endif
-    }
-
-    private func handleInterruption(rawType: UInt?) {
-        #if os(iOS)
-        guard let rawType,
-              let type = AVAudioSession.InterruptionType(rawValue: rawType),
-              type == .began,
-              isCapturing else {
-            return
-        }
-
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
-        sessionManager.finishSleepRecording()
-        state = .failed(message: AudioCaptureError.captureInterrupted.message)
-        #endif
-    }
-}
-
-private struct NotificationObserverToken: @unchecked Sendable {
-    let observer: NSObjectProtocol
 }
 
 @MainActor
@@ -233,6 +265,7 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
             onStateChange?(state)
         }
     }
+    @Published public private(set) var metrics = AudioCaptureMetrics()
 
     public var onChunk: AudioChunkConsumer?
     public var onStateChange: AudioCaptureStateConsumer?
@@ -250,10 +283,13 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
     }
 
     public func startCapture() throws {
-        state = .capturing(startedAt: Date())
+        let startedAt = Date()
+        metrics.start(at: startedAt)
+        state = .capturing(startedAt: startedAt)
     }
 
     public func stopCapture() {
+        metrics.stop(at: Date())
         state = .stopped
     }
 }

@@ -77,7 +77,8 @@ struct AudioDebugView: View {
 
             Section("Detector Backend") {
                 AudioDebugRow(title: "현재 backend", value: viewModel.detectorBackend.displayName)
-                AudioDebugRow(title: "Core ML model", value: viewModel.coreMLModelStatus)
+                AudioDebugRow(title: "Snore Core ML model", value: viewModel.coreMLModelStatus)
+                AudioDebugRow(title: "최근 Core ML confidence", value: viewModel.latestCoreMLConfidenceText)
                 AudioDebugRow(title: "Hybrid fallback", value: viewModel.hybridFallbackStatus)
             }
 
@@ -146,6 +147,7 @@ private final class AudioDebugViewModel: ObservableObject {
     @Published var latestOutput: DetectorOutput?
     @Published var detectorBackend: SleepDetectionBackend = .ruleBased
     @Published var coreMLModelStatus: String = "Not installed"
+    @Published var latestCoreMLConfidenceText: String = "대기 중"
     @Published var hybridFallbackStatus: String = "Available"
     @Published var silenceThreshold: Double = RuleBasedDetectionThresholds.default.silenceRMS {
         didSet { updateDetectorThresholds() }
@@ -164,6 +166,7 @@ private final class AudioDebugViewModel: ObservableObject {
     private let audioCaptureService: AudioCaptureServiceProtocol
     private let featureExtractor: AudioFeatureExtracting
     private var detector: RuleBasedSleepEventDetector
+    private var coreMLDetector: CoreMLSleepEventDetector
 
     init(
         audioSessionManager: AudioSessionManaging = AudioSessionManager(),
@@ -174,7 +177,9 @@ private final class AudioDebugViewModel: ObservableObject {
         self.audioCaptureService = audioCaptureService ?? AudioCaptureService(sessionManager: audioSessionManager)
         self.featureExtractor = featureExtractor
         self.detector = RuleBasedSleepEventDetector()
+        self.coreMLDetector = CoreMLSleepEventDetector()
         self.permissionState = audioSessionManager.microphonePermissionState()
+        self.coreMLModelStatus = coreMLDetector.modelProvider.isModelAvailable ? "Installed" : "Not installed"
 
         self.audioCaptureService.onChunk = { [weak self] chunk in
             Task { @MainActor [weak self] in
@@ -282,6 +287,7 @@ private final class AudioDebugViewModel: ObservableObject {
     private func handle(_ chunk: AudioChunk) {
         let features = featureExtractor.extractFeatures(from: chunk)
         let outputs = detector.detect(features: features)
+        let coreMLResult = coreMLDetector.detectWithStatus(features: features)
 
         chunkCount += 1
         latestFeatures = features
@@ -297,6 +303,7 @@ private final class AudioDebugViewModel: ObservableObject {
         latestOutput = outputs.max { lhs, rhs in
             lhs.confidence < rhs.confidence
         }
+        updateCoreMLStatus(from: coreMLResult)
     }
 
     private func updateDetectorThresholds() {
@@ -308,6 +315,30 @@ private final class AudioDebugViewModel: ObservableObject {
                 suspectedPauseMinimumDuration: suspectedPauseMinimumDuration
             )
         )
+    }
+
+    private func updateCoreMLStatus(from result: CoreMLDetectionResult) {
+        coreMLModelStatus = coreMLDetector.modelProvider.isModelAvailable ? "Installed" : "Not installed"
+
+        switch result.status {
+        case .success:
+            if let output = result.outputs.first {
+                latestCoreMLConfidenceText = format(output.confidence, digits: 3)
+                hybridFallbackStatus = output.eventType == .snore ? "Core ML snore 우선 사용 가능" : "non-snore 결과는 rule-based fallback"
+            } else {
+                latestCoreMLConfidenceText = "결과 없음"
+                hybridFallbackStatus = "rule-based fallback"
+            }
+        case .belowConfidenceThreshold(let confidence):
+            latestCoreMLConfidenceText = format(confidence, digits: 3)
+            hybridFallbackStatus = "confidence 낮음 → rule-based fallback"
+        case .modelUnavailable:
+            latestCoreMLConfidenceText = "모델 없음"
+            hybridFallbackStatus = "모델 없음 → rule-based fallback"
+        case .predictionFailed:
+            latestCoreMLConfidenceText = "예측 실패"
+            hybridFallbackStatus = "예측 실패 → rule-based fallback"
+        }
     }
 }
 
