@@ -44,7 +44,11 @@ struct AudioDebugView: View {
                 AudioDebugRow(title: "Energy", value: viewModel.formattedEnergy)
                 AudioDebugProgressRow(title: "Peak", value: viewModel.currentPeak)
                 AudioDebugProgressRow(title: "Zero Crossing", value: viewModel.currentZeroCrossingRate)
-                AudioDebugProgressRow(title: "Low Frequency", value: viewModel.currentLowFrequencyRatio)
+                AudioDebugRow(title: "Spectral Centroid", value: viewModel.formattedSpectralCentroid)
+                AudioDebugProgressRow(title: "Low Band", value: viewModel.currentLowBandEnergy)
+                AudioDebugProgressRow(title: "Mid Band", value: viewModel.currentMidBandEnergy)
+                AudioDebugProgressRow(title: "High Band", value: viewModel.currentHighBandEnergy)
+                AudioDebugProgressRow(title: "Noise Level", value: viewModel.currentEstimatedNoiseLevel)
                 AudioDebugRow(title: "무음 추정", value: viewModel.silenceStatusText)
                 AudioDebugRow(title: "소음 추정", value: viewModel.noiseStatusText)
             }
@@ -69,6 +73,12 @@ struct AudioDebugView: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            Section("Detector Backend") {
+                AudioDebugRow(title: "현재 backend", value: viewModel.detectorBackend.displayName)
+                AudioDebugRow(title: "Core ML model", value: viewModel.coreMLModelStatus)
+                AudioDebugRow(title: "Hybrid fallback", value: viewModel.hybridFallbackStatus)
             }
 
             Section("Threshold") {
@@ -127,9 +137,16 @@ private final class AudioDebugViewModel: ObservableObject {
     @Published var currentEnergy: Double = 0
     @Published var currentPeak: Double = 0
     @Published var currentZeroCrossingRate: Double = 0
-    @Published var currentLowFrequencyRatio: Double = 0
+    @Published var currentSpectralCentroid: Double = 0
+    @Published var currentLowBandEnergy: Double = 0
+    @Published var currentMidBandEnergy: Double = 0
+    @Published var currentHighBandEnergy: Double = 0
+    @Published var currentEstimatedNoiseLevel: Double = 0
     @Published var latestFeatures: AudioFeatures?
     @Published var latestOutput: DetectorOutput?
+    @Published var detectorBackend: SleepDetectionBackend = .ruleBased
+    @Published var coreMLModelStatus: String = "Not installed"
+    @Published var hybridFallbackStatus: String = "Available"
     @Published var silenceThreshold: Double = RuleBasedDetectionThresholds.default.silenceRMS {
         didSet { updateDetectorThresholds() }
     }
@@ -177,6 +194,10 @@ private final class AudioDebugViewModel: ObservableObject {
 
     var formattedEnergy: String {
         format(currentEnergy, digits: 6)
+    }
+
+    var formattedSpectralCentroid: String {
+        format(currentSpectralCentroid, digits: 1) + " Hz"
     }
 
     var silenceStatusText: String {
@@ -268,7 +289,11 @@ private final class AudioDebugViewModel: ObservableObject {
         currentEnergy = features.energy
         currentPeak = features.peak
         currentZeroCrossingRate = features.zeroCrossingRate
-        currentLowFrequencyRatio = features.lowFrequencyEnergyRatio
+        currentSpectralCentroid = features.spectralCentroid
+        currentLowBandEnergy = features.lowBandEnergy
+        currentMidBandEnergy = features.midBandEnergy
+        currentHighBandEnergy = features.highBandEnergy
+        currentEstimatedNoiseLevel = features.estimatedNoiseLevel
         latestOutput = outputs.max { lhs, rhs in
             lhs.confidence < rhs.confidence
         }

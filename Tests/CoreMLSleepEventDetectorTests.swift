@@ -1,0 +1,107 @@
+import Foundation
+import Testing
+@testable import SleepSoundCore
+
+@Suite("CoreMLSleepEventDetector")
+struct CoreMLSleepEventDetectorTests {
+    @Test
+    func modelUnavailableDoesNotCrash() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(modelName: "MissingModel"),
+            modelProvider: UnavailableMLModelProvider(modelName: "MissingModel")
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.outputs.isEmpty)
+        if case .modelUnavailable(let reason) = result.status {
+            #expect(reason.contains("MissingModel"))
+        } else {
+            Issue.record("Expected modelUnavailable status")
+        }
+    }
+
+    @Test
+    func mockProviderPredictionCreatesDetectorOutput() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
+            modelProvider: MockModelProvider(
+                prediction: ModelPrediction(label: "cough_like", confidence: 0.78)
+            )
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.status == .success)
+        #expect(result.outputs.count == 1)
+        #expect(result.outputs.first?.eventType == .coughLike)
+        #expect(result.outputs.first?.confidence == 0.78)
+    }
+
+    @Test
+    func lowConfidencePredictionReturnsEmptyOutput() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.8),
+            modelProvider: MockModelProvider(
+                prediction: ModelPrediction(label: "snore", confidence: 0.3)
+            )
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.outputs.isEmpty)
+        #expect(result.status == .belowConfidenceThreshold(0.3))
+    }
+
+    @Test
+    func predictionFailureDoesNotCrash() {
+        let detector = CoreMLSleepEventDetector(
+            modelProvider: MockFailingProvider()
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.outputs.isEmpty)
+        if case .predictionFailed(let reason) = result.status {
+            #expect(reason.contains("mock failure"))
+        } else {
+            Issue.record("Expected predictionFailed status")
+        }
+    }
+
+    private func makeFeatures() -> AudioFeatures {
+        AudioFeatures(
+            startedAt: Date(timeIntervalSince1970: 20),
+            duration: 1,
+            rms: 0.2,
+            peak: 0.4,
+            zeroCrossingRate: 0.2,
+            lowFrequencyEnergyRatio: 0.4
+        )
+    }
+}
+
+private struct MockModelProvider: MLModelProvider {
+    var modelName: String = "MockModel"
+    var prediction: ModelPrediction
+
+    var isModelAvailable: Bool {
+        true
+    }
+
+    func prediction(for input: ModelInput) throws -> ModelPrediction {
+        prediction
+    }
+}
+
+private struct MockFailingProvider: MLModelProvider {
+    var modelName: String = "MockFailingModel"
+
+    var isModelAvailable: Bool {
+        true
+    }
+
+    func prediction(for input: ModelInput) throws -> ModelPrediction {
+        throw CoreMLDetectorError.predictionFailed("mock failure")
+    }
+}

@@ -16,7 +16,7 @@ public struct SleepAnalyzer: SleepAnalyzing {
 
     public init(
         extractor: any AudioFeatureExtracting = AudioFeatureExtractor(),
-        detector: any SleepEventDetector = RuleBasedSleepEventDetector(),
+        detector: any SleepEventDetector = CompositeSleepEventDetector.ruleBasedDefault,
         smoothingPolicy: DetectionSmoothingPolicy = DetectionSmoothingPolicy()
     ) {
         self.extractor = extractor
