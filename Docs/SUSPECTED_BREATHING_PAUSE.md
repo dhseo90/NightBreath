@@ -61,7 +61,7 @@ manifest 기반 offline evaluation은 실제 오디오 파일을 repo에 넣지 
 예시:
 
 ```sh
-swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --profile balanced --output Tools/OfflineEvaluation/output
+swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --profiles balanced --output Tools/OfflineEvaluation/output
 ```
 
 확인할 항목:

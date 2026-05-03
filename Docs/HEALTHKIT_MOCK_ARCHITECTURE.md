@@ -16,13 +16,13 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 분석에 집중합
 - `HealthMetricType`: 향후 읽을 metric 목록을 정의합니다.
 - `HealthMetricSample`: metric 값, 단위, 측정 시각, 출처 앱 정보를 담습니다.
 - `HealthMetricDateRange`: mock fetch filtering에 쓰는 기간 모델입니다.
-- `HealthKitServiceProtocol`: 향후 건강앱 read service를 붙이기 위한 protocol입니다.
-- `DisabledHealthKitService`: V1에서 권한 요청을 하지 않는 비활성 service입니다.
+- `HealthKitServiceProtocol`: 건강앱 read service와 mock service를 같은 UI에서 다루기 위한 protocol입니다.
+- `DisabledHealthKitService`: HealthKit을 사용할 수 없는 환경에서 권한 요청 없이 empty/unavailable state를 반환하는 service입니다.
 - `HealthKitService`: Apple 건강앱 read-only 권한 요청과 quantity sample query를 담당합니다.
 - `MockHealthKitService`: mock sample을 반환하는 개발용 service입니다.
 - `HealthMetricChartDataBuilder`: chart 표시용 point와 최근 변화량을 만듭니다.
 
-## 읽을 예정인 Metric
+## Metric 범위
 
 - `systolicBloodPressure`
 - `diastolicBloodPressure`

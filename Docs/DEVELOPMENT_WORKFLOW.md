@@ -152,7 +152,8 @@ DEBUG 빌드에서:
 - `swift test --no-parallel`
 - `xcodebuild ... generic/platform=iOS ... build`
 - `git ls-files "*.wav" "*.caf" "*.m4a"` 결과 없음
-- HealthKit 실제 권한 요청 코드 없음
+- HealthKit은 read-only이고 권한 요청이 건강 데이터 연결 flow에만 묶여 있음
+- HealthKit save/delete/write API 없음
 - 서버/네트워크 코드 없음
 - 전체 밤 원본 오디오 저장 코드 없음
 - 확정적 의료 표현 없음

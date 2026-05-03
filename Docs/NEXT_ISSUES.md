@@ -9,9 +9,10 @@
 3. profile tuning report 생성
 4. threshold 변경 후보 수동 검토
 5. Core ML 모델 실제 적용 준비
-6. 실제 iPhone background smoke test
-7. 잠금 30분 테스트
-8. overnight test
+6. HealthKit read-only 실기기 permission/source smoke test
+7. 실제 iPhone background smoke test
+8. 잠금 30분 테스트
+9. overnight test
 
 ## Detector / ML
 
@@ -56,17 +57,18 @@
 - 전체 로컬 수면 데이터 삭제 확인
 - 앱 재설치/업데이트 후 저장소 migration 필요성 검토
 
-## Health Dashboard 방향
+## Health Dashboard / HealthKit
 
-V1에서는 HealthKit 실제 연동을 하지 않습니다.
+HealthKit read-only service와 mock fallback, 혈압/체중/체성분 dashboard, 수면 소리 지표와 건강 지표 교차 보기는 구현되어 있습니다.
 
-향후 별도 이슈로 설계할 항목:
+다음 확인 항목:
 
-- Health dashboard 정보 구조
-- 혈압/체중/체성분 카드 UI
-- Apple 건강앱 권한 요청 UX
-- 건강 데이터 source 표시
-- 수면 소리 리포트와 건강 지표를 한 화면에서 비교하는 방식
+- 실제 iPhone에서 HealthKit 권한 sheet 확인
+- 권한 거부/일부 허용/데이터 없음 상태 smoke test
+- Omron Connect 혈압 source 표시 확인
+- Fitdays 체중/체성분 source 표시 확인
+- 교차 보기에서 matched sample 부족 안내 확인
+- HealthKit 쓰기 API가 없는지 release 전 재점검
 
 ## 문서 유지보수
 

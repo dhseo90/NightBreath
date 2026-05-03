@@ -2,7 +2,7 @@
 
 이 체크리스트는 NightBreath / 밤숨 V1 프로토타입을 실제 iPhone에서 검증하기 위한 문서입니다.
 
-앱은 수면 중 소리 기반 웰니스 리포트를 제공하는 프로토타입입니다. 진단 목적의 의료기기가 아니며, HealthKit 실제 연동, 서버 업로드, 클라우드 동기화, 외부 SDK는 V1 범위에 포함되지 않습니다.
+앱은 수면 중 소리 기반 웰니스 리포트를 제공하는 프로토타입입니다. 진단 목적의 의료기기가 아니며, HealthKit은 read-only 건강 데이터 대시보드에서만 사용합니다. 서버 업로드, 클라우드 동기화, 외부 SDK는 범위에 포함되지 않습니다.
 
 ## 1. 빌드와 테스트
 
@@ -168,17 +168,19 @@ rg -n "AVAudioFile|AVAssetWriter|write\\(|\\.caf|\\.wav|\\.m4a" SleepSoundApp Te
 rg -n "URLSession|http://|https://|NWConnection|Alamofire|Firebase|Analytics|AdMob" SleepSoundApp Tests Package.swift
 ```
 
-## 12. HealthKit 미구현 확인
+## 12. HealthKit read-only 확인
 
-- [ ] V1 앱 실행 중 HealthKit 권한 팝업이 표시되지 않는다.
-- [ ] `HKHealthStore`를 생성하지 않는다.
-- [ ] HealthKit 데이터를 읽거나 쓰지 않는다.
-- [ ] FutureHealth 모듈은 protocol/placeholder 수준으로만 남아 있다.
+- [ ] 앱 첫 실행이나 수면 시작 시 HealthKit 권한 팝업이 표시되지 않는다.
+- [ ] 건강 데이터 대시보드에서 사용자가 “건강 데이터 연결”을 누를 때만 HealthKit read 권한을 요청한다.
+- [ ] HealthKit share/write 대상이 비어 있다.
+- [ ] HealthKit save/delete API를 사용하지 않는다.
+- [ ] 권한 거부 또는 데이터 없음 상태에서 앱이 정상 동작한다.
+- [ ] 수면 소리 점수, 이벤트, 리포트, 피드백을 HealthKit에 쓰지 않는다.
 
 코드 스캔 예시:
 
 ```bash
-rg -n "import HealthKit|HKHealthStore|requestAuthorization|HKSampleQuery" SleepSoundApp Tests Package.swift
+rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery|save\\(|delete\\(" SleepSoundApp Tests Package.swift
 ```
 
 ## 13. 의료 표현 확인

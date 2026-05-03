@@ -54,25 +54,31 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - 수면 소리 점수 계산
 - 수면 리포트 UI
 - 수면 이벤트 타임라인
-- 최근 7일 추세 UI
+- 최근 7일/30일/90일 수면 트렌드 UI
 - 아침 컨디션 체크인
 - 로컬 저장소 기반 세션/이벤트/리포트/체크인 저장
 - 이벤트 오디오 샘플 opt-in 저장, 재생, 삭제
+- 이벤트별 사용자 피드백 저장/삭제/export 구조
 - 저장된 이벤트 오디오 용량 표시
 - orphan 이벤트 오디오 샘플 정리
+- 온보딩, iPhone 배치 가이드, 30초 캘리브레이션 flow
 - DEBUG 오디오 디버그 화면
 - DEBUG 짧은 샘플 수집 화면
 - Dataset Replay
 - Offline Evaluation
+- Snore ML v0 training/변환 준비 도구
+- multiclass event classifier 준비 도구
 - Simulator QA scenarios
 - NightBreath 전용 디자인 시스템
-- 향후 HealthKit 확장을 위한 모델과 placeholder
+- HealthKit read-only service
+- 혈압/체중/체성분 건강 데이터 대시보드
+- 수면 소리 지표와 건강 지표 교차 보기
 
 ## V1에서 하지 않는 것
 
-- HealthKit 권한 요청
-- Apple 건강앱 데이터 읽기/쓰기
-- 혈압, 체중, 체성분 그래프
+- HealthKit 쓰기
+- 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
+- HealthKit에 수면 소리 점수나 앱 데이터를 기록
 - Apple Watch 연동
 - 서버 업로드
 - 클라우드 처리 또는 동기화
@@ -131,6 +137,15 @@ SleepSoundApp
   - Dashboard
     - HomeDashboardView.swift
     - TrendChartView.swift
+    - TrendDashboardView.swift
+    - HealthDashboardView.swift
+    - BloodPressureDashboardView.swift
+    - BodyCompositionDashboardView.swift
+    - CrossMetricDashboardView.swift
+    - HealthMetricChartView.swift
+  - Onboarding
+    - OnboardingView.swift
+    - CalibrationView.swift
   - Settings
     - PrivacySettingsView.swift
     - DevicePlacementGuideView.swift
@@ -303,16 +318,18 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - 이벤트 오디오 샘플은 `Application Support/NightBreath/EventAudioSnippets/`에 저장되며, 전체 밤 오디오가 아닙니다.
 - 이벤트 오디오 샘플은 앱에서 재생하거나 개별/전체 삭제할 수 있습니다.
 - 개인정보 화면에서 저장된 이벤트 오디오 샘플 수, 총 시간, 총 용량, 연결되지 않은 샘플 수/용량을 확인하고 정리할 수 있습니다.
+- HealthKit 데이터는 사용자가 건강 데이터 대시보드에서 연결 버튼을 누른 경우에만 read-only 권한을 요청해 로컬 화면에 표시합니다.
+- HealthKit에 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백을 쓰지 않습니다.
 
 토글을 끄면 이후 새 이벤트의 오디오 샘플은 저장하지 않고, 이벤트 요약과 리포트 수치만 남깁니다. 기존 저장 샘플은 자동 삭제하지 않으며, 개인정보 설정에서 별도로 삭제할 수 있습니다.
 
 ## HealthKit 상태
 
-V1에는 HealthKit 실제 연동이 없습니다.
+현재 앱에는 HealthKit read-only 연동이 있습니다.
 
-현재 포함된 것은 향후 확장을 위한 모델과 placeholder입니다. 나중에 Apple 건강앱 데이터를 읽는 기능을 별도 작업으로 추가할 수 있지만, 현재 앱은 HealthKit 권한을 요청하지 않고 HealthKit 데이터를 읽거나 쓰지 않습니다.
+권한 요청은 앱 첫 실행이나 수면 측정 시작 시 자동으로 발생하지 않습니다. 사용자가 `건강 데이터 대시보드`에서 `건강 데이터 연결`을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. 앱은 HealthKit에 데이터를 쓰지 않습니다.
 
-향후 확장 후보:
+현재 read-only 표시 대상:
 
 - 수축기 혈압
 - 이완기 혈압
@@ -320,9 +337,10 @@ V1에는 HealthKit 실제 연동이 없습니다.
 - 체지방률
 - BMI
 - 제지방량
-- 수면 시간
-- 심박수
+- 안정시 심박수
 - 호흡수
+
+수면 시간은 모델/mock data에는 남아 있지만 실제 HealthKit query 대상은 아직 아닙니다. 자세한 정책은 `Docs/HEALTHKIT_READ_ONLY.md`, dashboard 구조는 `Docs/HEALTH_DASHBOARD.md`, 수면 소리와 건강 지표 교차 보기는 `Docs/CROSS_METRIC_ANALYSIS.md`를 참고합니다.
 
 ## 현재 상태와 다음 이슈
 

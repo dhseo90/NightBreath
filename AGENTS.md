@@ -45,10 +45,10 @@
 규칙:
 - 서버 업로드를 하지 않습니다.
 - 클라우드 처리를 하지 않습니다.
-- V1에서는 외부 API 호출을 하지 않습니다.
+- 외부 API 호출을 하지 않습니다.
 - 외부 분석 SDK를 추가하지 않습니다.
 - 광고 SDK를 추가하지 않습니다.
-- V1에서는 계정 시스템을 만들지 않습니다.
+- 계정 시스템을 만들지 않습니다.
 - 기본 동작으로 밤새 원본 오디오 전체를 저장하지 않습니다.
 - 잠꼬대/말소리를 텍스트로 변환하지 않습니다.
 - 명시적으로 요청되지 않는 한 로컬 이벤트 요약만 저장합니다.
@@ -69,12 +69,9 @@
 - 수면 소리 점수
 - rule-based 분석 placeholder
 - 오디오 캡처 서비스 skeleton
-- 향후 HealthKit 모듈 placeholder
+- HealthKit read-only service와 건강 데이터 dashboard
 
-V1에서 구현하지 않을 것:
-- 실제 HealthKit 권한 요청
-- 혈압 그래프
-- 체중/체성분 그래프
+현재 구현하지 않을 것:
 - Apple Watch 연동
 - 원격 API
 - 클라우드 동기화
@@ -103,9 +100,10 @@ V1에서 구현하지 않을 것:
 - 사용자는 기본 건강앱 화면보다 더 보기 좋은 건강 대시보드를 원합니다.
 
 현재 원칙:
-- 확장 가능한 모델과 placeholder만 정의합니다.
-- V1에서는 HealthKit 권한을 요청하지 않습니다.
-- V1에서는 HealthKit 데이터를 읽거나 쓰지 않습니다.
+- HealthKit은 read-only로만 사용합니다.
+- 권한 요청은 사용자가 건강 데이터 대시보드에서 연결 버튼을 눌렀을 때만 수행합니다.
+- 앱은 HealthKit에 데이터를 쓰지 않습니다.
+- 서버나 외부 앱에 건강 데이터를 전송하지 않습니다.
 
 ## 아키텍처
 
@@ -114,6 +112,7 @@ V1에서 구현하지 않을 것:
 - App
 - Features/Sleep
 - Features/Dashboard
+- Features/Onboarding
 - Features/Settings
 - Core/Audio
 - Core/Analysis

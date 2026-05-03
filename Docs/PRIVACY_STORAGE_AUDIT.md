@@ -11,7 +11,9 @@
 - 기본값은 꺼짐입니다.
 - 저장된 이벤트 오디오 샘플은 로컬 앱 컨테이너 안에만 저장됩니다.
 - 서버 전송, 클라우드 동기화, 외부 API 호출, 외부 분석 SDK, 광고 SDK는 없습니다.
-- HealthKit 실제 권한 요청, `HKHealthStore` 생성, HealthKit 데이터 읽기/쓰기는 없습니다.
+- HealthKit은 read-only 건강 데이터 대시보드에서만 사용합니다.
+- HealthKit 권한 요청은 사용자가 건강 데이터 연결을 선택할 때만 발생합니다.
+- HealthKit 쓰기, save/delete, 수면 소리 점수 기록은 없습니다.
 - 잠꼬대/말소리 내용을 텍스트로 변환하지 않습니다.
 - 공개/개인 오디오 파일은 git에 포함하지 않도록 `.gitignore`에 포함되어 있습니다.
 
@@ -126,7 +128,7 @@ orphan cleanup:
 - `NightReport`
 - `MorningCheckIn`
 - detector diagnostics summary
-- 이갈이 의심 소리 사용자 feedback
+- 이벤트별 사용자 feedback
 - opt-in 상태에서만 짧은 이벤트 오디오 샘플
 
 저장하지 않는 것:
@@ -134,7 +136,7 @@ orphan cleanup:
 - 전체 밤 원본 오디오 파일
 - sleep talk 내용 텍스트
 - 서버 전송용 payload
-- HealthKit 원본 데이터
+- HealthKit 쓰기용 payload
 
 ## 네트워크 / 서버 / 외부 SDK 점검
 
@@ -153,19 +155,27 @@ Tools 폴더의 offline evaluation과 training 도구도 공개 데이터셋을 
 
 ## HealthKit 점검
 
-현재 포함된 것은 향후 확장용 placeholder입니다.
+현재 HealthKit 구현은 read-only service로 제한되어 있습니다.
 
 - `HealthKitServiceProtocol`
 - `DisabledHealthKitService`
 - `HealthMetricSample`
+- `HealthKitService`
 
-다음 항목은 없습니다.
+허용되는 항목:
 
 - `import HealthKit`
 - `HKHealthStore`
 - `requestAuthorization`
-- HealthKit query
-- HealthKit 데이터 읽기/쓰기
+- `HKSampleQuery`
+
+제한 사항:
+
+- `requestAuthorization(toShare: Set<HKSampleType>(), read: ...)`에서 share 대상은 빈 set입니다.
+- HealthKit sample은 화면 표시용으로만 읽습니다.
+- HealthKit save/delete API를 사용하지 않습니다.
+- 수면 소리 점수, 이벤트, 리포트, feedback을 HealthKit에 쓰지 않습니다.
+- HealthKit 권한 요청은 건강 데이터 대시보드의 연결 버튼에서만 시작합니다.
 
 ## git 제외 규칙
 
@@ -181,7 +191,6 @@ Samples/Personal/
 *.m4a
 Tools/FeatureLab/output/
 Tools/Training/output/
-Tools/DatasetReplay/output/
 Tools/OfflineEvaluation/output/
 ```
 

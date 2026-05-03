@@ -50,7 +50,7 @@ manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANI
 - `Datasets/`
 - `Samples/Public/`
 - `Samples/Personal/`
-- `Tools/DatasetReplay/output/`
+- `Tools/OfflineEvaluation/output/`
 - `*.wav`
 - `*.caf`
 - `*.m4a`

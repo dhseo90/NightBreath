@@ -20,28 +20,35 @@
 - 수면 리포트 UI
 - 홈 대시보드
 - 이벤트 타임라인
-- 최근 7일 추세 UI
+- 최근 7일/30일/90일 수면 트렌드 UI
 - 수면 소리 점수
 - 이벤트 집계
-- rule-based detector placeholder
+- rule-based detector
 - detector protocol
 - Core ML adapter placeholder
 - detector diagnostics
 - zero-event analysis
 - 이벤트 오디오 샘플 저장/재생/삭제
+- 이벤트별 사용자 feedback 저장/삭제/export 구조
 - 이벤트 오디오 샘플 opt-in 설정
 - 저장된 이벤트 오디오 용량 표시
 - orphan sample cleanup
+- 온보딩, iPhone 배치 가이드, 30초 캘리브레이션 flow
 - 개인정보/저장소 관리 UI
 - DEBUG 오디오 디버그 화면
 - DEBUG 수동 짧은 샘플 수집 화면
 - Dataset Replay
 - Offline Evaluation
 - profile comparison 도구
+- snore baseline/backend comparison 도구
+- Snore ML v0 training/변환 준비 도구
+- multiclass event classifier 준비 도구
 - Simulator QA scenarios
 - Regression Test Suite
 - NightBreath 디자인 시스템
-- 향후 HealthKit 확장용 placeholder
+- HealthKit read-only service
+- 혈압/체중/체성분 건강 데이터 dashboard
+- 수면 소리 지표와 건강 지표 교차 보기
 
 ## 현재 개발 전략
 
@@ -54,13 +61,13 @@
 - Simulator QA scenarios로 UI edge case 확인
 - 실제 iPhone은 오디오 캡처/background/배터리/overnight 안정성 확인 시점에 사용
 
-## 의도적으로 미구현
+## 의도적으로 미구현 / 제한
 
-- HealthKit 실제 연동
-- HealthKit 권한 요청
-- Apple 건강앱 데이터 읽기/쓰기
+- HealthKit 쓰기
+- 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
+- HealthKit에 수면 소리 점수/이벤트/리포트/피드백 기록
+- Apple 건강앱 수면 데이터 query
 - Apple Watch 연동
-- 혈압/체중/체성분 그래프
 - 서버 업로드
 - 클라우드 동기화
 - 외부 API 호출
@@ -83,7 +90,8 @@
 - 저장된 샘플은 개별/전체 삭제할 수 있습니다.
 - orphan sample cleanup이 있습니다.
 - 공개/개인 오디오 파일은 git에 포함하지 않습니다.
-- 서버 전송, HealthKit 실제 연동, 외부 SDK는 없습니다.
+- HealthKit은 read-only이며 사용자가 건강 데이터 연결을 선택할 때만 권한을 요청합니다.
+- 서버 전송, HealthKit 쓰기, 외부 SDK는 없습니다.
 
 ## 실기기 확인이 남은 항목
 
