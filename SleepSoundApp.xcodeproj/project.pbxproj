@@ -128,6 +128,8 @@
 		00000000000000000000028C /* FitdaysImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BB /* FitdaysImportService.swift */; };
 		00000000000000000000028D /* UnifiedHealthMetricSampleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BC /* UnifiedHealthMetricSampleRepository.swift */; };
 		00000000000000000000028E /* FitdaysImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BD /* FitdaysImportView.swift */; };
+		00000000000000000000028F /* MetricStatisticsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BE /* MetricStatisticsCalculator.swift */; };
+		000000000000000000000290 /* HealthMetricsOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BF /* HealthMetricsOverviewView.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -338,6 +340,8 @@
 		0000000000000000000001BB /* FitdaysImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitdaysImportService.swift; sourceTree = "<group>"; };
 		0000000000000000000001BC /* UnifiedHealthMetricSampleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedHealthMetricSampleRepository.swift; sourceTree = "<group>"; };
 		0000000000000000000001BD /* FitdaysImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitdaysImportView.swift; sourceTree = "<group>"; };
+		0000000000000000000001BE /* MetricStatisticsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricStatisticsCalculator.swift; sourceTree = "<group>"; };
+		0000000000000000000001BF /* HealthMetricsOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsOverviewView.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -472,6 +476,7 @@
 				000000000000000000000187 /* BodyCompositionDashboardView.swift */,
 				00000000000000000000018A /* CrossMetricDashboardView.swift */,
 				0000000000000000000001BD /* FitdaysImportView.swift */,
+				0000000000000000000001BF /* HealthMetricsOverviewView.swift */,
 				00000000000000000000017D /* HealthMetricChartView.swift */,
 			);
 			path = Dashboard;
@@ -589,6 +594,7 @@
 				00000000000000000000017F /* HealthKitService.swift */,
 				000000000000000000000180 /* HealthMetricUnitConversion.swift */,
 				000000000000000000000184 /* HealthMetricTrendCalculator.swift */,
+				0000000000000000000001BE /* MetricStatisticsCalculator.swift */,
 				0000000000000000000001BA /* UnifiedHealthMetricCatalog.swift */,
 				000000000000000000000189 /* CrossMetricAnalysis.swift */,
 				00000000000000000000017B /* MockHealthKitService.swift */,
@@ -831,6 +837,7 @@
 				00000000000000000000025E /* HealthKitService.swift in Sources */,
 				00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */,
 				000000000000000000000260 /* HealthMetricTrendCalculator.swift in Sources */,
+				00000000000000000000028F /* MetricStatisticsCalculator.swift in Sources */,
 				00000000000000000000028B /* UnifiedHealthMetricCatalog.swift in Sources */,
 				000000000000000000000264 /* CrossMetricAnalysis.swift in Sources */,
 				000000000000000000000210 /* HealthMetricType.swift in Sources */,
@@ -905,6 +912,7 @@
 				000000000000000000000263 /* BodyCompositionDashboardView.swift in Sources */,
 				000000000000000000000265 /* CrossMetricDashboardView.swift in Sources */,
 				00000000000000000000028E /* FitdaysImportView.swift in Sources */,
+				000000000000000000000290 /* HealthMetricsOverviewView.swift in Sources */,
 				00000000000000000000025D /* HealthMetricChartView.swift in Sources */,
 				000000000000000000000258 /* OnboardingView.swift in Sources */,
 				000000000000000000000259 /* CalibrationView.swift in Sources */,

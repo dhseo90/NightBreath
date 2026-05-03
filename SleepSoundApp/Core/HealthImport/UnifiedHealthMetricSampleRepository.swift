@@ -223,4 +223,16 @@ public extension Array where Element == UnifiedHealthMetricSample {
             return lhs.measuredAt < rhs.measuredAt
         }
     }
+
+    func sortedByMeasuredAtDescending() -> [UnifiedHealthMetricSample] {
+        sorted { lhs, rhs in
+            if lhs.measuredAt == rhs.measuredAt {
+                if lhs.metricID.rawValue == rhs.metricID.rawValue {
+                    return lhs.id.uuidString < rhs.id.uuidString
+                }
+                return lhs.metricID.rawValue < rhs.metricID.rawValue
+            }
+            return lhs.measuredAt > rhs.measuredAt
+        }
+    }
 }

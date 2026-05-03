@@ -123,11 +123,12 @@ struct HealthMetricTrendCalculatorTests {
     }
 
     @Test
-    func periodSummariesExposeSevenThirtyAndNinetyDayWindows() {
+    func periodSummariesExposeSevenThirtyNinetyAndOneYearWindows() {
         let samples = [
             sample(.bodyMass, 70, daysAgo: 1),
             sample(.bodyMass, 71, daysAgo: 15),
             sample(.bodyMass, 72, daysAgo: 60),
+            sample(.bodyMass, 73, daysAgo: 180),
         ]
 
         let summaries = calculator.periodSummaries(
@@ -136,8 +137,8 @@ struct HealthMetricTrendCalculatorTests {
             endingAt: referenceDate
         )
 
-        #expect(summaries.map(\.period) == [.sevenDays, .thirtyDays, .ninetyDays])
-        #expect(summaries.map(\.sampleCount) == [1, 2, 3])
+        #expect(summaries.map(\.period) == [.sevenDays, .thirtyDays, .ninetyDays, .oneYear])
+        #expect(summaries.map(\.sampleCount) == [1, 2, 3, 4])
     }
 
     @Test

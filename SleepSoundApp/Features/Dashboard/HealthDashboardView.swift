@@ -2,17 +2,23 @@ import SwiftUI
 
 struct HealthDashboardView: View {
   private let service: any HealthKitServiceProtocol
+  private let unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
 
   @EnvironmentObject private var appState: AppState
   @State private var permissionState: HealthMetricPermissionState = .notRequested
   @State private var healthSamples: [HealthMetricSample] = []
+  @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
   @State private var isLoading = false
   @State private var statusMessage: String?
 
-  init(service: any HealthKitServiceProtocol = RealHealthKitService()) {
+  init(
+    service: any HealthKitServiceProtocol = RealHealthKitService(),
+    unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
+  ) {
     self.service = service
+    self.unifiedSampleRepository = unifiedSampleRepository
   }
 
   var body: some View {
@@ -44,6 +50,9 @@ struct HealthDashboardView: View {
     }
     .background(NBColor.pageBackground)
     .navigationTitle("건강 데이터")
+    .onAppear {
+      loadImportedUnifiedSamples()
+    }
   }
 
   private var visibleSamples: [HealthMetricSample] {
@@ -62,7 +71,16 @@ struct HealthDashboardView: View {
   }
 
   private var shouldShowEmptyState: Bool {
-    permissionState == .readRequestCompleted && healthSamples.isEmpty
+    permissionState == .readRequestCompleted && healthSamples.isEmpty && importedUnifiedSamples.isEmpty
+  }
+
+  private var unifiedDashboardSamples: [UnifiedHealthMetricSample] {
+    let healthSourceType: HealthMetricSourceType = isPreviewData ? .mock : .healthKit
+    return (
+      visibleSamples.map { $0.unifiedSample(sourceType: healthSourceType) }
+        + importedUnifiedSamples
+    )
+    .sortedByMeasuredAtAscending()
   }
 
   private var header: some View {
@@ -149,6 +167,24 @@ struct HealthDashboardView: View {
   private var dashboardEntrySection: some View {
     NBReportSection(title: "대시보드", systemImage: "rectangle.grid.1x2") {
       VStack(spacing: NBSpacing.medium) {
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: unifiedDashboardSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "전체 건강 지표",
+            subtitle: "HealthKit, Fitdays CSV, 수동/앱 계산 지표 통계",
+            systemImage: "chart.line.uptrend.xyaxis",
+            tint: NBColor.privacyTint,
+            sampleCount: unifiedDashboardSamples.count,
+            latestDate: unifiedDashboardLatestDate
+          )
+        }
+        .buttonStyle(.plain)
+
         NavigationLink {
           BloodPressureDashboardView(
             samples: visibleSamples,
@@ -262,6 +298,10 @@ struct HealthDashboardView: View {
     }
   }
 
+  private func loadImportedUnifiedSamples() {
+    importedUnifiedSamples = unifiedSampleRepository.fetchSamples()
+  }
+
   private func fetchDashboardSamples() async -> [HealthMetricSample] {
     let dateRange = HealthMetricDateRange.days(90, endingAt: Date())
     var fetchedSamples: [HealthMetricSample] = []
@@ -340,6 +380,10 @@ struct HealthDashboardView: View {
     let latestSleepDate = appState.trendReports(days: 90).last?.generatedAt
 
     return [latestHealthDate, latestSleepDate].compactMap { $0 }.max()
+  }
+
+  private var unifiedDashboardLatestDate: Date? {
+    unifiedDashboardSamples.sortedByMeasuredAtDescending().first?.measuredAt
   }
 }
 

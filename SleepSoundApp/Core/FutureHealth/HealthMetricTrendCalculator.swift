@@ -4,6 +4,7 @@ public enum HealthMetricTrendPeriod: Int, CaseIterable, Codable, Identifiable, S
     case sevenDays = 7
     case thirtyDays = 30
     case ninetyDays = 90
+    case oneYear = 365
 
     public var id: Int { rawValue }
     public var dayCount: Int { rawValue }
@@ -16,6 +17,8 @@ public enum HealthMetricTrendPeriod: Int, CaseIterable, Codable, Identifiable, S
             "30일"
         case .ninetyDays:
             "90일"
+        case .oneYear:
+            "1년"
         }
     }
 
