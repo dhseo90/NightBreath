@@ -46,7 +46,10 @@ enum DailyRhythmMockFactory {
     let cardContent = DailyHealthCardContent.make(
       date: referenceDate,
       report: report,
+      nightReport: nightReport,
       healthMetricSamples: daySamples,
+      template: .healthSummary,
+      privacyLevel: .standard,
       calendar: calendar
     )
 

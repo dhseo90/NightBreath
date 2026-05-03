@@ -258,7 +258,7 @@ struct HomeDashboardView: View {
           .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.sleepTint))
 
           NavigationLink {
-            DailyHealthCardView(
+            DailyHealthCardPreviewView(
               nightReport: appState.latestReport,
               morningCheckIn: appState.morningCheckIn
             )

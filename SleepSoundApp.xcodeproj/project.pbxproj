@@ -121,6 +121,9 @@
 		000000000000000000000285 /* DailyRhythmReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B3 /* DailyRhythmReportView.swift */; };
 		000000000000000000000286 /* EveningCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B4 /* EveningCheckInView.swift */; };
 		000000000000000000000287 /* DailyHealthCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B5 /* DailyHealthCardView.swift */; };
+		000000000000000000000288 /* DailyHealthCardTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B7 /* DailyHealthCardTemplate.swift */; };
+		000000000000000000000289 /* CardRendererProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B8 /* CardRendererProtocol.swift */; };
+		00000000000000000000028A /* DailyHealthCardPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B9 /* DailyHealthCardPreviewView.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -324,6 +327,9 @@
 		0000000000000000000001B4 /* EveningCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInView.swift; sourceTree = "<group>"; };
 		0000000000000000000001B5 /* DailyHealthCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardView.swift; sourceTree = "<group>"; };
 		0000000000000000000001B6 /* DailyHealthCardContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardContentTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001B7 /* DailyHealthCardTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardTemplate.swift; sourceTree = "<group>"; };
+		0000000000000000000001B8 /* CardRendererProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardRendererProtocol.swift; sourceTree = "<group>"; };
+		0000000000000000000001B9 /* DailyHealthCardPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardPreviewView.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -403,6 +409,7 @@
 				0000000000000000000001B3 /* DailyRhythmReportView.swift */,
 				0000000000000000000001B4 /* EveningCheckInView.swift */,
 				0000000000000000000001B5 /* DailyHealthCardView.swift */,
+				0000000000000000000001B9 /* DailyHealthCardPreviewView.swift */,
 			);
 			path = DailyRhythm;
 			sourceTree = "<group>";
@@ -595,6 +602,8 @@
 				00000000000000000000019C /* DailyRhythmReport.swift */,
 				0000000000000000000001AA /* DailyInsightGenerator.swift */,
 				0000000000000000000001AB /* DailyRhythmReportBuilder.swift */,
+				0000000000000000000001B7 /* DailyHealthCardTemplate.swift */,
+				0000000000000000000001B8 /* CardRendererProtocol.swift */,
 				0000000000000000000001AF /* DailyHealthCardContent.swift */,
 				00000000000000000000019D /* MockDailyRhythmData.swift */,
 			);
@@ -826,6 +835,8 @@
 				000000000000000000000279 /* DailyRhythmReport.swift in Sources */,
 				00000000000000000000027F /* DailyInsightGenerator.swift in Sources */,
 				000000000000000000000280 /* DailyRhythmReportBuilder.swift in Sources */,
+				000000000000000000000288 /* DailyHealthCardTemplate.swift in Sources */,
+				000000000000000000000289 /* CardRendererProtocol.swift in Sources */,
 				000000000000000000000281 /* DailyHealthCardContent.swift in Sources */,
 				00000000000000000000027A /* MockDailyRhythmData.swift in Sources */,
 				000000000000000000000217 /* AudioRetentionPolicy.swift in Sources */,
@@ -862,6 +873,7 @@
 				000000000000000000000285 /* DailyRhythmReportView.swift in Sources */,
 				000000000000000000000286 /* EveningCheckInView.swift in Sources */,
 				000000000000000000000287 /* DailyHealthCardView.swift in Sources */,
+				00000000000000000000028A /* DailyHealthCardPreviewView.swift in Sources */,
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
 				000000000000000000000256 /* TrendDashboardView.swift in Sources */,
 				00000000000000000000025C /* HealthDashboardView.swift in Sources */,

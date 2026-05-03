@@ -7,22 +7,27 @@ public struct DailyHealthCardMetric: Identifiable, Codable, Equatable, Sendable 
     public var value: String
     public var subtitle: String
     public var metricType: HealthMetricType?
+    public var sensitivity: DailyHealthCardMetricSensitivity
 
     public init(
         title: String,
         value: String,
         subtitle: String,
-        metricType: HealthMetricType? = nil
+        metricType: HealthMetricType? = nil,
+        sensitivity: DailyHealthCardMetricSensitivity = .general
     ) {
         self.title = title
         self.value = value
         self.subtitle = subtitle
         self.metricType = metricType
+        self.sensitivity = sensitivity
     }
 }
 
 public struct DailyHealthCardContent: Codable, Equatable, Sendable {
     public var date: Date
+    public var template: DailyHealthCardTemplate
+    public var privacyLevel: DailyHealthCardPrivacyLevel
     public var rhythmScore: Int?
     public var dataQuality: DailyDataQuality
     public var keyMetrics: [DailyHealthCardMetric]
@@ -31,6 +36,8 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
 
     public init(
         date: Date,
+        template: DailyHealthCardTemplate = .healthSummary,
+        privacyLevel: DailyHealthCardPrivacyLevel = .standard,
         rhythmScore: Int? = nil,
         dataQuality: DailyDataQuality = .insufficient,
         keyMetrics: [DailyHealthCardMetric] = [],
@@ -38,6 +45,8 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         referenceText: String = "개인 참고용 카드입니다."
     ) {
         self.date = date
+        self.template = template
+        self.privacyLevel = template.effectivePrivacyLevel ?? privacyLevel
         self.rhythmScore = rhythmScore.map(DailyRhythmScore.clampedScore)
         self.dataQuality = dataQuality
         self.keyMetrics = Array(keyMetrics.prefix(5))
@@ -51,6 +60,27 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         healthMetricSamples: [HealthMetricSample],
         calendar: Calendar = .current
     ) -> DailyHealthCardContent {
+        make(
+            date: date,
+            report: report,
+            nightReport: nil,
+            healthMetricSamples: healthMetricSamples,
+            template: .healthSummary,
+            privacyLevel: .standard,
+            calendar: calendar
+        )
+    }
+
+    public static func make(
+        date: Date,
+        report: DailyRhythmReport?,
+        nightReport: NightReport? = nil,
+        healthMetricSamples: [HealthMetricSample],
+        template: DailyHealthCardTemplate,
+        privacyLevel: DailyHealthCardPrivacyLevel,
+        calendar: Calendar = .current
+    ) -> DailyHealthCardContent {
+        let effectivePrivacyLevel = template.effectivePrivacyLevel ?? privacyLevel
         let samples = healthMetricSamples
             .filter { calendar.isDate($0.measuredAt, inSameDayAs: date) }
             .sortedByMeasuredAtAscending()
@@ -66,20 +96,43 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
             )
         }
 
-        if let bloodPressure = bloodPressureMetric(from: samples, calendar: calendar) {
-            metrics.append(bloodPressure)
+        guard effectivePrivacyLevel.includesSensitiveValues else {
+            return content(
+                date: date,
+                template: template,
+                privacyLevel: effectivePrivacyLevel,
+                report: report,
+                samples: samples,
+                metrics: metrics,
+                calendar: calendar
+            )
         }
 
-        for metricType in preferredMetricTypes {
-            guard let sample = samples.latestSample(metricType: metricType) else { continue }
-            metrics.append(
-                DailyHealthCardMetric(
-                    title: metricType.displayName,
-                    value: formattedValue(sample.value, unit: sample.unit),
-                    subtitle: subtitle(for: sample, calendar: calendar),
-                    metricType: metricType
+        if shouldIncludeSleepMetrics(template), let nightReport {
+            metrics.append(contentsOf: sleepMetrics(from: nightReport, privacyLevel: effectivePrivacyLevel))
+        }
+
+        if shouldIncludeHealthMetrics(template) {
+            if let bloodPressure = bloodPressureMetric(
+                from: samples,
+                privacyLevel: effectivePrivacyLevel,
+                calendar: calendar
+            ) {
+                metrics.append(bloodPressure)
+            }
+
+            for metricType in preferredMetricTypes(for: template) {
+                guard let sample = samples.latestSample(metricType: metricType) else { continue }
+                metrics.append(
+                    DailyHealthCardMetric(
+                        title: metricType.displayName,
+                        value: formattedValue(sample.value, unit: sample.unit),
+                        subtitle: subtitle(for: sample, privacyLevel: effectivePrivacyLevel, calendar: calendar),
+                        metricType: metricType,
+                        sensitivity: sensitivity(for: metricType)
+                    )
                 )
-            )
+            }
         }
 
         if metrics.isEmpty {
@@ -92,22 +145,45 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
             )
         }
 
+        return content(
+            date: date,
+            template: template,
+            privacyLevel: effectivePrivacyLevel,
+            report: report,
+            samples: samples,
+            metrics: metrics,
+            calendar: calendar
+        )
+    }
+
+    private static func content(
+        date: Date,
+        template: DailyHealthCardTemplate,
+        privacyLevel: DailyHealthCardPrivacyLevel,
+        report: DailyRhythmReport?,
+        samples: [HealthMetricSample],
+        metrics: [DailyHealthCardMetric],
+        calendar: Calendar
+    ) -> DailyHealthCardContent {
         let dataQuality = report?.dataQuality ?? DailyDataQuality.quality(
             for: samples.isEmpty ? 0 : min(Double(samples.count) / 12, 1)
         )
 
         return DailyHealthCardContent(
             date: calendar.startOfDay(for: date),
+            template: template,
+            privacyLevel: privacyLevel,
             rhythmScore: report?.dailyRhythmScore.totalScore,
             dataQuality: dataQuality,
             keyMetrics: metrics,
-            summaryText: summaryText(report: report, sampleCount: samples.count),
+            summaryText: summaryText(template: template, privacyLevel: privacyLevel, report: report, sampleCount: samples.count),
             referenceText: "개인 패턴을 살펴보기 위한 참고용 카드입니다."
         )
     }
 
     private static func bloodPressureMetric(
         from samples: [HealthMetricSample],
+        privacyLevel: DailyHealthCardPrivacyLevel,
         calendar: Calendar
     ) -> DailyHealthCardMetric? {
         guard let systolic = samples.latestSample(metricType: .systolicBloodPressure),
@@ -116,25 +192,64 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         }
 
         return DailyHealthCardMetric(
-            title: "혈압 기록",
+            title: "아침 혈압",
             value: "\(Int(systolic.value.rounded()))/\(Int(diastolic.value.rounded())) mmHg",
-            subtitle: subtitle(for: systolic, calendar: calendar),
-            metricType: .systolicBloodPressure
+            subtitle: subtitle(for: systolic, privacyLevel: privacyLevel, calendar: calendar),
+            metricType: .systolicBloodPressure,
+            sensitivity: .sensitiveHealth
         )
     }
 
-    private static func summaryText(report: DailyRhythmReport?, sampleCount: Int) -> String {
+    private static func sleepMetrics(
+        from report: NightReport,
+        privacyLevel: DailyHealthCardPrivacyLevel
+    ) -> [DailyHealthCardMetric] {
+        [
+            DailyHealthCardMetric(
+                title: "수면 소리 점수",
+                value: "\(report.sleepSoundScore)점",
+                subtitle: privacyLevel.includesSourceDetails
+                    ? "오디오 커버리지 \(percentString(report.audioCoverageRatio))"
+                    : "수면 중 소리 기반 점수",
+                sensitivity: .sleep
+            ),
+            DailyHealthCardMetric(
+                title: "측정 품질",
+                value: report.measurementQuality.displayName,
+                subtitle: privacyLevel.includesSourceDetails
+                    ? "분석 범위 \(percentString(report.audioCoverageRatio))"
+                    : "수면 소리 측정 품질",
+                sensitivity: .sleep
+            ),
+        ]
+    }
+
+    private static func summaryText(
+        template: DailyHealthCardTemplate,
+        privacyLevel: DailyHealthCardPrivacyLevel,
+        report: DailyRhythmReport?,
+        sampleCount: Int
+    ) -> String {
+        if privacyLevel == .minimal {
+            return "오늘의 리듬 점수와 한 줄 요약만 표시합니다."
+        }
+
         if report == nil && sampleCount == 0 {
             return "비교 가능한 데이터가 부족해 일부 항목만 표시됩니다."
         }
 
-        return "수면, 활동, 컨디션, 건강 데이터를 사용 가능한 범위에서 함께 정리했습니다."
+        return template.summaryText
     }
 
     private static func subtitle(
         for sample: HealthMetricSample,
+        privacyLevel: DailyHealthCardPrivacyLevel,
         calendar: Calendar
     ) -> String {
+        guard privacyLevel.includesSourceDetails else {
+            return "\(sample.metricType.dashboardSectionName) mock data"
+        }
+
         let components = calendar.dateComponents([.hour, .minute], from: sample.measuredAt)
         let hour = components.hour ?? 0
         let minute = components.minute ?? 0
@@ -158,11 +273,49 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         }
     }
 
-    private static let preferredMetricTypes: [HealthMetricType] = [
-        .bodyMass,
-        .bodyFatPercentage,
-        .stepCount,
-        .activeEnergy,
-        .restingHeartRate,
-    ]
+    private static func percentString(_ ratio: Double) -> String {
+        String(format: "%.0f%%", min(max(ratio, 0), 1) * 100)
+    }
+
+    private static func shouldIncludeSleepMetrics(_ template: DailyHealthCardTemplate) -> Bool {
+        switch template {
+        case .simple, .sleepFocused:
+            true
+        case .healthSummary, .privacyMinimal:
+            false
+        }
+    }
+
+    private static func shouldIncludeHealthMetrics(_ template: DailyHealthCardTemplate) -> Bool {
+        switch template {
+        case .simple:
+            true
+        case .sleepFocused, .privacyMinimal:
+            false
+        case .healthSummary:
+            true
+        }
+    }
+
+    private static func preferredMetricTypes(for template: DailyHealthCardTemplate) -> [HealthMetricType] {
+        switch template {
+        case .simple:
+            [.stepCount]
+        case .sleepFocused, .privacyMinimal:
+            []
+        case .healthSummary:
+            [.bodyMass, .bodyFatPercentage, .stepCount]
+        }
+    }
+
+    private static func sensitivity(for metricType: HealthMetricType) -> DailyHealthCardMetricSensitivity {
+        switch metricType {
+        case .systolicBloodPressure, .diastolicBloodPressure, .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass:
+            .sensitiveHealth
+        case .sleepDuration, .respiratoryRate:
+            .sleep
+        case .stepCount, .activeEnergy, .heartRate, .restingHeartRate:
+            .general
+        }
+    }
 }

@@ -6,22 +6,42 @@ struct DailyHealthCardView: View {
   init(
     nightReport: NightReport? = nil,
     morningCheckIn: MorningCheckIn? = nil,
-    referenceDate: Date = Date()
+    referenceDate: Date = Date(),
+    template: DailyHealthCardTemplate = .healthSummary,
+    privacyLevel: DailyHealthCardPrivacyLevel = .standard
   ) {
     let bundle = DailyRhythmMockFactory.makeBundle(
       referenceDate: referenceDate,
       nightReport: nightReport,
       morningCheckIn: morningCheckIn
     )
-    self.content = bundle.cardContent
+    self.content = DailyHealthCardContent.make(
+      date: bundle.date,
+      report: bundle.report,
+      nightReport: bundle.nightReport,
+      healthMetricSamples: bundle.healthSamples,
+      template: template,
+      privacyLevel: privacyLevel
+    )
   }
 
   init(content: DailyHealthCardContent) {
     self.content = content
   }
 
-  init(bundle: DailyRhythmMockBundle) {
-    self.content = bundle.cardContent
+  init(
+    bundle: DailyRhythmMockBundle,
+    template: DailyHealthCardTemplate = .healthSummary,
+    privacyLevel: DailyHealthCardPrivacyLevel = .standard
+  ) {
+    self.content = DailyHealthCardContent.make(
+      date: bundle.date,
+      report: bundle.report,
+      nightReport: bundle.nightReport,
+      healthMetricSamples: bundle.healthSamples,
+      template: template,
+      privacyLevel: privacyLevel
+    )
   }
 
   var body: some View {
@@ -33,8 +53,9 @@ struct DailyHealthCardView: View {
           title: "하루 리듬 카드 안내",
           messages: [
             content.referenceText,
+            "\(content.privacyLevel.displayName) 표시 수준으로 구성했습니다.",
             "이 앱은 진단 목적의 의료기기가 아닙니다.",
-            "HealthKit 연결 없이 mock data로 표시합니다.",
+            "이미지 내보내기와 공유는 사용자가 명시적으로 선택할 때만 진행하는 방향입니다.",
           ],
           systemImage: "rectangle.on.rectangle"
         )
@@ -50,52 +71,45 @@ struct DailyHealthCardView: View {
       Text("하루 리듬 카드")
         .font(NBTypography.titleLarge)
         .foregroundStyle(NBColor.primaryText)
-      Text("오늘의 리듬을 한 장의 카드로 정리합니다.")
+      Text("오늘의 리듬을 이미지 카드로 확장할 수 있는 레이아웃으로 정리합니다.")
         .font(NBTypography.callout)
         .foregroundStyle(NBColor.secondaryText)
+      HStack(spacing: NBSpacing.xs) {
+        NBStatusBadge(content.template.displayName, kind: .neutral, systemImage: "rectangle.3.group")
+        NBStatusBadge(content.privacyLevel.displayName, kind: privacyStatus, systemImage: "lock.shield")
+      }
+    }
+  }
+
+  private var privacyStatus: NBStatusKind {
+    switch content.privacyLevel {
+    case .minimal:
+      .privacy
+    case .standard:
+      .neutral
+    case .detailed:
+      .debug
     }
   }
 }
 
 // Kept as one rendering surface so a future SwiftUI-to-image path can reuse it.
-private struct DailyHealthCardSurface: View {
+struct DailyHealthCardSurface: View {
   let content: DailyHealthCardContent
 
   var body: some View {
-    NBCard(background: NBColor.accent.opacity(0.08), stroke: NBColor.accent.opacity(0.18)) {
+    NBCard(padding: NBSpacing.xl, background: templateTint.opacity(0.09), stroke: templateTint.opacity(0.20)) {
       VStack(alignment: .leading, spacing: NBSpacing.lg) {
-        HStack(alignment: .top, spacing: NBSpacing.lg) {
-          VStack(alignment: .leading, spacing: NBSpacing.xs) {
-            Text(SleepFormatters.shortDate(content.date))
-              .font(NBTypography.captionEmphasis)
-              .foregroundStyle(NBColor.secondaryText)
-            Text("오늘의 리듬")
-              .font(NBTypography.titleLarge)
-              .foregroundStyle(NBColor.primaryText)
-          }
-
-          Spacer()
-
-          if let rhythmScore = content.rhythmScore {
-            VStack(alignment: .trailing, spacing: 0) {
-              Text("\(rhythmScore)")
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(DailyRhythmUI.scoreTint(rhythmScore))
-              Text("점")
-                .font(NBTypography.captionEmphasis)
-                .foregroundStyle(NBColor.secondaryText)
-            }
-            .accessibilityLabel("오늘의 리듬 점수 \(rhythmScore)점")
-          }
-        }
+        cardHeader
 
         Text(content.summaryText)
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
 
-        if content.keyMetrics.isEmpty {
+        if content.privacyLevel == .minimal {
+          minimalScoreBlock
+        } else if content.keyMetrics.isEmpty {
           NBEmptyStateView(
             title: "표시할 핵심 지표가 없습니다",
             message: "사용 가능한 mock data가 생기면 카드에 표시합니다.",
@@ -115,15 +129,85 @@ private struct DailyHealthCardSurface: View {
           }
         }
 
-        HStack(spacing: NBSpacing.xs) {
+        footer
+      }
+    }
+    .frame(maxWidth: 420)
+    .frame(maxWidth: .infinity)
+  }
+
+  private var cardHeader: some View {
+    HStack(alignment: .top, spacing: NBSpacing.lg) {
+      VStack(alignment: .leading, spacing: NBSpacing.xs) {
+        Text("NightBreath / 밤숨")
+          .font(NBTypography.captionEmphasis)
+          .foregroundStyle(NBColor.secondaryText)
+        Text(SleepFormatters.shortDate(content.date))
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+        Text("오늘의 리듬")
+          .font(NBTypography.titleLarge)
+          .foregroundStyle(NBColor.primaryText)
+      }
+
+      Spacer()
+
+      if let rhythmScore = content.rhythmScore {
+        VStack(alignment: .trailing, spacing: 0) {
+          Text("\(rhythmScore)")
+            .font(.system(size: content.privacyLevel == .minimal ? 54 : 40, weight: .bold, design: .rounded))
+            .monospacedDigit()
+            .foregroundStyle(DailyRhythmUI.scoreTint(rhythmScore))
+          Text("점")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
+        }
+        .accessibilityLabel("오늘의 리듬 점수 \(rhythmScore)점")
+      }
+    }
+  }
+
+  private var minimalScoreBlock: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.md) {
+      if let rhythmScore = content.rhythmScore {
+        DailyRhythmScoreRing(score: rhythmScore, title: "오늘의 리듬 점수", tint: DailyRhythmUI.scoreTint(rhythmScore))
+          .frame(maxWidth: .infinity)
+      }
+      Text("민감 수치를 줄인 카드입니다.")
+        .font(NBTypography.caption)
+        .foregroundStyle(NBColor.secondaryText)
+    }
+  }
+
+  private var footer: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.sm) {
+      HStack(spacing: NBSpacing.xs) {
+        if content.privacyLevel != .minimal {
           NBStatusBadge(
             "데이터 품질 \(content.dataQuality.displayName)",
             kind: DailyRhythmUI.dataQualityStatus(content.dataQuality),
             systemImage: "checkmark.seal"
           )
-          NBStatusBadge("개인 참고용", kind: .neutral, systemImage: "person.text.rectangle")
         }
+        NBStatusBadge("개인 참고용", kind: .neutral, systemImage: "person.text.rectangle")
       }
+
+      Text("자동 공유 없음")
+        .font(NBTypography.caption)
+        .foregroundStyle(NBColor.tertiaryText)
+    }
+  }
+
+  private var templateTint: Color {
+    switch content.template {
+    case .simple:
+      NBColor.accent
+    case .sleepFocused:
+      NBColor.sleepTint
+    case .healthSummary:
+      NBColor.privacyTint
+    case .privacyMinimal:
+      NBColor.neutral
     }
   }
 }
