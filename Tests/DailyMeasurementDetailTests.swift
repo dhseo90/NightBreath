@@ -90,6 +90,17 @@ struct DailyMeasurementDetailTests {
         #expect(detail.appComputedSamples.isEmpty)
     }
 
+    @Test
+    func dailyMeasurementRowsNavigateToMetricDetailAndShowSourceBadges() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
+
+        #expect(contents.contains("DailyMetricSampleRow"))
+        #expect(contents.contains("MetricDetailView("))
+        #expect(contents.contains("MetricSourceBadgeStrip"))
+        #expect(contents.contains("HealthKit 연결, Fitdays CSV 가져오기 상태"))
+        #expect(contents.contains(".nbAvoidFloatingTabBar()"))
+    }
+
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -122,5 +133,10 @@ struct DailyMeasurementDetailTests {
             sourceName: sourceType.displayName,
             createdAt: measuredAt
         )
+    }
+
+    private func sourceContents(_ relativePath: String) throws -> String {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
     }
 }

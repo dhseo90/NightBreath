@@ -130,15 +130,24 @@ struct HealthMetricsOverviewView: View {
       dateRange: selectedDateRange
     )
 
-    return HStack(spacing: NBSpacing.medium) {
-      NBListRow(
-        title: metadata.displayNameKo,
-        value: summary.latestValue.map { UnifiedMetricFormatting.valueString($0, unit: metadata.unit) } ?? "--",
-        subtitle: metricRowSubtitle(summary: summary, sources: sources),
-        systemImage: metricIcon(for: metadata),
-        tint: metricTint(for: metadata),
-        accessibilityLabel: "\(metadata.displayNameKo), 샘플 \(summary.sampleCount)개"
-      )
+    return HStack(alignment: .center, spacing: NBSpacing.medium) {
+      VStack(alignment: .leading, spacing: 0) {
+        NBListRow(
+          title: metadata.displayNameKo,
+          value: summary.latestValue.map { UnifiedMetricFormatting.valueString($0, unit: metadata.unit) } ?? "--",
+          subtitle: metricRowSubtitle(summary: summary, sources: sources),
+          systemImage: metricIcon(for: metadata),
+          tint: metricTint(for: metadata),
+          accessibilityLabel: "\(metadata.displayNameKo), 샘플 \(summary.sampleCount)개"
+        )
+
+        MetricSourceBadgeStrip(
+          metadata: metadata,
+          sourceTypes: sources.map(\.sourceType)
+        )
+        .padding(.leading, 40)
+        .padding(.bottom, NBSpacing.small)
+      }
 
       Spacer()
 
@@ -287,12 +296,10 @@ struct MetricDetailView: View {
   private var header: some View {
     NBReportSection(title: metric.displayNameKo, systemImage: metricIcon(for: metric)) {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        HStack(spacing: NBSpacing.small) {
-          NBStatusBadge(metric.isHealthKitBacked ? "HealthKit read-only" : "Local-only", kind: .privacy, systemImage: "lock.shield")
-          if metric.isExtendedLocalOnly {
-            NBStatusBadge("Fitdays 확장 가능", kind: .neutral, systemImage: "square.and.arrow.down")
-          }
-        }
+        MetricSourceBadgeStrip(
+          metadata: metric,
+          sourceTypes: viewModel.metricSamples.map(\.sourceType)
+        )
 
         Text(metric.description)
           .font(NBTypography.callout)
@@ -655,6 +662,7 @@ struct MetricSummaryCard: View {
         Text(sourceText)
           .font(.caption)
           .foregroundStyle(NBColor.tertiaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -691,6 +699,67 @@ struct MetricSummaryCard: View {
         .minimumScaleFactor(0.75)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+struct MetricSourceBadgeStrip: View {
+  let metadata: MetricDisplayMetadata
+  let sourceTypes: [HealthMetricSourceType]
+
+  var body: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: NBSpacing.small) {
+        if metadata.isHealthKitBacked {
+          NBStatusBadge("HealthKit-backed", kind: .privacy, systemImage: "heart.text.square")
+        }
+
+        if metadata.isExtendedLocalOnly {
+          NBStatusBadge("Local-only", kind: .neutral, systemImage: "internaldrive")
+        }
+
+        ForEach(orderedSourceTypes) { sourceType in
+          NBStatusBadge(
+            sourceType.displayName,
+            kind: sourceBadgeKind(for: sourceType),
+            systemImage: sourceIcon(for: sourceType)
+          )
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .accessibilityLabel(accessibilityText)
+  }
+
+  private var orderedSourceTypes: [HealthMetricSourceType] {
+    let sourceTypeSet = Set(sourceTypes)
+    return HealthMetricSourceType.allCases.filter { sourceTypeSet.contains($0) }
+  }
+
+  private var accessibilityText: String {
+    var parts: [String] = []
+    if metadata.isHealthKitBacked {
+      parts.append("HealthKit-backed")
+    }
+    if metadata.isExtendedLocalOnly {
+      parts.append("Local-only")
+    }
+    parts.append(contentsOf: orderedSourceTypes.map(\.displayName))
+    return parts.joined(separator: ", ")
+  }
+
+  private func sourceBadgeKind(for sourceType: HealthMetricSourceType) -> NBStatusKind {
+    switch sourceType {
+    case .healthKit:
+      .privacy
+    case .fitdaysCSV:
+      .neutral
+    case .manual:
+      .warning
+    case .appComputed:
+      .good
+    case .mock:
+      .debug
+    }
   }
 }
 

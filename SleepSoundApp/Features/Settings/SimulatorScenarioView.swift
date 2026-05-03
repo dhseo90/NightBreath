@@ -210,12 +210,36 @@ struct SimulatorScenarioView: View {
         }
 
         NavigationLink {
+          HealthCalendarView(
+            samples: [],
+            sleepReports: [],
+            morningCheckIns: [],
+            eveningCheckIns: [],
+            permissionState: .readRequestCompleted,
+            isPreviewData: false,
+            initialMonth: ehmReferenceDate
+          )
+        } label: {
+          Label("HealthCalendar empty date", systemImage: "calendar.badge.exclamationmark")
+        }
+
+        NavigationLink {
           DailyMeasurementDetailView(
             detailData: ehmDetailData,
             allSamples: ehmMixedSourceSamples
           )
         } label: {
           Label("DailyMeasurementDetail", systemImage: "calendar.badge.clock")
+        }
+
+        NavigationLink {
+          MetricDetailView(
+            metricID: .systolicBloodPressure,
+            samples: ehmMixedSourceSamples,
+            selectedPeriod: .all
+          )
+        } label: {
+          Label("MetricDetail HealthKit-backed", systemImage: "heart.text.square")
         }
 
         NavigationLink {

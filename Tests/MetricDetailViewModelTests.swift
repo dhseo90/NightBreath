@@ -98,6 +98,29 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func healthKitBackedMetricImportedFromFitdaysKeepsFitdaysSourceInDetail() throws {
+        let metadata = try #require(MetricCatalog.default.metadata(for: .bodyMass))
+        let samples = [
+            sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyMass, 71.8, daysAgo: 2, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+        ]
+
+        let viewModel = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: samples,
+            period: .thirtyDays,
+            sourceFilter: .fitdaysCSV,
+            endDate: referenceDate
+        )
+
+        #expect(metadata.isHealthKitBacked)
+        #expect(!metadata.isExtendedLocalOnly)
+        #expect(viewModel.filteredSamples.map(\.sourceType) == [.fitdaysCSV])
+        #expect(viewModel.sourceBreakdown.map(\.sourceType) == [.fitdaysCSV])
+        #expect(viewModel.latestSample?.sourceName == "Fitdays CSV Import")
+    }
+
+    @Test
     func emptyDataStatesSeparateMissingMetricSourceAndPeriod() {
         let oldHealthKitSample = sample(.bodyMass, 72.2, daysAgo: 40, sourceType: .healthKit)
 
@@ -147,6 +170,21 @@ struct MetricDetailViewModelTests {
         #expect(metadata.isHealthKitBacked)
         #expect(copy.contains("read-only"))
         #expect(copy.contains("HealthKit에 데이터를 쓰지 않습니다"))
+    }
+
+    @Test
+    func metricDetailViewsExposeBadgeFiltersGraphStatisticsAndRawList() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift")
+
+        #expect(contents.contains("MetricDetailPeriodPicker"))
+        #expect(contents.contains("MetricDetailSourceFilterMenu"))
+        #expect(contents.contains("MetricChartView"))
+        #expect(contents.contains("MetricSummaryCard"))
+        #expect(contents.contains("rawSampleListSection"))
+        #expect(contents.contains("MetricSourceBadgeStrip"))
+        #expect(contents.contains("HealthKit-backed"))
+        #expect(contents.contains("Local-only"))
+        #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }
 
     @Test
@@ -201,6 +239,11 @@ struct MetricDetailViewModelTests {
             sourceName: sourceName,
             createdAt: referenceDate
         )
+    }
+
+    private func sourceContents(_ relativePath: String) throws -> String {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
     }
 }
 

@@ -37,12 +37,16 @@ struct NBListRow: View {
         HStack(alignment: .firstTextBaseline) {
           Text(title)
             .font(.subheadline.weight(.semibold))
+            .fixedSize(horizontal: false, vertical: true)
           Spacer()
           if let value {
             Text(value)
               .font(.subheadline.monospacedDigit().weight(.semibold))
               .foregroundStyle(NBColor.mutedText)
               .multilineTextAlignment(.trailing)
+              .lineLimit(2)
+              .minimumScaleFactor(0.78)
+              .fixedSize(horizontal: false, vertical: true)
           }
         }
 

@@ -127,6 +127,8 @@ struct SimulatorQAScenarioTests {
     #expect(simulatorScenarioView.contains("EHM 화면 상태"))
     #expect(simulatorScenarioView.contains("HealthKit unavailable"))
     #expect(simulatorScenarioView.contains("source mixed"))
+    #expect(simulatorScenarioView.contains("HealthCalendar empty date"))
+    #expect(simulatorScenarioView.contains("MetricDetail HealthKit-backed"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

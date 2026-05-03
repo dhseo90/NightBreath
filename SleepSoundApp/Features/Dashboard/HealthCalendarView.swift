@@ -41,6 +41,7 @@ struct HealthCalendarView: View {
         monthNavigator
         weekdayHeader
         calendarGrid
+        selectedDatePanel
         legend
 
         NBPrivacyNoticeCard(
@@ -125,9 +126,10 @@ struct HealthCalendarView: View {
           Text(monthTitle)
             .font(NBTypography.headline)
             .foregroundStyle(NBColor.primaryText)
-          Text("오늘 \(SleepFormatters.shortDate(Date()))")
+          Text("선택 \(SleepFormatters.shortDate(selectedDate)) · 오늘 \(SleepFormatters.shortDate(Date()))")
             .font(NBTypography.caption)
             .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -168,18 +170,8 @@ struct HealthCalendarView: View {
       ForEach(monthDates, id: \.self) { date in
         let summary = summariesByDay[calendar.startOfDay(for: date)] ?? emptySummary(for: date)
 
-        NavigationLink {
-          DailyMeasurementDetailView(
-            detailData: builder.detailData(
-              for: date,
-              samples: samples,
-              sleepReports: sleepReports,
-              morningCheckIns: morningCheckIns,
-              eveningCheckIns: eveningCheckIns,
-              calendar: calendar
-            ),
-            allSamples: samples
-          )
+        Button {
+          selectDate(date)
         } label: {
           CalendarDayCell(
             date: date,
@@ -190,19 +182,92 @@ struct HealthCalendarView: View {
           )
         }
         .buttonStyle(.plain)
-        .simultaneousGesture(TapGesture().onEnded { selectedDate = date })
+      }
+    }
+  }
+
+  private var selectedDatePanel: some View {
+    NBReportSection(title: "선택 날짜", systemImage: "calendar.badge.clock") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        HStack(alignment: .top, spacing: NBSpacing.small) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text(SleepFormatters.shortDate(selectedDate))
+              .font(NBTypography.headline)
+              .foregroundStyle(NBColor.primaryText)
+
+            Text(selectedDaySummary.hasAnyData ? "이 날짜의 데이터를 category와 source별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+
+          Spacer(minLength: NBSpacing.small)
+
+          NBStatusBadge(
+            selectedDaySummary.dataQuality.displayName,
+            kind: qualityBadgeKind(selectedDaySummary.dataQuality),
+            systemImage: "checkmark.seal"
+          )
+        }
+
+        if selectedDaySummary.hasAnyData {
+          VStack(alignment: .leading, spacing: NBSpacing.small) {
+            CalendarSelectedCategoryStrip(summary: selectedDaySummary)
+            CalendarSelectedSourceStrip(sourceTypes: selectedDaySummary.sourceTypes)
+          }
+        } else {
+          NBEmptyStateView(
+            title: "데이터 없는 날짜",
+            message: "다른 날짜를 선택하거나 HealthKit read-only 연결, Fitdays CSV 가져오기 상태를 확인하세요.",
+            systemImage: "tray"
+          )
+        }
+
+        NavigationLink {
+          DailyMeasurementDetailView(
+            detailData: selectedDetailData,
+            allSamples: samples
+          )
+        } label: {
+          Label("이 날짜 자세히 보기", systemImage: "list.bullet.rectangle")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
       }
     }
   }
 
   private var legend: some View {
     NBReportSection(title: "표시 기준", systemImage: "circle.grid.2x2") {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-        CalendarLegendItem(label: "수면", tint: NBColor.sleepTint)
-        CalendarLegendItem(label: "혈압", tint: NBColor.danger)
-        CalendarLegendItem(label: "체성분", tint: NBColor.mistTeal)
-        CalendarLegendItem(label: "활동", tint: NBColor.success)
-        CalendarLegendItem(label: "체크인", tint: NBColor.dawn)
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        VStack(alignment: .leading, spacing: NBSpacing.small) {
+          Text("분류 dot")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
+
+          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+            CalendarLegendItem(label: "수면", tint: NBColor.sleepTint)
+            CalendarLegendItem(label: "혈압", tint: NBColor.danger)
+            CalendarLegendItem(label: "체성분", tint: NBColor.mistTeal)
+            CalendarLegendItem(label: "활동", tint: NBColor.success)
+            CalendarLegendItem(label: "체크인", tint: NBColor.dawn)
+          }
+        }
+
+        Divider().overlay(NBColor.divider)
+
+        VStack(alignment: .leading, spacing: NBSpacing.small) {
+          Text("출처 dot")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
+
+          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+            CalendarLegendItem(label: "Apple 건강앱", tint: calendarSourceTint(for: .healthKit))
+            CalendarLegendItem(label: "Fitdays CSV", tint: calendarSourceTint(for: .fitdaysCSV))
+            CalendarLegendItem(label: "앱 계산값", tint: calendarSourceTint(for: .appComputed))
+            CalendarLegendItem(label: "예시 데이터", tint: calendarSourceTint(for: .mock))
+          }
+        }
       }
     }
   }
@@ -218,12 +283,52 @@ struct HealthCalendarView: View {
     return formatter.string(from: displayedMonth)
   }
 
+  private var selectedDaySummary: CalendarDaySummary {
+    summariesByDay[calendar.startOfDay(for: selectedDate)] ?? emptySummary(for: selectedDate)
+  }
+
+  private var selectedDetailData: DailyMeasurementDetailData {
+    builder.detailData(
+      for: selectedDate,
+      samples: samples,
+      sleepReports: sleepReports,
+      morningCheckIns: morningCheckIns,
+      eveningCheckIns: eveningCheckIns,
+      calendar: calendar
+    )
+  }
+
   private func moveMonth(by value: Int) {
-    displayedMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+    let nextMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+    displayedMonth = nextMonth
+
+    if !calendar.isDate(selectedDate, equalTo: nextMonth, toGranularity: .month) {
+      selectedDate = calendar.date(byAdding: .month, value: value, to: selectedDate) ?? nextMonth
+    }
+  }
+
+  private func selectDate(_ date: Date) {
+    selectedDate = date
+    if !calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month) {
+      displayedMonth = date
+    }
   }
 
   private func emptySummary(for date: Date) -> CalendarDaySummary {
     CalendarDaySummary(date: calendar.startOfDay(for: date))
+  }
+
+  private func qualityBadgeKind(_ quality: DailyDataQuality) -> NBStatusKind {
+    switch quality {
+    case .excellent, .good:
+      .good
+    case .limited:
+      .warning
+    case .poor:
+      .caution
+    case .insufficient:
+      .neutral
+    }
   }
 
   private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
@@ -431,13 +536,9 @@ struct DailyMeasurementDetailView: View {
                   selectedPeriod: .thirtyDays
                 )
               } label: {
-                NBListRow(
-                  title: metadata.displayNameKo,
-                  value: UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit),
-                  subtitle: "\(SleepFormatters.shortTime(sample.measuredAt)) · \(sample.sourceType.displayName) · \(sample.sourceName)",
-                  systemImage: calendarMetricIcon(for: sample.metricID),
-                  tint: calendarMetricTint(for: metadata),
-                  accessibilityLabel: "\(metadata.displayNameKo), \(UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit)), \(sample.sourceName)"
+                DailyMetricSampleRow(
+                  metadata: metadata,
+                  sample: sample
                 )
               }
               .buttonStyle(.plain)
@@ -530,6 +631,37 @@ struct DailyMeasurementDetailView: View {
   }
 }
 
+private struct DailyMetricSampleRow: View {
+  let metadata: MetricDisplayMetadata
+  let sample: UnifiedHealthMetricSample
+
+  var body: some View {
+    HStack(alignment: .center, spacing: NBSpacing.small) {
+      VStack(alignment: .leading, spacing: 0) {
+        NBListRow(
+          title: metadata.displayNameKo,
+          value: UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit),
+          subtitle: "\(SleepFormatters.shortTime(sample.measuredAt)) · \(sample.sourceType.displayName) · \(sample.sourceName)",
+          systemImage: calendarMetricIcon(for: sample.metricID),
+          tint: calendarMetricTint(for: metadata),
+          accessibilityLabel: "\(metadata.displayNameKo), \(UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit)), \(sample.sourceName)"
+        )
+
+        MetricSourceBadgeStrip(
+          metadata: metadata,
+          sourceTypes: [sample.sourceType]
+        )
+        .padding(.leading, 40)
+        .padding(.bottom, NBSpacing.small)
+      }
+
+      Image(systemName: "chevron.right")
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(NBColor.tertiaryText)
+    }
+  }
+}
+
 private struct CalendarDayCell: View {
   let date: Date
   let summary: CalendarDaySummary
@@ -557,11 +689,14 @@ private struct CalendarDayCell: View {
       }
       .frame(height: 6)
 
+      CalendarDaySourceDotStrip(sourceTypes: summary.sourceTypes)
+        .frame(height: 6)
+
       Text(summary.sampleCount > 0 ? "\(summary.sampleCount)" : " ")
         .font(.caption2.monospacedDigit())
         .foregroundStyle(summary.hasAnyData ? NBColor.secondaryText : NBColor.tertiaryText)
     }
-    .frame(height: 62)
+    .frame(height: 72)
     .frame(maxWidth: .infinity)
     .background(cellBackground)
     .overlay(
@@ -594,7 +729,84 @@ private struct CalendarDayCell: View {
     guard summary.hasAnyData else {
       return "\(dateText), 데이터 없음"
     }
-    return "\(dateText), 샘플 \(summary.sampleCount)개, 데이터 품질 \(summary.dataQuality.displayName)"
+    let sources = summary.sourceTypes.map(\.displayName).joined(separator: ", ")
+    let sourceText = sources.isEmpty ? "출처 없음" : "출처 \(sources)"
+    return "\(dateText), 샘플 \(summary.sampleCount)개, \(sourceText), 데이터 품질 \(summary.dataQuality.displayName)"
+  }
+}
+
+private struct CalendarDaySourceDotStrip: View {
+  let sourceTypes: [HealthMetricSourceType]
+
+  var body: some View {
+    HStack(spacing: 2) {
+      ForEach(sourceTypes.prefix(4)) { sourceType in
+        Circle()
+          .fill(calendarSourceTint(for: sourceType))
+          .frame(width: 4, height: 4)
+          .accessibilityHidden(true)
+      }
+
+      if sourceTypes.count > 4 {
+        Text("+")
+          .font(.system(size: 6, weight: .bold))
+          .foregroundStyle(NBColor.secondaryText)
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .accessibilityLabel(sourceTypes.isEmpty ? "source 없음" : "source \(sourceTypes.map(\.displayName).joined(separator: ", "))")
+  }
+}
+
+private struct CalendarSelectedCategoryStrip: View {
+  let summary: CalendarDaySummary
+
+  var body: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: NBSpacing.small) {
+        if summary.hasSleepReport { CalendarSelectionBadge(label: "수면", tint: NBColor.sleepTint, systemImage: "bed.double") }
+        if summary.hasBloodPressure { CalendarSelectionBadge(label: "혈압", tint: NBColor.danger, systemImage: "heart") }
+        if summary.hasBodyComposition { CalendarSelectionBadge(label: "체성분", tint: NBColor.mistTeal, systemImage: "scalemass") }
+        if summary.hasActivity { CalendarSelectionBadge(label: "활동", tint: NBColor.success, systemImage: "figure.walk") }
+        if summary.hasMorningCheckIn || summary.hasEveningCheckIn { CalendarSelectionBadge(label: "체크인", tint: NBColor.dawn, systemImage: "checklist") }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+}
+
+private struct CalendarSelectedSourceStrip: View {
+  let sourceTypes: [HealthMetricSourceType]
+
+  var body: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: NBSpacing.small) {
+        ForEach(sourceTypes) { sourceType in
+          CalendarSelectionBadge(
+            label: sourceType.displayName,
+            tint: calendarSourceTint(for: sourceType),
+            systemImage: calendarSourceIcon(for: sourceType)
+          )
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+}
+
+private struct CalendarSelectionBadge: View {
+  let label: String
+  let tint: Color
+  let systemImage: String
+
+  var body: some View {
+    Label(label, systemImage: systemImage)
+      .font(NBTypography.captionEmphasis)
+      .foregroundStyle(tint)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 6)
+      .background(tint.opacity(0.10))
+      .clipShape(Capsule())
   }
 }
 

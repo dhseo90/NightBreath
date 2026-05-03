@@ -73,6 +73,20 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
+
+        #expect(contents.contains("selectedDatePanel"))
+        #expect(contents.contains("selectDate(date)"))
+        #expect(contents.contains("이 날짜 자세히 보기"))
+        #expect(contents.contains("CalendarDaySourceDotStrip"))
+        #expect(contents.contains("CalendarSelectedSourceStrip"))
+        #expect(contents.contains("출처 dot"))
+        #expect(contents.contains("DailyMeasurementDetailView("))
+        #expect(contents.contains(".nbAvoidFloatingTabBar()"))
+    }
+
+    @Test
     func calendarViewCopyAvoidsDiagnosisAndCausalityWording() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
         let restrictedPhrases = [
