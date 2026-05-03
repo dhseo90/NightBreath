@@ -100,6 +100,14 @@
 		00000000000000000000026E /* NBIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000195 /* NBIllustration.swift */; };
 		000000000000000000000270 /* ScreenAppearancePreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000026F /* ScreenAppearancePreviews.swift */; };
 		000000000000000000000272 /* ScreenshotScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000271 /* ScreenshotScenarios.swift */; };
+		000000000000000000000273 /* DailyDataQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000196 /* DailyDataQuality.swift */; };
+		000000000000000000000274 /* LifestyleTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000197 /* LifestyleTag.swift */; };
+		000000000000000000000275 /* EveningCheckIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000198 /* EveningCheckIn.swift */; };
+		000000000000000000000276 /* DailyInsight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000199 /* DailyInsight.swift */; };
+		000000000000000000000277 /* DailyHealthSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000019A /* DailyHealthSnapshot.swift */; };
+		000000000000000000000278 /* DailyRhythmScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000019B /* DailyRhythmScore.swift */; };
+		000000000000000000000279 /* DailyRhythmReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000019C /* DailyRhythmReport.swift */; };
+		00000000000000000000027A /* MockDailyRhythmData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000019D /* MockDailyRhythmData.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -270,6 +278,19 @@
 		000000000000000000000193 /* NBLoadingStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBLoadingStateView.swift; sourceTree = "<group>"; };
 		000000000000000000000194 /* NBIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIcon.swift; sourceTree = "<group>"; };
 		000000000000000000000195 /* NBIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIllustration.swift; sourceTree = "<group>"; };
+		000000000000000000000196 /* DailyDataQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyDataQuality.swift; sourceTree = "<group>"; };
+		000000000000000000000197 /* LifestyleTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifestyleTag.swift; sourceTree = "<group>"; };
+		000000000000000000000198 /* EveningCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckIn.swift; sourceTree = "<group>"; };
+		000000000000000000000199 /* DailyInsight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyInsight.swift; sourceTree = "<group>"; };
+		00000000000000000000019A /* DailyHealthSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthSnapshot.swift; sourceTree = "<group>"; };
+		00000000000000000000019B /* DailyRhythmScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmScore.swift; sourceTree = "<group>"; };
+		00000000000000000000019C /* DailyRhythmReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmReport.swift; sourceTree = "<group>"; };
+		00000000000000000000019D /* MockDailyRhythmData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDailyRhythmData.swift; sourceTree = "<group>"; };
+		00000000000000000000019E /* DailyHealthSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthSnapshotTests.swift; sourceTree = "<group>"; };
+		00000000000000000000019F /* DailyRhythmReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmReportTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001A0 /* EveningCheckInTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EveningCheckInTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001A1 /* LifestyleTagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifestyleTagTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001A2 /* DailyDataQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyDataQualityTests.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -357,6 +378,7 @@
 				000000000000000000000019 /* Storage */,
 				00000000000000000000001A /* Privacy */,
 				00000000000000000000001B /* FutureHealth */,
+				00000000000000000000001F /* DailyRhythm */,
 				00000000000000000000001D /* Design */,
 			);
 			path = Core;
@@ -510,6 +532,21 @@
 			path = FutureHealth;
 			sourceTree = "<group>";
 		};
+		00000000000000000000001F /* DailyRhythm */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000196 /* DailyDataQuality.swift */,
+				000000000000000000000197 /* LifestyleTag.swift */,
+				000000000000000000000198 /* EveningCheckIn.swift */,
+				000000000000000000000199 /* DailyInsight.swift */,
+				00000000000000000000019A /* DailyHealthSnapshot.swift */,
+				00000000000000000000019B /* DailyRhythmScore.swift */,
+				00000000000000000000019C /* DailyRhythmReport.swift */,
+				00000000000000000000019D /* MockDailyRhythmData.swift */,
+			);
+			path = DailyRhythm;
+			sourceTree = "<group>";
+		};
 		00000000000000000000001D /* Design */ = {
 			isa = PBXGroup;
 			children = (
@@ -571,6 +608,11 @@
 				000000000000000000000188 /* HealthMetricTrendCalculatorTests.swift */,
 				00000000000000000000018B /* CrossMetricAnalysisTests.swift */,
 				00000000000000000000018C /* AppStoreReadinessTests.swift */,
+				00000000000000000000019E /* DailyHealthSnapshotTests.swift */,
+				00000000000000000000019F /* DailyRhythmReportTests.swift */,
+				0000000000000000000001A0 /* EveningCheckInTests.swift */,
+				0000000000000000000001A1 /* LifestyleTagTests.swift */,
+				0000000000000000000001A2 /* DailyDataQualityTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -710,6 +752,14 @@
 				000000000000000000000216 /* SleepSession.swift in Sources */,
 				00000000000000000000024F /* PublicDatasetManifest.swift in Sources */,
 				000000000000000000000251 /* SimulatorQAScenario.swift in Sources */,
+				000000000000000000000273 /* DailyDataQuality.swift in Sources */,
+				000000000000000000000274 /* LifestyleTag.swift in Sources */,
+				000000000000000000000275 /* EveningCheckIn.swift in Sources */,
+				000000000000000000000276 /* DailyInsight.swift in Sources */,
+				000000000000000000000277 /* DailyHealthSnapshot.swift in Sources */,
+				000000000000000000000278 /* DailyRhythmScore.swift in Sources */,
+				000000000000000000000279 /* DailyRhythmReport.swift in Sources */,
+				00000000000000000000027A /* MockDailyRhythmData.swift in Sources */,
 				000000000000000000000217 /* AudioRetentionPolicy.swift in Sources */,
 				000000000000000000000218 /* PrivacyPolicyModel.swift in Sources */,
 				00000000000000000000023A /* UserSettings.swift in Sources */,
