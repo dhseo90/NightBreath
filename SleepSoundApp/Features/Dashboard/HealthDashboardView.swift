@@ -11,7 +11,7 @@ struct HealthDashboardView: View {
   @State private var isLoading = false
   @State private var statusMessage: String?
 
-  init(service: any HealthKitServiceProtocol = HealthKitService()) {
+  init(service: any HealthKitServiceProtocol = RealHealthKitService()) {
     self.service = service
   }
 
@@ -68,7 +68,7 @@ struct HealthDashboardView: View {
   private var header: some View {
     NBReportSection(title: "건강 데이터 대시보드", systemImage: "heart.text.square") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("Apple 건강앱에서 혈압, 체중, 체성분, 심박수, 호흡수 데이터를 읽어 보기 쉽게 정리합니다.")
+          Text("Apple 건강앱에서 혈압, 체중, 체성분, 활동, 심박수, 호흡수 데이터를 읽어 보기 쉽게 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
@@ -272,7 +272,7 @@ struct HealthDashboardView: View {
       "아직 건강 데이터 연결을 요청하지 않았습니다."
     case .readRequestCompleted:
       sampleCount > 0
-        ? "건강앱 sample \(sampleCount)개를 로컬에서 읽었습니다."
+        ? "건강앱 sample \(sampleCount)개를 로컬에서 읽었습니다. 허용된 항목만 표시됩니다."
         : "권한이 허용되었더라도 항목별 권한 또는 데이터 유무에 따라 값이 비어 있을 수 있습니다."
     case .denied:
       "건강 데이터 권한이 허용되지 않았습니다. 앱은 기존 수면 소리 기능을 계속 사용할 수 있습니다."

@@ -80,7 +80,8 @@
 - 수면 소리 점수
 - rule-based 분석 placeholder
 - 오디오 캡처 서비스 skeleton
-- HealthKit mock/protocol 기반 건강 데이터 dashboard 방향
+- HealthKit read-only 건강 데이터 dashboard 연결
+- MockHealthDataService와 RealHealthKitService의 protocol 기반 교체 구조
 - Daily Rhythm 확장을 위한 제품 문서와 설계 기준
 
 현재 구현하지 않을 것:
@@ -90,13 +91,14 @@
 - 의료 진단
 - 전체 ML 학습 파이프라인
 - 임상 지표로서의 AHI 계산
-- 실제 HealthKit 권한 요청과 `HKHealthStore` 기반 query
 - HealthKit 데이터 쓰기
+- HealthKit에 수면 소리 점수나 오늘의 리듬 점수 쓰기
+- 앱 첫 실행 시점의 HealthKit 권한 요청
 - 건강 데이터를 서버로 전송하는 기능
 
 ## 향후 건강 데이터 방향
 
-앱은 나중에 Apple 건강앱 데이터를 읽어 종합 건강 대시보드로 확장할 수 있습니다.
+앱은 Apple 건강앱 데이터를 read-only로 읽어 종합 건강 대시보드로 확장합니다.
 이 확장은 수면 앱을 대체하는 것이 아니라, NightBreath를 온디바이스 개인 건강 리듬 리포트 앱으로 넓히는 방향입니다.
 
 Daily Rhythm Report 방향:
@@ -107,15 +109,18 @@ Daily Rhythm Report 방향:
 - “오늘의 리듬 점수”는 웰니스/개인 참고용 점수이며 의료 점수가 아닙니다.
 - 수면 소리와 건강 지표가 같은 날 함께 보이더라도 인과관계를 주장하지 않습니다.
 
-향후 읽을 수 있는 데이터 예시:
+read-only로 읽을 수 있는 데이터 예시:
 - 수축기 혈압
 - 이완기 혈압
 - 체중
 - 체지방률
 - BMI
 - 제지방량
+- 걸음 수
+- 활동량
 - 수면 시간
 - 심박수
+- 안정시 심박수
 - 호흡수
 
 배경:
@@ -124,9 +129,9 @@ Daily Rhythm Report 방향:
 - 사용자는 기본 건강앱 화면보다 더 보기 좋은 건강 대시보드를 원합니다.
 
 현재 원칙:
-- 실제 HealthKit 구현 전에는 mock service/protocol 기반으로 설계합니다.
-- HealthKit은 나중 단계에서 read-only로만 사용합니다.
-- 권한 요청은 사용자가 건강 데이터 대시보드에서 연결 버튼을 눌렀을 때만 수행하는 방향으로 설계합니다.
+- HealthKit은 read-only로만 사용합니다.
+- HealthKit 실제 연결은 RealHealthKitService 뒤에 두고, 테스트와 preview는 mock service/protocol 기반으로 유지합니다.
+- 권한 요청은 사용자가 건강 데이터 대시보드에서 연결 버튼을 눌렀을 때만 수행합니다.
 - 앱은 HealthKit에 데이터를 쓰지 않습니다.
 - 서버나 외부 앱에 건강 데이터를 전송하지 않습니다.
 - 건강 데이터에 대해 진단, 질병 판정, 치료 권고를 하지 않습니다.
@@ -240,6 +245,9 @@ HealthMetricSample:
   - bodyFatPercentage
   - bodyMassIndex
   - leanBodyMass
+  - stepCount
+  - activeEnergy
+  - heartRate
   - restingHeartRate
   - sleepDuration
   - respiratoryRate
@@ -321,7 +329,9 @@ UI 문구는 한국어를 우선 사용합니다.
 - 광고 SDK
 - 계정/로그인 시스템
 - 명시적으로 요청되지 않은 HealthKit 권한 요청
-- mock/protocol 설계 전 실제 HealthKit 권한 요청이나 query
+- 앱 첫 실행 시점의 HealthKit 권한 요청
+- HealthKit 데이터 쓰기
+- HealthKit에 앱 자체 점수 쓰기
 - HealthKit 데이터를 서버로 보내는 기능
 - 의료 진단 문구
 - 밤새 원본 오디오 전체 저장

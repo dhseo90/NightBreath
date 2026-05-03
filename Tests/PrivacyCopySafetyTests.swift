@@ -105,25 +105,62 @@ struct PrivacyCopySafetyTests {
   }
 
   @Test
-  func actualHealthKitImplementationIsNotPresentYet() throws {
+  func healthKitImplementationStaysReadOnlyAndScoped() throws {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let scannedRoots = [
       repositoryRoot.appendingPathComponent("SleepSoundApp"),
       repositoryRoot.appendingPathComponent("Package.swift"),
       repositoryRoot.appendingPathComponent("SleepSoundApp.xcodeproj/project.pbxproj"),
     ]
-    let forbiddenHealthKitSignatures = [
+    let scopedHealthKitSignatures = [
       "import HealthKit",
       "HKHealthStore",
       "requestAuthorization",
       "HKSampleQuery",
-      "HKAnchoredObjectQuery",
-      "HKObserverQuery",
       "HKSampleType",
       "HKQuantityType",
-      "NSHealthShareUsageDescription",
-      "com.apple.developer.healthkit",
-      "com.apple.HealthKit",
+    ]
+    let allowedImplementationSuffix = "SleepSoundApp/Core/FutureHealth/HealthKitService.swift"
+    let allowedMetadataSuffixes = [
+      "SleepSoundApp/App/Info.plist",
+      "SleepSoundApp/App/SleepSoundApp.entitlements",
+      "SleepSoundApp.xcodeproj/project.pbxproj",
+    ]
+
+    for fileURL in textFiles(in: scannedRoots) {
+      let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      for signature in scopedHealthKitSignatures where contents.contains(signature) {
+        #expect(
+          fileURL.path.hasSuffix(allowedImplementationSuffix),
+          "\(fileURL.path) contains HealthKit implementation outside RealHealthKitService: \(signature)"
+        )
+      }
+
+      if contents.contains("NSHealthShareUsageDescription")
+          || contents.contains("com.apple.developer.healthkit")
+          || contents.contains("com.apple.HealthKit") {
+        #expect(
+          allowedMetadataSuffixes.contains { fileURL.path.hasSuffix($0) },
+          "\(fileURL.path) contains HealthKit metadata outside app configuration."
+        )
+      }
+    }
+  }
+
+  @Test
+  func healthKitWriteAndStreamingQueriesAreNotUsed() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let scannedRoots = [
+      repositoryRoot.appendingPathComponent("SleepSoundApp"),
+      repositoryRoot.appendingPathComponent("Package.swift"),
+    ]
+    let forbiddenHealthKitSignatures = [
+      "HKAnchoredObjectQuery",
+      "HKObserverQuery",
+      "HKDeletedObject",
+      "HKWorkout",
+      "HKCategorySample",
+      "NSHealthUpdateUsageDescription",
     ]
 
     for fileURL in textFiles(in: scannedRoots) {
@@ -131,9 +168,20 @@ struct PrivacyCopySafetyTests {
       for signature in forbiddenHealthKitSignatures {
         #expect(
           !contents.contains(signature),
-          "\(fileURL.path) contains actual HealthKit implementation or capability: \(signature)"
+          "\(fileURL.path) contains forbidden HealthKit write or streaming usage: \(signature)"
         )
       }
+    }
+
+    let healthKitService = try String(
+      contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Core/FutureHealth/HealthKitService.swift"),
+      encoding: .utf8
+    )
+    for signature in [".save(", ".delete("] {
+      #expect(
+        !healthKitService.contains(signature),
+        "RealHealthKitService contains forbidden HealthKit write/delete usage: \(signature)"
+      )
     }
   }
 

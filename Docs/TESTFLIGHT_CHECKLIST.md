@@ -13,9 +13,9 @@
 - Bundle Identifier가 `com.local.NightBreath`에서 배포용 identifier로 바뀌어야 하는지 확인한다.
 - Release configuration으로 archive한다.
 - `CODE_SIGN_STYLE`, Team, Provisioning Profile을 확인한다.
-- HealthKit capability는 실제 read-only 연동을 진행하는 단계에서만 별도로 확인한다.
+- HealthKit capability가 read-only 대시보드 목적에 맞게 켜져 있는지 확인한다.
 - `NSMicrophoneUsageDescription`이 한국어 우선 문구인지 확인한다.
-- 실제 HealthKit 연동 전에는 `NSHealthShareUsageDescription`과 HealthKit capability를 포함하지 않는다.
+- `NSHealthShareUsageDescription`이 건강 데이터 연결 선택 시에만 읽는다는 문구인지 확인한다.
 
 ## Release 노출 점검
 
@@ -34,7 +34,7 @@
 - 이벤트 오디오 샘플 저장 기본값이 OFF인지 확인한다.
 - 이벤트 오디오 샘플은 opt-in, 짧은 구간, 로컬 저장, 삭제 가능 정책을 유지한다.
 - Daily Rhythm 확장은 mock/protocol 기반으로 먼저 검증한다.
-- 실제 HealthKit 연동은 후속 단계에서 read-only로만 검토한다.
+- HealthKit 연동은 read-only로만 사용한다.
 - HealthKit에 수면 소리 점수나 앱 데이터를 쓰지 않는다.
 - 서버 업로드, 클라우드 처리, 외부 분석 SDK, 광고 SDK가 없는지 확인한다.
 - 계정/로그인 기능이 없는지 확인한다.
@@ -60,7 +60,8 @@
 - 마이크 권한 거부 시 앱이 crash하지 않는지 확인한다.
 - 이벤트 오디오 샘플 저장 OFF 상태에서 오디오 파일이 생성되지 않는지 확인한다.
 - 이벤트 오디오 샘플 저장 ON 상태에서 짧은 샘플만 생성되고 삭제가 가능한지 확인한다.
-- 건강 대시보드는 실제 HealthKit 권한 요청 없이 mock/준비 중 상태를 안전하게 표시하는지 확인한다.
+- 건강 대시보드의 `건강 데이터 연결` 버튼을 누를 때만 HealthKit 권한 요청이 표시되는지 확인한다.
+- HealthKit 권한 거부 또는 데이터 없음 상태에서 수면 기능이 계속 동작하는지 확인한다.
 - 가능한 경우 overnight 1회 측정 후 리포트, 저장 용량, 배터리 사용량을 확인한다.
 
 ## 업로드 전 명령

@@ -42,7 +42,10 @@ public struct MockHealthKitService: HealthKitServiceProtocol {
         let bodyFatValues = [21.8, 21.7, 21.5, 21.4, 21.2, 21.1, 21.0]
         let bmiValues = [23.4, 23.3, 23.2, 23.2, 23.1, 23.1, 23.0]
         let leanMassValues = [56.6, 56.5, 56.5, 56.4, 56.4, 56.5, 56.5]
-        let heartRateValues = [63, 62, 61, 62, 60, 61, 60]
+        let stepCountValues = [5_800, 7_200, 6_400, 8_100, 7_600, 6_900, 8_300]
+        let activeEnergyValues = [240, 310, 280, 420, 360, 330, 440]
+        let heartRateValues = [72, 70, 69, 71, 68, 69, 67]
+        let restingHeartRateValues = [63, 62, 61, 62, 60, 61, 60]
         let sleepDurationValues = [6.7, 7.1, 6.4, 7.3, 6.9, 7.0, 7.2]
         let respiratoryRateValues = [15.1, 15.0, 14.8, 14.9, 15.2, 15.1, 14.9]
 
@@ -54,7 +57,10 @@ public struct MockHealthKitService: HealthKitServiceProtocol {
             samples.append(sample(.bodyFatPercentage, bodyFatValues[index], measuredAt.addingTimeInterval(60 * 30), fitdays))
             samples.append(sample(.bodyMassIndex, bmiValues[index], measuredAt.addingTimeInterval(60 * 30), fitdays))
             samples.append(sample(.leanBodyMass, leanMassValues[index], measuredAt.addingTimeInterval(60 * 30), fitdays))
-            samples.append(sample(.restingHeartRate, Double(heartRateValues[index]), measuredAt.addingTimeInterval(60 * 60), appleHealth))
+            samples.append(sample(.stepCount, Double(stepCountValues[index]), measuredAt.addingTimeInterval(60 * 45), appleHealth))
+            samples.append(sample(.activeEnergy, Double(activeEnergyValues[index]), measuredAt.addingTimeInterval(60 * 45), appleHealth))
+            samples.append(sample(.heartRate, Double(heartRateValues[index]), measuredAt.addingTimeInterval(60 * 60), appleHealth))
+            samples.append(sample(.restingHeartRate, Double(restingHeartRateValues[index]), measuredAt.addingTimeInterval(60 * 60), appleHealth))
             samples.append(sample(.sleepDuration, sleepDurationValues[index], measuredAt.addingTimeInterval(60 * 90), appleHealth))
             samples.append(sample(.respiratoryRate, respiratoryRateValues[index], measuredAt.addingTimeInterval(60 * 90), appleHealth))
         }

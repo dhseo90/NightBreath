@@ -32,7 +32,7 @@ NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 �
 - 오늘의 리듬 점수: 수면, 회복 리듬, 활동, 혈압, 체성분 component를 데이터 품질과 함께 요약하는 웰니스/개인 참고용 점수입니다.
 - 하루 리듬 카드: 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 보여줄 수 있는 레이아웃이며, privacy level에 따라 민감 수치 표시를 줄일 수 있습니다.
 - 건강 데이터 mock architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health mock source를 분리합니다.
-- 실제 HealthKit 연동은 아직 없음: 현재 앱은 mock/protocol 기반이며, HealthKit 권한 요청이나 `HKHealthStore` query를 새로 실행하지 않습니다.
+- HealthKit read-only 연동: 사용자가 건강 데이터 대시보드에서 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다.
 - 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.
 
 ## 현재 개발 전략
@@ -126,7 +126,6 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 ## V1에서 하지 않는 것
 
 - HealthKit 쓰기
-- 실제 HealthKit 권한 요청 또는 `HKHealthStore` query를 이번 단계에서 새로 구현
 - 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
 - HealthKit에 수면 소리 점수나 앱 데이터를 기록
 - Apple Watch 연동
@@ -393,14 +392,14 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - 이벤트 오디오 샘플은 앱에서 재생하거나 개별/전체 삭제할 수 있습니다.
 - 개인정보 화면에서 저장된 이벤트 오디오 샘플 수, 총 시간, 총 용량, 연결되지 않은 샘플 수/용량을 확인하고 정리할 수 있습니다.
 - 현재 방향 전환 단계에서는 HealthKit 실제 권한 요청을 새로 추가하지 않습니다.
-- HealthKit 연동은 나중 단계에서 read-only로만 검토합니다.
+- HealthKit 연동은 건강 데이터 연결 버튼을 선택했을 때만 read-only로 동작합니다.
 - HealthKit에 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백을 쓰지 않는 원칙을 유지합니다.
 
 토글을 끄면 이후 새 이벤트의 오디오 샘플은 저장하지 않고, 이벤트 요약과 리포트 수치만 남깁니다. 기존 저장 샘플은 자동 삭제하지 않으며, 개인정보 설정에서 별도로 삭제할 수 있습니다.
 
 ## Daily Rhythm / HealthKit 방향
 
-NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다. 현재 구현은 실제 건강앱 연결 전 단계의 mock architecture입니다.
+NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다. 현재 구현은 mock architecture와 HealthKit read-only adapter를 함께 둡니다.
 
 현재 준비된 것:
 
@@ -409,13 +408,15 @@ NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`
 - Omron Connect mock 혈압 source
 - Fitdays mock 체중/체성분 source
 - Apple Health Mock 활동/심박/수면/호흡 source
+- `RealHealthKitService` read-only adapter
+- 건강 데이터 연결 버튼을 통한 HealthKit 읽기 권한 요청
 - Daily Rhythm Score 계산기와 Daily Insight 생성기
 - Morning Brief, Daily Rhythm Report, Evening Check-in, Daily Health Card 화면
 - Daily Health Card template과 privacy level
 
-이번 단계에서는 실제 HealthKit 권한 요청이나 `HKHealthStore` 기반 query를 새로 구현하지 않습니다. 먼저 protocol과 mock service 기반으로 도메인 모델, 화면, empty state, 데이터 품질 안내, 점수 계산 기준을 검증합니다.
+HealthKit 권한 요청은 앱 첫 실행이나 수면 측정 시작 시 자동으로 발생하지 않습니다. 사용자가 건강 데이터 대시보드에서 연결을 선택한 경우에만 read-only 권한을 요청하고, 허용된 항목만 로컬에서 표시합니다.
 
-앞으로 read-only 방향으로 검토할 수 있는 표시 대상:
+read-only로 표시할 수 있는 대상:
 
 - 수축기 혈압
 - 이완기 혈압
@@ -423,6 +424,9 @@ NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`
 - 체지방률
 - BMI
 - 제지방량
+- 걸음 수
+- 활동량
+- 심박수
 - 안정시 심박수
 - 호흡수
 - 수면 시간

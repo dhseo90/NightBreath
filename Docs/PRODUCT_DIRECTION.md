@@ -11,9 +11,9 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - 계정 시스템을 만들지 않습니다.
 - 전체 밤 원본 오디오를 기본 저장하지 않습니다.
 - 이벤트 오디오 샘플은 사용자가 opt-in한 경우에만 짧은 로컬 샘플로 저장합니다.
-- 건강 데이터는 향후 Apple 건강앱 read-only 방향으로만 다룹니다.
-- 실제 HealthKit 권한 요청과 `HKHealthStore` 기반 구현은 후속 단계에서 별도 작업으로 검토합니다.
-- 실제 HealthKit 구현 전에는 protocol과 mock service를 우선 사용합니다.
+- 건강 데이터는 Apple 건강앱 read-only 방향으로만 다룹니다.
+- HealthKit 권한 요청은 사용자가 건강 데이터 연결을 선택한 경우에만 수행합니다.
+- HealthKit adapter는 protocol 기반으로 mock service와 교체 가능하게 유지합니다.
 - 리포트는 웰니스와 개인 참고용이며, 진단 목적의 의료기기가 아닙니다.
 
 ## 현재 Daily Rhythm 구현 범위
@@ -27,7 +27,7 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - `MorningBriefView`, `DailyRhythmReportView`, `EveningCheckInView`
 - `DailyHealthCardView`, `DailyHealthCardPreviewView`, 카드 template/privacy level 구조
 
-이 구현은 실제 HealthKit 연결 전 단계입니다. 권한 요청, `HKHealthStore` query, HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.
+이 구현은 mock data와 실제 HealthKit read-only adapter를 분리합니다. HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.
 
 ## 수면 소리 리포트에서 개인 건강 리듬 리포트로
 
@@ -76,7 +76,7 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 
 ## HealthKit 방향
 
-HealthKit은 향후 read-only로만 사용합니다.
+HealthKit은 read-only로만 사용합니다.
 
 - 사용자가 건강 데이터 대시보드에서 연결 버튼을 누를 때만 권한 요청을 고려합니다.
 - 앱 첫 실행, 수면 시작, 수면 종료 흐름에서는 HealthKit 권한을 요청하지 않습니다.
@@ -85,7 +85,7 @@ HealthKit은 향후 read-only로만 사용합니다.
 - Apple 건강앱 데이터를 서버나 외부 앱으로 전송하지 않습니다.
 - Omron Connect와 Fitdays에는 직접 연결하지 않고, 사용자가 Apple 건강앱에 동기화한 데이터를 읽는 방향만 가정합니다.
 
-이번 방향 전환 단계에서는 실제 HealthKit 권한 요청, `HKHealthStore` query, capability 변경을 새로 구현하지 않습니다. 우선 `HealthDataServiceProtocol`과 `MockHealthDataService`로 화면, 점수 계산, empty state, 권한 제한 안내를 검증합니다.
+현재 실제 adapter는 `RealHealthKitService`로 분리하고, `HealthDataServiceProtocol`과 mock service로 화면, 점수 계산, empty state, 권한 제한 안내를 계속 검증합니다.
 
 ## 개인정보와 오디오 저장
 

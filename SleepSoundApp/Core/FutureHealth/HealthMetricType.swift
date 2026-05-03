@@ -99,6 +99,9 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             .bodyFatPercentage,
             .bodyMassIndex,
             .leanBodyMass,
+            .stepCount,
+            .activeEnergy,
+            .heartRate,
             .restingHeartRate,
             .respiratoryRate,
         ]
