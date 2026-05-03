@@ -13,7 +13,7 @@ struct BloodPressureDashboardView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         HealthDataAccessStateView(
           permissionState: permissionState,
@@ -43,7 +43,7 @@ struct BloodPressureDashboardView: View {
           systemImage: "heart.text.square"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .navigationTitle("혈압")
@@ -87,13 +87,13 @@ struct BloodPressureDashboardView: View {
   private var header: some View {
     NBReportSection(title: "혈압 추세", systemImage: "heart") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("수축기/이완기 혈압 sample을 기간별로 비교합니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
+        Text("혈압 데이터를 보기 쉽게 정리합니다. 수축기/이완기 혈압 sample을 기간별로 비교합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
         if let latestMeasuredAt {
           Text("최근 측정: \(SleepFormatters.shortDate(latestMeasuredAt)) \(SleepFormatters.shortTime(latestMeasuredAt))")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
     }
@@ -111,21 +111,24 @@ struct BloodPressureDashboardView: View {
   private var timeOfDaySection: some View {
     NBReportSection(title: "측정 시간대", systemImage: "sun.and.horizon") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        HStack {
-          Label("아침", systemImage: "sunrise")
-          Spacer()
-          Text("\(timeOfDayCounts.morning)개")
-            .font(.callout.weight(.semibold))
-        }
-        HStack {
-          Label("저녁", systemImage: "moon")
-          Spacer()
-          Text("\(timeOfDayCounts.evening)개")
-            .font(.callout.weight(.semibold))
-        }
+        NBListRow(
+          title: "아침",
+          value: "\(timeOfDayCounts.morning)개",
+          subtitle: "정오 이전 측정 sample",
+          systemImage: "sunrise",
+          tint: NBColor.warning
+        )
+        Divider().overlay(NBColor.divider)
+        NBListRow(
+          title: "저녁",
+          value: "\(timeOfDayCounts.evening)개",
+          subtitle: "정오 이후 측정 sample",
+          systemImage: "moon",
+          tint: NBColor.sleep
+        )
         Text("수축기 혈압 sample의 측정 시각 기준입니다.")
-          .font(.footnote)
-          .foregroundStyle(.secondary)
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -151,7 +154,8 @@ struct BloodPressureDashboardView: View {
       } ?? "--",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" }
+      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
+      accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
     )
   }
 }

@@ -8,19 +8,21 @@
 
     var body: some View {
       ScrollView {
-        VStack(spacing: NBSpacing.large) {
-          NBCard {
+        VStack(spacing: NBSpacing.sectionVertical) {
+          NBCard(background: NBColor.audioTint.opacity(0.08), stroke: NBColor.audioTint.opacity(0.18)) {
             VStack(alignment: .leading, spacing: NBSpacing.medium) {
               Label("Dataset Replay", systemImage: "play.rectangle.on.rectangle")
                 .font(NBTypography.cardTitle)
+                .foregroundStyle(NBColor.audioTint)
               Text(
                 "실제 iPhone 마이크 없이 synthetic pattern 또는 로컬 오디오 파일을 AudioChunk stream으로 바꿔 detector와 리포트를 검증합니다."
               )
               .font(NBTypography.footnote)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
               Text("원본 오디오는 앱에 저장하지 않으며, 공개/개인 데이터 파일은 git에 포함하지 않습니다.")
                 .font(NBTypography.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
+              NBStatusBadge("DEBUG 전용", kind: .debug)
             }
           }
 
@@ -72,7 +74,15 @@
 
               Text(viewModel.selectedFileName)
                 .font(NBTypography.body)
-                .foregroundStyle(viewModel.selectedFileURL == nil ? .secondary : .primary)
+                .foregroundStyle(viewModel.selectedFileURL == nil ? NBColor.secondaryText : NBColor.primaryText)
+
+              if viewModel.selectedFileURL == nil {
+                NBEmptyStateView(
+                  title: "Dataset Replay 파일 없음",
+                  message: "로컬 오디오 파일을 선택하면 자동 다운로드 없이 기기 안에서 replay합니다.",
+                  systemImage: "folder.badge.questionmark"
+                )
+              }
 
               HStack(spacing: NBSpacing.small) {
                 Button {
@@ -95,7 +105,7 @@
 
               Text("WAV/CAF/M4A 파일을 로컬에서 직접 선택합니다. 공개 데이터셋은 자동 다운로드하지 않습니다.")
                 .font(NBTypography.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
             }
           }
 
@@ -114,7 +124,7 @@
                 }
                 Text(report.mainDisturbanceReason)
                   .font(NBTypography.body)
-                  .foregroundStyle(.secondary)
+                  .foregroundStyle(NBColor.secondaryText)
               }
             }
           }
@@ -130,17 +140,18 @@
                   .font(NBTypography.sectionTitle)
                 ForEach(viewModel.events) { event in
                   NBListRow(
-                    title: event.type.displayName,
+                    title: event.type.timelineDisplayName,
                     subtitle:
                       "\(event.startedAt.formatted(date: .omitted, time: .standard)) · \(SleepFormatters.durationString(event.duration)) · confidence \(String(format: "%.2f", event.confidence))",
-                    systemImage: symbol(for: event.type)
+                    systemImage: symbol(for: event.type),
+                    tint: event.type.tintColor
                   )
                 }
               }
             }
           }
         }
-        .padding(NBSpacing.large)
+        .padding(NBSpacing.screenHorizontal)
       }
       .background(NBColor.pageBackground)
       .navigationTitle("Dataset Replay")
@@ -340,7 +351,7 @@
           if let errorMessage = viewModel.errorMessage {
             Text(errorMessage)
               .font(NBTypography.footnote)
-              .foregroundStyle(.red)
+              .foregroundStyle(NBColor.danger)
           }
         }
       }
@@ -351,52 +362,40 @@
     var diagnostics: DetectorDiagnostics
 
     var body: some View {
-      NBCard {
-        VStack(alignment: .leading, spacing: NBSpacing.medium) {
-          Text("Detector 진단")
-            .font(NBTypography.sectionTitle)
-
-          LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small
-          ) {
-            ReplayMetricTile(
-              title: "Raw 후보", value: "\(diagnostics.rawCandidateCount)",
-              systemImage: "circle.dotted")
-            ReplayMetricTile(
-              title: "Smoothing 후", value: "\(diagnostics.postSmoothingEventCount)",
-              systemImage: "line.3.horizontal.decrease")
-            ReplayMetricTile(
-              title: "최종 이벤트", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))",
-              systemImage: "checkmark.circle")
-            ReplayMetricTile(
-              title: "RMS p90", value: String(format: "%.4f", diagnostics.rmsSummary.p90),
-              systemImage: "waveform.path")
-          }
-
-          if let summary = diagnostics.summaryTextForZeroEvents {
-            Text(summary)
-              .font(NBTypography.footnote)
-              .foregroundStyle(.secondary)
-          }
-
-          if !diagnostics.topRejectReasons.isEmpty {
-            VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-              Text("탈락 이유 TOP")
-                .font(NBTypography.caption)
-                .foregroundStyle(.secondary)
-              ForEach(diagnostics.topRejectReasons.prefix(5), id: \.0) { reason, count in
-                HStack {
-                  Text(reason.displayName)
-                  Spacer()
-                  Text("\(count)")
-                    .foregroundStyle(.secondary)
-                }
-                .font(NBTypography.caption)
-              }
+      NBDiagnosticCard(
+        title: "DEBUG Detector 진단",
+        summary: diagnostics.summaryTextForZeroEvents ?? "Replay detector diagnostics를 raw 후보부터 최종 이벤트까지 확인합니다.",
+        systemImage: "waveform.and.magnifyingglass"
+      ) {
+        NBDiagnosticItemList(items: diagnosticItems, showsDetails: true)
+        if !diagnostics.topRejectReasons.isEmpty {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("탈락 이유 TOP")
+              .font(NBTypography.captionEmphasis)
+              .foregroundStyle(NBColor.secondaryText)
+            ForEach(diagnostics.topRejectReasons.prefix(5), id: \.0) { reason, count in
+              NBListRow(
+                title: reason.displayName,
+                value: "\(count)회",
+                systemImage: "xmark.circle",
+                tint: NBColor.caution
+              )
             }
           }
         }
       }
+    }
+
+    private var diagnosticItems: [NBDiagnosticItem] {
+      [
+        NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+        NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
+        NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .good),
+        NBDiagnosticItem(title: "RMS / energy p90", value: "\(String(format: "%.4f", diagnostics.rmsSummary.p90)) / \(String(format: "%.4f", diagnostics.energySummary.p90))", status: .neutral),
+        NBDiagnosticItem(title: "detector backend", value: diagnostics.detectorBackend, status: .debug),
+        NBDiagnosticItem(title: "Core ML model", value: diagnostics.modelInstalled ? "Installed" : "Not installed", status: diagnostics.modelInstalled ? .good : .neutral),
+        NBDiagnosticItem(title: "fallback count", value: "\(diagnostics.modelFallbackCount)회", status: diagnostics.modelFallbackCount > 0 ? .caution : .good),
+      ]
     }
   }
 
@@ -406,29 +405,14 @@
     let systemImage: String
 
     var body: some View {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Image(systemName: systemImage)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(NBColor.audioTint)
-          .frame(width: 28, height: 28)
-          .background(NBColor.audioTint.opacity(0.10))
-          .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
-
-        Text(title)
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.mutedText)
-
-        Text(value)
-          .font(NBTypography.metricValue)
-          .foregroundStyle(NBColor.nightInk)
-          .lineLimit(1)
-          .minimumScaleFactor(0.72)
-      }
-      .padding(NBSpacing.medium)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(Color(.secondarySystemBackground))
-      .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
-      .accessibilityElement(children: .combine)
+      NBMetricCard(
+        title: title,
+        value: value,
+        systemImage: systemImage,
+        tint: NBColor.audioTint,
+        status: .debug,
+        accessibilityLabel: "\(title), \(value)"
+      )
     }
   }
 #endif

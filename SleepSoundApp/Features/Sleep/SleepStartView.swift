@@ -24,43 +24,43 @@ struct SleepStartView: View {
 
   private var startContent: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
-        NBCard(background: NBColor.sleepTint.opacity(0.10)) {
-          VStack(alignment: .leading, spacing: NBSpacing.small) {
-            Image(systemName: "moon.zzz.fill")
-              .font(.largeTitle)
-              .foregroundStyle(NBColor.sleepTint)
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        NBCard(background: NBColor.sleep.opacity(0.10), stroke: NBColor.sleep.opacity(0.18)) {
+          VStack(alignment: .leading, spacing: NBSpacing.md) {
+            NBMoonBreathIcon(tint: NBColor.sleep)
+              .frame(width: 54, height: 54)
+              .accessibilityHidden(true)
             Text("수면 시작")
               .font(NBTypography.screenTitle)
-            Text("iPhone을 침대 옆에 두고 밤새 감지된 소리 기반 지표를 기록합니다.")
+              .foregroundStyle(NBColor.primaryText)
+            Text("수면 중 소리 기반 지표를 기록합니다.")
               .font(NBTypography.body)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
+            Text("iPhone을 침대 옆에 두고, 아침에는 수면 소리 점수와 주요 이벤트를 확인할 수 있습니다.")
+              .font(NBTypography.callout)
+              .foregroundStyle(NBColor.secondaryText)
           }
         }
 
         permissionStatusCard
 
-        VStack(spacing: NBSpacing.medium) {
-          GuideRow(
-            systemImage: "mic", title: "마이크 권한 확인",
-            description: "수면 시작 시 권한을 요청하고 허용된 경우에만 오디오 캡처를 시작합니다.")
-          GuideRow(
-            systemImage: "lock.shield", title: "온디바이스 분석",
-            description: "V1은 서버 업로드 없이 로컬 모델과 규칙 기반 결과만 사용합니다.")
-          GuideRow(
-            systemImage: "waveform.badge.minus", title: "원본 전체 오디오 저장 안 함",
-            description: "리포트용 이벤트 메타데이터를 중심으로 저장합니다.")
-        }
+        setupSummaryCard
 
-        Button {
+        NBPrivacyNoticeCard(
+          title: "측정 전 개인정보 확인",
+          messages: [
+            "원본 전체 오디오는 저장하지 않습니다.",
+            "이벤트 오디오 샘플은 사용자가 켠 경우에만 저장됩니다.",
+            "분석은 iPhone 안에서 수행됩니다.",
+            "서버로 전송하지 않습니다.",
+          ]
+        )
+
+        NBPrimaryButton(title: startButtonTitle, systemImage: startButtonIcon, isDisabled: appState.isPreparingCapture) {
           appState.startSleepSession()
-        } label: {
-          Label(startButtonTitle, systemImage: startButtonIcon)
         }
-        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.sleepTint))
-        .disabled(appState.isPreparingCapture)
       }
-      .padding(NBSpacing.large)
+      .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
   }
@@ -74,26 +74,56 @@ struct SleepStartView: View {
           Spacer()
           NBStatusBadge(
             appState.microphonePermissionState.displayText,
-            systemImage: permissionStatusIcon,
-            tint: permissionTint
+            kind: permissionStatusKind,
+            systemImage: permissionStatusIcon
           )
         }
 
         Text(permissionDescription)
           .font(.callout)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         if appState.isPreparingCapture {
           Label(appState.audioCaptureState.displayText, systemImage: "waveform")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
 
         if let message = appState.audioCaptureMessage {
           Text(message)
             .font(.caption)
-            .foregroundStyle(.red)
+            .foregroundStyle(NBColor.danger)
         }
+      }
+    }
+  }
+
+  private var setupSummaryCard: some View {
+    NBReportSection(title: "오늘 밤 측정 준비", systemImage: "checklist") {
+      VStack(spacing: NBSpacing.sm) {
+        NBListRow(
+          title: "기기 배치",
+          value: "침대 옆",
+          subtitle: "iPhone을 충전기에 연결하고 마이크가 막히지 않게 둡니다.",
+          systemImage: "iphone",
+          tint: NBColor.sleep
+        )
+        Divider().overlay(NBColor.divider)
+        NBListRow(
+          title: "이벤트 오디오 샘플 저장",
+          value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
+          subtitle: "이벤트 오디오 샘플은 사용자가 켠 경우에만 저장됩니다.",
+          systemImage: appState.isEventAudioSampleStorageEnabled ? "waveform.circle" : "waveform.slash",
+          tint: appState.isEventAudioSampleStorageEnabled ? NBColor.audioTint : NBColor.privacy
+        )
+        Divider().overlay(NBColor.divider)
+        NBListRow(
+          title: "원본 전체 오디오",
+          value: "저장 안 함",
+          subtitle: "밤새 전체 원본 오디오 파일을 기본 동작으로 저장하지 않습니다.",
+          systemImage: "lock.shield",
+          tint: NBColor.privacy
+        )
       }
     }
   }
@@ -117,14 +147,14 @@ struct SleepStartView: View {
     }
   }
 
-  private var permissionTint: Color {
+  private var permissionStatusKind: NBStatusKind {
     switch appState.microphonePermissionState {
     case .notDetermined:
-      NBColor.warning
+      .caution
     case .granted:
-      NBColor.success
+      .good
     case .denied:
-      NBColor.danger
+      .danger
     }
   }
 

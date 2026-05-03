@@ -13,9 +13,16 @@ struct PrivacySettingsView: View {
   var body: some View {
     List {
       Section(policy.title) {
-        ForEach(policy.principles, id: \.self) { principle in
-          Label(principle, systemImage: "checkmark.shield")
-        }
+        NBPrivacyNoticeCard(
+          title: "밤숨 개인정보 원칙",
+          messages: policy.principles + [
+            "이벤트 오디오 샘플은 사용자가 켠 경우에만 저장됩니다.",
+            "저장된 샘플은 언제든 삭제할 수 있습니다.",
+          ],
+          systemImage: "lock.shield"
+        )
+        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+        .listRowBackground(Color.clear)
       }
 
       Section("오디오 보관 정책") {
@@ -47,6 +54,9 @@ struct PrivacySettingsView: View {
             Text("전체 밤 오디오는 저장하지 않습니다.")
               .font(.caption)
               .foregroundStyle(.secondary)
+            Text("서버로 전송하지 않습니다.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
             Text("끄면 앞으로 새 이벤트의 오디오 샘플은 저장되지 않습니다.")
               .font(.caption)
               .foregroundStyle(.secondary)
@@ -60,28 +70,39 @@ struct PrivacySettingsView: View {
       }
 
       Section("이벤트 오디오 샘플 관리") {
-        PrivacyStorageStatRow(
-          title: "이벤트 오디오 샘플 저장",
-          value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
-          systemImage: appState.isEventAudioSampleStorageEnabled
-            ? "checkmark.circle" : "xmark.circle"
-        )
-        PrivacyStorageStatRow(
-          title: "저장된 샘플 수",
-          value: "\(appState.eventAudioStorageStats.sampleCount)개",
-          systemImage: "waveform.circle"
-        )
-        PrivacyStorageStatRow(
-          title: "저장된 오디오 시간",
-          value: SleepFormatters.compactDurationString(
-            appState.eventAudioStorageStats.totalDurationSeconds),
-          systemImage: "timer"
-        )
-        PrivacyStorageStatRow(
-          title: "저장된 오디오 용량",
-          value: appState.eventAudioStorageStats.formattedTotalSize,
-          systemImage: "internaldrive"
-        )
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.sm) {
+          NBMetricCard(
+            title: "샘플 저장",
+            value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
+            subtitle: "기본값 OFF",
+            systemImage: appState.isEventAudioSampleStorageEnabled ? "checkmark.circle" : "xmark.circle",
+            tint: appState.isEventAudioSampleStorageEnabled ? NBColor.audioTint : NBColor.privacy,
+            status: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy
+          )
+          NBMetricCard(
+            title: "저장된 샘플",
+            value: "\(appState.eventAudioStorageStats.sampleCount)",
+            unit: "개",
+            systemImage: "waveform.circle",
+            tint: NBColor.audioTint
+          )
+          NBMetricCard(
+            title: "총 시간",
+            value: SleepFormatters.compactDurationString(
+              appState.eventAudioStorageStats.totalDurationSeconds),
+            systemImage: "timer",
+            tint: NBColor.sleep
+          )
+          NBMetricCard(
+            title: "용량",
+            value: appState.eventAudioStorageStats.formattedTotalSize,
+            systemImage: "internaldrive",
+            tint: NBColor.privacy
+          )
+        }
+        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+        .listRowBackground(Color.clear)
+
         PrivacyStorageStatRow(
           title: "연결된 샘플",
           value:
@@ -110,19 +131,13 @@ struct PrivacySettingsView: View {
             .foregroundStyle(.secondary)
         }
 
-        Button {
+        NBSecondaryButton(title: "연결되지 않은 샘플 정리", systemImage: "sparkles", isDisabled: appState.eventAudioStorageStats.orphanSampleCount == 0) {
           showCleanupOrphanConfirmation = true
-        } label: {
-          Label("연결되지 않은 샘플 정리", systemImage: "sparkles")
         }
-        .disabled(appState.eventAudioStorageStats.orphanSampleCount == 0)
 
-        Button(role: .destructive) {
+        NBDangerButton(title: "저장된 이벤트 오디오 샘플 전체 삭제", systemImage: "waveform.slash", isDisabled: appState.eventAudioStorageStats.sampleCount == 0) {
           showDeleteEventAudioConfirmation = true
-        } label: {
-          Label("저장된 이벤트 오디오 샘플 전체 삭제", systemImage: "waveform.slash")
         }
-        .disabled(appState.eventAudioStorageStats.sampleCount == 0)
 
         Text("연결되지 않은 샘플은 저장소에는 남아 있지만 최종 수면 이벤트와 연결되지 않은 짧은 오디오 파일입니다. 전체 밤 오디오는 저장하지 않습니다.")
           .font(.footnote)
@@ -142,12 +157,9 @@ struct PrivacySettingsView: View {
             .foregroundStyle(.secondary)
         }
 
-        Button(role: .destructive) {
+        NBDangerButton(title: "이벤트 피드백 삭제", systemImage: "bubble.left.and.exclamationmark.bubble.right", isDisabled: appState.eventFeedbackCount == 0) {
           showDeleteEventFeedbackConfirmation = true
-        } label: {
-          Label("이벤트 피드백 삭제", systemImage: "bubble.left.and.exclamationmark.bubble.right")
         }
-        .disabled(appState.eventFeedbackCount == 0)
 
         Text("피드백은 이벤트별 맞음/아님/모르겠음 선택과 수정 label만 로컬 metadata로 저장합니다. 이벤트 오디오 샘플 삭제와 별도로 관리됩니다.")
           .font(.footnote)
@@ -175,46 +187,23 @@ struct PrivacySettingsView: View {
 
       Section("Detector 진단 요약") {
         if let diagnostics = appState.latestDetectorDiagnostics {
-          PrivacyStorageStatRow(
-            title: "현재 backend",
-            value: diagnostics.detectorBackend,
-            systemImage: "slider.horizontal.3"
+          NBDiagnosticCard(
+            title: "Detector 진단 요약",
+            summary: "로컬 detector가 남긴 raw 후보, smoothing 결과, fallback 정보를 표시합니다.",
+            items: [
+              NBDiagnosticItem(title: "현재 backend", value: diagnostics.detectorBackend, status: .debug),
+              NBDiagnosticItem(title: "분석 chunk", value: "\(diagnostics.analyzedChunkCount)개", status: .neutral),
+              NBDiagnosticItem(title: "Raw 후보", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+              NBDiagnosticItem(title: "Smoothing 후", value: "\(diagnostics.postSmoothingEventCount)개", status: .debug),
+              NBDiagnosticItem(title: "최종 이벤트", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .good),
+              NBDiagnosticItem(title: "RMS p90", value: shortNumber(diagnostics.rmsSummary.p90), status: .neutral),
+              NBDiagnosticItem(title: "Energy p90", value: shortNumber(diagnostics.energySummary.p90), status: .neutral),
+              NBDiagnosticItem(title: "Core ML fallback", value: "\(diagnostics.modelFallbackCount)회", status: diagnostics.modelFallbackCount > 0 ? .caution : .good),
+            ],
+            showsDetails: false
           )
-          PrivacyStorageStatRow(
-            title: "분석 chunk",
-            value: "\(diagnostics.analyzedChunkCount)개",
-            systemImage: "square.stack.3d.up"
-          )
-          PrivacyStorageStatRow(
-            title: "Raw 후보",
-            value: "\(diagnostics.rawCandidateCount)개",
-            systemImage: "waveform"
-          )
-          PrivacyStorageStatRow(
-            title: "Smoothing 후",
-            value: "\(diagnostics.postSmoothingEventCount)개",
-            systemImage: "line.3.horizontal.decrease"
-          )
-          PrivacyStorageStatRow(
-            title: "최종 이벤트",
-            value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개",
-            systemImage: "checkmark.circle"
-          )
-          PrivacyStorageStatRow(
-            title: "RMS p90",
-            value: shortNumber(diagnostics.rmsSummary.p90),
-            systemImage: "speaker.wave.2"
-          )
-          PrivacyStorageStatRow(
-            title: "Energy p90",
-            value: shortNumber(diagnostics.energySummary.p90),
-            systemImage: "bolt"
-          )
-          PrivacyStorageStatRow(
-            title: "Core ML fallback",
-            value: "\(diagnostics.modelFallbackCount)회",
-            systemImage: "arrow.triangle.2.circlepath"
-          )
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
 
           Text("주요 탈락 이유: \(topRejectReasonText(diagnostics))")
             .font(.footnote)
@@ -246,17 +235,12 @@ struct PrivacySettingsView: View {
       }
 
       Section("로컬 데이터 관리") {
-        Button(role: .destructive) {
+        NBDangerButton(title: "최근 수면 데이터 삭제", systemImage: "trash", isDisabled: appState.latestReportSource == .sample) {
           showDeleteLatestConfirmation = true
-        } label: {
-          Label("최근 수면 데이터 삭제", systemImage: "trash")
         }
-        .disabled(appState.latestReportSource == .sample)
 
-        Button(role: .destructive) {
+        NBDangerButton(title: "전체 로컬 수면 데이터 삭제", systemImage: "trash.slash") {
           showDeleteAllConfirmation = true
-        } label: {
-          Label("전체 로컬 수면 데이터 삭제", systemImage: "trash.slash")
         }
 
         Text(

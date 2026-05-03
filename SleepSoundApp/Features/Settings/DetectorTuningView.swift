@@ -31,16 +31,16 @@
 
         Text(appState.detectorTuningProfile.koreanDescription)
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         if appState.isRecording {
           Text("측정 중에는 profile을 바꾸지 않습니다. 변경값은 다음 세션 전에 선택하세요.")
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         } else {
           Text("선택한 profile은 다음 측정 세션부터 적용되고, 세션 종료 후 thresholdsSnapshot에 저장됩니다.")
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
     }
@@ -61,54 +61,46 @@
     private var diagnosticsSection: some View {
       Section("최근 세션 Detector Diagnostics") {
         if let diagnostics = appState.latestDetectorDiagnostics {
-          DetectorTuningRow(
-            title: "Raw 후보", value: "\(diagnostics.rawCandidateCount)개", systemImage: "waveform")
-          DetectorTuningRow(
-            title: "Smoothing 후", value: "\(diagnostics.postSmoothingEventCount)개",
-            systemImage: "line.3.horizontal.decrease")
-          DetectorTuningRow(
-            title: "최종 이벤트", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개",
-            systemImage: "checkmark.circle")
-          DetectorTuningRow(
-            title: "분석 chunk", value: "\(diagnostics.analyzedChunkCount)개",
-            systemImage: "square.stack.3d.up")
-          DetectorTuningRow(
-            title: "오디오 커버리지", value: percentString(diagnostics.audioCoverageRatio),
-            systemImage: "waveform.badge.checkmark")
-          DetectorTuningRow(
-            title: "호흡 활동 score",
-            value: shortNumber(diagnostics.latestBreathingActivityScore ?? 0),
-            systemImage: "lungs")
-          DetectorTuningRow(
-            title: "저활동 지속",
-            value: durationString(diagnostics.latestLowActivityDurationSeconds ?? 0),
-            systemImage: "timer")
-          DetectorTuningRow(
-            title: "회복 패턴",
-            value: (diagnostics.latestRecoveryPatternDetected ?? false) ? "감지" : "없음",
-            systemImage: "arrow.clockwise.circle")
-          DetectorTuningRow(
-            title: "후보 confidence",
-            value: percentString(diagnostics.latestPauseCandidateConfidence ?? 0),
-            systemImage: "gauge.with.dots.needle.67percent")
-          DetectorTuningRow(
-            title: "최근 제외 이유",
-            value: diagnostics.latestPauseCandidateRejectedReason ?? "없음",
-            systemImage: "xmark.circle")
+          NBDiagnosticCard(
+            title: "DEBUG Detector 진단",
+            summary: "raw 후보, smoothing 전/후, 최종 이벤트, backend/fallback 상태를 DEBUG 화면에서 상세히 확인합니다.",
+            systemImage: "waveform.and.magnifyingglass"
+          ) {
+            NBDiagnosticItemList(
+              items: [
+                NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+                NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
+                NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .good),
+                NBDiagnosticItem(title: "분석 chunk", value: "\(diagnostics.analyzedChunkCount)개", status: .neutral),
+                NBDiagnosticItem(title: "오디오 커버리지", value: percentString(diagnostics.audioCoverageRatio), status: diagnostics.audioCoverageRatio >= 0.85 ? .good : .caution),
+                NBDiagnosticItem(title: "호흡 활동 score", value: shortNumber(diagnostics.latestBreathingActivityScore ?? 0), status: .debug),
+                NBDiagnosticItem(title: "저활동 지속", value: durationString(diagnostics.latestLowActivityDurationSeconds ?? 0), status: .debug),
+                NBDiagnosticItem(title: "회복 패턴", value: (diagnostics.latestRecoveryPatternDetected ?? false) ? "감지" : "없음", status: .debug),
+                NBDiagnosticItem(title: "후보 confidence", value: percentString(diagnostics.latestPauseCandidateConfidence ?? 0), status: .debug),
+                NBDiagnosticItem(title: "최근 제외 이유", value: diagnostics.latestPauseCandidateRejectedReason ?? "없음", status: .caution),
+                NBDiagnosticItem(title: "detector backend", value: diagnostics.detectorBackend, status: .debug),
+                NBDiagnosticItem(title: "Core ML model", value: diagnostics.modelInstalled ? "Installed" : "Not installed", status: diagnostics.modelInstalled ? .good : .neutral),
+                NBDiagnosticItem(title: "fallback count", value: "\(diagnostics.modelFallbackCount)회", status: diagnostics.modelFallbackCount > 0 ? .caution : .good),
+              ],
+              showsDetails: true
+            )
 
-          VStack(alignment: .leading, spacing: 8) {
             Text("Reject reason TOP 5")
-              .font(.subheadline.weight(.semibold))
+              .font(NBTypography.captionEmphasis)
+              .foregroundStyle(NBColor.secondaryText)
             Text(topRejectReasonText(diagnostics, limit: 5))
-              .font(.footnote)
-              .foregroundStyle(.secondary)
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
           }
-          .padding(.vertical, 4)
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
         } else {
-          Text("아직 저장된 detector diagnostics가 없습니다. 측정을 한 번 종료하면 raw 후보 수와 탈락 이유가 여기에 표시됩니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          NBEmptyStateView(
+            title: "Detector diagnostics 없음",
+            message: "측정을 한 번 종료하면 raw 후보 수와 탈락 이유가 여기에 표시됩니다.",
+            systemImage: "waveform.slash"
+          )
         }
       }
     }
@@ -122,30 +114,30 @@
             configuration: appState.detectorThresholdConfiguration
           )
         {
-          DetectorTuningRow(
-            title: "추정 원인",
-            value: analysis.probableReason.displayName,
+          NBDiagnosticCard(
+            title: "Zero-event 분석",
+            summary: analysis.recommendedDebugAction,
+            items: [
+              NBDiagnosticItem(title: "추정 원인", value: analysis.probableReason.displayName, status: .caution),
+              NBDiagnosticItem(title: "분석 confidence", value: percentString(analysis.confidence), status: .debug),
+              NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+              NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
+            ],
+            showsDetails: true,
             systemImage: "questionmark.magnifyingglass"
           )
-          DetectorTuningRow(
-            title: "분석 confidence",
-            value: percentString(analysis.confidence),
-            systemImage: "gauge.with.dots.needle.67percent"
-          )
-          Text(analysis.recommendedDebugAction)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
         } else if let diagnostics = appState.latestDetectorDiagnostics,
           diagnostics.finalEventCountByType.values.reduce(0, +) > 0
         {
-          Text("최근 세션에는 최종 이벤트가 있어 zero-event 분석이 필요하지 않습니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          NBStatusBadge("최근 세션에는 최종 이벤트가 있습니다", kind: .good, systemImage: "checkmark.circle")
         } else {
-          Text("이벤트 0개 세션이 저장되면 가능한 원인과 다음 DEBUG 액션을 표시합니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          NBEmptyStateView(
+            title: "Zero-event 분석 대기 중",
+            message: "이벤트 0개 세션이 저장되면 가능한 원인과 다음 DEBUG 액션을 표시합니다.",
+            systemImage: "waveform.slash"
+          )
         }
       }
     }
@@ -200,9 +192,11 @@
             value: "\(diagnostics.pauseCandidatesRejectedByNoise ?? 0)개",
             systemImage: "speaker.slash")
         } else {
-          Text("최근 세션 feature summary가 없습니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          NBEmptyStateView(
+            title: "Feature summary 없음",
+            message: "최근 세션 feature summary가 저장되면 RMS/energy 분포를 표시합니다.",
+            systemImage: "chart.bar"
+          )
         }
       }
     }
@@ -233,10 +227,10 @@
           "이 화면은 DEBUG 빌드에서만 노출됩니다. threshold 값은 임시 rule-based 튜닝을 위한 로컬 설정이며, 정확도나 의학적 판단을 의미하지 않습니다."
         )
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
         Text("원본 전체 밤 오디오는 저장하지 않습니다. 이벤트 오디오 샘플은 별도 opt-in 설정이 켜진 경우에만 짧게 저장됩니다.")
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
 
@@ -311,9 +305,10 @@
       VStack(spacing: 2) {
         Text(label)
           .font(.caption2)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
         Text(shortNumber(value))
           .font(.caption.monospacedDigit().weight(.semibold))
+          .foregroundStyle(NBColor.primaryText)
       }
       .frame(maxWidth: .infinity)
       .padding(.vertical, 8)

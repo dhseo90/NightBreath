@@ -1,28 +1,53 @@
 import SwiftUI
 
 extension SleepEventType {
+    var timelineDisplayName: String {
+        switch self {
+        case .snore:
+            "코골기"
+        case .bruxismLike:
+            "이갈이 의심 소리"
+        case .breathingPauseSuspected:
+            "호흡정지 의심 구간"
+        case .gaspLike:
+            "gasp-like 회복 호흡"
+        case .coughLike:
+            "기침 의심 소리"
+        case .sleepTalkLike:
+            "잠꼬대/말소리 의심"
+        case .movementLike:
+            "움직임 의심 소리"
+        case .environmentalNoise:
+            "환경 소음"
+        case .awakeningSuspected:
+            "각성 의심 구간"
+        case .unknown:
+            "알 수 없음"
+        }
+    }
+
     var tintColor: Color {
         switch self {
         case .snore:
-            Color.blue
+            NBColor.breath
         case .bruxismLike:
-            Color.orange
+            NBColor.caution
         case .breathingPauseSuspected:
-            Color.red
+            NBColor.sleep
         case .gaspLike:
-            Color.pink
+            NBColor.mistTeal
         case .coughLike:
-            Color.green
+            NBColor.warning
         case .sleepTalkLike:
-            Color.purple
+            NBColor.lavender
         case .movementLike:
-            Color.teal
+            NBColor.quietIndigo
         case .environmentalNoise:
-            Color.gray
+            NBColor.neutral
         case .awakeningSuspected:
-            Color.indigo
+            NBColor.dawn
         case .unknown:
-            Color.secondary
+            NBColor.neutral
         }
     }
 

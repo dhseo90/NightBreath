@@ -20,7 +20,7 @@
             } label: {
               Label("시작", systemImage: "play.fill")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.audioTint))
             .disabled(viewModel.captureState.isCapturing || viewModel.captureState.isPreparing)
 
             Button(role: .destructive) {
@@ -28,7 +28,7 @@
             } label: {
               Label("중지", systemImage: "stop.fill")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(NBDangerButtonStyle())
             .disabled(!viewModel.captureState.isCapturing)
           }
 
@@ -55,34 +55,46 @@
 
         Section("Latest DetectorOutput") {
           if let output = viewModel.latestOutput {
-            AudioDebugRow(title: "eventType", value: output.eventType.displayName)
-            AudioDebugProgressRow(title: "confidence", value: output.confidence)
-            AudioDebugProgressRow(title: "intensity", value: output.intensity)
-            AudioDebugRow(
-              title: "duration", value: viewModel.format(output.duration, digits: 2) + "초")
-            if let debugReason = output.debugReason {
-              VStack(alignment: .leading, spacing: 6) {
-                Text("debugReason")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-                Text(debugReason)
-                  .font(.callout)
-              }
-            }
+            NBDiagnosticCard(
+              title: "Latest DetectorOutput",
+              summary: output.debugReason,
+              items: [
+                NBDiagnosticItem(title: "eventType", value: output.eventType.timelineDisplayName, status: .debug),
+                NBDiagnosticItem(title: "confidence", value: viewModel.percentString(output.confidence), status: .neutral),
+                NBDiagnosticItem(title: "intensity", value: viewModel.percentString(output.intensity), status: .neutral),
+                NBDiagnosticItem(title: "duration", value: viewModel.format(output.duration, digits: 2) + "초", status: .debug),
+              ],
+              showsDetails: true,
+              systemImage: "waveform.and.magnifyingglass"
+            )
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+            .listRowBackground(Color.clear)
           } else {
-            Text("아직 감지된 이벤트 후보가 없습니다.")
-              .font(.callout)
-              .foregroundStyle(.secondary)
+            NBEmptyStateView(
+              title: "감지된 이벤트 후보 없음",
+              message: "마이크 입력이 들어오면 최신 detector output을 DEBUG 요약으로 표시합니다.",
+              systemImage: "waveform.slash"
+            )
           }
         }
 
         Section("Detector Backend") {
-          AudioDebugRow(title: "현재 backend", value: viewModel.detectorBackend.displayName)
-          AudioDebugRow(title: "Snore ML model installed", value: viewModel.coreMLModelStatus)
-          AudioDebugRow(title: "model version", value: viewModel.modelVersionText)
-          AudioDebugRow(title: "last ML confidence", value: viewModel.latestCoreMLConfidenceText)
-          AudioDebugRow(title: "fallback count", value: "\(viewModel.coreMLFallbackCount)회")
-          AudioDebugRow(title: "Hybrid fallback", value: viewModel.hybridFallbackStatus)
+          NBDiagnosticCard(
+            title: "Detector Backend",
+            summary: "DEBUG 빌드에서만 detector backend와 Core ML fallback 상태를 확인합니다.",
+            items: [
+              NBDiagnosticItem(title: "현재 backend", value: viewModel.detectorBackend.displayName, status: .debug),
+              NBDiagnosticItem(title: "Snore ML model installed", value: viewModel.coreMLModelStatus, status: viewModel.coreMLModelStatus == "Installed" ? .good : .neutral),
+              NBDiagnosticItem(title: "model version", value: viewModel.modelVersionText, status: .debug),
+              NBDiagnosticItem(title: "last ML confidence", value: viewModel.latestCoreMLConfidenceText, status: .neutral),
+              NBDiagnosticItem(title: "fallback count", value: "\(viewModel.coreMLFallbackCount)회", status: viewModel.coreMLFallbackCount > 0 ? .caution : .good),
+              NBDiagnosticItem(title: "Hybrid fallback", value: viewModel.hybridFallbackStatus, status: .debug),
+            ],
+            showsDetails: true,
+            systemImage: "cpu"
+          )
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
         }
 
         Section("Threshold") {
@@ -113,12 +125,21 @@
           } label: {
             Label("기본값으로 되돌리기", systemImage: "arrow.counterclockwise")
           }
+          .buttonStyle(.nbSecondary)
         }
 
         Section("개발 메모") {
-          Text("이 화면은 DEBUG 빌드에서만 노출됩니다. 원본 전체 오디오 파일을 저장하지 않고, sleep talk 내용을 텍스트화하지 않습니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          NBPrivacyNoticeCard(
+            title: "DEBUG 화면",
+            messages: [
+              "이 화면은 DEBUG 빌드에서만 노출됩니다.",
+              "원본 전체 오디오 파일을 저장하지 않습니다.",
+              "sleep talk 내용을 텍스트화하지 않습니다.",
+            ],
+            systemImage: "ladybug"
+          )
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
         }
       }
       .navigationTitle("Audio Debug")
@@ -298,6 +319,10 @@
       String(format: "%.\(digits)f", value)
     }
 
+    func percentString(_ ratio: Double) -> String {
+      String(format: "%.1f%%", min(max(ratio, 0), 1) * 100)
+    }
+
     private func handle(_ chunk: AudioChunk) {
       let features = featureExtractor.extractFeatures(from: chunk)
       let outputs = detector.detect(features: features)
@@ -392,10 +417,11 @@
       VStack(alignment: .leading, spacing: 6) {
         HStack {
           Text(title)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
           Spacer()
           Text(String(format: "%.4f", value))
             .font(.callout.monospacedDigit())
+            .foregroundStyle(NBColor.primaryText)
         }
 
         ProgressView(value: min(max(value, 0), 1))
@@ -416,7 +442,7 @@
           Spacer()
           Text(String(format: "%.3f", value))
             .font(.callout.monospacedDigit())
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
 
         Slider(value: $value, in: range, step: 0.001)

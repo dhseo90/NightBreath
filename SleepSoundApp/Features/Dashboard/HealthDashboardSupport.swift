@@ -101,37 +101,33 @@ struct HealthDataAccessStateView: View {
       if isPreviewData {
         NBStatusBadge(
           "연결 전: mock preview로 그래프를 확인합니다.",
-          systemImage: "eye",
-          tint: NBColor.neutral
+          kind: .neutral,
+          systemImage: "eye"
         )
       }
     case .mockDataOnly:
       NBStatusBadge(
         "Mock data only",
-        systemImage: "sparkles",
-        tint: NBColor.neutral
+        kind: .debug,
+        systemImage: "sparkles"
       )
     case .readRequestCompleted:
       EmptyView()
     case .denied:
       NBCard {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          Label("건강 데이터 읽기 권한이 필요합니다.", systemImage: "lock.slash")
-            .font(NBTypography.sectionTitle)
-          Text("iOS 설정 또는 Apple 건강앱에서 밤숨의 읽기 권한을 관리할 수 있습니다.")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-        }
+        NBEmptyStateView(
+          title: "건강 데이터 읽기 권한이 필요합니다",
+          message: "iOS 설정 또는 Apple 건강앱에서 밤숨의 읽기 권한을 관리할 수 있습니다.",
+          systemImage: "lock.slash"
+        )
       }
     case .unavailable:
       NBCard {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          Label("이 기기에서는 건강 데이터 읽기를 사용할 수 없습니다.", systemImage: "exclamationmark.triangle")
-            .font(NBTypography.sectionTitle)
-          Text("지원되는 iPhone 실기기에서 Apple 건강앱 연결을 확인해 주세요.")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-        }
+        NBEmptyStateView(
+          title: "건강 데이터 읽기를 사용할 수 없습니다",
+          message: "지원되는 iPhone 실기기에서 Apple 건강앱 연결을 확인해 주세요.",
+          systemImage: "exclamationmark.triangle"
+        )
       }
     }
   }
@@ -143,13 +139,11 @@ struct HealthDataEmptyStateView: View {
 
   var body: some View {
     NBCard {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label(title, systemImage: "tray")
-          .font(NBTypography.sectionTitle)
-        Text(message)
-          .font(.callout)
-          .foregroundStyle(.secondary)
-      }
+      NBEmptyStateView(
+        title: title,
+        message: message,
+        systemImage: "tray"
+      )
     }
   }
 }
@@ -160,9 +154,11 @@ struct HealthSourceSummarySection: View {
   var body: some View {
     NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
       if sourceSummaries.isEmpty {
-        Text("표시할 source 정보가 없습니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
+        NBEmptyStateView(
+          title: "표시할 데이터 출처가 없습니다",
+          message: "Apple 건강앱에서 읽을 수 있는 source 정보가 있으면 여기에 표시합니다.",
+          systemImage: "tray"
+        )
       } else {
         VStack(alignment: .leading, spacing: NBSpacing.small) {
           ForEach(sourceSummaries, id: \.sourceBundleIdentifier) { source in
@@ -171,7 +167,8 @@ struct HealthSourceSummarySection: View {
               subtitle:
                 "\(source.sourceBundleIdentifier) · \(source.sampleCount)개 · 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt))",
               systemImage: "app.connected.to.app.below.fill",
-              tint: NBColor.privacyTint
+              tint: NBColor.privacyTint,
+              accessibilityLabel: "\(source.sourceName), \(source.sampleCount)개, 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt))"
             )
           }
         }
@@ -194,12 +191,13 @@ struct HealthTrendSummaryRows: View {
                 systemImage: HealthMetricDashboardFormatting.icon(for: summary.metricType)
               )
               .font(.callout.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
 
               Spacer()
 
               Text("\(summary.sampleCount)개")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
             }
 
             HStack {
@@ -211,11 +209,11 @@ struct HealthTrendSummaryRows: View {
             if let change = summary.changeFromPreviousPeriod {
               Text("이전 \(summary.period.displayName) 평균 대비 \(HealthMetricDashboardFormatting.signedValueString(change, unit: summary.metricType.unitLabel))")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
             } else {
               Text("이전 기간과 비교할 sample이 아직 부족합니다.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
             }
           }
           .padding(.vertical, 4)
@@ -228,9 +226,10 @@ struct HealthTrendSummaryRows: View {
     VStack(alignment: .leading, spacing: 2) {
       Text(title)
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
       Text(value.map { HealthMetricDashboardFormatting.valueString($0, unit: unit) } ?? "--")
         .font(.caption.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }

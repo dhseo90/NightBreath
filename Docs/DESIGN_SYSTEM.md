@@ -149,6 +149,19 @@ Core/Design 컴포넌트:
 
 `SleepEventType`별 기본 아이콘과 색상은 `NBEventTypeIcon`에서 관리합니다. 기존 커스텀 accessory 기반 initializer도 유지합니다.
 
+이벤트 표시명과 기본 아이콘:
+
+- `snore`: 코골기, `waveform` 또는 `NBBreathWaveIcon`
+- `bruxismLike`: 이갈이 의심 소리, `NBBruxismLikeIcon`
+- `breathingPauseSuspected`: 호흡정지 의심 구간, `NBMoonBreathIcon`
+- `gaspLike`: gasp-like 회복 호흡, `wind`
+- `coughLike`: 기침 의심 소리, `exclamationmark.triangle`
+- `sleepTalkLike`: 잠꼬대/말소리 의심, `bubble.left.and.waveform`
+- `movementLike`: 움직임 의심 소리, `figure.walk` 또는 `figure.roll`
+- `environmentalNoise`: 환경 소음, `speaker.wave.2`
+- `awakeningSuspected`: 각성 의심 구간, `eye`
+- `unknown`: 알 수 없음, `questionmark.circle`
+
 ## Privacy Notice
 
 `NBPrivacyNoticeCard` 기본 문구:
@@ -176,6 +189,66 @@ Core/Design 컴포넌트:
 - fallback count
 
 일반 사용자 화면에서는 요약 중심으로 쓰고, DEBUG 화면에서는 `NBDiagnosticItem`과 `showsDetails`를 사용해 상세 정보를 표시합니다.
+
+## 적용 화면
+
+Step UI-1 적용 범위:
+
+- `HomeDashboardView`: `NBCard`, `NBMetricCard`, `NBStatusBadge`, `NBReportSection`, `NBListRow`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 최근 리포트, 수면 소리 점수, 측정 품질, 커버리지, 이벤트 오디오 샘플 상태, 온디바이스 분석 안내를 정리합니다.
+- `SleepStartView`: `NBMoonBreathIcon`, `NBCard`, `NBReportSection`, `NBListRow`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 측정 시작 안내, 기기 배치, 마이크 권한, 이벤트 샘플 opt-in 상태를 표시합니다.
+- `SleepRecordingView`: `NBRecordingPulseIcon`, `NBMetricCard`, `NBStatusBadge`, `NBDangerButton`, `NBPrivacyNoticeCard`로 녹음/분석 중 상태, 실제 오디오 수신/분석 시간, 커버리지, 오디오 중단 정보를 보여줍니다.
+- `SleepReportView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBDiagnosticCard`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 리포트 요약, detector diagnostics, zero-event analysis, 진단 목적 아님 안내를 정돈합니다.
+- `SleepTimelineView`: `NBTimelineRow`, `NBStatusBadge`, `NBEmptyStateView`로 이벤트 타입, 시간, duration, confidence, 오디오 샘플 재생/삭제 상태를 표시합니다.
+- `PrivacySettingsView`: `NBPrivacyNoticeCard`, `NBMetricCard`, `NBSecondaryButton`, `NBDangerButton`, `NBDiagnosticCard`로 이벤트 오디오 샘플 opt-in, 저장량, orphan cleanup, 전체 삭제, feedback 삭제 UI를 유지합니다.
+- `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 HealthKit read-only 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
+- `BloodPressureDashboardView`: 최근 수축기/이완기 혈압, 측정 시각, 데이터 출처, 추세와 데이터 없음 상태를 `NBMetricCard`, `NBListRow`, `NBEmptyStateView` 중심으로 표시합니다.
+- `BodyCompositionDashboardView`: 체중, 체지방률, BMI, 제지방량과 추세를 `NBMetricCard`와 `NBReportSection`으로 정리합니다.
+- `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, matched sample count, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.
+- DEBUG 화면: `DatasetReplayView`, `DetectorTuningView`, `SimulatorScenarioView`, `AudioDebugView`, `SampleCaptureView`는 `NBDiagnosticCard`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`를 사용하고 `#if DEBUG` 경계를 유지합니다.
+
+## 컴포넌트 사용 예
+
+일반 지표:
+
+```swift
+NBMetricCard(
+  title: "녹음 커버리지",
+  value: "96",
+  unit: "%",
+  subtitle: "좋음",
+  systemImage: "waveform",
+  tint: NBColor.success,
+  status: .good,
+  accessibilityLabel: "녹음 커버리지 96%, 좋음"
+)
+```
+
+개인정보 안내:
+
+```swift
+NBPrivacyNoticeCard(
+  title: "온디바이스 분석",
+  messages: [
+    "분석은 iPhone 안에서 수행됩니다.",
+    "서버로 전송하지 않습니다.",
+    "원본 전체 오디오는 저장하지 않습니다.",
+  ]
+)
+```
+
+DEBUG 진단:
+
+```swift
+NBDiagnosticCard(
+  title: "DEBUG Detector 진단",
+  summary: "raw 후보부터 최종 이벤트까지 확인합니다.",
+  items: [
+    NBDiagnosticItem(title: "raw 후보 수", value: "12개", status: .neutral),
+    NBDiagnosticItem(title: "fallback count", value: "0회", status: .good),
+  ],
+  showsDetails: true
+)
+```
 
 ## 아이콘 원칙
 
@@ -228,6 +301,10 @@ Original SwiftUI icon:
 - 이 앱은 진단 목적의 의료기기가 아닙니다
 - 원본 전체 오디오는 저장하지 않습니다
 - 분석은 iPhone 안에서 수행됩니다
+- 서버로 전송하지 않습니다
+- 이벤트 오디오 샘플은 사용자가 켠 경우에만 저장됩니다
+- 개인 패턴을 살펴보기 위한 참고용 보기입니다
+- 인과관계를 의미하지 않습니다
 
 피해야 할 방향:
 
@@ -235,3 +312,16 @@ Original SwiftUI icon:
 - 임상 지표를 정확히 측정한다고 보이는 표현
 - 치료나 검사를 대신한다고 보이는 표현
 - 사용자가 켜지 않은 이벤트 오디오 샘플 저장을 암시하는 표현
+
+## DEBUG / Release 구분
+
+- DEBUG 화면은 `#if DEBUG`로 감싼 파일과 설정 화면의 DEBUG 전용 NavigationLink를 통해서만 접근합니다.
+- DEBUG 화면에는 `NBStatusBadge("DEBUG 전용", kind: .debug)` 또는 `NBDiagnosticCard`를 사용해 일반 사용자 화면과 시각적으로 구분합니다.
+- Release 화면에는 detector threshold 조정, dataset replay, raw feature stream, 샘플 수집 UI를 노출하지 않습니다.
+- 일반 사용자 화면에서 detector diagnostics를 보여줄 때는 요약 중심으로 표현하고, 낮은 커버리지나 zero-event 상태도 단정하지 않습니다.
+
+## 외부 디자인/자산 제한
+
+- Toss Design System, TDS UI Kit, Toss 브랜드 자산, Toss 색상 토큰, Toss 컴포넌트를 직접 사용하거나 복제하지 않습니다.
+- 타사 앱 스크린샷, 타사 로고, 타사 앱 아이콘, 타사 이미지를 프로젝트에 추가하지 않습니다.
+- 필요한 아이콘은 SF Symbols를 우선 사용하고, 부족한 경우 SwiftUI Shape/Path 기반 NightBreath original icon view를 만듭니다.

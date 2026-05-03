@@ -17,7 +17,7 @@ struct HealthDashboardView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         stateNotice
         dashboardEntrySection
@@ -31,11 +31,16 @@ struct HealthDashboardView: View {
 
         NBPrivacyNoticeCard(
           title: "Apple 건강앱 read-only",
-          message: "권한을 허용해도 밤숨은 건강앱 데이터를 읽어 화면에 표시할 뿐, HealthKit에 데이터를 쓰지 않습니다.",
+          messages: [
+            "권한을 허용해도 밤숨은 건강앱 데이터를 읽어 화면에 표시할 뿐입니다.",
+            "HealthKit에 데이터를 쓰지 않습니다.",
+            "서버로 전송하지 않습니다.",
+            "건강 데이터 연결 버튼을 선택할 때만 읽기 권한을 요청합니다.",
+          ],
           systemImage: "lock.shield"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .navigationTitle("건강 데이터")
@@ -63,9 +68,9 @@ struct HealthDashboardView: View {
   private var header: some View {
     NBReportSection(title: "건강 데이터 대시보드", systemImage: "heart.text.square") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("Apple 건강앱에서 혈압, 체중, 체성분, 심박수, 호흡수 데이터를 읽어 로컬 화면에 표시합니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
+        Text("Apple 건강앱에서 혈압, 체중, 체성분, 심박수, 호흡수 데이터를 읽어 보기 쉽게 정리합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
 
         Button {
           connectHealthData()
@@ -80,12 +85,12 @@ struct HealthDashboardView: View {
 
         if !service.isAvailable {
           Text(service.authorizationStatusDescription())
-            .font(.footnote)
+            .font(NBTypography.footnote)
             .foregroundStyle(NBColor.warning)
         } else {
           Text("버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다. 첫 실행이나 수면 측정 시작 시에는 요청하지 않습니다.")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
     }
@@ -97,47 +102,47 @@ struct HealthDashboardView: View {
     case .notRequested:
       NBStatusBadge(
         "연결 전: 아래 값은 mock preview입니다.",
-        systemImage: "eye",
-        tint: NBColor.neutral
+        kind: .neutral,
+        systemImage: "eye"
       )
     case .mockDataOnly:
       NBStatusBadge(
         "Mock data only",
-        systemImage: "sparkles",
-        tint: NBColor.neutral
+        kind: .debug,
+        systemImage: "sparkles"
       )
     case .readRequestCompleted:
       if healthSamples.isEmpty {
         NBStatusBadge(
           "읽을 수 있는 건강 데이터가 아직 없습니다.",
-          systemImage: "tray",
-          tint: NBColor.warning
+          kind: .caution,
+          systemImage: "tray"
         )
       } else {
         NBStatusBadge(
           "Apple 건강앱에서 읽은 데이터입니다.",
-          systemImage: "checkmark.circle",
-          tint: NBColor.success
+          kind: .good,
+          systemImage: "checkmark.circle"
         )
       }
     case .denied:
       NBStatusBadge(
         "건강 데이터 읽기 권한이 필요합니다.",
-        systemImage: "lock.slash",
-        tint: NBColor.warning
+        kind: .caution,
+        systemImage: "lock.slash"
       )
     case .unavailable:
       NBStatusBadge(
         "이 기기에서는 건강 데이터 읽기를 사용할 수 없습니다.",
-        systemImage: "exclamationmark.triangle",
-        tint: NBColor.warning
+        kind: .warning,
+        systemImage: "exclamationmark.triangle"
       )
     }
 
     if let statusMessage {
       Text(statusMessage)
-        .font(.footnote)
-        .foregroundStyle(.secondary)
+        .font(NBTypography.footnote)
+        .foregroundStyle(NBColor.secondaryText)
     }
   }
 
@@ -153,7 +158,7 @@ struct HealthDashboardView: View {
         } label: {
           HealthDashboardEntryCard(
             title: "혈압",
-            subtitle: "수축기/이완기 혈압과 측정 시간대 추세",
+            subtitle: "혈압 데이터를 보기 쉽게 정리합니다",
             systemImage: "heart",
             tint: NBColor.danger,
             sampleCount: categorySampleCount(HealthDashboardMetrics.bloodPressure),
@@ -190,7 +195,7 @@ struct HealthDashboardView: View {
         } label: {
           HealthDashboardEntryCard(
             title: "수면 소리 × 건강",
-            subtitle: "수면 소리 지표와 건강 sample을 날짜 기준으로 함께 보기",
+            subtitle: "개인 패턴을 살펴보기 위한 참고용 보기",
             systemImage: "chart.dots.scatter",
             tint: NBColor.sleepTint,
             sampleCount: crossMetricHealthSampleCount,
@@ -287,7 +292,8 @@ struct HealthDashboardView: View {
       } ?? "--",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" }
+      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
+      accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
     )
   }
 
@@ -334,30 +340,20 @@ private struct HealthDashboardEntryCard: View {
   var body: some View {
     NBCard {
       HStack(spacing: NBSpacing.medium) {
-        Image(systemName: systemImage)
-          .font(.title3.weight(.semibold))
-          .foregroundStyle(tint)
-          .frame(width: 34, height: 34)
-          .background(tint.opacity(0.12))
-          .clipShape(RoundedRectangle(cornerRadius: 8))
-
-        VStack(alignment: .leading, spacing: 4) {
-          Text(title)
-            .font(NBTypography.sectionTitle)
-            .foregroundStyle(.primary)
-          Text(subtitle)
-            .font(.callout)
-            .foregroundStyle(.secondary)
-          Text(latestText)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-
+        NBListRow(
+          title: title,
+          value: latestText,
+          subtitle: subtitle,
+          systemImage: systemImage,
+          tint: tint,
+          accessibilityLabel: "\(title), \(subtitle), \(latestText)"
+        )
+        .frame(maxWidth: .infinity)
         Spacer()
 
         Image(systemName: "chevron.right")
           .font(.caption.weight(.semibold))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.tertiaryText)
       }
     }
   }

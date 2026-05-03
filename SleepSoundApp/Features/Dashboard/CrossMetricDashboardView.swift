@@ -15,7 +15,7 @@ struct CrossMetricDashboardView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         HealthDataAccessStateView(
           permissionState: permissionState,
@@ -38,11 +38,16 @@ struct CrossMetricDashboardView: View {
 
         NBPrivacyNoticeCard(
           title: "로컬 교차 보기",
-          message: "수면 소리 리포트와 Apple 건강앱 read-only sample을 기기 안에서만 나란히 표시합니다. HealthKit에 데이터를 쓰지 않습니다.",
+          messages: [
+            "개인 패턴을 살펴보기 위한 참고용 보기입니다.",
+            "인과관계를 의미하지 않습니다.",
+            "수면 소리 리포트와 Apple 건강앱 read-only sample을 기기 안에서만 나란히 표시합니다.",
+            "HealthKit에 데이터를 쓰지 않습니다.",
+          ],
           systemImage: "lock.shield"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .navigationTitle("수면 소리 × 건강")
@@ -88,12 +93,12 @@ struct CrossMetricDashboardView: View {
   private var header: some View {
     NBReportSection(title: "개인 패턴 탐색", systemImage: "chart.dots.scatter") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("수면 소리 지표와 건강 지표를 날짜 기준으로 함께 표시합니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-        Text(summary.cautionText)
-          .font(.footnote)
-          .foregroundStyle(NBColor.warning)
+        Text("개인 패턴을 살펴보기 위한 참고용 보기입니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+        Text("수면 소리 지표와 건강 지표를 날짜 기준으로 함께 표시하며, 인과관계를 의미하지 않습니다.")
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -122,15 +127,15 @@ struct CrossMetricDashboardView: View {
     NBReportSection(title: "날짜 매칭", systemImage: "calendar.badge.clock") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
         Text(analyzer.matchingWindowDescription(for: selectedHealthMetric))
-          .font(.callout)
-          .foregroundStyle(.secondary)
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
         HStack(spacing: NBSpacing.small) {
-          NBStatusBadge(selectedPeriod.displayName, systemImage: "calendar", tint: NBColor.sleepTint)
-          NBStatusBadge(summary.matchingStrategy.displayName, systemImage: "clock", tint: NBColor.privacyTint)
+          NBStatusBadge(selectedPeriod.displayName, kind: .neutral, systemImage: "calendar")
+          NBStatusBadge(summary.matchingStrategy.displayName, kind: .privacy, systemImage: "clock")
         }
         Text("오디오 커버리지가 낮은 수면 리포트는 그래프에서 구분하고 요약 계산에서는 제외합니다.")
-          .font(.footnote)
-          .foregroundStyle(.secondary)
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -168,9 +173,9 @@ struct CrossMetricDashboardView: View {
       .accessibilityLabel("수면 소리 지표와 건강 지표 산점도")
 
       HStack(spacing: NBSpacing.medium) {
-        NBStatusBadge("요약 포함", systemImage: "circle.fill", tint: NBColor.breathBlue)
+        NBStatusBadge("요약 포함", kind: .good, systemImage: "circle.fill")
         if !excludedPoints.isEmpty {
-          NBStatusBadge("측정 품질 낮음", systemImage: "diamond.fill", tint: NBColor.warning)
+          NBStatusBadge("측정 품질 낮음", kind: .caution, systemImage: "diamond.fill")
         }
       }
     }
@@ -180,19 +185,19 @@ struct CrossMetricDashboardView: View {
     NBReportSection(title: "요약", systemImage: "list.bullet.rectangle") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         Text(summary.trendDescription)
-          .font(.callout)
-          .foregroundStyle(.secondary)
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-          summaryTile("비교 sample", "\(summary.matchedSampleCount)개", "link")
-          summaryTile("데이터 품질", summary.dataQuality.displayName, "checkmark.seal")
-          summaryTile("구분 표시", "\(summary.lowQualityExcludedCount)개", "exclamationmark.triangle")
-          summaryTile("건강 source", sourceNamesText, "square.stack.3d.up")
+          summaryTile("비교 sample", "\(summary.matchedSampleCount)개", "link", .neutral)
+          summaryTile("데이터 품질", summary.dataQuality.displayName, "checkmark.seal", .good)
+          summaryTile("구분 표시", "\(summary.lowQualityExcludedCount)개", "exclamationmark.triangle", .caution)
+          summaryTile("건강 source", sourceNamesText, "square.stack.3d.up", .privacy)
         }
 
-        Text(summary.cautionText)
-          .font(.footnote)
-          .foregroundStyle(NBColor.warning)
+        Text("인과관계를 의미하지 않습니다. \(summary.cautionText)")
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -211,19 +216,19 @@ struct CrossMetricDashboardView: View {
     return summary.healthSourceNames.prefix(2).joined(separator: ", ")
   }
 
-  private func summaryTile(_ title: String, _ value: String, _ systemImage: String) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Label(title, systemImage: systemImage)
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.callout.weight(.semibold))
-        .lineLimit(2)
-        .minimumScaleFactor(0.85)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(NBSpacing.medium)
-    .background(NBColor.elevatedSurface)
-    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+  private func summaryTile(
+    _ title: String,
+    _ value: String,
+    _ systemImage: String,
+    _ status: NBStatusKind
+  ) -> some View {
+    NBMetricCard(
+      title: title,
+      value: value,
+      systemImage: systemImage,
+      tint: status.tint,
+      status: status,
+      accessibilityLabel: "\(title), \(value)"
+    )
   }
 }

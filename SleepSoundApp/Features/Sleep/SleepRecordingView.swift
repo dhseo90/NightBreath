@@ -29,12 +29,13 @@ struct SleepRecordingView: View {
   private func recordingCard(session: SleepSession) -> some View {
     NBCard {
       VStack(spacing: NBSpacing.large) {
-        Image(systemName: "record.circle")
-          .font(.system(size: 54))
-          .foregroundStyle(NBColor.danger)
+        NBRecordingPulseIcon(tint: NBColor.danger)
+          .frame(width: 64, height: 64)
+          .accessibilityHidden(true)
 
         Text("수면 기록 중")
           .font(.title.bold())
+          .foregroundStyle(NBColor.primaryText)
 
         TimelineView(.periodic(from: session.startedAt, by: 1)) { context in
           Text(
@@ -46,7 +47,7 @@ struct SleepRecordingView: View {
 
         Text("감지 결과는 로컬 리포트 생성을 위한 이벤트 형태로 정리됩니다.")
           .font(.callout)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
           .multilineTextAlignment(.center)
 
         audioCaptureStatus
@@ -58,13 +59,10 @@ struct SleepRecordingView: View {
           systemImage: "lock.shield"
         )
 
-        Button(role: .destructive) {
+        NBDangerButton(title: "수면 종료", systemImage: "stop.fill") {
           appState.endSleepSession()
           onStopComplete()
-        } label: {
-          Label("수면 종료", systemImage: "stop.fill")
         }
-        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.danger))
       }
     }
   }
@@ -80,19 +78,37 @@ struct SleepRecordingView: View {
           ) {
             MeasurementStatusTile(
               title: "세션 경과",
-              value: SleepFormatters.compactDurationString(metrics.sessionElapsedSeconds)
+              value: SleepFormatters.compactDurationString(metrics.sessionElapsedSeconds),
+              systemImage: "clock",
+              tint: NBColor.sleep
             )
             MeasurementStatusTile(
               title: "오디오 수신",
-              value: SleepFormatters.compactDurationString(metrics.receivedAudioSeconds)
+              value: SleepFormatters.compactDurationString(metrics.receivedAudioSeconds),
+              systemImage: "waveform",
+              tint: NBColor.breath
             )
             MeasurementStatusTile(
               title: "분석 시간",
-              value: SleepFormatters.compactDurationString(metrics.analyzedAudioSeconds)
+              value: SleepFormatters.compactDurationString(metrics.analyzedAudioSeconds),
+              systemImage: "waveform.path.ecg",
+              tint: NBColor.audioTint
             )
             MeasurementStatusTile(
               title: "녹음 커버리지",
-              value: percentString(metrics.audioCoverageRatio)
+              value: percentString(metrics.audioCoverageRatio),
+              systemImage: "gauge.with.dots.needle.67percent",
+              tint: coverageTint(metrics.audioCoverageRatio),
+              status: coverageStatus(metrics.audioCoverageRatio)
+            )
+          }
+
+          HStack(spacing: NBSpacing.sm) {
+            NBStatusBadge(coverageDescription(metrics.audioCoverageRatio), kind: coverageStatus(metrics.audioCoverageRatio), systemImage: "waveform")
+            NBStatusBadge(
+              appState.isEventAudioSampleStorageEnabled ? "이벤트 샘플 저장 켜짐" : "이벤트 샘플 저장 꺼짐",
+              kind: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy,
+              systemImage: appState.isEventAudioSampleStorageEnabled ? "waveform.circle" : "lock.shield"
             )
           }
 
@@ -148,12 +164,12 @@ struct SleepRecordingView: View {
     NBCard(background: NBColor.audioTint.opacity(0.08)) {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
         HStack {
-          Label(appState.audioCaptureState.displayText, systemImage: "mic")
+        Label(appState.audioCaptureState.displayText, systemImage: "mic")
             .font(.subheadline.weight(.semibold))
           Spacer()
           Text("\(Int(displayAudioLevel * 100))%")
             .font(.caption.monospacedDigit())
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
 
         ProgressView(value: displayAudioLevel)
@@ -161,23 +177,23 @@ struct SleepRecordingView: View {
 
         Text(String(format: "최근 RMS %.4f", appState.latestAudioLevel))
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text("정리된 이벤트 후보 \(appState.detectedEventCandidateCount)개")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text("최근 감지 후보 \(appState.latestDetectedEventText)")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text("수집된 오디오 청크 \(appState.capturedAudioChunkCount)개")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text("마이크 권한 \(appState.microphonePermissionState.displayText)")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         if let message = appState.audioCaptureMessage {
           Text(message)
@@ -190,9 +206,9 @@ struct SleepRecordingView: View {
 
   private var messageTint: Color {
     if case .failed = appState.audioCaptureState {
-      return .red
+      return NBColor.danger
     }
-    return .secondary
+    return NBColor.secondaryText
   }
 
   private var displayAudioLevel: Double {
@@ -238,6 +254,36 @@ struct SleepRecordingView: View {
     String(format: "%.1f%%", min(max(ratio, 0), 1) * 100)
   }
 
+  private func coverageStatus(_ ratio: Double) -> NBStatusKind {
+    switch ratio {
+    case 0.95...:
+      return .good
+    case 0.85..<0.95:
+      return .neutral
+    case 0.60..<0.85:
+      return .caution
+    default:
+      return .danger
+    }
+  }
+
+  private func coverageTint(_ ratio: Double) -> Color {
+    coverageStatus(ratio).tint
+  }
+
+  private func coverageDescription(_ ratio: Double) -> String {
+    switch ratio {
+    case 0.95...:
+      return "커버리지 좋음"
+    case 0.85..<0.95:
+      return "커버리지 보통"
+    case 0.60..<0.85:
+      return "커버리지 제한적"
+    default:
+      return "커버리지 낮음"
+    }
+  }
+
   private var completedCard: some View {
     NBCard {
       VStack(spacing: NBSpacing.large) {
@@ -272,21 +318,19 @@ struct SleepRecordingView: View {
 private struct MeasurementStatusTile: View {
   let title: String
   let value: String
+  var systemImage: String = "circle.grid.cross"
+  var tint: Color = NBColor.audioTint
+  var status: NBStatusKind?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 3) {
-      Text(title)
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.caption.weight(.semibold).monospacedDigit())
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
-    }
-    .padding(10)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(NBColor.elevatedSurface)
-    .clipShape(RoundedRectangle(cornerRadius: 8))
+    NBMetricCard(
+      title: title,
+      value: value,
+      systemImage: systemImage,
+      tint: tint,
+      status: status,
+      accessibilityLabel: "\(title), \(value)"
+    )
   }
 }
 
@@ -298,11 +342,12 @@ private struct MeasurementStatusRow: View {
     HStack(alignment: .firstTextBaseline) {
       Text(title)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
       Spacer()
       Text(value)
         .font(.caption.monospacedDigit())
         .multilineTextAlignment(.trailing)
+        .foregroundStyle(NBColor.primaryText)
     }
   }
 }

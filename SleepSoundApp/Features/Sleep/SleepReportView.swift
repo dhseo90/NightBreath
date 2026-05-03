@@ -13,6 +13,7 @@ struct SleepReportView: View {
         summaryCard
         measurementQualitySection
         detectorDiagnosticsSection
+        zeroEventStateSection
         scoreCard
         trendLinkCard
         keyEventsSection
@@ -41,9 +42,9 @@ struct SleepReportView: View {
           VStack(alignment: .leading, spacing: 6) {
             Text("어젯밤 수면 리포트")
               .font(.title2.bold())
-            Text("감지된 수면 중 소리를 바탕으로 정리한 아침 리포트입니다.")
+        Text("감지된 수면 중 소리를 바탕으로 정리한 아침 리포트입니다.")
               .font(.callout)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
           }
 
           Spacer()
@@ -64,7 +65,7 @@ struct SleepReportView: View {
 
         Text(SleepFormatters.shortDate(report.generatedAt))
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -139,10 +140,18 @@ struct SleepReportView: View {
             color: .gray
           )
           ReportMetricCard(
+            title: "저장된 오디오 용량",
+            value: appState.eventAudioStorageStats.formattedTotalSize,
+            systemImage: "internaldrive",
+            color: NBColor.privacy,
+            status: appState.eventAudioStorageStats.sampleCount > 0 ? .debug : .privacy
+          )
+          ReportMetricCard(
             title: "녹음 커버리지",
             value: percentString(report.audioCoverageRatio),
             systemImage: "gauge.with.dots.needle.67percent",
-            color: .green
+            color: coverageStatus.tint,
+            status: coverageStatus
           )
           ReportMetricCard(
             title: "오디오 중단",
@@ -160,19 +169,20 @@ struct SleepReportView: View {
 
         Text("가장 긴 입력 공백: \(SleepFormatters.compactDurationString(report.longestAudioGapSeconds))")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text(
           "실제 오디오 수신은 분석을 위해 마이크 입력이 들어온 시간입니다. 감지 이벤트 시간은 소리 이벤트 후보로 판단한 구간의 합계이고, 저장된 오디오는 이벤트 오디오 샘플 저장을 켠 경우에만 남는 전후 짧은 로컬 샘플 합계입니다."
         )
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
 
         if shouldShowLowMeasurementQualityNote {
-          Text("오디오 수신 시간이 부족해 오늘 리포트의 신뢰도가 낮을 수 있습니다. 화면 잠금 또는 백그라운드 상태에서 녹음이 중단되었을 수 있습니다.")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+          NBEmptyStateView(
+            title: "오디오 커버리지가 낮습니다",
+            message: "오디오 수신 시간이 부족해 오늘 리포트의 참고 범위가 제한적일 수 있습니다. 화면 잠금, 충전 상태, 마이크 위치를 함께 확인해 주세요.",
+            systemImage: "waveform.badge.exclamationmark"
+          )
         }
       }
     }
@@ -188,82 +198,82 @@ struct SleepReportView: View {
               title: "분석 chunk",
               value: "\(diagnostics.analyzedChunkCount)개",
               systemImage: "square.stack.3d.up",
-              color: .blue
+              color: NBColor.audioTint
             )
             ReportMetricCard(
               title: "Raw 후보",
               value: "\(diagnostics.rawCandidateCount)개",
               systemImage: "waveform",
-              color: .teal
+              color: NBColor.breath
             )
             ReportMetricCard(
               title: "Smoothing 후",
               value: "\(diagnostics.postSmoothingEventCount)개",
               systemImage: "line.3.horizontal.decrease",
-              color: .indigo
+              color: NBColor.sleep
             )
             ReportMetricCard(
               title: "최종 이벤트",
               value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개",
               systemImage: "checkmark.circle",
-              color: .green
+              color: NBColor.success
             )
             ReportMetricCard(
               title: "RMS p90",
               value: shortNumber(diagnostics.rmsSummary.p90),
               systemImage: "speaker.wave.2",
-              color: .purple
+              color: NBColor.lavender
             )
             ReportMetricCard(
               title: "Energy p90",
               value: shortNumber(diagnostics.energySummary.p90),
               systemImage: "bolt",
-              color: .orange
+              color: NBColor.warning
             )
             ReportMetricCard(
               title: "저활동 관찰",
               value: "\(diagnostics.lowActivityObservedCount ?? 0)개",
               systemImage: "lungs",
-              color: .cyan
+              color: NBColor.breath
             )
             ReportMetricCard(
               title: "회복 패턴",
               value: "\(diagnostics.recoveryPatternCount ?? 0)개",
               systemImage: "arrow.uturn.forward.circle",
-              color: .mint
+              color: NBColor.mistTeal
             )
           }
 
           VStack(alignment: .leading, spacing: 6) {
             Text("현재 backend: \(diagnostics.detectorBackend)")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
             Text("Core ML fallback: \(diagnostics.modelFallbackCount)회")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
             Text("주요 탈락 이유: \(topRejectReasonText(diagnostics))")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
             Text("호흡 활동 score: \(shortNumber(diagnostics.latestBreathingActivityScore ?? 0)), 최근 저활동 지속: \(SleepFormatters.compactDurationString(diagnostics.latestLowActivityDurationSeconds ?? 0))")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
             Text("최근 회복 패턴: \((diagnostics.latestRecoveryPatternDetected ?? false) ? "감지" : "없음"), 후보 confidence: \(percentString(diagnostics.latestPauseCandidateConfidence ?? 0))")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
             if let rejectedReason = diagnostics.latestPauseCandidateRejectedReason {
               Text("최근 sequence 제외 이유: \(rejectedReason)")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
             }
             Text("sequence 제외: 맥락 부족 \(diagnostics.pauseCandidatesRejectedByInsufficientContext ?? 0)개, 회복 패턴 없음 \(diagnostics.pauseCandidatesRejectedByNoRecovery ?? 0)개, 무음만 지속 \(diagnostics.pauseCandidatesRejectedByLikelySilence ?? 0)개")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
           }
 
           if let zeroEventText = diagnostics.summaryTextForZeroEvents {
             Text(zeroEventText + " 감지 기준이 보수적일 수 있어 Debug 진단 요약을 함께 확인하세요.")
               .font(.callout)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
           }
 
@@ -276,10 +286,45 @@ struct SleepReportView: View {
                 .font(.subheadline.weight(.semibold))
               Text(zeroEventAnalysis.recommendedDebugAction)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(NBColor.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.top, 4)
+          }
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var zeroEventStateSection: some View {
+    if events.isEmpty {
+      NBReportSection(title: "이벤트 0개 분석", systemImage: "waveform.slash") {
+        VStack(alignment: .leading, spacing: NBSpacing.md) {
+          NBEmptyStateView(
+            title: "감지 기준을 통과한 이벤트가 없습니다",
+            message: "오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다.\n조용한 밤이었거나 감지 기준이 보수적으로 동작했을 수 있습니다.",
+            systemImage: "moon.zzz"
+          )
+
+          if let diagnostics = report.detectorDiagnostics {
+            VStack(alignment: .leading, spacing: NBSpacing.sm) {
+              Label("Zero-event 진단", systemImage: "waveform.and.magnifyingglass")
+                .font(NBTypography.headline)
+                .foregroundStyle(NBColor.audioTint)
+              Text("raw 후보 수와 주요 탈락 이유를 함께 확인합니다.")
+                .font(NBTypography.caption)
+                .foregroundStyle(NBColor.secondaryText)
+              NBDiagnosticItemList(
+                items: [
+                NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+                NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
+                NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
+                NBDiagnosticItem(title: "주요 탈락 이유", value: topRejectReasonText(diagnostics), status: .caution),
+              ],
+                showsDetails: true
+              )
+            }
           }
         }
       }
@@ -443,28 +488,28 @@ struct SleepReportView: View {
         if shouldShowRepeatedPauseNote {
           Text("호흡정지 의심 구간은 오디오 기반 의심 패턴입니다.")
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
 
-          Text("반복적으로 높게 나타나면 전문가 상담을 고려해보세요.")
+          Text("반복적으로 높게 보이면 수면 환경, 기기 배치, 오디오 커버리지를 함께 확인해 주세요.")
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
 
         if report.bruxismLikeCount > 0 {
           Text("이갈이 의심 소리는 사용자 확인 필요 항목입니다. 침구 마찰음이나 주변 소음과 구분이 어려울 수 있어 참고 정보로만 확인해 주세요.")
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
 
         Text("수면 중 소리 기반 지표입니다.")
           .font(.callout)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
 
         Text(
           "이 앱은 진단 목적의 의료기기가 아닙니다. 측정 위치, 주변 소리, 기기 상태에 따라 결과가 달라질 수 있으며, 수면 습관을 돌아보기 위한 참고 정보로 사용해 주세요."
         )
         .font(.callout)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -503,6 +548,19 @@ struct SleepReportView: View {
       return NBColor.warning
     case .poor:
       return NBColor.danger
+    }
+  }
+
+  private var coverageStatus: NBStatusKind {
+    switch report.audioCoverageRatio {
+    case 0.95...:
+      return .good
+    case 0.85..<0.95:
+      return .neutral
+    case 0.60..<0.85:
+      return .caution
+    default:
+      return .danger
     }
   }
 
@@ -628,13 +686,16 @@ private struct ReportMetricCard: View {
   let value: String
   let systemImage: String
   let color: Color
+  var status: NBStatusKind?
 
   var body: some View {
     NBMetricCard(
       title: title,
       value: value,
       systemImage: systemImage,
-      tint: color
+      tint: color,
+      status: status,
+      accessibilityLabel: "\(title), \(value)"
     )
   }
 }

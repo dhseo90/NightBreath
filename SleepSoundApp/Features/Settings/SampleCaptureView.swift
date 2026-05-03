@@ -10,6 +10,7 @@
     var body: some View {
       List {
         Section("개발자용 샘플 수집") {
+          NBStatusBadge("DEBUG 전용", kind: .debug, systemImage: "ladybug")
           SampleCaptureRow(title: "마이크 권한", value: viewModel.permissionState.displayText)
           SampleCaptureRow(title: "캡처 상태", value: viewModel.captureState.displayText)
 
@@ -21,7 +22,7 @@
 
           Text(selectedLabel.captureGuide)
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
 
           TextField("메모", text: $notes, axis: .vertical)
             .lineLimit(2...4)
@@ -39,7 +40,7 @@
           if let message = viewModel.message {
             Text(message)
               .font(.footnote)
-              .foregroundStyle(viewModel.messageIsError ? NBColor.danger : .secondary)
+              .foregroundStyle(viewModel.messageIsError ? NBColor.danger : NBColor.secondaryText)
           }
         }
 
@@ -79,11 +80,25 @@
         }
 
         Section("저장 안전장치") {
-          SampleCaptureRow(
-            title: "Debug sample count", value: "\(viewModel.sampleStorageStatus.sampleCount)개")
-          SampleCaptureRow(
-            title: "Debug sample folder size",
-            value: viewModel.formatBytes(viewModel.sampleStorageStatus.folderSizeBytes))
+          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.md) {
+            NBMetricCard(
+              title: "Debug sample count",
+              value: "\(viewModel.sampleStorageStatus.sampleCount)",
+              unit: "개",
+              systemImage: "waveform.circle",
+              tint: NBColor.audioTint,
+              status: .debug
+            )
+            NBMetricCard(
+              title: "Debug folder size",
+              value: viewModel.formatBytes(viewModel.sampleStorageStatus.folderSizeBytes),
+              systemImage: "internaldrive",
+              tint: NBColor.privacy,
+              status: .privacy
+            )
+          }
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
           SampleCaptureRow(title: "Last sample saved at", value: viewModel.lastSampleSavedAtText)
           SampleCaptureRow(title: "Available disk space", value: viewModel.availableDiskSpaceText)
           SampleCaptureRow(
@@ -99,13 +114,19 @@
         }
 
         Section("개인정보 보호") {
-          Label("개인 오디오 샘플은 서버로 전송되지 않습니다.", systemImage: "lock.shield")
-          Label("전체 밤 오디오는 저장하지 않습니다.", systemImage: "moon.zzz")
-          Label("사용자가 누른 2초/3초/5초 구간만 DEBUG 빌드에서 저장합니다.", systemImage: "timer")
-          Label("이 기능은 Release 빌드에 포함되지 않습니다.", systemImage: "hammer")
+          NBPrivacyNoticeCard(
+            title: "샘플 수집 안전장치",
+            messages: [
+              "개인 오디오 샘플은 서버로 전송되지 않습니다.",
+              "전체 밤 오디오는 저장하지 않습니다.",
+              "사용자가 누른 2초/3초/5초 구간만 DEBUG 빌드에서 저장합니다.",
+              "이 기능은 Release 빌드에 포함되지 않습니다.",
+            ],
+            systemImage: "lock.shield"
+          )
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
         }
-        .font(.footnote)
-        .foregroundStyle(.secondary)
       }
       .navigationTitle("개발자용 샘플 수집")
       .scrollContentBackground(.hidden)
@@ -132,7 +153,7 @@
         Text("\(seconds)초")
           .frame(maxWidth: .infinity)
       }
-      .buttonStyle(.borderedProminent)
+      .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.audioTint))
       .disabled(viewModel.isCapturingSample)
     }
   }
@@ -467,10 +488,11 @@
       VStack(alignment: .leading, spacing: 6) {
         HStack {
           Text(title)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
           Spacer()
           Text(String(format: "%.4f", value))
             .font(.callout.monospacedDigit())
+            .foregroundStyle(NBColor.primaryText)
         }
 
         ProgressView(value: min(max(value, 0), 1))

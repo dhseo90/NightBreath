@@ -12,7 +12,7 @@ struct BodyCompositionDashboardView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         HealthDataAccessStateView(
           permissionState: permissionState,
@@ -41,7 +41,7 @@ struct BodyCompositionDashboardView: View {
           systemImage: "scalemass"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .navigationTitle("체중/체성분")
@@ -85,13 +85,13 @@ struct BodyCompositionDashboardView: View {
   private var header: some View {
     NBReportSection(title: "체중/체성분 추세", systemImage: "scalemass") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("체중, 체지방률, BMI, 제지방량 sample을 기간별로 비교합니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
+        Text("체중, 체지방률, BMI, 제지방량 sample을 기간별로 보기 쉽게 정리합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
         if let latestMeasuredAt {
           Text("최근 측정: \(SleepFormatters.shortDate(latestMeasuredAt)) \(SleepFormatters.shortTime(latestMeasuredAt))")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
     }
@@ -133,7 +133,8 @@ struct BodyCompositionDashboardView: View {
       } ?? "--",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" }
+      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
+      accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
     )
   }
 }

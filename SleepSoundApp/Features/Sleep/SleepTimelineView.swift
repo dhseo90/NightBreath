@@ -15,9 +15,10 @@ struct SleepTimelineView: View {
           VStack(alignment: .leading, spacing: NBSpacing.small) {
             Text("이벤트 타임라인")
               .font(.title2.bold())
+              .foregroundStyle(NBColor.primaryText)
             Text("감지된 수면 중 소리 이벤트를 시간 순서로 확인합니다.")
               .font(.callout)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(NBColor.secondaryText)
           }
         }
 
@@ -27,9 +28,9 @@ struct SleepTimelineView: View {
         }
 
         if events.isEmpty {
-          NBPrivacyNoticeCard(
-            title: "감지된 이벤트 없음",
-            message: "오디오 입력이 정상이어도 detector 기준을 통과한 이벤트가 없을 수 있습니다.",
+          NBEmptyStateView(
+            title: "감지된 이벤트가 없습니다",
+            message: "오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다. 조용한 밤이었거나 감지 기준이 보수적으로 동작했을 수 있습니다.",
             systemImage: "waveform.slash"
           )
         } else {
@@ -102,7 +103,11 @@ struct EventTimelineBand: View {
             .position(x: proxy.size.width - 24, y: proxy.size.height - 4)
         }
       } else {
-        ContentUnavailableView("감지된 이벤트 없음", systemImage: "waveform.slash")
+        NBEmptyStateView(
+          title: "감지된 이벤트 없음",
+          message: "타임라인에 표시할 이벤트 구간이 없습니다.",
+          systemImage: "waveform.slash"
+        )
       }
     }
   }
@@ -126,7 +131,7 @@ private struct EventRow: View {
 
   var body: some View {
     NBTimelineRow(
-      title: event.type.displayName,
+      title: event.type.timelineDisplayName,
       subtitle:
         "\(SleepFormatters.shortTime(event.startedAt)) · \(SleepFormatters.compactDurationString(event.duration)) · 신뢰도 \(Int(event.confidence * 100))%",
       detail: event.type == .bruxismLike ? "사용자 확인이 도움이 되는 항목입니다." : nil,
@@ -159,7 +164,7 @@ private struct EventRow: View {
         .foregroundStyle(event.type.tintColor)
       Text("이 소리 이벤트가 맞았는지 로컬에만 기록합니다. 오디오 샘플이 없어도 피드백을 남길 수 있습니다.")
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
 
       HStack(spacing: 8) {
         ForEach(SleepEventFeedbackSelection.allCases) { selection in
@@ -214,13 +219,13 @@ private struct EventRow: View {
         if let snippetDuration {
           Text(SleepFormatters.compactDurationString(snippetDuration))
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
 
       Text("이벤트 판단 시점 전후의 짧은 샘플만 로컬에 저장됩니다. 전체 밤 오디오는 저장하지 않습니다.")
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
 
       HStack(spacing: 8) {
         Button {
@@ -229,7 +234,7 @@ private struct EventRow: View {
           Label("재생", systemImage: "play.circle")
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.nbSecondary)
 
         Button(role: .destructive) {
           showDeleteSnippetConfirmation = true
@@ -237,7 +242,7 @@ private struct EventRow: View {
           Label("삭제", systemImage: "trash")
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.danger))
       }
     }
     .padding(12)
@@ -246,13 +251,16 @@ private struct EventRow: View {
   }
 
   private var audioSnippetDisabledSection: some View {
-    Label("오디오 샘플 저장이 꺼져 있어 이 이벤트의 음성은 저장되지 않았습니다.", systemImage: "waveform.slash")
-      .font(.caption)
-      .foregroundStyle(.secondary)
-      .padding(12)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(NBColor.elevatedSurface)
-      .clipShape(RoundedRectangle(cornerRadius: 8))
+    HStack {
+      NBStatusBadge("샘플 저장 꺼짐", kind: .privacy, systemImage: "waveform.slash")
+      Text("오디오 샘플 저장이 꺼져 있어 이 이벤트의 오디오는 저장되지 않았습니다.")
+        .font(.caption)
+        .foregroundStyle(NBColor.secondaryText)
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(NBColor.elevatedSurface)
+    .clipShape(RoundedRectangle(cornerRadius: 8))
   }
 }
 
