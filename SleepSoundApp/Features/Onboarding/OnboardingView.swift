@@ -199,7 +199,7 @@ private enum OnboardingStep: Int, CaseIterable, Identifiable {
     case .microphone:
       "수면 소리 입력을 받기 위해 마이크 접근 허용이 필요합니다."
     case .calibration:
-      "주변 소음 baseline과 입력 상태를 짧게 확인합니다. Simulator에서는 mock 입력으로 동작합니다."
+      "주변 소음 baseline과 입력 상태를 짧게 확인합니다. Simulator에서는 예시 입력으로 동작합니다."
     }
   }
 

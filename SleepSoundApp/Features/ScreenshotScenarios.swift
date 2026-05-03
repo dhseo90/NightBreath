@@ -322,7 +322,7 @@ enum ScreenshotScenarioFactory {
       dryMouth: true,
       soreThroat: false,
       rememberedAwakenings: 1,
-      memo: "Simulator mock 기록"
+      memo: "Simulator 예시 기록"
     )
   }
 
@@ -336,7 +336,7 @@ enum ScreenshotScenarioFactory {
       lateMeal: false,
       exercise: true,
       nap: false,
-      memo: "Simulator mock 기록"
+      memo: "Simulator 예시 기록"
     )
   }
 

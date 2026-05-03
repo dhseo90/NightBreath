@@ -12,36 +12,36 @@
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 측정 시간, 오디오 커버리지, 주요 이벤트 카드, 저장된 이벤트 오디오 시간/용량, detector diagnostics 요약, zero-event analysis, 주요 원인 설명 | 타임라인 보기, 아침 체크인 진입, 개인정보 설정 진입 |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 시간, 이벤트 타입, duration, confidence, 설명, 오디오 샘플 보유 여부, feedback 상태 | 오디오 샘플 재생/삭제, 이벤트 feedback 저장 |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 두통 여부, 입마름 여부, 목아픔 여부, 기억나는 중간 각성 횟수, 메모 | 체크인 저장 |
-| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 수면 요약, 수면 소리 점수, 측정 품질, 아침 컨디션, mock 아침 혈압/체중/체성분, 데이터 품질, 개인 참고용 안내 | 수면 리포트와 Daily Rhythm 흐름 확인 |
+| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 수면 요약, 수면 소리 점수, 측정 품질, 아침 컨디션, 예시 아침 혈압/체중/체성분, 데이터 품질, 개인 참고용 안내 | 수면 리포트와 Daily Rhythm 흐름 확인 |
 | `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, data quality, 수면/회복/활동/혈압/체성분 component, Daily Insight 목록, 인과관계 아님 안내 | 하루 리듬 요약 확인 |
-| `EveningCheckInView` | 저녁 컨디션 기록 | 하루 피로도, 스트레스, optional 기분, 카페인/음주/야식/운동/낮잠, 메모 | mock/in-memory 체크인 저장 |
+| `EveningCheckInView` | 저녁 컨디션 기록 | 하루 피로도, 스트레스, optional 기분, 카페인/음주/야식/운동/낮잠, 메모 | 예시/in-memory 체크인 저장 |
 | `DailyHealthCardView` | 하루 리듬 카드 표시 | 날짜, 오늘의 리듬 점수, 수면 소리 점수, 측정 품질, 핵심 지표, 한 줄 요약, 개인 참고용 문구 | 카드 UI 확인 |
-| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level 선택, mock 리포트 기반 카드 preview | template/privacy level 전환 |
+| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level 선택, 예시 리포트 기반 카드 미리보기 | template/privacy level 전환 |
 | `PrivacySettingsView` | 로컬 저장과 개인정보 설정 | 이벤트 오디오 샘플 opt-in, 저장된 샘플 수, 총 시간, 용량, orphan 샘플 수, feedback 데이터 상태, 전체 밤 원본 오디오 저장 안 함, 서버 전송 없음 | 이벤트 샘플 저장 토글, orphan 샘플 정리, 전체 이벤트 샘플 삭제, feedback 삭제 |
 | `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 침대 옆 배치, 마이크 가림 방지, 충전 연결 권장, 저전력 모드 확인, 너무 멀거나 밀폐된 위치 피하기 | 30초 캘리브레이션 실행 |
 | `TrendDashboardView` | 최근 7일/30일/90일 수면 소리 지표 흐름 | 수면 소리 점수, 코골기 시간, 호흡정지 의심 구간, 이갈이 의심 소리, 환경 소음, 측정 품질 추세 | 기간 선택 |
-| `HealthDashboardView` | 건강 데이터 dashboard 허브 | mock preview/read-only 연결 상태, 최근 건강 지표, 데이터 출처, 전체 지표/캘린더/Fitdays import/BloodPressure/BodyComposition/CrossMetric 진입 | 건강 데이터 연결, 하위 dashboard 진입 |
-| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit-backed 지표, Fitdays local-only 지표, 최근 값, 평균, 최소, 최대, 최근 변화, source별 sample 수 | 기간 선택, 지표별 `MetricDetailView` 진입 |
-| `MetricDetailView` | 특정 health metric 상세 탐색 화면 | 지표 설명, 최근 값, 측정 시각, source, 기간별 그래프, 요약 통계, raw sample 목록 | 기간 선택, source filter, 수동 입력 placeholder 확인 |
-| `HealthCalendarView` | 월 단위 건강/수면 데이터 캘린더 | 월별 날짜 cell, 수면/혈압/체성분/활동/check-in dot, sample count, data quality, source type | 이전/다음 월 이동, 오늘 이동, 날짜 선택 |
+| `HealthDashboardView` | 건강 데이터 dashboard 허브 | 예시 미리보기/read-only 연결 상태, 최근 건강 지표, 데이터 출처, 전체 지표/캘린더/Fitdays import/BloodPressure/BodyComposition/CrossMetric 진입 | 건강 데이터 연결, 하위 dashboard 진입 |
+| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit-backed 지표, Fitdays local-only 지표, 최근 값, 평균, 최소, 최대, 최근 변화, source별 샘플 수 | 기간 선택, 지표별 `MetricDetailView` 진입 |
+| `MetricDetailView` | 특정 health metric 상세 탐색 화면 | 지표 설명, 최근 값, 측정 시각, source, 기간별 그래프, 요약 통계, 원본 샘플 목록 | 기간 선택, source filter, 수동 입력 placeholder 확인 |
+| `HealthCalendarView` | 월 단위 건강/수면 데이터 캘린더 | 월별 날짜 cell, 수면/혈압/체성분/활동/check-in dot, 샘플 수, data quality, source type | 이전/다음 월 이동, 오늘 이동, 날짜 선택 |
 | `DailyMeasurementDetailView` | 특정 날짜의 전체 측정 데이터 상세 | 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표, 데이터 출처 | category별 row 확인, metric detail 진입 |
-| `FitdaysImportView` | 사용자가 선택한 Fitdays CSV/export 파일 import 화면 | 파일 선택 상태, import preview/result, 생성 sample 수, skipped row, unknown column, errors | 파일 선택, preview 확인, import result 확인 |
+| `FitdaysImportView` | 사용자가 선택한 Fitdays CSV/export 파일 import 화면 | 파일 선택 상태, import preview/result, 생성 샘플 수, skipped row, unknown column, errors | 파일 선택, preview 확인, import result 확인 |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 최근 측정 시각, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
-| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, 날짜별 매칭 목록, matched sample count, 낮은 측정 품질 구분, 데이터 부족 상태, 인과관계 아님 안내 | 비교 항목/기간 선택 |
+| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, 날짜별 매칭 목록, 매칭 샘플 수, 낮은 측정 품질 구분, 데이터 부족 상태, 인과관계 아님 안내 | 비교 항목/기간 선택 |
 
 ## Screenshot 문서 상태
 
-README 대표 screenshot 8개는 mock data와 simulator scenario 기반으로 `Docs/Screenshots/README/`에 추가했습니다. 전체 화면별 설명과 pending 상태는 `Docs/UI_GALLERY.md`, 폴더 원칙은 `Docs/Screenshots/README.md`, capture 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
+README 대표 screenshot 8개는 예시 데이터와 simulator scenario 기반으로 생성했으며, README에는 `Docs/Screenshots/README/cropped/`의 crop 버전을 사용합니다. 원본 capture는 `Docs/Screenshots/README/`에 보존합니다. 전체 화면별 설명과 pending 상태는 `Docs/UI_GALLERY.md`, 폴더 원칙은 `Docs/Screenshots/README.md`, capture 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
 
 실제 screenshot 파일이 없는 상세 화면, edge state, DEBUG-only 화면은 `screenshot pending`으로 관리하고 broken image link를 만들지 않습니다.
 
 | 화면 그룹 | Suggested scenario | Screenshot path | 현재 상태 | README 대표 후보 | Release/Debug |
 | --- | --- | --- | --- | --- | --- |
-| Home / Dashboard | `ScreenshotHomeScenario` | `Docs/Screenshots/README/home_dashboard_light.png` | README 대표 captured | 포함 | Release |
-| Sleep Flow | `ScreenshotSleepStartScenario`, `ScreenshotRecordingScenario`, `ScreenshotSleepReportScenario`, `ScreenshotTimelineScenario` | `Docs/Screenshots/README/sleep_start_light.png`, `Docs/Screenshots/README/sleep_report_light.png`, `Docs/Screenshots/README/sleep_timeline_light.png` | 대표 captured, recording/detail pending | 일부 포함 | Release |
-| Daily Rhythm | `ScreenshotMorningBriefScenario`, `ScreenshotDailyRhythmScenario`, `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/morning_brief_light.png`, `Docs/Screenshots/README/daily_rhythm_report_light.png`, `Docs/Screenshots/README/daily_health_card_light.png` | 대표 captured, detail pending | 포함 | Release |
-| Health Dashboard | `ScreenshotHealthDashboardScenario`, `ScreenshotHealthMetricsOverviewScenario`, `ScreenshotHealthCalendarScenario`, `ScreenshotDailyMeasurementDetailScenario`, `ScreenshotMetricDetailScenario`, `ScreenshotFitdaysImportScenario`, `ScreenshotFitdaysImportResultScenario`, `ScreenshotImportErrorScenario`, `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/README/health_dashboard_light.png`, `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png`, `Docs/Screenshots/Health/cropped/health_calendar_light.png`, `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png`, `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png`, `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_result_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` | README 대표 captured, EHM 상세 captured, 혈압/체성분/교차 상세 pending | 일부 포함 | Release |
+| Home / Dashboard | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | README 대표 cropped | 포함 | Release |
+| Sleep Flow | `ScreenshotSleepStartScenario`, `ScreenshotRecordingScenario`, `ScreenshotSleepReportScenario`, `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png`, `Docs/Screenshots/README/cropped/sleep_report_light.png`, `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | 대표 cropped, recording/detail pending | 일부 포함 | Release |
+| Daily Rhythm | `ScreenshotMorningBriefScenario`, `ScreenshotDailyRhythmScenario`, `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/morning_brief_light.png`, `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png`, `Docs/Screenshots/README/cropped/daily_health_card_light.png` | 대표 cropped, detail pending | 포함 | Release |
+| Health Dashboard | `ScreenshotHealthDashboardScenario`, `ScreenshotHealthMetricsOverviewScenario`, `ScreenshotHealthCalendarScenario`, `ScreenshotDailyMeasurementDetailScenario`, `ScreenshotMetricDetailScenario`, `ScreenshotFitdaysImportScenario`, `ScreenshotFitdaysImportResultScenario`, `ScreenshotImportErrorScenario`, `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png`, `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png`, `Docs/Screenshots/Health/cropped/health_calendar_light.png`, `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png`, `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png`, `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_result_light.png`, `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` | README 대표 cropped, EHM 상세 captured, 혈압/체성분/교차 상세 pending | 일부 포함 | Release |
 | Privacy / Settings | `ScreenshotPrivacyScenario` | `Docs/Screenshots/Privacy/` | screenshot pending | 후보 | Release |
 | Empty / Edge States | `ScreenshotZeroEventScenario`, `ScreenshotLowCoverageScenario`, `ScreenshotEventAudioStorageOffScenario` | `Docs/Screenshots/EdgeStates/` | screenshot pending | README에는 보통 제외 | Release |
 | Debug-only Screens | `ScreenshotDebugScenario` | `Docs/Screenshots/Debug/` | screenshot pending | 제외 | DEBUG only |
@@ -92,11 +92,11 @@ Navigation은 기존 SwiftUI `NavigationLink` 흐름을 유지합니다. 홈은 
 | --- | --- | --- | --- |
 | `DatasetReplayView` | 로컬 오디오 또는 synthetic audio를 분석 pipeline에 넣는 검증 화면 | replay 상태, manifest/file 상태, detector diagnostics, raw 후보 수, smoothing 전/후 수, 최종 이벤트 수 | replay 실행, 결과 확인 |
 | `DetectorTuningView` | detector profile과 threshold 확인용 화면 | current backend, tuning profile, Core ML model installed 여부, fallback count, zero-event analysis | profile 선택, diagnostics 확인 |
-| `SimulatorScenarioView` | mock 수면 시나리오 적용 화면 | QuietNight, SnoreHeavyNight, LowAudioCoverageNight 등 simulator QA scenario | scenario 적용, 관련 화면 진입 |
+| `SimulatorScenarioView` | 예시 수면 시나리오 적용 화면 | QuietNight, SnoreHeavyNight, LowAudioCoverageNight 등 simulator QA scenario | scenario 적용, 관련 화면 진입 |
 | `AudioDebugView` | 오디오 입력과 detector output 요약 화면 | 최근 RMS/energy, detector backend, Core ML fallback 상태, 최신 output | DEBUG 입력 확인 |
-| `SampleCaptureView` | 짧은 개발용 샘플 수집 화면 | sample count, 저장 경로, capture 상태, 저장 정책 안내 | 짧은 샘플 캡처 |
+| `SampleCaptureView` | 짧은 개발용 샘플 수집 화면 | 샘플 수, 저장 경로, capture 상태, 저장 정책 안내 | 짧은 샘플 캡처 |
 
-Release 빌드에서는 detector threshold 조정, dataset replay, raw feature stream, sample capture 화면을 노출하지 않습니다.
+Release 빌드에서는 detector threshold 조정, dataset replay, raw feature stream, 샘플 캡처 화면을 노출하지 않습니다.
 
 ## 개인정보 관련 화면
 
@@ -108,14 +108,14 @@ Release 빌드에서는 detector threshold 조정, dataset replay, raw feature s
 
 ## Health Dashboard 방향
 
-Health dashboard는 Apple 건강앱 데이터를 read-only로 읽고, 사용자가 직접 가져온 Fitdays CSV/export sample을 local-only 지표로 정리하는 확장 영역입니다. preview와 테스트에서는 mock/protocol 기반 데이터를 사용할 수 있습니다.
+Health dashboard는 Apple 건강앱 데이터를 read-only로 읽고, 사용자가 직접 가져온 Fitdays CSV/export 샘플을 local-only 지표로 정리하는 확장 영역입니다. preview와 테스트에서는 예시/protocol 기반 데이터를 사용할 수 있습니다.
 
 - 권한 요청은 사용자가 `HealthDashboardView`의 연결 액션을 선택할 때만 수행합니다.
 - 앱은 HealthKit에 데이터를 쓰지 않습니다.
 - 건강 데이터는 서버나 외부 앱으로 전송하지 않습니다.
-- HealthKit-backed metric과 Fitdays local-only metric은 source badge, 지표 설명, sample list에서 구분합니다.
+- HealthKit-backed metric과 Fitdays local-only metric은 source badge, 지표 설명, 샘플 목록에서 구분합니다.
 - `HealthMetricsOverviewView`는 category별 지표를 보여주고, 각 row는 `MetricDetailView`로 이어집니다.
-- `HealthCalendarView`는 날짜별 데이터 존재 여부를 표시하고, 날짜 선택 시 `DailyMeasurementDetailView`에서 category별 sample을 보여줍니다.
+- `HealthCalendarView`는 날짜별 데이터 존재 여부를 표시하고, 날짜 선택 시 `DailyMeasurementDetailView`에서 category별 샘플을 보여줍니다.
 - `FitdaysImportView`는 사용자가 직접 선택한 로컬 파일만 처리하며, Fitdays 원격 서비스나 비공식 연결 방식에 직접 연결하지 않습니다.
 - `CrossMetricDashboardView`는 수면 소리 지표와 건강 지표를 개인 패턴 참고용으로 비교하며, 인과관계를 의미하지 않습니다.
 

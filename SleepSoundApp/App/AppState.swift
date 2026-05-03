@@ -310,7 +310,7 @@ final class AppState: ObservableObject {
         latestDetectedEventText = bundle.events.last.map { "\($0.type.displayName) \(Int($0.confidence * 100))%" } ?? "감지 이벤트 없음"
         latestDetectedEventAt = bundle.events.last?.startedAt
         audioCaptureMessage = "Simulator QA 시나리오 ‘\(preset.koreanTitle)’를 적용했습니다. 실제 오디오 파일은 생성하지 않았습니다."
-        eventAudioStorageMessage = "Simulator QA mock 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
+        eventAudioStorageMessage = "Simulator QA 예시 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
         recordDebugLifecycleEvent("simulator QA scenario applied: \(preset.displayName)")
     }
 
@@ -325,7 +325,7 @@ final class AppState: ObservableObject {
         }
 
         audioCaptureMessage = "Screenshot preset ‘\(scenario.displayName)’를 적용했습니다. 예시 데이터만 사용하며 실제 오디오 파일은 생성하지 않습니다."
-        eventAudioStorageMessage = "Screenshot preset mock 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
+        eventAudioStorageMessage = "Screenshot preset 예시 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
         recordDebugLifecycleEvent("screenshot scenario applied: \(scenario.displayName)")
     }
 

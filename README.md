@@ -134,7 +134,7 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 전체 건강 지표: HealthKit-backed 지표, Fitdays local-only 지표, 수동/앱 계산 지표를 category별로 묶고 기간별 통계와 그래프로 보여줍니다.
 - 월 건강 캘린더: 수면, 혈압, 체성분, 활동, 체크인, 앱 계산 지표가 있는 날짜를 표시하고 날짜별 상세 보기로 이동합니다.
 - Metric Detail: 특정 health metric 하나의 최근 값, 통계, 그래프, source filter, raw 샘플 목록을 개인 참고용으로 보여줍니다.
-- Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, sample capture 검증에 사용합니다.
+- Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, 샘플 캡처 검증에 사용합니다.
 
 ## 주요 화면 미리보기
 
@@ -316,7 +316,7 @@ xcodebuild \
 
 ## Simulator-first QA
 
-DEBUG 빌드에서 `설정 > 개발 > Simulator QA Scenario`로 들어가 mock 수면 세션을 적용할 수 있습니다.
+DEBUG 빌드에서 `설정 > 개발 > Simulator QA Scenario`로 들어가 예시 수면 세션을 적용할 수 있습니다.
 
 지원 scenario:
 
@@ -441,7 +441,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 ## Daily Rhythm / HealthKit 방향
 
-NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다. 현재 구현은 mock architecture와 HealthKit read-only adapter를 함께 둡니다.
+NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다. 현재 구현은 protocol 기반 예시 데이터 구조와 HealthKit read-only adapter를 함께 둡니다.
 
 현재 준비된 것:
 

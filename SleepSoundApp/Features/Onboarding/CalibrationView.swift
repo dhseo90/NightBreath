@@ -99,7 +99,7 @@ struct CalibrationView: View {
       try? await Task.sleep(nanoseconds: 35_000_000)
     }
 
-    finish(with: collectedChunks, message: "Simulator mock 입력으로 캘리브레이션을 완료했습니다.")
+    finish(with: collectedChunks, message: "Simulator 예시 입력으로 캘리브레이션을 완료했습니다.")
   }
 
   @MainActor
