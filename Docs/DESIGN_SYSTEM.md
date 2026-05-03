@@ -102,6 +102,7 @@ Core/Design 컴포넌트:
 - `NBDiagnosticCard`
 - `NBEmptyStateView`
 - `NBLoadingStateView`
+- `NBIllustration`
 
 기존 화면에서 이미 쓰는 `NBPrimaryButtonStyle`, `NBSecondaryButtonStyle`, `NBStatusBadge(_:, systemImage:, tint:)`, `NBMetricCard(title:value:systemImage:tint:footnote:)` 호출은 계속 사용할 수 있습니다.
 
@@ -268,14 +269,34 @@ Original SwiftUI icon:
 - `NBBruxismLikeIcon`
 - `NBEventTypeIcon`
 
+Original SwiftUI illustration:
+
+- `NBBreathWaveIllustration`
+- `NBMoonSleepIllustration`
+- `NBPrivacyOnDeviceIllustration`
+- `NBDevicePlacementIllustration`
+- `NBIllustration(kind:)`
+
+Illustration은 onboarding, device placement guide, privacy notice, empty report, empty timeline 상태에서 사용합니다. 실제 bitmap asset이 아니라 SwiftUI `Shape`, `Path`, `Circle`, `RoundedRectangle`, SF Symbols 기반의 original placeholder입니다.
+
 ## Asset Catalog
 
 위치: `SleepSoundApp/App/Assets.xcassets`
 
 - `AccentColor`: NightBreath accent 색상
 - `AppIcon.appiconset`: placeholder 구조
+- `Illustrations/`: future bitmap illustration export를 위한 placeholder namespace
+- `Illustrations/onboarding_privacy_placeholder.imageset`
+- `Illustrations/onboarding_breath_placeholder.imageset`
+- `Illustrations/onboarding_device_placement_placeholder.imageset`
+- `Illustrations/empty_report_placeholder.imageset`
+- `Illustrations/empty_timeline_placeholder.imageset`
+
+Illustrations image set은 현재 metadata-only placeholder입니다. 앱 화면에서는 `NBIllustration.swift`의 SwiftUI original illustration을 사용하며, 최종 bitmap illustration이 필요한 경우 별도 디자인 작업 후 같은 slot에 export합니다.
 
 이번 작업에서는 고품질 앱 아이콘 이미지를 만들지 않습니다. 실제 아이콘 제작은 별도 디자인 작업으로 남깁니다.
+
+앱 아이콘 제작 가이드는 `Docs/APP_ICON_GUIDE.md`를 기준으로 합니다.
 
 ## 접근성
 

@@ -97,6 +97,7 @@
 		00000000000000000000026B /* NBEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000192 /* NBEmptyStateView.swift */; };
 		00000000000000000000026C /* NBLoadingStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000193 /* NBLoadingStateView.swift */; };
 		00000000000000000000026D /* NBIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000194 /* NBIcon.swift */; };
+		00000000000000000000026E /* NBIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000195 /* NBIllustration.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -266,6 +267,7 @@
 		000000000000000000000192 /* NBEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBEmptyStateView.swift; sourceTree = "<group>"; };
 		000000000000000000000193 /* NBLoadingStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBLoadingStateView.swift; sourceTree = "<group>"; };
 		000000000000000000000194 /* NBIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIcon.swift; sourceTree = "<group>"; };
+		000000000000000000000195 /* NBIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIllustration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -523,6 +525,7 @@
 				000000000000000000000192 /* NBEmptyStateView.swift */,
 				000000000000000000000193 /* NBLoadingStateView.swift */,
 				000000000000000000000194 /* NBIcon.swift */,
+				000000000000000000000195 /* NBIllustration.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -722,6 +725,7 @@
 				00000000000000000000026B /* NBEmptyStateView.swift in Sources */,
 				00000000000000000000026C /* NBLoadingStateView.swift in Sources */,
 				00000000000000000000026D /* NBIcon.swift in Sources */,
+				00000000000000000000026E /* NBIllustration.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
 				00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,

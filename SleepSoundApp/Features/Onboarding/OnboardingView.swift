@@ -34,6 +34,10 @@ struct OnboardingView: View {
 
   private var header: some View {
     VStack(alignment: .leading, spacing: NBSpacing.small) {
+      NBIllustration(kind: step.illustration)
+        .frame(height: 156)
+        .padding(.bottom, NBSpacing.sm)
+
       Label(step.shortTitle, systemImage: step.systemImage)
         .font(.caption.weight(.semibold))
         .foregroundStyle(NBColor.sleepTint)
@@ -42,7 +46,7 @@ struct OnboardingView: View {
         .foregroundStyle(NBColor.nightInk)
       Text(step.subtitle)
         .font(.callout)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
     }
   }
 
@@ -218,6 +222,25 @@ private enum OnboardingStep: Int, CaseIterable, Identifiable {
     }
   }
 
+  var illustration: NBIllustrationKind {
+    switch self {
+    case .intro:
+      .moonSleep
+    case .privacy:
+      .privacyOnDevice
+    case .noFullNightAudio:
+      .emptyReport
+    case .eventSamples:
+      .breath
+    case .placement:
+      .devicePlacement
+    case .microphone:
+      .privacyOnDevice
+    case .calibration:
+      .breath
+    }
+  }
+
   var next: OnboardingStep? {
     OnboardingStep(rawValue: rawValue + 1)
   }
@@ -235,7 +258,7 @@ private struct IntroStep: View {
           .font(.headline)
         Text("결과는 수면 소리 점수와 이벤트 추세를 이해하기 위한 참고 정보입니다.")
           .font(.callout)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
   }
@@ -257,13 +280,13 @@ private struct EventAudioOptInStep: View {
             .font(.headline)
           Text("기본값은 꺼짐입니다. 켜면 감지 이벤트 전후의 짧은 샘플만 로컬에 저장합니다.")
             .font(.callout)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
 
       Text("샘플은 전체 밤 오디오가 아니며, 저장 개수와 용량 제한 및 삭제 기능을 유지합니다.")
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
     }
   }
 }
@@ -307,7 +330,7 @@ private struct MicrophoneStep: View {
 
       Text("마이크 입력은 수면 소리 이벤트를 감지하기 위해 사용합니다. 서버 전송이나 전체 밤 오디오 파일 저장을 추가하지 않습니다.")
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
     }
   }
 

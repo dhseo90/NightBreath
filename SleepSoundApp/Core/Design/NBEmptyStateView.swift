@@ -4,18 +4,25 @@ struct NBEmptyStateView: View {
   let title: String
   let message: String
   var systemImage: String = "moon.zzz"
+  var illustration: NBIllustrationKind?
   var actionTitle: String?
   var action: (() -> Void)?
 
   var body: some View {
     VStack(spacing: NBSpacing.md) {
-      Image(systemName: systemImage)
-        .font(.system(size: 36, weight: .semibold))
-        .foregroundStyle(NBColor.sleep)
-        .frame(width: 64, height: 64)
-        .background(NBColor.sleep.opacity(0.10))
-        .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.card, style: .continuous))
-        .accessibilityHidden(true)
+      if let illustration {
+        NBIllustration(kind: illustration)
+          .frame(maxWidth: 260)
+          .accessibilityHidden(true)
+      } else {
+        Image(systemName: systemImage)
+          .font(.system(size: 36, weight: .semibold))
+          .foregroundStyle(NBColor.sleep)
+          .frame(width: 64, height: 64)
+          .background(NBColor.sleep.opacity(0.10))
+          .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.card, style: .continuous))
+          .accessibilityHidden(true)
+      }
 
       VStack(spacing: NBSpacing.xs) {
         Text(title)

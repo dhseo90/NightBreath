@@ -13,6 +13,12 @@ struct PrivacySettingsView: View {
   var body: some View {
     List {
       Section(policy.title) {
+        NBIllustration(kind: .privacyOnDevice)
+          .frame(height: 150)
+          .accessibilityLabel("온디바이스 개인정보 보호 안내 일러스트")
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 4, trailing: 0))
+          .listRowBackground(Color.clear)
+
         NBPrivacyNoticeCard(
           title: "밤숨 개인정보 원칙",
           messages: policy.principles + [

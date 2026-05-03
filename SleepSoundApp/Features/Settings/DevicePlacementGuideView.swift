@@ -4,6 +4,10 @@ struct DevicePlacementGuideView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+        NBIllustration(kind: .devicePlacement)
+          .frame(height: 170)
+          .accessibilityLabel("침대 옆 iPhone 배치 안내 일러스트")
+
         NBReportSection(title: "권장 배치", systemImage: "iphone") {
           VStack(spacing: NBSpacing.medium) {
             PlacementRow(

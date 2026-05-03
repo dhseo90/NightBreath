@@ -224,7 +224,8 @@ struct HomeDashboardView: View {
         NBEmptyStateView(
           title: "표시할 주요 이벤트가 없습니다",
           message: "오디오 입력은 수신되었지만 detector 기준을 통과한 주요 이벤트가 없었을 수 있습니다.",
-          systemImage: "waveform.slash"
+          systemImage: "waveform.slash",
+          illustration: .emptyTimeline
         )
       } else {
         VStack(spacing: NBSpacing.sm) {

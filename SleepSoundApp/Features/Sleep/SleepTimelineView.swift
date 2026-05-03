@@ -31,7 +31,8 @@ struct SleepTimelineView: View {
           NBEmptyStateView(
             title: "감지된 이벤트가 없습니다",
             message: "오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다. 조용한 밤이었거나 감지 기준이 보수적으로 동작했을 수 있습니다.",
-            systemImage: "waveform.slash"
+            systemImage: "waveform.slash",
+            illustration: .emptyTimeline
           )
         } else {
           VStack(alignment: .leading, spacing: NBSpacing.medium) {
@@ -106,7 +107,8 @@ struct EventTimelineBand: View {
         NBEmptyStateView(
           title: "감지된 이벤트 없음",
           message: "타임라인에 표시할 이벤트 구간이 없습니다.",
-          systemImage: "waveform.slash"
+          systemImage: "waveform.slash",
+          illustration: .emptyTimeline
         )
       }
     }
