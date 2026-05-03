@@ -18,7 +18,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot 8개와 EHM 상세 screenshot은 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. 아직 캡처하지 않은 상세 화면과 edge state는 `screenshot pending`으로 유지합니다.
+현재 README 대표 screenshot 8개와 EHM 상세 screenshot 8개는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. 아직 캡처하지 않은 상세 화면과 edge state는 `screenshot pending`으로 유지합니다.
 
 ## 예시 데이터 사용 원칙
 
@@ -33,6 +33,26 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - 서버 전송, 자동 공유, 외부 SDK 사용을 암시하지 않습니다.
 - 수면 소리 지표와 건강 지표를 함께 보여도 인과관계를 의미하지 않는다는 안내를 유지합니다.
 - 모든 건강 관련 화면에는 필요 시 “이 앱은 진단 목적의 의료기기가 아닙니다.” 또는 동등한 안전 문구를 포함합니다.
+
+## EHM Screenshot Status
+
+EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입해 캡처합니다. 원본은 `Docs/Screenshots/Health/`에 보존하고, UI Gallery에는 `Docs/Screenshots/Health/cropped/` 경로를 사용합니다.
+
+| 범위 | 상태 | 파일 |
+| --- | --- | --- |
+| 전체 건강 지표 | captured | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` |
+| Fitdays import empty | captured | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` |
+| Fitdays import result | captured | `Docs/Screenshots/Health/cropped/fitdays_import_result_light.png` |
+| Fitdays import error | captured | `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` |
+| 월 건강 캘린더 | captured | `Docs/Screenshots/Health/cropped/health_calendar_light.png` |
+| 날짜별 전체 데이터 상세 | captured | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` |
+| Metric detail 체수분 | captured | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` |
+| Metric detail local-only 기초대사량 | captured | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` |
+| 혈압 dashboard | screenshot pending | `Docs/Screenshots/Health/blood-pressure-dashboard.png` |
+| 체성분 dashboard | screenshot pending | `Docs/Screenshots/Health/body-composition-dashboard.png` |
+| Cross metric dashboard | screenshot pending | `Docs/Screenshots/Health/cross-metric-dashboard.png` |
+| Health permission empty state | screenshot pending | `Docs/Screenshots/EdgeStates/health-permission-empty.png` |
+| Metric detail empty state | screenshot pending | `Docs/Screenshots/EdgeStates/metric-detail-empty.png` |
 
 ## Home / Dashboard
 
@@ -66,12 +86,12 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `HealthDashboardView` | 건강 데이터 허브 | read-only 연결 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 혈압/체성분/교차 보기 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | ![HealthDashboardView](Screenshots/README/cropped/health_dashboard_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit-backed 지표, Fitdays local-only 지표, 기간별 최근값/평균/변화, source | 기간 선택, metric detail 진입 | source type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | ![HealthMetricsOverviewView](Screenshots/Health/cropped/health_metrics_overview_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit-backed/local-only 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | ![MetricDetailView](Screenshots/Health/cropped/metric_detail_body_water_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `MetricDetailView` local-only 예시 | Fitdays 확장 local-only metric 상세 예시 | 기초대사량 설명, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 local-only 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | ![MetricDetailView local-only](Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `HealthCalendarView` | 월 단위 건강 캘린더 | 날짜별 수면/혈압/체성분/활동/check-in dot, 샘플 수, data quality | 이전/다음 월, 오늘 이동, 날짜 선택 | 같은 날짜 데이터가 인과관계를 의미하지 않음을 안내 | `ScreenshotHealthCalendarScenario` | `Docs/Screenshots/Health/cropped/health_calendar_light.png` | ![HealthCalendarView](Screenshots/Health/cropped/health_calendar_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `DailyMeasurementDetailView` | 날짜별 전체 데이터 상세 | 수면, 아침/저녁 체크인, 혈압, 체성분, Fitdays 확장, 활동, 앱 계산 지표, source | metric detail 진입 | 날짜별 묶음은 개인 참고용이며 source를 함께 표시 | `ScreenshotDailyMeasurementDetailScenario` | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` | ![DailyMeasurementDetailView](Screenshots/Health/cropped/daily_measurement_detail_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `FitdaysImportView` | Fitdays export file 가져오기 | 파일 선택 상태, preview, imported/skipped/error row count, unknown column | 파일 선택, preview 확인, 로컬 저장 | 사용자가 직접 선택한 로컬 파일만 읽고 원격 연결 없음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | ![FitdaysImportView](Screenshots/Health/cropped/fitdays_import_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit-backed 지표, Fitdays local-only 지표, 기간별 최근값/평균/변화, source badge | 기간 선택, metric detail 진입 | source type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | ![HealthMetricsOverviewView](Screenshots/Health/cropped/health_metrics_overview_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, HealthKit-backed/local-only badge, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit-backed/local-only 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | ![MetricDetailView](Screenshots/Health/cropped/metric_detail_body_water_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `MetricDetailView` local-only 예시 | Fitdays 확장 local-only metric 상세 예시 | 기초대사량 설명, Local-only/Fitdays CSV badge, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 local-only 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | ![MetricDetailView local-only](Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthCalendarView` | 월 단위 건강 캘린더 | 날짜별 수면/혈압/체성분/활동/check-in category dot, source dot, 샘플 수, data quality, 선택 날짜 panel | 이전/다음 월, 오늘 이동, 날짜 선택, 날짜 상세 진입 | 같은 날짜 데이터가 인과관계를 의미하지 않음을 안내 | `ScreenshotHealthCalendarScenario` | `Docs/Screenshots/Health/cropped/health_calendar_light.png` | ![HealthCalendarView](Screenshots/Health/cropped/health_calendar_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `DailyMeasurementDetailView` | 날짜별 전체 데이터 상세 | 수면, 아침/저녁 체크인, 혈압, 체성분, Fitdays 확장, 활동, 앱 계산 지표, source badge | metric detail 진입 | 날짜별 묶음은 개인 참고용이며 source를 함께 표시 | `ScreenshotDailyMeasurementDetailScenario` | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` | ![DailyMeasurementDetailView](Screenshots/Health/cropped/daily_measurement_detail_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `FitdaysImportView` | Fitdays CSV/structured export file 가져오기 | 파일 선택 상태, preview, imported/skipped/error row count, unknown column | 파일 선택, preview 확인, 로컬 저장 | 사용자가 직접 선택한 로컬 파일만 읽고 원격 연결 없음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | ![FitdaysImportView](Screenshots/Health/cropped/fitdays_import_light.png) | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 측정 시각, sourceName, 7일/30일/90일 추세 | 기간 선택 | 수치를 상태 판정으로 표현하지 않음 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/blood-pressure-dashboard.png` | screenshot pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, sourceName, 추세 | 기간 선택 | 개인 참고용 데이터로만 표시 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/body-composition-dashboard.png` | screenshot pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 날짜별 매칭, 샘플 수, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 분석하지 않고 인과관계를 의미하지 않는다고 안내 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/cross-metric-dashboard.png` | screenshot pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
