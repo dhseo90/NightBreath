@@ -4,15 +4,21 @@ public struct CompositeSleepEventDetector: SleepEventDetector {
     public var backend: SleepDetectionBackend
     public var ruleBasedDetector: any SleepEventDetector
     public var coreMLDetector: CoreMLSleepEventDetector
+    public var multiclassCoreMLDetector: CoreMLSleepEventDetector
 
     public init(
         backend: SleepDetectionBackend = .ruleBased,
         ruleBasedDetector: any SleepEventDetector = RuleBasedSleepEventDetector(),
-        coreMLDetector: CoreMLSleepEventDetector = CoreMLSleepEventDetector()
+        coreMLDetector: CoreMLSleepEventDetector = CoreMLSleepEventDetector(),
+        multiclassCoreMLDetector: CoreMLSleepEventDetector = CoreMLSleepEventDetector(
+            configuration: .multiclassDefault,
+            modelProvider: CoreMLMulticlassEventModelProvider()
+        )
     ) {
         self.backend = backend
         self.ruleBasedDetector = ruleBasedDetector
         self.coreMLDetector = coreMLDetector
+        self.multiclassCoreMLDetector = multiclassCoreMLDetector
     }
 
     public static var ruleBasedDefault: CompositeSleepEventDetector {
@@ -25,6 +31,16 @@ public struct CompositeSleepEventDetector: SleepEventDetector {
             return ruleBasedDetector.detect(features: features)
         case .coreML:
             return coreMLDetector.detect(features: features)
+        case .coreMLMulticlass:
+            let multiclassResult = multiclassCoreMLDetector.detectWithStatus(features: features)
+            guard !multiclassResult.outputs.isEmpty else {
+                let fallbackReason = multiclassResult.status.fallbackReason
+                    ?? "Core ML multiclass model did not return a confident event label."
+                return ruleBasedDetector.detect(features: features).map { output in
+                    withFallbackReason(output, reason: fallbackReason)
+                }
+            }
+            return multiclassResult.outputs
         case .hybrid:
             let coreMLResult = coreMLDetector.detectWithStatus(features: features)
 

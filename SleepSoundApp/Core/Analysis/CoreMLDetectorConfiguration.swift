@@ -17,6 +17,12 @@ public struct CoreMLDetectorConfiguration: Equatable, Sendable {
     public var computeUnitsPreference: CoreMLComputeUnitsPreference
 
     public static let `default` = CoreMLDetectorConfiguration()
+    public static let multiclassDefault = CoreMLDetectorConfiguration(
+        modelName: "SleepEventClassifier",
+        modelVersion: "Multiclass Event Classifier v0",
+        confidenceThreshold: 0.5,
+        labels: ModelOutputMapper.multiclassEventLabels
+    )
 
     public init(
         modelName: String = "SnoreDetector",

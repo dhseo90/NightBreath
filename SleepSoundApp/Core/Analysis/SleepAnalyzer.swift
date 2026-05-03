@@ -144,6 +144,9 @@ public struct SleepAnalyzer: SleepAnalyzing {
 
   public var isModelInstalled: Bool {
     if let compositeDetector = detector as? CompositeSleepEventDetector {
+      if compositeDetector.backend == .coreMLMulticlass {
+        return compositeDetector.multiclassCoreMLDetector.modelProvider.isModelAvailable
+      }
       return compositeDetector.coreMLDetector.modelProvider.isModelAvailable
     }
     if let coreMLDetector = detector as? CoreMLSleepEventDetector {
@@ -165,6 +168,8 @@ public struct SleepAnalyzer: SleepAnalyzing {
       snapshot.merge(ruleThresholdSnapshot(ruleBasedDetector.thresholds)) { current, _ in current }
       snapshot["coreML.confidenceThreshold"] =
         compositeDetector.coreMLDetector.configuration.confidenceThreshold
+      snapshot["coreMLMulticlass.confidenceThreshold"] =
+        compositeDetector.multiclassCoreMLDetector.configuration.confidenceThreshold
     }
 
     if let coreMLDetector = detector as? CoreMLSleepEventDetector {

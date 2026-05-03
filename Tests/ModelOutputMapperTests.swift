@@ -12,6 +12,7 @@ struct ModelOutputMapperTests {
             ("1", .snore),
             ("non_snore", .unknown),
             ("0", .unknown),
+            ("silence", .unknown),
             ("bruxism_like", .bruxismLike),
             ("breathing_pause_suspected", .breathingPauseSuspected),
             ("gasp_like", .gaspLike),
@@ -42,9 +43,31 @@ struct ModelOutputMapperTests {
         #expect(mapper.eventType(for: "non-snore") == .unknown)
         #expect(mapper.eventType(for: "environmental noise") == .environmentalNoise)
         #expect(mapper.eventType(for: "coughLike") == .coughLike)
+        #expect(mapper.eventType(for: "cough") == .coughLike)
         #expect(mapper.eventType(for: "gaspLike") == .gaspLike)
+        #expect(mapper.eventType(for: "gasp") == .gaspLike)
         #expect(mapper.eventType(for: "environmentalNoise") == .environmentalNoise)
         #expect(mapper.eventType(for: "bruxismLike") == .bruxismLike)
+        #expect(mapper.eventType(for: "bruxism") == .bruxismLike)
+        #expect(mapper.eventType(for: "sleepTalk") == .sleepTalkLike)
+        #expect(mapper.eventType(for: "movement") == .movementLike)
+    }
+
+    @Test
+    func multiclassLabelsAreDocumentedForCoreMLConfig() {
+        #expect(ModelOutputMapper.multiclassEventLabels == [
+            "snore",
+            "bruxismLike",
+            "gaspLike",
+            "coughLike",
+            "movementLike",
+            "environmentalNoise",
+            "sleepTalkLike",
+            "unknown",
+            "silence"
+        ])
+        #expect(CoreMLDetectorConfiguration.multiclassDefault.modelName == "SleepEventClassifier")
+        #expect(CoreMLDetectorConfiguration.multiclassDefault.labels == ModelOutputMapper.multiclassEventLabels)
     }
 
     @Test

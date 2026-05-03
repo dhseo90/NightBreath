@@ -1,0 +1,45 @@
+# NightBreath local multiclass event classifier preparation.
+# This config is for detector development only. It does not download data,
+# upload audio, or imply medical validation.
+
+dataset:
+  input_dir: ../../Samples/Personal
+  feature_columns:
+    - rms
+    - energy
+    - zeroCrossingRate
+    - spectralCentroid
+    - lowBandEnergy
+    - midBandEnergy
+    - highBandEnergy
+    - duration
+
+labels:
+  classes:
+    - snore
+    - bruxismLike
+    - gaspLike
+    - coughLike
+    - movementLike
+    - environmentalNoise
+    - sleepTalkLike
+    - unknown
+    - silence
+  unknown_label: unknown
+
+training:
+  min_total_samples: 180
+  min_samples_per_class: 20
+  recommended_samples_per_class: 100
+  exclude_underrepresented_labels: false
+  imbalance_warning_ratio: 4.0
+  test_size: 0.25
+  random_state: 42
+  class_weight: balanced
+
+output:
+  directory: output
+  model_filename: multiclass_event_model.pkl
+  evaluation_json_filename: multiclass_event_evaluation.json
+  evaluation_markdown_filename: multiclass_event_evaluation.md
+  label_counts_filename: multiclass_event_label_counts.json

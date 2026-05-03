@@ -31,6 +31,37 @@ struct CompositeSleepEventDetectorTests {
     }
 
     @Test
+    func coreMLMulticlassBackendUsesOptionalMulticlassDetector() {
+        let detector = CompositeSleepEventDetector(
+            backend: .coreMLMulticlass,
+            ruleBasedDetector: StubSleepEventDetector(eventType: .snore),
+            multiclassCoreMLDetector: makeCoreMLDetector(label: "environmental_noise")
+        )
+
+        let outputs = detector.detect(features: makeFeatures())
+
+        #expect(outputs.map(\.eventType) == [.environmentalNoise])
+    }
+
+    @Test
+    func coreMLMulticlassBackendFallsBackWhenModelMissing() {
+        let detector = CompositeSleepEventDetector(
+            backend: .coreMLMulticlass,
+            ruleBasedDetector: StubSleepEventDetector(eventType: .movementLike),
+            multiclassCoreMLDetector: CoreMLSleepEventDetector(
+                configuration: .multiclassDefault,
+                modelProvider: UnavailableMLModelProvider(modelName: "MissingMulticlassModel")
+            )
+        )
+
+        let outputs = detector.detect(features: makeFeatures())
+
+        #expect(outputs.map(\.eventType) == [.movementLike])
+        #expect(outputs.first?.debugReason?.contains("fallback") == true)
+        #expect(outputs.first?.debugReason?.contains("MissingMulticlassModel") == true)
+    }
+
+    @Test
     func hybridBackendFallsBackWhenModelUnavailable() {
         let detector = CompositeSleepEventDetector(
             backend: .hybrid,
@@ -52,7 +83,8 @@ struct CompositeSleepEventDetectorTests {
         let detector = CompositeSleepEventDetector(
             backend: .hybrid,
             ruleBasedDetector: StubSleepEventDetector(eventType: .environmentalNoise),
-            coreMLDetector: makeCoreMLDetector(label: "snore")
+            coreMLDetector: makeCoreMLDetector(label: "snore"),
+            multiclassCoreMLDetector: makeCoreMLDetector(label: "cough_like")
         )
 
         let outputs = detector.detect(features: makeFeatures())

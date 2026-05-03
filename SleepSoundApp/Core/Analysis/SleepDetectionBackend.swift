@@ -3,6 +3,7 @@ import Foundation
 public enum SleepDetectionBackend: String, CaseIterable, Codable, Sendable {
     case ruleBased
     case coreML
+    case coreMLMulticlass
     case hybrid
 
     public var displayName: String {
@@ -11,6 +12,8 @@ public enum SleepDetectionBackend: String, CaseIterable, Codable, Sendable {
             "Rule-based"
         case .coreML:
             "Core ML"
+        case .coreMLMulticlass:
+            "Core ML Multiclass"
         case .hybrid:
             "Hybrid"
         }

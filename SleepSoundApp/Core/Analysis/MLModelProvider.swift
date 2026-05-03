@@ -201,3 +201,23 @@ public struct CoreMLSnoreModelProvider: MLModelProvider, @unchecked Sendable {
         try provider.prediction(for: input)
     }
 }
+
+public struct CoreMLMulticlassEventModelProvider: MLModelProvider, @unchecked Sendable {
+    private var provider: BundleMLModelProvider
+
+    public var modelName: String {
+        provider.modelName
+    }
+
+    public var isModelAvailable: Bool {
+        provider.isModelAvailable
+    }
+
+    public init(modelName: String = "SleepEventClassifier", bundle: Bundle = .main) {
+        self.provider = BundleMLModelProvider(modelName: modelName, bundle: bundle)
+    }
+
+    public func prediction(for input: ModelInput) throws -> ModelPrediction {
+        try provider.prediction(for: input)
+    }
+}

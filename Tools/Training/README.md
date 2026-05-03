@@ -210,27 +210,37 @@ duration
 - 개인 한 명의 데이터만 사용하면 다른 환경으로 일반화하기 어렵습니다.
 - 코골기 감지는 웰니스 지표이며, 어떤 상태를 진단하거나 확정하지 않습니다.
 
-## Multiclass 확장 placeholder
+## Multiclass event classifier 준비
 
-현재 학습 코드는 `snore vs non-snore` binary baseline만 유지합니다.
-
-다음 라벨은 향후 multiclass detector 후보로 문서화만 해둡니다.
+snore binary baseline은 그대로 유지하고, 다음 label을 위한 multiclass 준비 pipeline을 별도 script로 둡니다.
 
 ```text
 snore
+bruxismLike
 coughLike
 gaspLike
+movementLike
 environmentalNoise
+sleepTalkLike
 unknown
+silence
 ```
 
-placeholder 설정 파일:
+config:
 
 ```text
-Tools/Training/config/sleep_event_multiclass_placeholder.yaml
+Tools/Training/config/multiclass_event_detector.yaml
 ```
 
-이번 단계에서는 multiclass 학습을 실행하지 않습니다. 기침 의심 소리, gasp-like 회복 호흡, 환경 소음은 실제 iPhone 샘플과 라벨 품질을 더 확인한 뒤 별도 학습 파이프라인으로 확장합니다.
+실행:
+
+```sh
+python3 train_multiclass_event_detector.py --manifest output/export_feedback_manifest.json
+python3 evaluate_multiclass_event_detector.py --manifest output/export_feedback_manifest.json --model output/multiclass_event_model.pkl --output-dir output
+python3 convert_multiclass_event_detector_to_coreml.py
+```
+
+기본 guard는 전체 180개 이상, label별 20개 이상입니다. 부족하면 label별 count와 warning을 출력하고 학습을 시작하지 않습니다. `exclude_underrepresented_labels`를 켜면 부족한 label을 제외한 subset 학습을 허용할 수 있지만, 실제 앱 적용 전에는 label imbalance와 false-positive-like/false-negative-like case를 별도로 검토해야 합니다.
 
 ## 다음 단계
 

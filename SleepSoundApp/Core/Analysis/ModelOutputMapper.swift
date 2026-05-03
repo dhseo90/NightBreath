@@ -1,18 +1,42 @@
 import Foundation
 
 public struct ModelOutputMapper: Sendable {
+    public static let multiclassEventLabels: [String] = [
+        "snore",
+        "bruxismLike",
+        "gaspLike",
+        "coughLike",
+        "movementLike",
+        "environmentalNoise",
+        "sleepTalkLike",
+        "unknown",
+        "silence"
+    ]
+
     public static let knownLabels: [String] = [
         "snore",
         "1",
         "non_snore",
         "0",
+        "silence",
         "bruxism_like",
+        "bruxismLike",
+        "bruxism",
         "breathing_pause_suspected",
         "gasp_like",
+        "gaspLike",
+        "gasp",
         "cough_like",
+        "coughLike",
+        "cough",
         "sleep_talk_like",
+        "sleepTalkLike",
+        "sleep_talk",
         "movement_like",
+        "movementLike",
+        "movement",
         "environmental_noise",
+        "environmentalNoise",
         "noise",
         "awakening_suspected",
         "unknown"
@@ -55,19 +79,19 @@ public struct ModelOutputMapper: Sendable {
         switch Self.normalizedLabel(label) {
         case "snore", "1":
             .snore
-        case "non_snore", "0":
+        case "non_snore", "0", "silence":
             .unknown
-        case "bruxism_like":
+        case "bruxism_like", "bruxism":
             .bruxismLike
         case "breathing_pause_suspected":
             .breathingPauseSuspected
-        case "gasp_like":
+        case "gasp_like", "gasp":
             .gaspLike
-        case "cough_like":
+        case "cough_like", "cough":
             .coughLike
-        case "sleep_talk_like":
+        case "sleep_talk_like", "sleep_talk":
             .sleepTalkLike
-        case "movement_like":
+        case "movement_like", "movement":
             .movementLike
         case "environmental_noise":
             .environmentalNoise

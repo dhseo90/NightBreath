@@ -18,6 +18,7 @@ from audio_features import FEATURE_COLUMNS, safe_float
 POSITIVE_LABEL = "snore"
 NEGATIVE_LABELS = {
     "bruxismLike",
+    "gaspLike",
     "silence",
     "unknown",
     "environmentalNoise",

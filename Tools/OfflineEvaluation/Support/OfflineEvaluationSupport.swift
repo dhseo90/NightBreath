@@ -2448,6 +2448,8 @@ public struct BackendComparisonRunner {
       return "ruleBased"
     case SleepDetectionBackend.coreML.displayName, SleepDetectionBackend.coreML.rawValue:
       return "coreML"
+    case SleepDetectionBackend.coreMLMulticlass.displayName, SleepDetectionBackend.coreMLMulticlass.rawValue:
+      return "coreMLMulticlass"
     case SleepDetectionBackend.hybrid.displayName, SleepDetectionBackend.hybrid.rawValue:
       return "hybrid"
     default:
