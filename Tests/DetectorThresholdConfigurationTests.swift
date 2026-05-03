@@ -4,6 +4,28 @@ import Testing
 @Suite("DetectorThresholdConfiguration")
 struct DetectorThresholdConfigurationTests {
     @Test
+    func releaseDefaultAndDebugProfilesStayStable() {
+        #expect(DetectorTuningProfile.releaseDefault == .balanced)
+        #expect(DetectorTuningProfile.debugSelectableProfiles == [.conservative, .balanced, .sensitive])
+    }
+
+    @Test
+    func profileThresholdsStayOrderedBySensitivity() {
+        let conservative = DetectorTuningProfile.conservative.configuration
+        let balanced = DetectorTuningProfile.balanced.configuration
+        let sensitive = DetectorTuningProfile.sensitive.configuration
+
+        #expect(conservative.snoreRmsThreshold > balanced.snoreRmsThreshold)
+        #expect(balanced.snoreRmsThreshold > sensitive.snoreRmsThreshold)
+        #expect(conservative.snoreEnergyThreshold > balanced.snoreEnergyThreshold)
+        #expect(balanced.snoreEnergyThreshold > sensitive.snoreEnergyThreshold)
+        #expect(conservative.minimumConfidence > balanced.minimumConfidence)
+        #expect(balanced.minimumConfidence > sensitive.minimumConfidence)
+        #expect(conservative.minimumEventDuration > balanced.minimumEventDuration)
+        #expect(balanced.minimumEventDuration > sensitive.minimumEventDuration)
+    }
+
+    @Test
     func balancedProfileMatchesCurrentRuleBasedDefaults() {
         let configuration = DetectorTuningProfile.balanced.configuration
 
@@ -45,6 +67,14 @@ struct DetectorThresholdConfigurationTests {
     }
 
     @Test
+    func customDebugCurrentlyMirrorsBalancedValues() {
+        var balanced = DetectorTuningProfile.balanced.configuration
+        balanced.profile = .customDebug
+
+        #expect(DetectorTuningProfile.customDebug.configuration == balanced)
+    }
+
+    @Test
     func mapsToRuleBasedAndSmoothingPolicies() {
         let configuration = DetectorTuningProfile.conservative.configuration
         let ruleThresholds = configuration.ruleBasedThresholds
@@ -62,11 +92,27 @@ struct DetectorThresholdConfigurationTests {
     func thresholdSnapshotIncludesTuningFields() {
         let snapshot = DetectorTuningProfile.sensitive.configuration.thresholdSnapshot
 
+        #expect(snapshot.keys.count == 12)
         #expect(snapshot["tuning.profileIndex"] == DetectorTuningProfile.sensitive.snapshotIndex)
         #expect(snapshot["tuning.snoreRmsThreshold"] == DetectorTuningProfile.sensitive.configuration.snoreRmsThreshold)
         #expect(snapshot["tuning.snoreEnergyThreshold"] == DetectorTuningProfile.sensitive.configuration.snoreEnergyThreshold)
         #expect(snapshot["tuning.minimumConfidence"] == DetectorTuningProfile.sensitive.configuration.minimumConfidence)
+        #expect(snapshot["tuning.minimumEventDuration"] == DetectorTuningProfile.sensitive.configuration.minimumEventDuration)
         #expect(snapshot["tuning.mergeGapSeconds"] == DetectorTuningProfile.sensitive.configuration.mergeGapSeconds)
+    }
+
+    @Test
+    func profileSmoothingPoliciesRespectConfiguredDurationsAndConfidence() {
+        for profile in DetectorTuningProfile.debugSelectableProfiles {
+            let configuration = profile.configuration
+            let smoothing = configuration.smoothingPolicy
+
+            #expect(smoothing.confidenceThreshold == configuration.minimumConfidence)
+            #expect(smoothing.minimumEventDuration == configuration.minimumEventDuration)
+            #expect(smoothing.maximumMergeGap == configuration.mergeGapSeconds)
+            #expect(smoothing.minimumEventDuration >= 0.05)
+            #expect((0...1).contains(smoothing.confidenceThreshold))
+        }
     }
 
     @Test

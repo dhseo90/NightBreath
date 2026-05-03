@@ -7,9 +7,48 @@
 - threshold는 자동으로 변경하지 않습니다.
 - `suggested_changes.json`은 수동 검토용입니다.
 - false positive-like 이벤트가 늘어날 위험을 항상 함께 봅니다.
+- Release 기본 profile은 `balanced`입니다.
+- `conservative`는 크게 바꾸지 않고, `balanced`는 충분한 baseline 근거가 있을 때만 보수적으로 조정합니다.
+- `sensitive`는 DEBUG/비교용으로 더 민감하게 둘 수 있지만 Release 기본값으로 바로 올리지 않습니다.
 - 공개/개인 오디오 파일은 repo에 넣지 않습니다.
 - 서버 전송, 클라우드 처리, 외부 API 호출은 사용하지 않습니다.
 - 이 비교는 detector 개발용이며 의학적 성능 검증이 아닙니다.
+
+## 현재 Profile 상태
+
+`DetectorTuningProfile.releaseDefault`는 `balanced`입니다. DEBUG 선택 profile은 `conservative`, `balanced`, `sensitive`를 유지합니다.
+
+| Profile | 용도 | snore RMS | snore energy | minimum confidence | minimum duration | merge gap |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| conservative | 더 신중한 후보 확인용 | 0.060 | 0.0036 | 0.42 | 0.30s | 0.80s |
+| balanced | Release 기본값 | 0.050 | 0.0025 | 0.35 | 0.20s | 1.00s |
+| sensitive | DEBUG 누락 비교용 | 0.040 | 0.0016 | 0.32 | 0.16s | 1.20s |
+
+현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*` key로 저장됩니다.
+
+## 최신 로컬 Report 판독
+
+2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.
+
+- 입력 profile: `balanced`만 포함
+- evaluated records: 2
+- failed records: 2
+- 실패 이유: manifest가 가리키는 로컬 오디오 파일 없음
+- raw candidates: 0
+- final events: 0
+- possible false-positive-like: 0
+- possible false-negative-like: 0
+- 기존 `suggested_changes.json`: 변경 제안 없음
+
+이 결과는 detector threshold를 평가한 데이터가 아니라 missing file 검증 결과에 가깝습니다. 따라서 threshold 코드는 변경하지 않았습니다.
+
+다음 threshold 검토에 필요한 최소 데이터:
+
+- 실제 존재하는 로컬 오디오 segment가 있는 manifest
+- `snore`, `silence` 또는 `unknown`, `environmentalNoise` segment가 함께 포함된 baseline
+- `conservative`, `balanced`, `sensitive` 세 profile 모두 실행한 `OfflineEvaluation` 또는 `OfflineSnoreBaseline` 결과
+- missing file/failed record가 아닌 정상 analyzed record
+- false positive-like 증가 여부를 볼 수 있는 quiet/noise negative segment
 
 ## 1. Offline Evaluation 실행
 
@@ -51,6 +90,25 @@ swift run OfflineProfileCompare \
 
 - `Tools/OfflineEvaluation/output/tuning_report.md`
 - `Tools/OfflineEvaluation/output/suggested_changes.json`
+
+## 2-1. Snore Baseline 실행
+
+코골기 detector만 더 자세히 볼 때는 Snore Baseline 도구를 함께 실행합니다.
+
+```bash
+swift run OfflineSnoreBaseline \
+  --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
+  --output Tools/OfflineEvaluation/output \
+  --profiles conservative,balanced,sensitive
+```
+
+생성 파일:
+
+- `Tools/OfflineEvaluation/output/snore_baseline_YYYYMMDD_HHMMSS.json`
+- `Tools/OfflineEvaluation/output/snore_baseline_YYYYMMDD_HHMMSS.csv`
+- `Tools/OfflineEvaluation/output/snore_baseline_report.md`
+
+이 report에서 `finalSnoreEventCount`, `zeroEventCount`, `possibleFalsePositive`, `possibleFalseNegative`, `confidenceSummary`를 함께 봅니다.
 
 ## 3. 비교 항목
 
@@ -94,6 +152,21 @@ manifest에 `expectedLabels`가 있으면 도구가 간단한 mismatch 후보를
 - falsePositiveRisk
 
 중요: 이 파일은 코드에 자동 반영되지 않습니다. `DetectorThresholdConfiguration` 값은 개발자가 직접 검토한 뒤 별도 변경해야 합니다.
+
+## 5-1. 적용 판단 기록
+
+이번 판독에서는 threshold 변경을 적용하지 않았습니다.
+
+| 항목 | 판단 |
+| --- | --- |
+| zero-event 과다 여부 | 평가 record가 모두 missing file 실패라 판단 불가 |
+| raw candidate 대비 final event 부족 | 정상 분석 record가 없어 판단 불가 |
+| belowConfidenceThreshold reject 과다 | reject reason 없음 |
+| tooShort reject 과다 | reject reason 없음 |
+| environmentalNoise false-positive-like | 정상 quiet/noise 분석 record가 없어 판단 불가 |
+| snore expected missed case | snore label segment가 missing file 실패라 판단 불가 |
+
+보수적 적용 원칙상, false positive-like 위험을 추정할 수 없는 상태에서는 `balanced` threshold를 낮추지 않습니다.
 
 ## 6. 실제 iPhone 검증이 필요한 항목
 

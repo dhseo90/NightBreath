@@ -49,6 +49,32 @@ struct ZeroEventAnalysisTests {
     }
 
     @Test
+    func detectorTooConservativeAnalysisWorksAcrossDebugProfiles() throws {
+        for profile in DetectorTuningProfile.debugSelectableProfiles {
+            let configuration = profile.configuration
+            let diagnostics = makeDiagnostics(
+                rawCandidateCount: 0,
+                rejectedCountByReason: [.belowRmsThreshold: 80],
+                rmsValues: [
+                    configuration.snoreRmsThreshold * 0.81,
+                    configuration.snoreRmsThreshold * 0.84,
+                    configuration.snoreRmsThreshold * 0.86
+                ],
+                energyValues: [
+                    configuration.snoreEnergyThreshold * 0.81,
+                    configuration.snoreEnergyThreshold * 0.84,
+                    configuration.snoreEnergyThreshold * 0.86
+                ]
+            )
+
+            let analysis = try #require(
+                ZeroEventAnalysis.make(diagnostics: diagnostics, configuration: configuration)
+            )
+            #expect(analysis.probableReason == .detectorTooConservative)
+        }
+    }
+
+    @Test
     func detectsConfidenceRejects() throws {
         let diagnostics = makeDiagnostics(
             rawCandidateCount: 8,
