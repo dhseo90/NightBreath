@@ -286,10 +286,28 @@ public final class SleepEventFeedbackStore: @unchecked Sendable {
         readArchive().feedbackByEventID.values.sorted { $0.createdAt > $1.createdAt }
     }
 
+    public func feedback(forSession sessionId: UUID) -> [SleepEventFeedback] {
+        readArchive().feedbackByEventID.values
+            .filter { $0.sessionId == sessionId }
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
+    public func feedbackCount() -> Int {
+        readArchive().feedbackByEventID.count
+    }
+
     public func deleteFeedback(for eventIds: [UUID]) throws {
         try updateArchive { archive in
             for eventId in eventIds {
                 archive.feedbackByEventID.removeValue(forKey: eventId.uuidString)
+            }
+        }
+    }
+
+    public func deleteFeedback(forSession sessionId: UUID) throws {
+        try updateArchive { archive in
+            archive.feedbackByEventID = archive.feedbackByEventID.filter { _, feedback in
+                feedback.sessionId != sessionId
             }
         }
     }
@@ -354,7 +372,7 @@ public struct SleepEventFeedbackArchive: Codable, Equatable, Sendable {
     public var feedbackByEventID: [String: SleepEventFeedback]
 
     public init(
-        schemaVersion: Int = 1,
+        schemaVersion: Int = 2,
         feedbackByEventID: [String: SleepEventFeedback] = [:]
     ) {
         self.schemaVersion = schemaVersion

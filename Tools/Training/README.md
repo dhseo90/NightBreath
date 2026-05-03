@@ -41,9 +41,12 @@ Samples/Personal/metadata.json
 Samples/Personal/*.metadata.json
 Samples/Personal/*.features.csv
 Tools/OfflineEvaluation/sample_manifest.example.json 형식의 manifest
+Tools/Training/output/export_feedback_manifest.json
 ```
 
 manifest를 사용하는 경우 각 segment에 `features` 또는 `featureSummary` 블록을 넣는 것을 권장합니다. 실제 오디오 파일은 manifest의 `localFilePath`로만 참조하고 repo에는 넣지 않습니다. `duration`은 `features.duration`이 없으면 `segmentDurationSeconds`에서 읽습니다.
+
+사용자 feedback export manifest를 사용하는 경우 `selectedFeedback == unsure` record는 학습에서 제외합니다. `correct`는 현재 event label을 높은 신뢰도 label로 사용하고, `incorrect`는 `correctedLabel`이 있으면 수정 label로, 없으면 snore detector 기준의 negative/unknown 신호로 처리합니다. export 파일은 metadata와 local path reference만 포함하며 실제 오디오 파일을 포함하지 않습니다.
 
 `label == snore`는 positive class입니다.
 
@@ -96,11 +99,27 @@ python3 export_features.py --manifest ../OfflineEvaluation/sample_manifest.examp
 Tools/Training/output/snore_features.csv
 ```
 
+## Feedback manifest export
+
+앱 컨테이너에서 `sleep-event-feedback.json`을 로컬로 복사한 뒤 feedback metadata를 training manifest로 변환할 수 있습니다. 실제 오디오 파일은 복사하지 않고, `audioSampleId`/`localFilePath`는 로컬 참조만 남깁니다.
+
+```sh
+python3 export_feedback_manifest.py --feedback-store /path/to/sleep-event-feedback.json --output-dir output
+```
+
+기본 출력:
+
+```text
+Tools/Training/output/export_feedback_manifest.json
+Tools/Training/output/export_feedback_manifest.csv
+```
+
 ## 학습
 
 ```sh
 python3 train_snore_detector.py
 python3 train_snore_detector.py --manifest ../OfflineEvaluation/sample_manifest.example.json
+python3 train_snore_detector.py --manifest output/export_feedback_manifest.json
 ```
 
 기본 출력:

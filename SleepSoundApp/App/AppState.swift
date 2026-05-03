@@ -55,6 +55,8 @@ final class AppState: ObservableObject {
     @Published private(set) var isEventAudioSampleStorageEnabled: Bool
     @Published private(set) var eventAudioStorageStats = EventAudioStorageStats.empty
     @Published var eventAudioStorageMessage: String?
+    @Published private(set) var eventFeedbackCount = 0
+    @Published var eventFeedbackMessage: String?
     @Published var latestDetectorDiagnostics: DetectorDiagnostics?
     @Published private(set) var detectorTuningProfile: DetectorTuningProfile
     #if DEBUG
@@ -66,6 +68,7 @@ final class AppState: ObservableObject {
     private let audioCaptureService: AudioCaptureServiceProtocol
     private var sleepAnalyzer: SleepAnalyzer
     private let eventAudioSnippetStore: EventAudioSnippetStore
+    private let eventFeedbackStore: SleepEventFeedbackStore
     private let userSettings: UserSettingsProviding
     private let detectorDiagnosticsCollector = DetectorDiagnosticsCollector()
     private var recentAudioBuffer = AudioRingBuffer(maxChunkCount: 180, maxDuration: 180)
@@ -85,6 +88,7 @@ final class AppState: ObservableObject {
         audioCaptureService: AudioCaptureServiceProtocol? = nil,
         sleepAnalyzer: SleepAnalyzer? = nil,
         eventAudioSnippetStore: EventAudioSnippetStore = EventAudioSnippetStore(),
+        eventFeedbackStore: SleepEventFeedbackStore = SleepEventFeedbackStore(),
         userSettings: UserSettingsProviding = UserSettings(),
         detectorTuningProfile: DetectorTuningProfile = .releaseDefault
     ) {
@@ -103,6 +107,7 @@ final class AppState: ObservableObject {
         self.audioCaptureService = audioCaptureService ?? AudioCaptureService(sessionManager: audioSessionManager)
         self.sleepAnalyzer = sleepAnalyzer ?? detectorTuningProfile.configuration.makeSleepAnalyzer()
         self.eventAudioSnippetStore = eventAudioSnippetStore
+        self.eventFeedbackStore = eventFeedbackStore
         self.userSettings = userSettings
         self.detectorTuningProfile = detectorTuningProfile
         self.latestSession = initialSession
@@ -114,6 +119,7 @@ final class AppState: ObservableObject {
         self.microphonePermissionState = audioSessionManager.microphonePermissionState()
         self.isEventAudioSampleStorageEnabled = userSettings.isEventAudioSampleStorageEnabled
         self.latestDetectorDiagnostics = initialReport.detectorDiagnostics
+        self.eventFeedbackCount = eventFeedbackStore.feedbackCount()
         refreshEventAudioStorageStats()
 
         self.audioCaptureService.onChunk = { [weak self] chunk in
@@ -346,18 +352,26 @@ final class AppState: ObservableObject {
         for fileName in events.compactMap(\.audioSnippetFileName) {
             try? eventAudioSnippetStore.deleteSnippet(fileName: fileName)
         }
-        try? SleepEventFeedbackStore().deleteFeedback(for: eventIds)
+        try? eventFeedbackStore.deleteFeedback(for: eventIds)
         repository.deleteSession(id: id)
         loadLatestStoredReportOrSample(message: "선택한 수면 데이터가 삭제되었습니다.")
+        refreshEventFeedbackCount()
         refreshEventAudioStorageStats()
     }
 
     func deleteAllSleepData() {
         repository.deleteAllSleepData()
-        try? SleepEventFeedbackStore().deleteAllFeedback()
+        try? eventFeedbackStore.deleteAllFeedback()
         try? eventAudioSnippetStore.deleteAllSnippets()
         loadLatestStoredReportOrSample(message: "로컬 수면 데이터가 모두 삭제되었습니다.")
+        refreshEventFeedbackCount()
         refreshEventAudioStorageStats()
+    }
+
+    func deleteAllEventFeedback() {
+        try? eventFeedbackStore.deleteAllFeedback()
+        refreshEventFeedbackCount()
+        eventFeedbackMessage = "이벤트 피드백을 모두 삭제했습니다. 수면 리포트와 이벤트 오디오 샘플은 유지됩니다."
     }
 
     func deleteAllEventAudioSnippets() {
@@ -415,6 +429,10 @@ final class AppState: ObservableObject {
         }
         #endif
         eventAudioStorageStats = eventAudioSnippetStore.storageStats(linkedFileNames: linkedAudioSnippetFileNames())
+    }
+
+    func refreshEventFeedbackCount() {
+        eventFeedbackCount = eventFeedbackStore.feedbackCount()
     }
 
     func cleanupOrphanEventAudioSamples() {

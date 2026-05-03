@@ -61,6 +61,8 @@ class SampleRecord:
     source_path: str
     notes: str = ""
     captured_at: str = ""
+    label_confidence: float = 1.0
+    training_action: str = ""
 
     @property
     def display_name(self) -> str:
@@ -283,6 +285,9 @@ def _load_manifest_file(path: Path) -> list[SampleRecord]:
 
     if isinstance(data, dict):
         dataset_name = str(data.get("datasetName") or path.stem)
+        feedback_rows = _feedback_rows(data)
+        if feedback_rows is not None:
+            return _load_feedback_manifest_records(feedback_rows, source_path=path)
         segments = data.get("segments") if isinstance(data.get("segments"), list) else []
     elif isinstance(data, list):
         dataset_name = path.stem
@@ -301,6 +306,26 @@ def _load_manifest_file(path: Path) -> list[SampleRecord]:
             source_path=path,
             row_index=row_index,
         )
+        if record is not None:
+            records.append(record)
+    return records
+
+
+def _feedback_rows(data: dict[str, Any]) -> list[dict[str, Any]] | None:
+    for key in ("records", "feedback", "items"):
+        value = data.get(key)
+        if not isinstance(value, list):
+            continue
+        rows = [row for row in value if isinstance(row, dict)]
+        if any("selectedFeedback" in row and "eventType" in row for row in rows):
+            return rows
+    return None
+
+
+def _load_feedback_manifest_records(rows: list[dict[str, Any]], source_path: Path) -> list[SampleRecord]:
+    records: list[SampleRecord] = []
+    for row_index, row in enumerate(rows):
+        record = _parse_feedback_manifest_record(row, source_path=source_path, row_index=row_index)
         if record is not None:
             records.append(record)
     return records
@@ -421,6 +446,63 @@ def _parse_manifest_segment(
         source_path=str(source_path),
         notes=notes,
         captured_at=str(segment.get("capturedAt") or ""),
+        label_confidence=_clamped_confidence(segment.get("labelConfidence"), default=1.0),
+        training_action=str(segment.get("trainingAction") or ""),
+    )
+
+
+def _parse_feedback_manifest_record(
+    row: dict[str, Any],
+    source_path: Path,
+    row_index: int,
+) -> SampleRecord | None:
+    label = _feedback_target_label(row)
+    if label is None:
+        return None
+
+    target = target_for_label(label)
+    if target is None:
+        return None
+
+    features_block = _manifest_features_block(row)
+    features = {
+        column: _feature_value(row, features_block, column)
+        for column in FEATURE_COLUMNS
+    }
+    if "duration" in features and features["duration"] <= 0:
+        features["duration"] = _finite_feature(row.get("segmentDurationSeconds"))
+
+    sample_id = str(
+        _first_value(row, features_block, "fileId", "feedbackId", "eventId", "sampleId", "id")
+        or f"{source_path.stem}-{row_index}"
+    )
+    audio_name = str(
+        _first_value(row, features_block, "localFilePath", "audioSamplePath", *_audio_path_keys()) or ""
+    )
+    audio_path = _resolve_audio_path(audio_name, source_path.parent)
+    selected_feedback = str(row.get("selectedFeedback") or "")
+    training_action = str(row.get("trainingAction") or _feedback_training_action(row))
+    notes = "; ".join(
+        value
+        for value in [
+            str(row.get("notes") or ""),
+            f"feedback={selected_feedback}" if selected_feedback else "",
+            f"trainingAction={training_action}" if training_action else "",
+        ]
+        if value
+    )
+
+    return SampleRecord(
+        sample_id=sample_id,
+        label=label,
+        target=target,
+        features=features,
+        audio_path=audio_path,
+        source_path=str(source_path),
+        notes=notes,
+        captured_at=str(row.get("createdAt") or ""),
+        label_confidence=_clamped_confidence(row.get("labelConfidence"), default=_feedback_default_confidence(row)),
+        training_action=training_action,
     )
 
 
@@ -449,6 +531,62 @@ def _manifest_target_label(segment: dict[str, Any]) -> str | None:
         if label in NEGATIVE_LABELS:
             return label
     return None
+
+
+def _feedback_target_label(row: dict[str, Any]) -> str | None:
+    selected = str(row.get("selectedFeedback") or "").strip()
+    if selected == "unsure":
+        return None
+
+    corrected = str(row.get("correctedLabel") or "").strip()
+    event_type = str(row.get("eventType") or "").strip()
+
+    if selected == "correct":
+        if target_for_label(event_type) is not None:
+            return event_type
+        return _first_targetable_expected_label(row)
+
+    if selected == "incorrect":
+        if target_for_label(corrected) is not None:
+            return corrected
+        if event_type == POSITIVE_LABEL:
+            return "unknown"
+        return _first_targetable_expected_label(row) or "unknown"
+
+    return _first_targetable_expected_label(row)
+
+
+def _first_targetable_expected_label(row: dict[str, Any]) -> str | None:
+    labels = row.get("expectedLabels")
+    if not isinstance(labels, list):
+        return None
+    for label in labels:
+        normalized = str(label).strip()
+        if target_for_label(normalized) is not None:
+            return normalized
+    return None
+
+
+def _feedback_training_action(row: dict[str, Any]) -> str:
+    selected = str(row.get("selectedFeedback") or "").strip()
+    if selected == "correct":
+        return "positive" if str(row.get("eventType") or "") == POSITIVE_LABEL else "negative"
+    if selected == "incorrect" and str(row.get("correctedLabel") or "").strip():
+        return "correctedLabel"
+    if selected == "incorrect":
+        return "negative"
+    return "excludedUnsure"
+
+
+def _feedback_default_confidence(row: dict[str, Any]) -> float:
+    selected = str(row.get("selectedFeedback") or "").strip()
+    if selected == "correct":
+        return 1.0
+    if selected == "incorrect" and str(row.get("correctedLabel") or "").strip():
+        return 0.9
+    if selected == "incorrect":
+        return 0.8
+    return 0.2
 
 
 def _feature_value(row: dict[str, Any], features_block: dict[str, Any], column: str) -> float:
@@ -485,6 +623,16 @@ def _finite_feature(value: Any) -> float:
     if not math.isfinite(result):
         return 0.0
     return result
+
+
+def _clamped_confidence(value: Any, default: float) -> float:
+    if value in (None, ""):
+        result = default
+    else:
+        result = safe_float(value)
+    if not math.isfinite(result):
+        result = default
+    return max(0.0, min(1.0, result))
 
 
 def _resolve_audio_path(audio_name: str, root: Path) -> str:

@@ -41,8 +41,12 @@ struct SleepTimelineView: View {
                 hasSnippet: feedbackViewModel.hasSnippet(for: event),
                 snippetDuration: event.audioSnippetDuration,
                 isEventAudioSampleStorageEnabled: appState.isEventAudioSampleStorageEnabled
-              ) { selection in
-                feedbackViewModel.saveFeedback(for: event, selection: selection)
+              ) { selection, correctedLabel in
+                feedbackViewModel.saveFeedback(
+                  for: event,
+                  selection: selection,
+                  correctedLabel: correctedLabel
+                )
               } onPlaySnippet: {
                 feedbackViewModel.playSnippet(for: event)
               } onDeleteSnippet: {
@@ -114,7 +118,7 @@ private struct EventRow: View {
   let hasSnippet: Bool
   let snippetDuration: TimeInterval?
   let isEventAudioSampleStorageEnabled: Bool
-  let onFeedback: (SleepEventFeedbackSelection) -> Void
+  let onFeedback: (SleepEventFeedbackSelection, EventFeedbackCorrectedLabel?) -> Void
   let onPlaySnippet: () -> Void
   let onDeleteSnippet: () -> Void
 
@@ -129,9 +133,7 @@ private struct EventRow: View {
       systemImage: event.type.symbolName,
       tint: event.type.tintColor
     ) {
-      if event.type == .bruxismLike {
-        bruxismFeedbackSection
-      }
+      feedbackSection
 
       if hasSnippet {
         audioSnippetSection
@@ -150,29 +152,56 @@ private struct EventRow: View {
     }
   }
 
-  private var bruxismFeedbackSection: some View {
+  private var feedbackSection: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text("사용자 확인 필요")
+      Text("이벤트 피드백")
         .font(.caption.weight(.semibold))
-        .foregroundStyle(NBColor.warning)
-      Text("침구 마찰음이나 주변 소음과 구분이 어려울 수 있습니다. 정확한 진단은 전문가 상담이 필요합니다.")
+        .foregroundStyle(event.type.tintColor)
+      Text("이 소리 이벤트가 맞았는지 로컬에만 기록합니다. 오디오 샘플이 없어도 피드백을 남길 수 있습니다.")
         .font(.caption)
         .foregroundStyle(.secondary)
 
       HStack(spacing: 8) {
         ForEach(SleepEventFeedbackSelection.allCases) { selection in
           Button {
-            onFeedback(selection)
+            onFeedback(selection, selection == .incorrect ? feedback?.correctedLabel : nil)
           } label: {
             Text(selection.displayName)
               .font(.caption.weight(.semibold))
               .frame(maxWidth: .infinity)
           }
           .buttonStyle(.bordered)
-          .tint(feedback?.selectedFeedback == selection ? NBColor.warning : .secondary)
+          .tint(feedback?.selectedFeedback == selection ? event.type.tintColor : .secondary)
         }
       }
+
+      Menu {
+        ForEach(EventFeedbackCorrectedLabel.allCases) { correctedLabel in
+          Button(correctedLabel.displayName) {
+            onFeedback(.incorrect, correctedLabel)
+          }
+        }
+      } label: {
+        Label(
+          feedbackCorrectionTitle,
+          systemImage: "tag"
+        )
+        .font(.caption.weight(.semibold))
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+      .buttonStyle(.bordered)
+      .tint(feedback?.correctedLabel == nil ? .secondary : event.type.tintColor)
     }
+    .padding(12)
+    .background(NBColor.elevatedSurface)
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+  }
+
+  private var feedbackCorrectionTitle: String {
+    if let correctedLabel = feedback?.correctedLabel {
+      return "다른 이벤트로 수정: \(correctedLabel.displayName)"
+    }
+    return "다른 이벤트로 수정"
   }
 
   private var audioSnippetSection: some View {
@@ -253,11 +282,23 @@ private final class SleepEventFeedbackViewModel: ObservableObject {
     feedbackByEventID[eventId]
   }
 
-  func saveFeedback(for event: SleepEvent, selection: SleepEventFeedbackSelection) {
+  func saveFeedback(
+    for event: SleepEvent,
+    selection: SleepEventFeedbackSelection,
+    correctedLabel: EventFeedbackCorrectedLabel? = nil
+  ) {
+    let existingFeedback = feedbackByEventID[event.id]
+    let audioSampleId = event.audioSnippetFileName
     let feedback = SleepEventFeedback(
+      id: existingFeedback?.id ?? UUID(),
       eventId: event.id,
+      sessionId: event.sessionId,
+      eventType: event.type,
       selectedFeedback: selection,
-      note: event.type == .bruxismLike ? "bruxismLike timeline feedback" : nil
+      correctedLabel: selection == .incorrect ? correctedLabel : nil,
+      note: "timeline event feedback",
+      hasAudioSample: audioSampleId.map { snippetStore.snippetExists(fileName: $0) } ?? false,
+      audioSampleId: audioSampleId
     )
 
     feedbackByEventID[event.id] = feedback

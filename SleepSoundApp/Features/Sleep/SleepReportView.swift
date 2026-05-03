@@ -344,6 +344,15 @@ struct SleepReportView: View {
           color: .red
         )
       }
+
+      if !events.isEmpty {
+        NavigationLink {
+          SleepTimelineView(report: report, events: events)
+        } label: {
+          Label("이벤트별 피드백 남기기", systemImage: "checkmark.bubble")
+        }
+        .buttonStyle(.nbSecondary)
+      }
     }
   }
 
@@ -378,7 +387,7 @@ struct SleepReportView: View {
         NavigationLink {
           SleepTimelineView(report: report, events: events)
         } label: {
-          Label("타임라인 전체 보기", systemImage: "arrow.right")
+          Label("타임라인 및 피드백 보기", systemImage: "arrow.right")
         }
         .buttonStyle(.nbSecondary)
       }

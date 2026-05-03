@@ -85,18 +85,18 @@ public struct SleepEvent: Identifiable, Codable, Equatable {
     }
 }
 
-public enum SleepEventFeedbackSelection: String, Codable, CaseIterable, Identifiable, Sendable {
-    case soundsLikeBruxism
-    case notBruxism
+public enum EventFeedbackSelection: String, CaseIterable, Identifiable, Sendable {
+    case correct
+    case incorrect
     case unsure
 
     public var id: String { rawValue }
 
     public var displayName: String {
         switch self {
-        case .soundsLikeBruxism:
-            "이갈이 소리 같음"
-        case .notBruxism:
+        case .correct:
+            "맞음"
+        case .incorrect:
             "아님"
         case .unsure:
             "모르겠음"
@@ -104,24 +104,153 @@ public enum SleepEventFeedbackSelection: String, Codable, CaseIterable, Identifi
     }
 }
 
-public struct SleepEventFeedback: Identifiable, Codable, Equatable, Sendable {
+extension EventFeedbackSelection: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        switch rawValue {
+        case Self.correct.rawValue, "soundsLikeBruxism":
+            self = .correct
+        case Self.incorrect.rawValue, "notBruxism":
+            self = .incorrect
+        case Self.unsure.rawValue:
+            self = .unsure
+        default:
+            self = .unsure
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+}
+
+public typealias SleepEventFeedbackSelection = EventFeedbackSelection
+
+public enum EventFeedbackCorrectedLabel: String, Codable, CaseIterable, Identifiable, Sendable {
+    case snore
+    case bruxismLike
+    case breathingPauseSuspected
+    case gaspLike
+    case coughLike
+    case sleepTalkLike
+    case movementLike
+    case environmentalNoise
+    case unknown
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .snore:
+            SleepEventType.snore.displayName
+        case .bruxismLike:
+            SleepEventType.bruxismLike.displayName
+        case .breathingPauseSuspected:
+            SleepEventType.breathingPauseSuspected.displayName
+        case .gaspLike:
+            SleepEventType.gaspLike.displayName
+        case .coughLike:
+            SleepEventType.coughLike.displayName
+        case .sleepTalkLike:
+            SleepEventType.sleepTalkLike.displayName
+        case .movementLike:
+            SleepEventType.movementLike.displayName
+        case .environmentalNoise:
+            SleepEventType.environmentalNoise.displayName
+        case .unknown:
+            SleepEventType.unknown.displayName
+        }
+    }
+
+    public var sleepEventType: SleepEventType {
+        SleepEventType(rawValue: rawValue) ?? .unknown
+    }
+}
+
+public struct EventFeedback: Identifiable, Codable, Equatable, Sendable {
+    public static let unknownSessionId = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+
     public var id: UUID
     public var eventId: UUID
-    public var selectedFeedback: SleepEventFeedbackSelection
+    public var sessionId: UUID
+    public var eventType: SleepEventType
+    public var selectedFeedback: EventFeedbackSelection
+    public var correctedLabel: EventFeedbackCorrectedLabel?
     public var createdAt: Date
     public var note: String?
+    public var hasAudioSample: Bool
+    public var audioSampleId: String?
 
     public init(
         id: UUID = UUID(),
         eventId: UUID,
-        selectedFeedback: SleepEventFeedbackSelection,
+        sessionId: UUID,
+        eventType: SleepEventType,
+        selectedFeedback: EventFeedbackSelection,
+        correctedLabel: EventFeedbackCorrectedLabel? = nil,
         createdAt: Date = Date(),
-        note: String? = nil
+        note: String? = nil,
+        hasAudioSample: Bool = false,
+        audioSampleId: String? = nil
     ) {
         self.id = id
         self.eventId = eventId
+        self.sessionId = sessionId
+        self.eventType = eventType
         self.selectedFeedback = selectedFeedback
+        self.correctedLabel = correctedLabel
         self.createdAt = createdAt
         self.note = note
+        self.hasAudioSample = hasAudioSample
+        self.audioSampleId = audioSampleId?.isEmpty == false ? audioSampleId : nil
+    }
+
+    public init(
+        id: UUID = UUID(),
+        eventId: UUID,
+        selectedFeedback: EventFeedbackSelection,
+        createdAt: Date = Date(),
+        note: String? = nil
+    ) {
+        self.init(
+            id: id,
+            eventId: eventId,
+            sessionId: Self.unknownSessionId,
+            eventType: .unknown,
+            selectedFeedback: selectedFeedback,
+            createdAt: createdAt,
+            note: note
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case eventId
+        case sessionId
+        case eventType
+        case selectedFeedback
+        case correctedLabel
+        case createdAt
+        case note
+        case hasAudioSample
+        case audioSampleId
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        eventId = try container.decode(UUID.self, forKey: .eventId)
+        sessionId = try container.decodeIfPresent(UUID.self, forKey: .sessionId) ?? Self.unknownSessionId
+        eventType = try container.decodeIfPresent(SleepEventType.self, forKey: .eventType) ?? .unknown
+        selectedFeedback = try container.decodeIfPresent(EventFeedbackSelection.self, forKey: .selectedFeedback) ?? .unsure
+        correctedLabel = try container.decodeIfPresent(EventFeedbackCorrectedLabel.self, forKey: .correctedLabel)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        note = try container.decodeIfPresent(String.self, forKey: .note)
+        hasAudioSample = try container.decodeIfPresent(Bool.self, forKey: .hasAudioSample) ?? false
+        audioSampleId = try container.decodeIfPresent(String.self, forKey: .audioSampleId)
     }
 }
+
+public typealias SleepEventFeedback = EventFeedback

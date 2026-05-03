@@ -93,6 +93,69 @@ class DatasetLoaderTests(unittest.TestCase):
             self.assertEqual(x[0][-1], 2)
             self.assertEqual(x[1][-1], 3)
 
+    def test_loads_feedback_manifest_and_skips_unsure(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest = root / "export_feedback_manifest.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "datasetName": "feedback-export",
+                        "records": [
+                            {
+                                "feedbackId": "feedback-1",
+                                "fileId": "event-snore",
+                                "eventId": "event-1",
+                                "sessionId": "session-1",
+                                "eventType": "snore",
+                                "selectedFeedback": "correct",
+                                "expectedLabels": ["snore"],
+                                "labelConfidence": 1.0,
+                                "trainingAction": "positive",
+                                "localFilePath": "event-snore.caf",
+                                "segmentDurationSeconds": 3,
+                            },
+                            {
+                                "feedbackId": "feedback-2",
+                                "fileId": "event-noise",
+                                "eventId": "event-2",
+                                "sessionId": "session-1",
+                                "eventType": "snore",
+                                "selectedFeedback": "incorrect",
+                                "correctedLabel": "environmentalNoise",
+                                "expectedLabels": ["environmentalNoise"],
+                                "negativeLabels": ["snore"],
+                                "labelConfidence": 0.9,
+                                "trainingAction": "correctedLabel",
+                                "localFilePath": "",
+                                "segmentDurationSeconds": 2,
+                            },
+                            {
+                                "feedbackId": "feedback-3",
+                                "fileId": "event-unsure",
+                                "eventId": "event-3",
+                                "sessionId": "session-1",
+                                "eventType": "snore",
+                                "selectedFeedback": "unsure",
+                                "trainingAction": "excludedUnsure",
+                                "segmentDurationSeconds": 2,
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            records = load_samples(manifest_path=manifest)
+            _, y, _ = build_feature_matrix(records)
+
+            self.assertEqual(len(records), 2)
+            self.assertEqual(y, [1, 0])
+            self.assertEqual(records[0].label_confidence, 1.0)
+            self.assertEqual(records[1].label, "environmentalNoise")
+            self.assertEqual(records[1].training_action, "correctedLabel")
+            self.assertIn("feedback=incorrect", records[1].notes)
+
     def test_empty_folder_raises_friendly_error(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             with self.assertRaises(NoSamplesFound) as context:

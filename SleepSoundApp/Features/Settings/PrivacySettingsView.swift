@@ -7,6 +7,7 @@ struct PrivacySettingsView: View {
   @State private var showDeleteAllConfirmation = false
   @State private var showDeleteLatestConfirmation = false
   @State private var showDeleteEventAudioConfirmation = false
+  @State private var showDeleteEventFeedbackConfirmation = false
   @State private var showCleanupOrphanConfirmation = false
 
   var body: some View {
@@ -128,6 +129,31 @@ struct PrivacySettingsView: View {
           .foregroundStyle(.secondary)
       }
 
+      Section("이벤트 피드백 관리") {
+        PrivacyStorageStatRow(
+          title: "저장된 피드백",
+          value: "\(appState.eventFeedbackCount)개",
+          systemImage: "checkmark.bubble"
+        )
+
+        if let message = appState.eventFeedbackMessage {
+          Text(message)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+
+        Button(role: .destructive) {
+          showDeleteEventFeedbackConfirmation = true
+        } label: {
+          Label("이벤트 피드백 삭제", systemImage: "bubble.left.and.exclamationmark.bubble.right")
+        }
+        .disabled(appState.eventFeedbackCount == 0)
+
+        Text("피드백은 이벤트별 맞음/아님/모르겠음 선택과 수정 label만 로컬 metadata로 저장합니다. 이벤트 오디오 샘플 삭제와 별도로 관리됩니다.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+
       Section("Detector 진단 요약") {
         if let diagnostics = appState.latestDetectorDiagnostics {
           PrivacyStorageStatRow(
@@ -226,6 +252,7 @@ struct PrivacySettingsView: View {
     .background(NBColor.pageBackground)
     .onAppear {
       appState.refreshEventAudioStorageStats()
+      appState.refreshEventFeedbackCount()
     }
     .confirmationDialog(
       "최근 수면 데이터를 삭제할까요?", isPresented: $showDeleteLatestConfirmation, titleVisibility: .visible
@@ -250,6 +277,16 @@ struct PrivacySettingsView: View {
       }
     } message: {
       Text("짧게 저장된 이벤트 전후 오디오만 삭제합니다. 수면 세션과 리포트 요약은 유지됩니다.")
+    }
+    .confirmationDialog(
+      "저장된 이벤트 피드백을 삭제할까요?", isPresented: $showDeleteEventFeedbackConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("이벤트 피드백 삭제", role: .destructive) {
+        appState.deleteAllEventFeedback()
+      }
+    } message: {
+      Text("이벤트별 맞음/아님/모르겠음 metadata만 삭제합니다. 이벤트 오디오 샘플과 수면 리포트는 유지됩니다.")
     }
     .confirmationDialog(
       "연결되지 않은 샘플을 정리할까요?", isPresented: $showCleanupOrphanConfirmation, titleVisibility: .visible
