@@ -93,6 +93,7 @@
 - README 대표 mock/simulator screenshot 8개
 - README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
+- 실제 iPhone QA runbook과 기록 템플릿
 
 ## 현재 개발 전략
 

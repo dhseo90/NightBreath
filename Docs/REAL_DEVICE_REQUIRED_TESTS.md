@@ -71,6 +71,8 @@ xcodebuild \
 
 자세한 background/lock 절차는 `Docs/BACKGROUND_RECORDING_QA.md`를 참고합니다.
 
+실제 iPhone smoke test, HealthKit read-only permission flow, Fitdays CSV import, 이벤트 오디오 샘플 opt-in을 한 번에 검증할 때는 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 사용합니다. 이 runbook은 실제 개인 건강 데이터나 실제 CSV 파일명을 repository에 남기지 않는 기록 방식도 함께 정의합니다.
+
 ## Dataset Replay로 대체할 수 없는 이유
 
 Simulator와 로컬 파일은 마이크 하드웨어, iOS background audio 정책, 기기 발열, 사용자의 방 환경을 그대로 반영하지 않습니다. 따라서 replay 결과가 좋아도 실제 overnight 테스트는 별도로 진행해야 합니다.

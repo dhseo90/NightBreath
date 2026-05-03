@@ -14,6 +14,8 @@ README screenshot과 `Docs/UI_GALLERY.md`는 mock data와 simulator scenario 기
 
 README/UI Gallery의 문서용 screenshot은 실제 iPhone QA screenshot, 실제 개인 건강 데이터, 실제 오디오 샘플과 혼동하지 않습니다.
 
+실제 iPhone에서 smoke test와 HealthKit/Fitdays import 흐름을 순서대로 실행할 때는 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 함께 사용합니다.
+
 ## 1. 빌드와 테스트
 
 - [ ] Xcode에서 `SleepSoundApp.xcodeproj`가 열린다.

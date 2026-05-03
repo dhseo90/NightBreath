@@ -89,6 +89,6 @@
 
 ## 추가 추천
 
-- 20개 제한이 없다면 `Docs/TESTING.md`, `Docs/SIMULATOR_QA.md`, `Docs/APP_STORE_READINESS.md`, `Docs/REAL_DEVICE_REQUIRED_TESTS.md`를 함께 올립니다.
+- 20개 제한이 없다면 `Docs/TESTING.md`, `Docs/SIMULATOR_QA.md`, `Docs/APP_STORE_READINESS.md`, `Docs/REAL_DEVICE_REQUIRED_TESTS.md`, `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 함께 올립니다.
 - screenshot 품질 리뷰라면 `Docs/Screenshots/README/cropped/`의 대표 PNG와 `Docs/Screenshots/Health/cropped/`의 EHM PNG를 함께 올립니다.
 - privacy/storage 리뷰라면 `Tests/PrivacyCopySafetyTests.swift`와 `Tests/HealthKitReadOnlyPolicyTests.swift`도 함께 검토합니다.

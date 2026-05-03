@@ -92,6 +92,8 @@
 
 `QA_CHECKLIST.md`는 일상 개발 중 매번 실행하는 체크리스트가 아니라 release/TestFlight 전 실제 iPhone manual QA 문서로 유지합니다.
 
+실제 실행 순서와 민감정보 없는 기록 템플릿은 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 기준으로 합니다. 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 repository에 기록하지 않습니다.
+
 ## Detector / ML
 
 - 공개 또는 로컬 데이터셋 manifest 작성
