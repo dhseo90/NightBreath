@@ -112,6 +112,15 @@ Core/Design 컴포넌트:
 
 기존 화면에서 이미 쓰는 `NBPrimaryButtonStyle`, `NBSecondaryButtonStyle`, `NBStatusBadge(_:, systemImage:, tint:)`, `NBMetricCard(title:value:systemImage:tint:footnote:)` 호출은 계속 사용할 수 있습니다.
 
+## Layout Safety
+
+주요 화면은 문서 screenshot과 실제 iPhone 사용 흐름에서 하단 floating tab bar 또는 safe area에 핵심 content가 가려지지 않도록 설계합니다.
+
+- `ScrollView` 기반 화면은 마지막 카드, CTA, summary row 아래에 충분한 bottom padding을 둡니다.
+- 하단 floating tab bar가 있는 화면은 tab bar 높이와 safe area를 고려해 content inset 또는 bottom spacer를 유지합니다.
+- screenshot 후보 화면은 홈, 수면 시작, 수면 리포트, 이벤트 타임라인, Daily Rhythm, Health Dashboard, Metric Detail, Fitdays import에서 마지막 주요 카드가 잘리지 않는지 확인합니다.
+- padding은 화면별 임시 숫자보다 기존 spacing token과 공통 container modifier를 우선 사용합니다.
+
 ## Metric Card
 
 `NBMetricCard`는 다음 정보를 표시할 수 있습니다.
@@ -411,6 +420,9 @@ Screenshot 문서 구조는 `Docs/UI_GALLERY.md`와 `Docs/Screenshots/`를 기�
 - 모든 화면, edge state, DEBUG-only 화면의 상세 설명은 `Docs/UI_GALLERY.md`에 둡니다.
 - 실제 screenshot 파일이 없으면 image markdown을 만들지 않고 `screenshot pending`으로 표시합니다.
 - README 대표 screenshot 8개는 `Docs/Screenshots/README/`에서 관리하고, 상세 화면은 `Docs/UI_GALLERY.md`의 path/pending 상태를 기준으로 추적합니다.
+- README 본문은 `Docs/Screenshots/README/cropped/`의 crop 이미지를 사용하고, HTML `img` width는 240-280px 범위로 제한합니다.
+- crop은 status bar, 시간, Dynamic Island 영역만 제거하며 화면 title과 첫 주요 card는 자르지 않습니다.
+- EHM 상세 화면은 `Docs/Screenshots/Health/` 원본을 보존하고, UI Gallery에는 `Docs/Screenshots/Health/cropped/` 버전을 우선 연결합니다.
 - screenshot은 mock data 또는 simulator scenario 기반으로만 생성합니다.
 - 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
 - 외부 자산, 타사 앱 screenshot, 타사 로고, 타사 앱 아이콘을 추가하지 않습니다.
