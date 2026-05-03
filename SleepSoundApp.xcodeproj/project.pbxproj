@@ -89,6 +89,14 @@
 		000000000000000000000263 /* BodyCompositionDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000187 /* BodyCompositionDashboardView.swift */; };
 		000000000000000000000264 /* CrossMetricAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000189 /* CrossMetricAnalysis.swift */; };
 		000000000000000000000265 /* CrossMetricDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000018A /* CrossMetricDashboardView.swift */; };
+		000000000000000000000266 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000018D /* Assets.xcassets */; };
+		000000000000000000000267 /* NBAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000018E /* NBAnimation.swift */; };
+		000000000000000000000268 /* NBReportSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000018F /* NBReportSection.swift */; };
+		000000000000000000000269 /* NBPrivacyNoticeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000190 /* NBPrivacyNoticeCard.swift */; };
+		00000000000000000000026A /* NBDiagnosticCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000191 /* NBDiagnosticCard.swift */; };
+		00000000000000000000026B /* NBEmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000192 /* NBEmptyStateView.swift */; };
+		00000000000000000000026C /* NBLoadingStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000193 /* NBLoadingStateView.swift */; };
+		00000000000000000000026D /* NBIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000194 /* NBIcon.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -250,6 +258,14 @@
 		00000000000000000000018A /* CrossMetricDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossMetricDashboardView.swift; sourceTree = "<group>"; };
 		00000000000000000000018B /* CrossMetricAnalysisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossMetricAnalysisTests.swift; sourceTree = "<group>"; };
 		00000000000000000000018C /* AppStoreReadinessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReadinessTests.swift; sourceTree = "<group>"; };
+		00000000000000000000018D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		00000000000000000000018E /* NBAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBAnimation.swift; sourceTree = "<group>"; };
+		00000000000000000000018F /* NBReportSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBReportSection.swift; sourceTree = "<group>"; };
+		000000000000000000000190 /* NBPrivacyNoticeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBPrivacyNoticeCard.swift; sourceTree = "<group>"; };
+		000000000000000000000191 /* NBDiagnosticCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBDiagnosticCard.swift; sourceTree = "<group>"; };
+		000000000000000000000192 /* NBEmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBEmptyStateView.swift; sourceTree = "<group>"; };
+		000000000000000000000193 /* NBLoadingStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBLoadingStateView.swift; sourceTree = "<group>"; };
+		000000000000000000000194 /* NBIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIcon.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -299,6 +315,7 @@
 				000000000000000000000102 /* Formatting.swift */,
 				00000000000000000000014B /* Info.plist */,
 				000000000000000000000181 /* SleepSoundApp.entitlements */,
+				00000000000000000000018D /* Assets.xcassets */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -493,12 +510,19 @@
 				00000000000000000000015B /* NBTypography.swift */,
 				00000000000000000000015C /* NBCornerRadius.swift */,
 				00000000000000000000015D /* NBShadow.swift */,
+				00000000000000000000018E /* NBAnimation.swift */,
 				00000000000000000000015E /* NBCard.swift */,
 				00000000000000000000015F /* NBButton.swift */,
 				000000000000000000000160 /* NBBadge.swift */,
 				000000000000000000000161 /* NBListRow.swift */,
 				000000000000000000000162 /* NBMetricCard.swift */,
+				00000000000000000000018F /* NBReportSection.swift */,
 				000000000000000000000163 /* NBTimelineRow.swift */,
+				000000000000000000000190 /* NBPrivacyNoticeCard.swift */,
+				000000000000000000000191 /* NBDiagnosticCard.swift */,
+				000000000000000000000192 /* NBEmptyStateView.swift */,
+				000000000000000000000193 /* NBLoadingStateView.swift */,
+				000000000000000000000194 /* NBIcon.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -607,6 +631,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000266 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,12 +709,19 @@
 				000000000000000000000242 /* NBTypography.swift in Sources */,
 				000000000000000000000243 /* NBCornerRadius.swift in Sources */,
 				000000000000000000000244 /* NBShadow.swift in Sources */,
+				000000000000000000000267 /* NBAnimation.swift in Sources */,
 				000000000000000000000245 /* NBCard.swift in Sources */,
 				000000000000000000000246 /* NBButton.swift in Sources */,
 				000000000000000000000247 /* NBBadge.swift in Sources */,
 				000000000000000000000248 /* NBListRow.swift in Sources */,
 				000000000000000000000249 /* NBMetricCard.swift in Sources */,
+				000000000000000000000268 /* NBReportSection.swift in Sources */,
 				00000000000000000000024A /* NBTimelineRow.swift in Sources */,
+				000000000000000000000269 /* NBPrivacyNoticeCard.swift in Sources */,
+				00000000000000000000026A /* NBDiagnosticCard.swift in Sources */,
+				00000000000000000000026B /* NBEmptyStateView.swift in Sources */,
+				00000000000000000000026C /* NBLoadingStateView.swift in Sources */,
+				00000000000000000000026D /* NBIcon.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
 				00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,

@@ -5,20 +5,23 @@ struct NBListRow: View {
   let value: String?
   let subtitle: String?
   let systemImage: String
-  var tint: Color = NBColor.breathBlue
+  var tint: Color = NBColor.accent
+  var accessibilityLabelText: String?
 
   init(
     title: String,
     value: String? = nil,
     subtitle: String? = nil,
     systemImage: String,
-    tint: Color = NBColor.breathBlue
+    tint: Color = NBColor.accent,
+    accessibilityLabel: String? = nil
   ) {
     self.title = title
     self.value = value
     self.subtitle = subtitle
     self.systemImage = systemImage
     self.tint = tint
+    self.accessibilityLabelText = accessibilityLabel
   }
 
   var body: some View {
@@ -51,7 +54,14 @@ struct NBListRow: View {
         }
       }
     }
-    .padding(.vertical, NBSpacing.small)
-    .accessibilityElement(children: .combine)
+    .padding(.vertical, NBSpacing.rowPadding)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(accessibilityLabelText ?? defaultAccessibilityLabel)
+  }
+
+  private var defaultAccessibilityLabel: String {
+    [title, value, subtitle]
+      .compactMap { $0 }
+      .joined(separator: ", ")
   }
 }
