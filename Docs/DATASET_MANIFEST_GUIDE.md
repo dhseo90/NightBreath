@@ -53,6 +53,7 @@ Segment 필드:
 - `segmentDurationSeconds`: 평가할 길이. 0보다 커야 합니다.
 - `expectedLabels`: detector가 잡기를 기대하는 label 배열
 - `negativeLabels`: 이 segment에서 나오지 않기를 기대하는 label 배열
+- `features`: 선택 필드. Snore ML v0 training에 사용할 feature summary입니다.
 - `confidenceNote`: label 신뢰도나 확인 방식에 대한 메모
 - `notes`: 자유 메모
 
@@ -71,6 +72,19 @@ Segment 필드:
 - `silence`
 
 `silence`는 앱의 수면 이벤트 타입이 아니라 조용한 구간이나 false-positive-like 확인을 위한 manifest label입니다.
+
+Snore ML v0 training에 manifest를 직접 입력할 때 권장하는 `features` 필드:
+
+- `rms`
+- `energy`
+- `zeroCrossingRate`
+- `spectralCentroid`
+- `lowBandEnergy`
+- `midBandEnergy`
+- `highBandEnergy`
+- `duration`
+
+`duration`이 없으면 training tool은 `segmentDurationSeconds`를 사용합니다.
 
 ## 예시
 

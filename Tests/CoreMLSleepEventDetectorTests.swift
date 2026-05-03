@@ -71,6 +71,68 @@ struct CoreMLSleepEventDetectorTests {
     }
 
     @Test
+    func snoreModelOutputMappingAcceptsStringLabels() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
+            modelProvider: MockModelProvider(
+                prediction: ModelPrediction(label: "snore", confidence: 0.73)
+            )
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.status == .success)
+        #expect(result.outputs.first?.eventType == .snore)
+    }
+
+    @Test
+    func nonSnoreModelOutputMapsToUnknown() {
+        let detector = CoreMLSleepEventDetector(
+            configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.5),
+            modelProvider: MockModelProvider(
+                prediction: ModelPrediction(label: "non_snore", confidence: 0.91)
+            )
+        )
+
+        let result = detector.detectWithStatus(features: makeFeatures())
+
+        #expect(result.status == .success)
+        #expect(result.outputs.first?.eventType == .unknown)
+    }
+
+    @Test
+    func modelPredictionConfidenceAndScoresAreClamped() {
+        let prediction = ModelPrediction(
+            label: "snore",
+            confidence: 2,
+            scores: ["snore": 1.4, "non_snore": -0.2]
+        )
+
+        #expect(prediction.confidence == 1)
+        #expect(prediction.scores["snore"] == 1)
+        #expect(prediction.scores["non_snore"] == 0)
+    }
+
+    @Test
+    func inputAdapterUsesSnoreMLV0FeatureSchema() {
+        let features = makeFeatures()
+        let input = ModelInputAdapter().makeInput(from: features)
+
+        #expect(input.featureNames == [
+            "rms",
+            "energy",
+            "zeroCrossingRate",
+            "spectralCentroid",
+            "lowBandEnergy",
+            "midBandEnergy",
+            "highBandEnergy",
+            "duration"
+        ])
+        #expect(input.featureVector.count == input.featureNames.count)
+        #expect(input.featureVector.last == features.duration)
+    }
+
+    @Test
     func lowConfidencePredictionReturnsEmptyOutput() {
         let detector = CoreMLSleepEventDetector(
             configuration: CoreMLDetectorConfiguration(confidenceThreshold: 0.8),

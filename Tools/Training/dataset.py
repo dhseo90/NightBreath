@@ -18,14 +18,12 @@ from audio_features import FEATURE_COLUMNS, safe_float
 POSITIVE_LABEL = "snore"
 NEGATIVE_LABELS = {
     "bruxismLike",
-    "breathingPauseSuspected",
-    "gaspLike",
+    "silence",
+    "unknown",
+    "environmentalNoise",
+    "movementLike",
     "coughLike",
     "sleepTalkLike",
-    "movementLike",
-    "environmentalNoise",
-    "awakeningSuspected",
-    "unknown",
 }
 KNOWN_LABELS = {POSITIVE_LABEL, *NEGATIVE_LABELS}
 
@@ -35,9 +33,9 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "feature_columns": FEATURE_COLUMNS,
     },
     "training": {
-        "min_total_samples": 20,
-        "min_positive_samples": 5,
-        "min_negative_samples": 5,
+        "min_total_samples": 40,
+        "min_positive_samples": 20,
+        "min_negative_samples": 20,
         "test_size": 0.25,
         "random_state": 42,
         "class_weight": "balanced",
@@ -45,8 +43,9 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
     "output": {
         "directory": "output",
-        "model_filename": "snore_detector_baseline.joblib",
-        "metrics_filename": "snore_detector_metrics.json",
+        "model_filename": "snore_model.pkl",
+        "evaluation_json_filename": "snore_evaluation.json",
+        "evaluation_markdown_filename": "snore_evaluation.md",
         "feature_export_filename": "snore_features.csv",
     },
 }
@@ -94,6 +93,9 @@ def resolve_path(path_value: str | Path, base_dir: Path | None = None) -> Path:
     path = Path(path_value)
     if path.is_absolute():
         return path
+    cwd_candidate = Path.cwd().joinpath(path)
+    if cwd_candidate.exists():
+        return cwd_candidate.resolve()
     return (base_dir or training_root()).joinpath(path).resolve()
 
 
@@ -125,9 +127,24 @@ def load_config(path: str | Path | None) -> dict[str, Any]:
 
 
 def load_samples(
-    input_dir: str | Path,
+    input_dir: str | Path | None = None,
     metadata_path: str | Path | None = None,
+    manifest_path: str | Path | None = None,
 ) -> list[SampleRecord]:
+    if manifest_path is not None:
+        manifest_file = _resolve_manifest_path(manifest_path)
+        records = _load_manifest_file(manifest_file)
+        deduped = _dedupe(records)
+        if not deduped:
+            raise NoSamplesFound(
+                "manifest는 찾았지만 학습 가능한 snore/non-snore segment feature record가 없습니다.\n"
+                "expectedLabels와 features/duration 값을 확인하거나 feature metadata를 사용해 주세요."
+            )
+        return deduped
+
+    if input_dir is None:
+        raise NoSamplesFound("샘플 폴더 또는 manifest path가 지정되지 않았습니다.")
+
     root = Path(input_dir).expanduser().resolve()
     if not root.exists():
         raise NoSamplesFound(
@@ -245,6 +262,50 @@ def _resolve_metadata_path(root: Path, metadata_path: str | Path | None) -> Path
     return path
 
 
+def _resolve_manifest_path(manifest_path: str | Path) -> Path:
+    path = Path(manifest_path).expanduser()
+    if not path.is_absolute():
+        cwd_candidate = Path.cwd().joinpath(path)
+        path = cwd_candidate if cwd_candidate.exists() else training_root() / path
+    path = path.resolve()
+
+    if not path.exists():
+        raise NoSamplesFound(
+            f"manifest 파일을 찾을 수 없습니다: {path}\n"
+            "공개/개인 오디오 파일은 직접 준비하고, manifest에는 로컬 경로와 feature summary만 기록해 주세요."
+        )
+    return path
+
+
+def _load_manifest_file(path: Path) -> list[SampleRecord]:
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+
+    if isinstance(data, dict):
+        dataset_name = str(data.get("datasetName") or path.stem)
+        segments = data.get("segments") if isinstance(data.get("segments"), list) else []
+    elif isinstance(data, list):
+        dataset_name = path.stem
+        segments = data
+    else:
+        segments = []
+        dataset_name = path.stem
+
+    records: list[SampleRecord] = []
+    for row_index, segment in enumerate(segments):
+        if not isinstance(segment, dict):
+            continue
+        record = _parse_manifest_segment(
+            segment,
+            dataset_name=dataset_name,
+            source_path=path,
+            row_index=row_index,
+        )
+        if record is not None:
+            records.append(record)
+    return records
+
+
 def _load_metadata_file(path: Path, root: Path) -> list[SampleRecord]:
     suffix = "".join(path.suffixes[-2:]) if path.name.endswith(".metadata.json") else path.suffix
     if suffix == ".csv":
@@ -303,10 +364,7 @@ def _parse_row(
         _first_value(row, features_block, "sampleId", "sample_id", "id")
         or f"{source_path.stem}-{row_index}"
     )
-    audio_name = str(
-        _first_value(row, features_block, "audioFileName", "fileName", "audio_path", "path")
-        or ""
-    )
+    audio_name = str(_first_value(row, features_block, *_audio_path_keys()) or "")
     audio_path = _resolve_audio_path(audio_name, root)
     notes = str(_first_value(row, features_block, "notes", "memo") or "")
     captured_at = str(_first_value(row, features_block, "capturedAt", "timestamp", "captured_at") or "")
@@ -323,9 +381,89 @@ def _parse_row(
     )
 
 
+def _parse_manifest_segment(
+    segment: dict[str, Any],
+    dataset_name: str,
+    source_path: Path,
+    row_index: int,
+) -> SampleRecord | None:
+    features_block = _manifest_features_block(segment)
+    label = _manifest_target_label(segment)
+    if label is None:
+        return None
+
+    target = target_for_label(label)
+    if target is None:
+        return None
+
+    features = {
+        column: _feature_value(segment, features_block, column)
+        for column in FEATURE_COLUMNS
+    }
+
+    if "duration" in features and features["duration"] <= 0:
+        features["duration"] = _finite_feature(segment.get("segmentDurationSeconds"))
+
+    sample_id = str(
+        _first_value(segment, features_block, "fileId", "sampleId", "sample_id", "id")
+        or f"{dataset_name}-{row_index}"
+    )
+    audio_name = str(_first_value(segment, features_block, "localFilePath", *_audio_path_keys()) or "")
+    audio_path = _resolve_audio_path(audio_name, source_path.parent)
+    notes = str(_first_value(segment, features_block, "notes", "confidenceNote") or "")
+
+    return SampleRecord(
+        sample_id=sample_id,
+        label=label,
+        target=target,
+        features=features,
+        audio_path=audio_path,
+        source_path=str(source_path),
+        notes=notes,
+        captured_at=str(segment.get("capturedAt") or ""),
+    )
+
+
+def _manifest_features_block(segment: dict[str, Any]) -> dict[str, Any]:
+    for key in ("features", "featureSummary", "feature_summary"):
+        value = segment.get(key)
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
+def _manifest_target_label(segment: dict[str, Any]) -> str | None:
+    explicit_label = str(segment.get("label") or "").strip()
+    if target_for_label(explicit_label) is not None:
+        return explicit_label
+
+    labels = segment.get("expectedLabels")
+    if not isinstance(labels, list):
+        return None
+
+    normalized = [str(label).strip() for label in labels if str(label).strip()]
+    if POSITIVE_LABEL in normalized:
+        return POSITIVE_LABEL
+
+    for label in normalized:
+        if label in NEGATIVE_LABELS:
+            return label
+    return None
+
+
 def _feature_value(row: dict[str, Any], features_block: dict[str, Any], column: str) -> float:
     snake_case = _camel_to_snake(column)
-    value = _first_value(row, features_block, column, snake_case)
+    keys = [column, snake_case]
+    if column == "duration":
+        keys.extend(
+            [
+                "segmentDurationSeconds",
+                "segment_duration_seconds",
+                "audioSnippetDuration",
+                "audio_duration",
+            ]
+        )
+    value = _first_value(row, features_block, *keys)
     return _finite_feature(value)
 
 
@@ -356,6 +494,10 @@ def _resolve_audio_path(audio_name: str, root: Path) -> str:
     if path.is_absolute():
         return str(path)
     return str((root / path).resolve())
+
+
+def _audio_path_keys() -> tuple[str, ...]:
+    return ("audioFileName", "fileName", "audio_path", "path")
 
 
 def _dedupe(records: list[SampleRecord]) -> list[SampleRecord]:

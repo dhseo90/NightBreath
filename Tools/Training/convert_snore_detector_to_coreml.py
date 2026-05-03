@@ -13,15 +13,7 @@ import sys
 from pathlib import Path
 
 
-FEATURE_COLUMNS = [
-    "rms",
-    "energy",
-    "zeroCrossingRate",
-    "spectralCentroid",
-    "lowBandEnergy",
-    "midBandEnergy",
-    "highBandEnergy",
-]
+from audio_features import FEATURE_COLUMNS
 
 
 def training_root() -> Path:
@@ -33,10 +25,10 @@ def repo_root() -> Path:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Convert snore_detector_baseline.joblib to Core ML.")
+    parser = argparse.ArgumentParser(description="Convert Snore ML v0 snore_model.pkl to Core ML.")
     parser.add_argument(
         "--input",
-        default=str(training_root() / "output" / "snore_detector_baseline.joblib"),
+        default=str(training_root() / "output" / "snore_model.pkl"),
         help="Path to the trained joblib bundle.",
     )
     parser.add_argument(
@@ -53,7 +45,7 @@ def main() -> int:
         print(
             "Core ML conversion skipped: trained model file was not found.\n"
             f"Expected: {input_path}\n"
-            "Run `python3 train_snore_detector.py` after preparing local Samples/Personal metadata.",
+            "Run `python3 train_snore_detector.py --manifest <path>` or prepare local metadata first.",
             file=sys.stderr,
         )
         return 2
@@ -76,6 +68,7 @@ def main() -> int:
     estimator = bundle.get("model") if isinstance(bundle, dict) else bundle
     feature_columns = bundle.get("feature_columns", FEATURE_COLUMNS) if isinstance(bundle, dict) else FEATURE_COLUMNS
     threshold = bundle.get("threshold", 0.5) if isinstance(bundle, dict) else 0.5
+    model_version = bundle.get("model_version", "Snore ML v0") if isinstance(bundle, dict) else "Snore ML v0"
 
     missing_columns = [name for name in FEATURE_COLUMNS if name not in feature_columns]
     if missing_columns:
@@ -97,12 +90,13 @@ def main() -> int:
         print(f"Core ML conversion failed: {error}", file=sys.stderr)
         return 2
 
-    coreml_model.short_description = "NightBreath local snore vs non-snore baseline."
+    coreml_model.short_description = "NightBreath Snore ML v0 local snore vs non-snore baseline."
     coreml_model.author = "NightBreath local training pipeline"
     coreml_model.license = "Private local model"
     coreml_model.user_defined_metadata.update(
         {
             "nightbreath_detector": "snore",
+            "model_version": str(model_version),
             "positive_label": "snore",
             "negative_label": "non_snore",
             "numeric_label_mapping": "1=snore, 0=non_snore",

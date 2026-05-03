@@ -120,8 +120,17 @@ struct DetectorThresholdConfigurationTests {
         let configuration = DetectorTuningProfile.sensitive.configuration
         let analyzer = configuration.makeSleepAnalyzer()
 
-        #expect(analyzer.detectorBackend == .ruleBased)
+        #expect(analyzer.detectorBackend == .hybrid)
         #expect(analyzer.thresholdsSnapshot["rule.snoreRMS"] == configuration.snoreRmsThreshold)
         #expect(analyzer.thresholdsSnapshot["smoothing.confidenceThreshold"] == configuration.minimumConfidence)
+        #expect(analyzer.thresholdsSnapshot["coreML.confidenceThreshold"] == CoreMLDetectorConfiguration.default.confidenceThreshold)
+    }
+
+    @Test
+    func explicitRuleBasedAnalyzerCanStillBeBuiltForComparisons() {
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer(backend: .ruleBased)
+
+        #expect(analyzer.detectorBackend == .ruleBased)
+        #expect(analyzer.isModelInstalled == false)
     }
 }

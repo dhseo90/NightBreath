@@ -9,7 +9,7 @@
 - 공개 데이터셋을 자동 다운로드하지 않습니다.
 - 개인 오디오 파일을 git에 커밋하지 않습니다.
 - 서버 업로드, 외부 API 호출, 클라우드 학습을 하지 않습니다.
-- 앱에 `.mlmodel`을 추가하지 않습니다.
+- 앱 target에 `.mlmodel`을 자동으로 추가하지 않습니다.
 - 이번 범위는 코골기 감지만 다룹니다.
 - sleep talk 내용을 텍스트로 변환하지 않습니다.
 
@@ -40,7 +40,10 @@ Samples/Personal/metadata.csv
 Samples/Personal/metadata.json
 Samples/Personal/*.metadata.json
 Samples/Personal/*.features.csv
+Tools/OfflineEvaluation/sample_manifest.example.json 형식의 manifest
 ```
+
+manifest를 사용하는 경우 각 segment에 `features` 또는 `featureSummary` 블록을 넣는 것을 권장합니다. 실제 오디오 파일은 manifest의 `localFilePath`로만 참조하고 repo에는 넣지 않습니다. `duration`은 `features.duration`이 없으면 `segmentDurationSeconds`에서 읽습니다.
 
 `label == snore`는 positive class입니다.
 
@@ -48,14 +51,12 @@ Samples/Personal/*.features.csv
 
 ```text
 bruxismLike
-breathingPauseSuspected
-gaspLike
+silence
+unknown
+environmentalNoise
+movementLike
 coughLike
 sleepTalkLike
-movementLike
-environmentalNoise
-awakeningSuspected
-unknown
 ```
 
 ## Git 보호
@@ -86,6 +87,7 @@ python3 -m pip install -r requirements.txt
 
 ```sh
 python3 export_features.py
+python3 export_features.py --manifest ../OfflineEvaluation/sample_manifest.example.json
 ```
 
 기본 출력:
@@ -98,13 +100,15 @@ Tools/Training/output/snore_features.csv
 
 ```sh
 python3 train_snore_detector.py
+python3 train_snore_detector.py --manifest ../OfflineEvaluation/sample_manifest.example.json
 ```
 
 기본 출력:
 
 ```text
-Tools/Training/output/snore_detector_baseline.joblib
-Tools/Training/output/snore_detector_metrics.json
+Tools/Training/output/snore_model.pkl
+Tools/Training/output/snore_evaluation.json
+Tools/Training/output/snore_evaluation.md
 ```
 
 데이터가 부족하면 학습을 시작하지 않고 필요한 샘플 수를 안내합니다.
@@ -113,6 +117,7 @@ Tools/Training/output/snore_detector_metrics.json
 
 ```sh
 python3 evaluate_snore_detector.py
+python3 evaluate_snore_detector.py --manifest ../OfflineEvaluation/sample_manifest.example.json --output-dir output
 ```
 
 출력 항목:
@@ -136,7 +141,7 @@ python3 convert_snore_detector_to_coreml.py
 기본 입력:
 
 ```text
-Tools/Training/output/snore_detector_baseline.joblib
+Tools/Training/output/snore_model.pkl
 ```
 
 기본 출력:
@@ -161,15 +166,16 @@ spectralCentroid
 lowBandEnergy
 midBandEnergy
 highBandEnergy
+duration
 ```
 
 앱의 `ModelInputAdapter`는 같은 값을 제공하며, 향후 vector 입력 모델을 위해 `features` 배열도 함께 준비합니다. sklearn baseline은 numeric label을 사용하므로 앱에서는 `1`을 `snore`, `0`을 `non_snore`로 안전하게 해석합니다.
 
-생성된 모델을 실제 앱에서 테스트하려면 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 모델이 없거나 target에 포함되지 않은 경우 앱은 crash하지 않고 rule-based detector로 fallback합니다.
+생성된 모델을 실제 앱에서 테스트하려면 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
 
 ## 최소 권장 샘플 수
 
-스크립트의 smoke-test 최소값은 `snore 5개 + non-snore 5개 + 전체 20개`입니다.
+스크립트의 학습 시작 최소값은 `snore 20개 + non-snore 20개 + 전체 40개`입니다. 이 기준보다 적으면 학습을 중단하고 추가 샘플 준비 방법을 안내합니다.
 
 실제 detector 후보를 판단하려면 최소 다음 정도를 권장합니다.
 
@@ -214,5 +220,5 @@ Core ML 변환 전에 필요한 조건:
 - false positive/false negative 샘플 검토
 - threshold 후보 결정
 - feature scaling과 label mapping 고정
-- `.joblib` baseline 성능이 rule-based detector보다 나은지 확인
+- `snore_model.pkl` baseline이 rule-based detector보다 나은지 확인
 - 그 다음 단계에서 `coremltools` 변환 스크립트와 앱용 `.mlmodel` 추가 여부를 별도 작업으로 결정

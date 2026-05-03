@@ -23,19 +23,29 @@ def main() -> int:
     parser.add_argument("--config", default=str(training_root() / "config" / "snore_detector.yaml"))
     parser.add_argument("--input", help="Samples/Personal style folder containing metadata.")
     parser.add_argument("--metadata", help="Optional metadata.csv/json path inside --input.")
+    parser.add_argument("--manifest", help="Optional dataset manifest JSON path.")
     parser.add_argument("--output", help="Output CSV path.")
     args = parser.parse_args()
 
     try:
         config = load_config(args.config)
-        input_dir = resolve_path(args.input or config["dataset"]["input_dir"], training_root())
+        manifest_path = resolve_path(args.manifest, training_root()) if args.manifest else None
+        input_dir = (
+            resolve_path(args.input or config["dataset"]["input_dir"], training_root())
+            if manifest_path is None or args.input
+            else None
+        )
         output_path = resolve_path(
             args.output
             or str(Path(config["output"]["directory"]) / config["output"]["feature_export_filename"]),
             training_root(),
         )
 
-        records = load_samples(input_dir=input_dir, metadata_path=args.metadata)
+        records = load_samples(
+            input_dir=input_dir,
+            metadata_path=args.metadata,
+            manifest_path=manifest_path,
+        )
         _, _, feature_columns = build_feature_matrix(records, config["dataset"]["feature_columns"])
         write_feature_csv(records, feature_columns, output_path)
 

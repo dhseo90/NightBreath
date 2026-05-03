@@ -11,6 +11,7 @@ dataset:
     - lowBandEnergy
     - midBandEnergy
     - highBandEnergy
+    - duration
 
 labels:
   classes:

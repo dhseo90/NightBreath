@@ -8,6 +8,7 @@ public enum CoreMLComputeUnitsPreference: String, Codable, CaseIterable, Sendabl
 
 public struct CoreMLDetectorConfiguration: Equatable, Sendable {
     public var modelName: String
+    public var modelVersion: String
     public var confidenceThreshold: Double
     public var inputWindowDuration: TimeInterval
     public var overlapRatio: Double
@@ -19,6 +20,7 @@ public struct CoreMLDetectorConfiguration: Equatable, Sendable {
 
     public init(
         modelName: String = "SnoreDetector",
+        modelVersion: String = "Snore ML v0",
         confidenceThreshold: Double = 0.5,
         inputWindowDuration: TimeInterval = 1.0,
         overlapRatio: Double = 0.5,
@@ -27,6 +29,7 @@ public struct CoreMLDetectorConfiguration: Equatable, Sendable {
         computeUnitsPreference: CoreMLComputeUnitsPreference = .all
     ) {
         self.modelName = modelName
+        self.modelVersion = modelVersion
         self.confidenceThreshold = Self.clamp(confidenceThreshold)
         self.inputWindowDuration = max(0.1, inputWindowDuration)
         self.overlapRatio = Self.clamp(overlapRatio)

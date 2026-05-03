@@ -41,7 +41,7 @@ public struct ModelInputAdapter: Sendable {
         "lowBandEnergy",
         "midBandEnergy",
         "highBandEnergy",
-        "estimatedNoiseLevel"
+        "duration"
     ]
 
     public init() {}
@@ -59,7 +59,7 @@ public struct ModelInputAdapter: Sendable {
                 features.lowBandEnergy,
                 features.midBandEnergy,
                 features.highBandEnergy,
-                features.estimatedNoiseLevel
+                features.duration
             ],
             debugSummary: features.debugSummary
         )

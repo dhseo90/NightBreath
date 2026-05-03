@@ -20,6 +20,7 @@ FEATURE_COLUMNS = [
     "lowBandEnergy",
     "midBandEnergy",
     "highBandEnergy",
+    "duration",
 ]
 
 
@@ -56,6 +57,7 @@ def extract_basic_features(
         return {name: 0.0 for name in FEATURE_COLUMNS}
 
     sample_rate = max(safe_float(sample_rate, 16_000.0), 1.0)
+    duration = len(sample_list) / sample_rate
     square_sum = sum(sample * sample for sample in sample_list)
     energy = square_sum / len(sample_list)
     rms = math.sqrt(energy)
@@ -83,6 +85,7 @@ def extract_basic_features(
         "lowBandEnergy": clamp(low_band),
         "midBandEnergy": clamp(mid_band),
         "highBandEnergy": clamp(high_band),
+        "duration": max(0.0, safe_float(duration)),
     }
 
 

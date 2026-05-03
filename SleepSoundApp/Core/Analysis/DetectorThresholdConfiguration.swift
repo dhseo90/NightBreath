@@ -176,7 +176,7 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
         )
     }
 
-    public func makeSleepAnalyzer(backend: SleepDetectionBackend = .ruleBased) -> SleepAnalyzer {
+    public func makeSleepAnalyzer(backend: SleepDetectionBackend = .hybrid) -> SleepAnalyzer {
         let ruleDetector = RuleBasedSleepEventDetector(thresholds: ruleBasedThresholds)
         let detector = CompositeSleepEventDetector(
             backend: backend,

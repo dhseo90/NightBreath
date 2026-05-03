@@ -474,6 +474,9 @@ final class AppState: ObservableObject {
             let startedAt = audioCaptureService.state.captureStartedAt ?? Date()
             audioCaptureMetrics.start(at: startedAt)
             recordDebugLifecycleEvent("audio capture started")
+            let detectorModelVersion = sleepAnalyzer.isModelInstalled
+                ? "\(CoreMLDetectorConfiguration.default.modelVersion) hybrid"
+                : "\(CoreMLDetectorConfiguration.default.modelVersion) unavailable, rule fallback"
             let session = SleepSession(
                 startedAt: startedAt,
                 estimatedSleepStart: nil,
@@ -483,7 +486,7 @@ final class AppState: ObservableObject {
                 devicePlacement: .bedside,
                 ambientNoiseBaseline: nil,
                 appVersion: "1.0",
-                modelVersion: "rule-placeholder-v1"
+                modelVersion: detectorModelVersion
             )
             activeSession = session
             detectorDiagnosticsCollector.reset(

@@ -78,8 +78,10 @@
 
         Section("Detector Backend") {
           AudioDebugRow(title: "현재 backend", value: viewModel.detectorBackend.displayName)
-          AudioDebugRow(title: "Snore Core ML model", value: viewModel.coreMLModelStatus)
-          AudioDebugRow(title: "최근 Core ML confidence", value: viewModel.latestCoreMLConfidenceText)
+          AudioDebugRow(title: "Snore ML model installed", value: viewModel.coreMLModelStatus)
+          AudioDebugRow(title: "model version", value: viewModel.modelVersionText)
+          AudioDebugRow(title: "last ML confidence", value: viewModel.latestCoreMLConfidenceText)
+          AudioDebugRow(title: "fallback count", value: "\(viewModel.coreMLFallbackCount)회")
           AudioDebugRow(title: "Hybrid fallback", value: viewModel.hybridFallbackStatus)
         }
 
@@ -148,9 +150,11 @@
     @Published var currentEstimatedNoiseLevel: Double = 0
     @Published var latestFeatures: AudioFeatures?
     @Published var latestOutput: DetectorOutput?
-    @Published var detectorBackend: SleepDetectionBackend = .ruleBased
+    @Published var detectorBackend: SleepDetectionBackend = .hybrid
     @Published var coreMLModelStatus: String = "Not installed"
+    @Published var modelVersionText: String = CoreMLDetectorConfiguration.default.modelVersion
     @Published var latestCoreMLConfidenceText: String = "대기 중"
+    @Published var coreMLFallbackCount: Int = 0
     @Published var hybridFallbackStatus: String = "Available"
     @Published var silenceThreshold: Double = RuleBasedDetectionThresholds.default.silenceRMS {
       didSet { updateDetectorThresholds() }
@@ -239,6 +243,9 @@
       chunkCount = 0
       latestOutput = nil
       latestFeatures = nil
+      latestCoreMLConfidenceText = "대기 중"
+      coreMLFallbackCount = 0
+      hybridFallbackStatus = "Available"
       captureState = .requestingPermission
 
       var nextPermissionState = audioSessionManager.microphonePermissionState()
@@ -307,8 +314,12 @@
       currentMidBandEnergy = features.midBandEnergy
       currentHighBandEnergy = features.highBandEnergy
       currentEstimatedNoiseLevel = features.estimatedNoiseLevel
-      latestOutput = outputs.max { lhs, rhs in
-        lhs.confidence < rhs.confidence
+      if let mlSnoreOutput = coreMLResult.outputs.first(where: { $0.eventType == .snore }) {
+        latestOutput = mlSnoreOutput
+      } else {
+        latestOutput = outputs.max { lhs, rhs in
+          lhs.confidence < rhs.confidence
+        }
       }
       updateCoreMLStatus(from: coreMLResult)
     }
@@ -335,19 +346,26 @@
           hybridFallbackStatus =
             output.eventType == .snore
             ? "Core ML snore 우선 사용 가능" : "non-snore 결과는 rule-based fallback"
+          if output.eventType != .snore {
+            coreMLFallbackCount += 1
+          }
         } else {
           latestCoreMLConfidenceText = "결과 없음"
           hybridFallbackStatus = "rule-based fallback"
+          coreMLFallbackCount += 1
         }
       case .belowConfidenceThreshold(let confidence):
         latestCoreMLConfidenceText = format(confidence, digits: 3)
         hybridFallbackStatus = "confidence 낮음 → rule-based fallback"
+        coreMLFallbackCount += 1
       case .modelUnavailable:
         latestCoreMLConfidenceText = "모델 없음"
         hybridFallbackStatus = "모델 없음 → rule-based fallback"
+        coreMLFallbackCount += 1
       case .predictionFailed:
         latestCoreMLConfidenceText = "예측 실패"
         hybridFallbackStatus = "예측 실패 → rule-based fallback"
+        coreMLFallbackCount += 1
       }
     }
   }
