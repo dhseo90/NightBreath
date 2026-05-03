@@ -25,6 +25,7 @@ Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
 - `ScreenshotDailyHealthCardScenario`
 - `ScreenshotHealthDashboardScenario`
 - `ScreenshotFitdaysImportScenario`
+- `ScreenshotFitdaysImportResultScenario`
 - `ScreenshotHealthMetricsOverviewScenario`
 - `ScreenshotHealthCalendarScenario`
 - `ScreenshotDailyMeasurementDetailScenario`
@@ -124,6 +125,7 @@ EHM 상세 screenshot 후보는 README에 모두 넣지 않고 UI Gallery 중심
 
 - `Docs/Screenshots/Health/health_metrics_overview_light.png`
 - `Docs/Screenshots/Health/fitdays_import_light.png`
+- `Docs/Screenshots/Health/fitdays_import_result_light.png`
 - `Docs/Screenshots/Health/health_calendar_light.png`
 - `Docs/Screenshots/Health/daily_measurement_detail_light.png`
 - `Docs/Screenshots/Health/metric_detail_body_water_light.png`
@@ -131,6 +133,14 @@ EHM 상세 screenshot 후보는 README에 모두 넣지 않고 UI Gallery 중심
 - `Docs/Screenshots/Health/fitdays_import_error_light.png`
 
 위 파일이 실제 capture 전이면 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
+
+EHM screenshot은 DEBUG app이 설치된 booted simulator에서 launch argument로 바로 열 수 있습니다.
+
+```bash
+Tools/Screenshots/capture_ehm_screenshots.sh
+```
+
+이 스크립트는 `--nightbreath-screenshot-scenario` launch argument로 EHM 화면을 열고 `Docs/Screenshots/Health/`에 원본을 저장한 뒤, `Docs/Screenshots/Health/cropped/`에 gallery용 crop을 생성합니다. README 후보 4개는 추가로 `Docs/Screenshots/README/cropped/`에 저장합니다.
 
 ## 금지
 

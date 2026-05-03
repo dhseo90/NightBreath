@@ -13,6 +13,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case privacySettings
   case healthDashboard
   case fitdaysImport
+  case fitdaysImportResult
   case healthMetricsOverview
   case healthCalendar
   case dailyMeasurementDetail
@@ -25,6 +26,50 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case debugTools
 
   var id: String { rawValue }
+
+  static func launchArgumentScenario(processInfo: ProcessInfo = .processInfo) -> ScreenshotScenario? {
+    let arguments = processInfo.arguments
+    let environment = processInfo.environment
+
+    if let value = environment["NIGHTBREATH_SCREENSHOT_SCENARIO"],
+       let scenario = ScreenshotScenario(value: value) {
+      return scenario
+    }
+
+    for (index, argument) in arguments.enumerated() {
+      if argument == "--nightbreath-screenshot-scenario",
+         arguments.indices.contains(index + 1),
+         let scenario = ScreenshotScenario(value: arguments[index + 1]) {
+        return scenario
+      }
+
+      if argument.hasPrefix("--nightbreath-screenshot-scenario=") {
+        let value = String(argument.dropFirst("--nightbreath-screenshot-scenario=".count))
+        if let scenario = ScreenshotScenario(value: value) {
+          return scenario
+        }
+      }
+    }
+
+    return nil
+  }
+
+  private init?(value: String) {
+    let normalized = value
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .replacingOccurrences(of: "-", with: "")
+      .replacingOccurrences(of: "_", with: "")
+      .lowercased()
+
+    if let scenario = Self.allCases.first(where: {
+      $0.rawValue.lowercased() == normalized || $0.displayName.lowercased() == normalized
+    }) {
+      self = scenario
+      return
+    }
+
+    return nil
+  }
 
   var displayName: String {
     switch self {
@@ -50,6 +95,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotHealthDashboardScenario"
     case .fitdaysImport:
       "ScreenshotFitdaysImportScenario"
+    case .fitdaysImportResult:
+      "ScreenshotFitdaysImportResultScenario"
     case .healthMetricsOverview:
       "ScreenshotHealthMetricsOverviewScenario"
     case .healthCalendar:
@@ -97,6 +144,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "혈압/체성분 대시보드 준비"
     case .fitdaysImport:
       "Fitdays CSV를 로컬에서 가져오기"
+    case .fitdaysImportResult:
+      "Fitdays CSV import 결과 확인"
     case .healthMetricsOverview:
       "모든 건강 지표를 source와 함께"
     case .healthCalendar:
@@ -144,6 +193,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "HealthKit read-only 방향과 혈압/체성분/CrossMetric 진입이 보이게 캡처합니다."
     case .fitdaysImport:
       "파일 선택 CTA, 로컬 import 원칙, HealthKit write 없음 안내가 보이게 캡처합니다."
+    case .fitdaysImportResult:
+      "synthetic import 결과, 생성 샘플 수, 알 수 없는 column, 미리보기 목록이 보이게 캡처합니다."
     case .healthMetricsOverview:
       "HealthKit-backed 지표와 Fitdays local-only 지표, 기간 선택, category row가 보이게 캡처합니다."
     case .healthCalendar:
@@ -174,7 +225,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       .snoreHeavyNight
     case .sleepRecording, .privacySettings:
       .eventAudioStorageOnWithSamples
-    case .healthDashboard, .fitdaysImport, .importError:
+    case .healthDashboard, .fitdaysImport, .fitdaysImportResult, .importError:
       .quietNight
     case .zeroEventReport:
       .zeroEventButGoodAudioCoverage
@@ -211,6 +262,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/README/health_dashboard_light.png"
     case .fitdaysImport:
       "Docs/Screenshots/Health/fitdays_import_light.png"
+    case .fitdaysImportResult:
+      "Docs/Screenshots/Health/fitdays_import_result_light.png"
     case .healthMetricsOverview:
       "Docs/Screenshots/Health/health_metrics_overview_light.png"
     case .healthCalendar:
@@ -377,6 +430,31 @@ enum ScreenshotScenarioFactory {
     ]
 
     return mockHealthSamples + fitdaysSamples
+  }
+
+  static func makeScreenshotFitdaysImportResult(referenceDate: Date = Date()) -> FitdaysImportResult {
+    let fitdaysSamples = makeScreenshotHealthSamples(referenceDate: referenceDate)
+      .filter { $0.sourceType == .fitdaysCSV }
+    let batch = ImportBatch(
+      sourceName: "Fitdays CSV Import",
+      sourceType: .fitdaysCSV,
+      importedAt: referenceDate,
+      fileName: "synthetic_fitdays_preview.csv",
+      rowCount: 4,
+      sampleCount: fitdaysSamples.count,
+      skippedRowCount: 1,
+      errorCount: 1,
+      notes: "Screenshot scenario synthetic import result"
+    )
+
+    return FitdaysImportResult(
+      batch: batch,
+      samples: fitdaysSamples,
+      unknownColumns: ["Device Nickname"],
+      rowErrors: [
+        FitdaysImportRowError(rowNumber: 5, message: "측정시간 값을 해석하지 못했습니다."),
+      ]
+    )
   }
 
   static func makeScreenshotDailyMeasurementDetailData(

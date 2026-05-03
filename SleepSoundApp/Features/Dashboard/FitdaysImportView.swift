@@ -12,10 +12,16 @@ struct FitdaysImportView: View {
 
   init(
     service: FitdaysImportService = FitdaysImportService(),
-    repository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
+    repository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository(),
+    initialImportResult: FitdaysImportResult? = nil,
+    initialStatusMessage: String? = nil,
+    initialErrorMessage: String? = nil
   ) {
     self.service = service
     self.repository = repository
+    _importResult = State(initialValue: initialImportResult)
+    _statusMessage = State(initialValue: initialStatusMessage)
+    _errorMessage = State(initialValue: initialErrorMessage)
   }
 
   var body: some View {

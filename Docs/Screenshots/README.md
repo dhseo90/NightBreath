@@ -53,15 +53,27 @@ Tools/Screenshots/crop_readme_screenshots.sh
 
 ## EHM 상세 screenshot 후보
 
-다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 후보입니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
+다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 screenshot입니다. 원본은 `Health/`에 보존하고, UI Gallery에는 status bar, 시간, Dynamic Island 영역을 제거한 `Health/cropped/` 버전을 우선 사용합니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
 
 - `Health/health_metrics_overview_light.png`
 - `Health/fitdays_import_light.png`
+- `Health/fitdays_import_result_light.png`
 - `Health/health_calendar_light.png`
 - `Health/daily_measurement_detail_light.png`
 - `Health/metric_detail_body_water_light.png`
 - `Health/metric_detail_basal_metabolic_rate_light.png`
 - `Health/fitdays_import_error_light.png`
+
+UI Gallery crop 위치:
+
+- `Health/cropped/health_metrics_overview_light.png`
+- `Health/cropped/fitdays_import_light.png`
+- `Health/cropped/fitdays_import_result_light.png`
+- `Health/cropped/health_calendar_light.png`
+- `Health/cropped/daily_measurement_detail_light.png`
+- `Health/cropped/metric_detail_body_water_light.png`
+- `Health/cropped/metric_detail_basal_metabolic_rate_light.png`
+- `Health/cropped/fitdays_import_error_light.png`
 
 ## 주의
 

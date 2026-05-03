@@ -94,7 +94,7 @@ struct SimulatorScenarioView: View {
         }
 
         NavigationLink {
-          screenshotDestination(for: selectedScreenshotScenario)
+          ScreenshotScenarioDestinationView(scenario: selectedScreenshotScenario)
         } label: {
           Label("선택 화면 열기", systemImage: "rectangle.inset.filled")
         }
@@ -221,9 +221,16 @@ struct SimulatorScenarioView: View {
   }
 }
 
-extension SimulatorScenarioView {
+struct ScreenshotScenarioDestinationView: View {
+  @EnvironmentObject private var appState: AppState
+  let scenario: ScreenshotScenario
+
+  var body: some View {
+    destination
+  }
+
   @ViewBuilder
-  private func screenshotDestination(for scenario: ScreenshotScenario) -> some View {
+  private var destination: some View {
     switch scenario {
     case .homeDashboard:
       HomeDashboardView()
@@ -256,8 +263,19 @@ extension SimulatorScenarioView {
       )
     case .healthDashboard:
       HealthDashboardView()
-    case .fitdaysImport, .importError:
+    case .fitdaysImport:
       FitdaysImportView(repository: InMemoryUnifiedHealthMetricSampleRepository())
+    case .fitdaysImportResult:
+      FitdaysImportView(
+        repository: InMemoryUnifiedHealthMetricSampleRepository(),
+        initialImportResult: ScreenshotScenarioFactory.makeScreenshotFitdaysImportResult(referenceDate: appState.latestReport.generatedAt),
+        initialStatusMessage: "저장 전 예시 미리보기를 만들었습니다."
+      )
+    case .importError:
+      FitdaysImportView(
+        repository: InMemoryUnifiedHealthMetricSampleRepository(),
+        initialErrorMessage: "예시 CSV의 측정일 column을 확인할 수 없습니다."
+      )
     case .healthMetricsOverview:
       HealthMetricsOverviewView(
         samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
