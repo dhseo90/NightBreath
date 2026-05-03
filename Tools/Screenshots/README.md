@@ -66,16 +66,29 @@ Docs/Screenshots/Debug/
 수동 capture 예시:
 
 ```bash
-xcrun simctl io booted screenshot Docs/Screenshots/README/home-dashboard.png
+xcrun simctl io booted screenshot Docs/Screenshots/README/home_dashboard_light.png
 ```
 
 보조 스크립트:
 
 ```bash
-Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home-dashboard.png light
+Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home_dashboard_light.png light
 ```
 
 스크립트는 simulator 목록과 boot 상태를 확인하고, 지정한 경로에 현재 화면을 저장합니다. 앱 navigation과 scenario 선택은 사용자가 DEBUG 화면에서 직접 수행합니다.
+
+## README 대표 screenshot 파일
+
+현재 README는 아래 8개 light screenshot을 대표 화면으로 사용합니다. 모두 DEBUG simulator와 mock data 상태에서 생성해야 합니다.
+
+- `Docs/Screenshots/README/home_dashboard_light.png`
+- `Docs/Screenshots/README/sleep_start_light.png`
+- `Docs/Screenshots/README/sleep_report_light.png`
+- `Docs/Screenshots/README/sleep_timeline_light.png`
+- `Docs/Screenshots/README/morning_brief_light.png`
+- `Docs/Screenshots/README/daily_rhythm_report_light.png`
+- `Docs/Screenshots/README/daily_health_card_light.png`
+- `Docs/Screenshots/README/health_dashboard_light.png`
 
 ## 금지
 
@@ -90,4 +103,3 @@ Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home-dashboard.
 - README에는 대표 screenshot만 넣습니다.
 - 화면별 상세 상태, edge state, DEBUG-only 화면은 `Docs/UI_GALLERY.md`에서 관리합니다.
 - 실제 screenshot 파일이 준비되기 전에는 image markdown을 추가하지 않고 `screenshot pending` 상태로 둡니다.
-

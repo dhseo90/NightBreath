@@ -23,6 +23,19 @@
 - `EdgeStates/`: empty, 권한 없음, 데이터 부족, 낮은 측정 품질
 - `Debug/`: DEBUG 전용 검증 화면
 
+## 현재 README 대표 screenshot
+
+다음 파일은 DEBUG simulator와 mock data 상태에서 생성했습니다.
+
+- `README/home_dashboard_light.png`
+- `README/sleep_start_light.png`
+- `README/sleep_report_light.png`
+- `README/sleep_timeline_light.png`
+- `README/morning_brief_light.png`
+- `README/daily_rhythm_report_light.png`
+- `README/daily_health_card_light.png`
+- `README/health_dashboard_light.png`
+
 ## 주의
 
 Screenshot은 앱의 제품 방향을 보여주는 문서 자료입니다. 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하는 copy를 사용하지 않습니다.

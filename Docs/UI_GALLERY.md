@@ -4,7 +4,7 @@
 
 ## 개요
 
-NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리듬을 참고용으로 정리하는 온디바이스 앱입니다. UI gallery는 실제 screenshot 파일을 저장하기 전에도 화면 범위와 capture 후보를 추적하기 위한 문서입니다.
+NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리듬을 참고용으로 정리하는 온디바이스 앱입니다. UI gallery는 README 대표 screenshot과 아직 pending인 화면 범위를 함께 추적하기 위한 문서입니다.
 
 ## Screenshot 원칙
 
@@ -14,6 +14,8 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - App Store 후보 screenshot은 `Docs/APP_STORE_SCREENSHOT_GUIDE.md`와 함께 검토합니다.
 - Light/Dark screenshot은 같은 mock state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
+
+현재 README 대표 screenshot 8개는 `iPhone 17 Pro` simulator, DEBUG build, mock data 상태에서 생성했습니다. 아직 캡처하지 않은 상세 화면과 edge state는 `screenshot pending`으로 유지합니다.
 
 ## Mock Data 사용 원칙
 
@@ -33,34 +35,34 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HomeDashboardView` | 앱 홈과 최근 리포트 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, Daily Rhythm 진입점 | 수면 시작, 리포트/타임라인/건강/개인정보 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/home-dashboard.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
+| `HomeDashboardView` | 앱 홈과 최근 리포트 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, Daily Rhythm 진입점 | 수면 시작, 리포트/타임라인/건강/개인정보 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/home_dashboard_light.png` | ![HomeDashboardView](Screenshots/README/home_dashboard_light.png) | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
 | `TrendDashboardView` | 7일/30일/90일 수면 소리 흐름 | 수면 소리 점수, 코골기 시간, 측정 품질 추세 | 기간 선택 | 낮은 측정 품질은 배지와 문장으로 구분 | `ScreenshotHomeScenario` 이후 수동 진입 | `Docs/Screenshots/Home/trend-dashboard.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Sleep Flow
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SleepStartView` | 오늘 밤 측정 시작 전 준비 | 측정 안내, 기기 배치, 마이크 권한, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 배치 가이드, 개인정보 설정 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/Sleep/sleep-start.png` | screenshot pending | Release | `Docs/REAL_DEVICE_REQUIRED_TESTS.md` |
+| `SleepStartView` | 오늘 밤 측정 시작 전 준비 | 측정 안내, 기기 배치, 마이크 권한, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 배치 가이드, 개인정보 설정 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/sleep_start_light.png` | ![SleepStartView](Screenshots/README/sleep_start_light.png) | Release | `Docs/REAL_DEVICE_REQUIRED_TESTS.md` |
 | `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/README/recording.png` | screenshot pending | Release | `Docs/BACKGROUND_RECORDING_QA.md` |
-| `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/sleep-report.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
-| `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/Sleep/timeline.png` | screenshot pending | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
+| `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/sleep_report_light.png` | ![SleepReportView](Screenshots/README/sleep_report_light.png) | Release | `Docs/UI_SCREEN_MAP.md` |
+| `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/sleep_timeline_light.png` | ![SleepTimelineView](Screenshots/README/sleep_timeline_light.png) | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningBriefScenario`의 mock 상태에서 수동 진입 | `Docs/Screenshots/Sleep/morning-check-in.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Daily Rhythm
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 요약, 수면 소리 점수, 아침 컨디션, mock 아침 건강 데이터, 데이터 품질 | 수면 리포트와 Daily Rhythm 흐름 확인 | 개인 참고용 리포트이며 건강 상태를 단정하지 않음 | `ScreenshotMorningBriefScenario` | `Docs/Screenshots/DailyRhythm/morning-brief.png` | screenshot pending | Release | `Docs/PRODUCT_DIRECTION.md` |
-| `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, component score, data quality, Daily Insight | 하루 리듬 요약 확인 | 웰니스/개인 참고용 점수이며 인과관계를 의미하지 않음 | `ScreenshotDailyRhythmScenario` | `Docs/Screenshots/README/daily-rhythm-report.png` | screenshot pending | Release | `Docs/DAILY_RHYTHM_SCORE.md` |
+| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 요약, 수면 소리 점수, 아침 컨디션, mock 아침 건강 데이터, 데이터 품질 | 수면 리포트와 Daily Rhythm 흐름 확인 | 개인 참고용 리포트이며 건강 상태를 단정하지 않음 | `ScreenshotMorningBriefScenario` | `Docs/Screenshots/README/morning_brief_light.png` | ![MorningBriefView](Screenshots/README/morning_brief_light.png) | Release | `Docs/PRODUCT_DIRECTION.md` |
+| `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, component score, data quality, Daily Insight | 하루 리듬 요약 확인 | 웰니스/개인 참고용 점수이며 인과관계를 의미하지 않음 | `ScreenshotDailyRhythmScenario` | `Docs/Screenshots/README/daily_rhythm_report_light.png` | ![DailyRhythmReportView](Screenshots/README/daily_rhythm_report_light.png) | Release | `Docs/DAILY_RHYTHM_SCORE.md` |
 | `EveningCheckInView` | 저녁 컨디션 기록 | 피로도, 스트레스, 기분, 생활 태그, 메모 | mock/in-memory 체크인 저장 | 생활 태그는 개인 패턴 참고용 | `ScreenshotDailyRhythmScenario` 이후 수동 진입 | `Docs/Screenshots/DailyRhythm/evening-check-in.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
-| `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/daily-health-card.png` | screenshot pending | Release | `Docs/DAILY_HEALTH_CARD.md` |
-| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, mock 카드 preview | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/DailyRhythm/daily-health-card-preview.png` | screenshot pending | Release | `Docs/DAILY_HEALTH_CARD.md` |
+| `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/daily_health_card_light.png` | ![DailyHealthCardView](Screenshots/README/daily_health_card_light.png) | Release | `Docs/DAILY_HEALTH_CARD.md` |
+| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, mock 카드 preview | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/daily_health_card_light.png` | ![DailyHealthCardPreviewView](Screenshots/README/daily_health_card_light.png) | Release | `Docs/DAILY_HEALTH_CARD.md` |
 
 ## Health Dashboard
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HealthDashboardView` | 건강 데이터 허브 | read-only 연결 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 혈압/체성분/교차 보기 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/health-dashboard.png` | screenshot pending | Release | `Docs/HEALTHKIT_READ_ONLY.md` |
+| `HealthDashboardView` | 건강 데이터 허브 | read-only 연결 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 혈압/체성분/교차 보기 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/health_dashboard_light.png` | ![HealthDashboardView](Screenshots/README/health_dashboard_light.png) | Release | `Docs/HEALTHKIT_READ_ONLY.md` |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 측정 시각, sourceName, 7일/30일/90일 추세 | 기간 선택 | 수치를 상태 판정으로 표현하지 않음 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/blood-pressure-dashboard.png` | screenshot pending | Release | `Docs/HEALTH_DASHBOARD.md` |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, sourceName, 추세 | 기간 선택 | 개인 참고용 데이터로만 표시 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/body-composition-dashboard.png` | screenshot pending | Release | `Docs/HEALTH_DASHBOARD.md` |
 | `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 날짜별 매칭, sample count, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 분석하지 않고 인과관계를 의미하지 않는다고 안내 | `ScreenshotHealthDashboardScenario` 이후 수동 진입 | `Docs/Screenshots/Health/cross-metric-dashboard.png` | screenshot pending | Release | `Docs/CROSS_METRIC_ANALYSIS.md` |
@@ -94,4 +96,3 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | `SimulatorScenarioView` | mock scenario 적용 | scenario 목록, screenshot preset, 적용 상태, 화면 진입 링크 | scenario 적용/해제 | screenshot과 UI QA는 mock data 기반 | `ScreenshotDebugScenario` 이후 현재 화면 | `Docs/Screenshots/Debug/simulator-scenario.png` | screenshot pending | DEBUG only | `Docs/SIMULATOR_QA.md` |
 | `AudioDebugView` | 오디오 입력/debug output 확인 | RMS, energy, detector output | 입력 상태 확인 | 원본 전체 오디오 저장을 암시하지 않음 | `ScreenshotDebugScenario` 이후 수동 진입 | `Docs/Screenshots/Debug/audio-debug.png` | screenshot pending | DEBUG only | `Docs/UI_SCREEN_MAP.md` |
 | `SampleCaptureView` | 짧은 개발용 sample capture | sample count, 저장 경로, capture 상태 | 짧은 샘플 캡처 | 실제 screenshot에는 개인 오디오 파일명이나 샘플 내용을 노출하지 않음 | `ScreenshotDebugScenario` 이후 수동 진입 | `Docs/Screenshots/Debug/sample-capture.png` | screenshot pending | DEBUG only | `Docs/SIMULATOR_QA.md` |
-

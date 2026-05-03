@@ -125,15 +125,29 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 
 ## 주요 화면 미리보기
 
-전환 완료 후 simulator mock scenario로 생성한 대표 screenshot을 이 섹션에 추가합니다.
+아래 이미지는 mock data와 simulator scenario로 생성된 예시 화면입니다.
 
 자세한 화면별 설명은 `Docs/UI_GALLERY.md`를 참고하세요.
 
 스크린샷은 mock data와 simulator scenario를 사용하며 실제 개인 건강 데이터나 실제 오디오 데이터는 포함하지 않습니다.
 
-현재 실제 screenshot 파일은 아직 추가하지 않았습니다. 파일이 준비되기 전까지 broken image link를 만들지 않고 `screenshot pending` 상태로 관리합니다.
-
 DEBUG 빌드의 simulator screenshot preset과 캡처 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
+
+| 홈 대시보드 | 수면 시작 |
+| --- | --- |
+| ![홈 대시보드](Docs/Screenshots/README/home_dashboard_light.png) | ![수면 시작](Docs/Screenshots/README/sleep_start_light.png) |
+
+| 수면 리포트 | 이벤트 타임라인 |
+| --- | --- |
+| ![수면 리포트](Docs/Screenshots/README/sleep_report_light.png) | ![이벤트 타임라인](Docs/Screenshots/README/sleep_timeline_light.png) |
+
+| 아침 리포트 | 오늘의 리듬 |
+| --- | --- |
+| ![아침 리포트](Docs/Screenshots/README/morning_brief_light.png) | ![오늘의 리듬](Docs/Screenshots/README/daily_rhythm_report_light.png) |
+
+| 하루 리듬 카드 | 건강 데이터 대시보드 |
+| --- | --- |
+| ![하루 리듬 카드](Docs/Screenshots/README/daily_health_card_light.png) | ![건강 데이터 대시보드](Docs/Screenshots/README/health_dashboard_light.png) |
 
 ## V1에서 하지 않는 것
 
