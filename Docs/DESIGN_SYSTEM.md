@@ -193,7 +193,7 @@ Core/Design 컴포넌트:
 
 ## 적용 화면
 
-Step UI-1 적용 범위:
+현재 주요 화면 적용 현황입니다. 화면별 역할, 표시 데이터, 주요 액션, navigation 관계는 `Docs/UI_SCREEN_MAP.md`에서 관리합니다.
 
 - `HomeDashboardView`: `NBCard`, `NBMetricCard`, `NBStatusBadge`, `NBReportSection`, `NBListRow`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 최근 리포트, 수면 소리 점수, 측정 품질, 커버리지, 이벤트 오디오 샘플 상태, 온디바이스 분석 안내를 정리합니다.
 - `SleepStartView`: `NBMoonBreathIcon`, `NBCard`, `NBReportSection`, `NBListRow`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 측정 시작 안내, 기기 배치, 마이크 권한, 이벤트 샘플 opt-in 상태를 표시합니다.
@@ -209,6 +209,8 @@ Step UI-1 적용 범위:
 - `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, matched sample count, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.
 - `TrendDashboardView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 7일/30일/90일 수면 소리 지표 추세, 낮은 측정 품질 구분, 리포트 없음 상태를 표시합니다.
 - DEBUG 화면: `DatasetReplayView`, `DetectorTuningView`, `SimulatorScenarioView`, `AudioDebugView`, `SampleCaptureView`는 `NBDiagnosticCard`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`를 사용하고 `#if DEBUG` 경계를 유지합니다.
+
+README에는 화면별 짧은 제품 요약만 두고, 구현자가 확인할 화면 흐름과 DEBUG/Release 구분은 `Docs/UI_SCREEN_MAP.md`를 기준으로 합니다.
 
 ## 컴포넌트 사용 예
 
