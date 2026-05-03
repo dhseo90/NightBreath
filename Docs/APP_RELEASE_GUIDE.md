@@ -96,6 +96,12 @@ Capture workflow는 `Tools/Screenshots/README.md`와 `Tools/Screenshots/` script
 
 ## App Icon Guide
 
+현재 앱 아이콘:
+
+- `SleepSoundApp/App/Assets.xcassets/AppIcon.appiconset`에 NightBreath 전용 PNG artwork가 들어 있습니다.
+- `Tools/AppIcon/generate_app_icon.swift`로 1024px 원본과 iOS/iPad 슬롯별 PNG를 재생성할 수 있습니다.
+- Xcode target은 `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`으로 이 asset을 사용합니다.
+
 아이콘 방향:
 
 - NightBreath / 밤숨 브랜드를 바로 떠올릴 수 있어야 합니다.
@@ -111,7 +117,7 @@ Capture workflow는 `Tools/Screenshots/README.md`와 `Tools/Screenshots/` script
 - 앱의 “수면 소리 리포트 + 하루 건강 리듬” 방향과 어울리는가
 - 과도하게 의료/진단 앱처럼 보이지 않는가
 
-최종 고품질 artwork와 App Store asset export는 아직 보류 항목입니다.
+App Store 제출 전에는 실제 기기 홈 화면, Settings 앱 목록, TestFlight install 화면에서 작은 크기 식별성을 다시 확인합니다.
 
 ## TestFlight Checklist
 

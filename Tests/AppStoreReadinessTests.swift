@@ -69,6 +69,33 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appIconCatalogContainsGeneratedArtworkAndTargetUsesIt() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let appIconRoot = repositoryRoot.appendingPathComponent("SleepSoundApp/App/Assets.xcassets/AppIcon.appiconset")
+        let contentsURL = appIconRoot.appendingPathComponent("Contents.json")
+        let data = try Data(contentsOf: contentsURL)
+        let object = try JSONSerialization.jsonObject(with: data)
+        let contents = try #require(object as? NSDictionary)
+        let images = try #require(contents["images"] as? [NSDictionary])
+        let filenames = Set(images.compactMap { $0["filename"] as? String })
+        let project = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp.xcodeproj/project.pbxproj"),
+            encoding: .utf8
+        )
+
+        #expect(images.count >= 18)
+        #expect(filenames.contains("AppIcon-1024.png"))
+        #expect(filenames.contains("AppIcon-60@3x.png"))
+        #expect(filenames.contains("AppIcon-60@2x.png"))
+        #expect(project.contains("ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;"))
+
+        for filename in filenames {
+            let url = appIconRoot.appendingPathComponent(filename)
+            #expect(FileManager.default.fileExists(atPath: url.path), "\(filename) should exist in AppIcon.appiconset.")
+        }
+    }
+
+    @Test
     func appStoreDocumentsExistAndUseSafeCopy() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let documentPaths = [

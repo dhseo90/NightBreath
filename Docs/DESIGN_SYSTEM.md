@@ -372,7 +372,7 @@ Illustration은 onboarding, device placement guide, privacy notice, empty report
 위치: `SleepSoundApp/App/Assets.xcassets`
 
 - `AccentColor`: NightBreath accent 색상
-- `AppIcon.appiconset`: placeholder 구조
+- `AppIcon.appiconset`: NightBreath 앱 아이콘 PNG 세트. `Tools/AppIcon/generate_app_icon.swift`로 재생성합니다.
 - `Illustrations/`: future bitmap illustration export를 위한 placeholder namespace
 - `Illustrations/onboarding_privacy_placeholder.imageset`
 - `Illustrations/onboarding_breath_placeholder.imageset`
