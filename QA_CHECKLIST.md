@@ -2,7 +2,13 @@
 
 이 체크리스트는 NightBreath / 밤숨 V1 프로토타입을 실제 iPhone에서 검증하기 위한 문서입니다.
 
-앱은 수면 중 소리 기반 웰니스 리포트에서 시작해 온디바이스 개인 건강 리듬 리포트로 확장되는 프로토타입입니다. 진단 목적의 의료기기가 아니며, Daily Rhythm 확장은 mock/protocol 기반으로 먼저 검증합니다. 실제 HealthKit 연동은 후속 단계에서 read-only로만 검토합니다. 서버 업로드, 클라우드 동기화, 외부 SDK는 범위에 포함되지 않습니다.
+앱은 수면 중 소리 기반 웰니스 리포트에서 시작해 온디바이스 개인 건강 리듬 리포트로 확장되는 프로토타입입니다. 진단 목적의 의료기기가 아니며, Daily Rhythm 화면은 mock/protocol 기반 상태와 HealthKit read-only 연결 상태를 구분해 검증합니다. 서버 업로드, 클라우드 동기화, 외부 SDK는 범위에 포함되지 않습니다.
+
+## 문서 역할
+
+이 체크리스트는 실제 iPhone smoke test, background recording test, release/TestFlight 전 manual QA를 위한 문서입니다.
+
+README screenshot과 `Docs/UI_GALLERY.md`는 mock data와 simulator scenario 기반 문서용 화면을 정리합니다. 이 체크리스트는 실제 기기에서 마이크, 권한, 저장소, 장시간 동작, HealthKit read-only 연결 상태를 확인하는 용도로 유지합니다.
 
 ## 1. 빌드와 테스트
 

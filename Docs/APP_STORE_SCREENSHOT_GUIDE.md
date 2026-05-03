@@ -6,6 +6,8 @@ App Store 제출은 아직 보류 상태입니다. Apple Developer Program 등�
 
 실제 screenshot 생성은 나중에 Simulator 또는 실제 iPhone에서 진행합니다. 이번 작업에서는 최종 screenshot 이미지를 만들거나 App Store Connect에 업로드하지 않습니다.
 
+README 대표 screenshot과 전체 UI gallery 후보는 `Docs/UI_GALLERY.md`와 `Docs/Screenshots/README.md`의 mock/simulator 원칙을 따릅니다. 실제 파일이 없는 항목은 `screenshot pending`으로 관리합니다.
+
 ## Screenshot 후보 화면
 
 | Scenario | 화면 | Demo state | Headline copy 초안 |

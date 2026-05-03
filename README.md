@@ -107,7 +107,7 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 
 ## 주요 화면
 
-NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 기반으로 정리되어 있습니다. 자세한 컴포넌트 설명은 `Docs/DESIGN_SYSTEM.md`, 화면별 역할과 navigation 구조는 `Docs/UI_SCREEN_MAP.md`를 참고합니다.
+NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 기반으로 정리되어 있습니다. 자세한 컴포넌트 설명은 `Docs/DESIGN_SYSTEM.md`, 화면별 역할과 navigation 구조는 `Docs/UI_SCREEN_MAP.md`, 화면별 screenshot 상태는 `Docs/UI_GALLERY.md`를 참고합니다.
 
 - 홈 대시보드: 최근 수면 리포트, 수면 소리 점수, 측정 품질, 수면 시작 CTA, 온디바이스 분석 안내를 보여줍니다.
 - 수면 시작: 오늘 밤 측정 안내, 기기 배치, 마이크 권한, 이벤트 오디오 샘플 저장 상태를 확인합니다.
@@ -122,6 +122,16 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
 - 건강 대시보드: 현재는 mock/protocol 기반으로 혈압, 체중, 체성분, 컨디션 데이터를 보기 좋게 정리하는 방향을 검증하고, 향후 HealthKit read-only 연결을 준비합니다.
 - Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, sample capture 검증에 사용합니다.
+
+## 주요 화면 미리보기
+
+전환 완료 후 simulator mock scenario로 생성한 대표 screenshot을 이 섹션에 추가합니다.
+
+자세한 화면별 설명은 `Docs/UI_GALLERY.md`를 참고하세요.
+
+스크린샷은 mock data와 simulator scenario를 사용하며 실제 개인 건강 데이터나 실제 오디오 데이터는 포함하지 않습니다.
+
+현재 실제 screenshot 파일은 아직 추가하지 않았습니다. 파일이 준비되기 전까지 broken image link를 만들지 않고 `screenshot pending` 상태로 관리합니다.
 
 ## V1에서 하지 않는 것
 

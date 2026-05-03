@@ -25,6 +25,22 @@
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
 | `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, 날짜별 매칭 목록, matched sample count, 낮은 측정 품질 구분, 데이터 부족 상태, 인과관계 아님 안내 | 비교 항목/기간 선택 |
 
+## Screenshot 문서 상태
+
+실제 screenshot 파일은 아직 추가하지 않았습니다. 모든 screenshot은 mock data 또는 simulator scenario 기반으로 생성하며, 파일이 준비되기 전에는 `screenshot pending`으로 관리합니다. 전체 화면별 설명은 `Docs/UI_GALLERY.md`, 폴더 원칙은 `Docs/Screenshots/README.md`를 기준으로 합니다.
+
+| 화면 그룹 | Screenshot path | 현재 상태 | README 대표 후보 | Release/Debug |
+| --- | --- | --- | --- | --- |
+| Home / Dashboard | `Docs/Screenshots/Home/` | screenshot pending | 후보 | Release |
+| Sleep Flow | `Docs/Screenshots/Sleep/` | screenshot pending | 후보 | Release |
+| Daily Rhythm | `Docs/Screenshots/DailyRhythm/` | screenshot pending | 후보 | Release |
+| Health Dashboard | `Docs/Screenshots/Health/` | screenshot pending | 후보 | Release |
+| Privacy / Settings | `Docs/Screenshots/Privacy/` | screenshot pending | 후보 | Release |
+| Empty / Edge States | `Docs/Screenshots/EdgeStates/` | screenshot pending | README에는 보통 제외 | Release |
+| Debug-only Screens | `Docs/Screenshots/Debug/` | screenshot pending | 제외 | DEBUG only |
+
+Daily Rhythm 전환 이후 README 대표 screenshot 후보는 홈, 수면 리포트, 오늘의 리듬 리포트, 하루 리듬 카드, 건강 대시보드 중 mock state가 안정적인 화면에서 고릅니다. DEBUG-only 화면은 개발 문서에만 사용하고 Release 사용자용 자료에는 포함하지 않습니다.
+
 ## Navigation 구조
 
 ```text

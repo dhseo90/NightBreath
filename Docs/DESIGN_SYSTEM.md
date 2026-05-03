@@ -342,6 +342,20 @@ App Store screenshot 후보와 headline copy는 `Docs/APP_STORE_SCREENSHOT_GUIDE
 - screenshot scenario는 `#if DEBUG` 안에 있으므로 Release 사용자 화면에는 노출되지 않습니다.
 - 실제 screenshot PNG를 생성하거나 App Store 제출을 진행하지 않습니다.
 
+## Screenshot 문서화 원칙
+
+Screenshot 문서 구조는 `Docs/UI_GALLERY.md`와 `Docs/Screenshots/`를 기준으로 관리합니다.
+
+- README에는 대표 화면 screenshot만 추가합니다.
+- 모든 화면, edge state, DEBUG-only 화면의 상세 설명은 `Docs/UI_GALLERY.md`에 둡니다.
+- 실제 screenshot 파일이 없으면 image markdown을 만들지 않고 `screenshot pending`으로 표시합니다.
+- screenshot은 mock data 또는 simulator scenario 기반으로만 생성합니다.
+- 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
+- 외부 자산, 타사 앱 screenshot, 타사 로고, 타사 앱 아이콘을 추가하지 않습니다.
+- Light/Dark screenshot은 같은 mock state에서 쌍으로 관리하고, text contrast, badge contrast, chart axis, empty state 문구를 함께 확인합니다.
+- Daily Rhythm과 Health Dashboard 화면은 개인 참고용 문구, HealthKit read-only 원칙, 서버 전송 없음 안내를 유지합니다.
+- Cross Metric 화면은 수면 소리 지표와 건강 지표를 함께 보여도 인과관계를 의미하지 않는다는 안내를 유지합니다.
+
 ## 접근성
 
 - 주요 버튼은 44pt 이상의 tappable area를 유지합니다.

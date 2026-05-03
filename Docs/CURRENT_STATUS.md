@@ -64,6 +64,8 @@
 - Daily Health Card template/privacy level 구조
 - Daily Health Card renderer placeholder
 - Daily Rhythm 관련 unit test
+- UI gallery 문서 구조
+- mock/simulator screenshot 폴더 구조
 
 ## 현재 개발 전략
 
@@ -94,6 +96,8 @@
 - sleep talk 텍스트 변환
 - 실제 App Store screenshot export
 - 실제 Daily Health Card image share/export
+- 실제 README 대표 screenshot 파일
+- 실제 UI gallery screenshot 파일
 - 실제 `.mlmodel` 앱 bundle 적용
 - detector 성능 확정 검증
 - 임상 지표 산출
