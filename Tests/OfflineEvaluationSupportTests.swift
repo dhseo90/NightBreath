@@ -20,7 +20,44 @@ struct OfflineEvaluationSupportTests {
 
     #expect(manifest.segments.count == 1)
     #expect(manifest.segments.first?.datasetName == "unit-test")
-    #expect(manifest.segments.first?.expectedLabels == [.snore])
+    #expect(manifest.segments.first?.localFilePath == "sample.caf")
+    #expect(manifest.segments.first?.expectedLabels == ["snore"])
+  }
+
+  @Test
+  func topLevelDatasetFieldsApplyToSegments() throws {
+    let manifestURL = try writeRawManifest(
+      """
+      {
+        "datasetName": "top-level-dataset",
+        "datasetLicenseNote": "local unit fixture",
+        "segments": [
+          {
+            "fileId": "segment-1",
+            "localFilePath": "sample.caf",
+            "recordingType": "personalDebugSample",
+            "microphoneType": "unknown",
+            "segmentStartSeconds": 0,
+            "segmentDurationSeconds": 1,
+            "expectedLabels": ["silence"]
+          }
+        ]
+      }
+      """
+    )
+    defer { try? FileManager.default.removeItem(at: manifestURL) }
+
+    let runner = OfflineEvaluationRunner()
+    let manifest = try runner.loadManifest(from: manifestURL)
+    let validation = runner.validateManifest(
+      manifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent()
+    )
+
+    #expect(manifest.segments.first?.datasetName == "top-level-dataset")
+    #expect(manifest.segments.first?.datasetLicenseNote == "local unit fixture")
+    #expect(validation.validSegmentCount == 1)
+    #expect(validation.missingRequiredFields.isEmpty)
   }
 
   @Test
@@ -108,6 +145,60 @@ struct OfflineEvaluationSupportTests {
   }
 
   @Test
+  func missingFileCreatesManifestWarning() {
+    let manifest = OfflineEvaluationManifest(
+      segments: [
+        makeSegment(filePath: "/tmp/missing-\(UUID().uuidString).wav", fileId: "missing")
+      ]
+    )
+
+    let validation = OfflineEvaluationRunner().validateManifest(
+      manifest,
+      manifestDirectory: FileManager.default.temporaryDirectory
+    )
+
+    #expect(validation.validSegmentCount == 1)
+    #expect(validation.missingFiles.count == 1)
+    #expect(validation.unsupportedLabels.isEmpty)
+  }
+
+  @Test
+  func invalidLabelCreatesWarningWithoutDecodeFailure() throws {
+    let manifestURL = try writeRawManifest(
+      """
+      {
+        "datasetName": "unit-test",
+        "datasetLicenseNote": "local unit fixture",
+        "segments": [
+          {
+            "fileId": "invalid-label",
+            "localFilePath": "sample.caf",
+            "recordingType": "personalDebugSample",
+            "microphoneType": "unknown",
+            "segmentStartSeconds": 0,
+            "segmentDurationSeconds": 1,
+            "expectedLabels": ["snore", "notALabel"]
+          }
+        ]
+      }
+      """
+    )
+    defer { try? FileManager.default.removeItem(at: manifestURL) }
+
+    let runner = OfflineEvaluationRunner()
+    let manifest = try runner.loadManifest(from: manifestURL)
+    let validation = runner.validateManifest(
+      manifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent()
+    )
+
+    #expect(manifest.segments.first?.expectedLabels == ["snore", "notALabel"])
+    #expect(validation.validSegmentCount == 0)
+    #expect(validation.unsupportedLabels.count == 1)
+    #expect(validation.unsupportedLabels.first?.value == "notALabel")
+  }
+
+  @Test
   func emptyManifestProducesEmptyOutput() {
     let records = OfflineEvaluationRunner().evaluateRecords(
       manifest: OfflineEvaluationManifest(segments: []),
@@ -120,6 +211,46 @@ struct OfflineEvaluationSupportTests {
     #expect(records.isEmpty)
     #expect(summary.evaluatedSegments == 0)
     #expect(summary.evaluatedRecords == 0)
+  }
+
+  @Test
+  func emptyManifestValidationProducesNoWarnings() {
+    let validation = OfflineEvaluationRunner().validateManifest(
+      OfflineEvaluationManifest(segments: []),
+      manifestDirectory: FileManager.default.temporaryDirectory
+    )
+
+    #expect(validation.totalSegments == 0)
+    #expect(validation.validSegmentCount == 0)
+    #expect(!validation.hasBlockingIssues)
+  }
+
+  @Test
+  func missingLicenseNoteCreatesWarning() {
+    let manifest = OfflineEvaluationManifest(
+      segments: [
+        OfflineEvaluationManifestSegment(
+          datasetName: "unit-test",
+          datasetLicenseNote: nil,
+          fileId: "no-license-note",
+          localFilePath: "/tmp/missing-\(UUID().uuidString).wav",
+          recordingType: "personalDebugSample",
+          microphoneType: "unknown",
+          segmentStartSeconds: 0,
+          segmentDurationSeconds: 1,
+          expectedLabels: ["silence"]
+        )
+      ]
+    )
+
+    let validation = OfflineEvaluationRunner().validateManifest(
+      manifest,
+      manifestDirectory: FileManager.default.temporaryDirectory
+    )
+
+    #expect(validation.validSegmentCount == 1)
+    #expect(validation.licenseWarnings.count == 1)
+    #expect(validation.licenseWarnings.first?.field == "datasetLicenseNote")
   }
 
   private func makeSegment(
@@ -147,6 +278,14 @@ struct OfflineEvaluationSupportTests {
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     let data = try encoder.encode(OfflineEvaluationManifest(segments: segments))
     try data.write(to: url)
+    return url
+  }
+
+  private func writeRawManifest(_ json: String) throws -> URL {
+    let url = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+      .appendingPathExtension("json")
+    try json.write(to: url, atomically: true, encoding: .utf8)
     return url
   }
 

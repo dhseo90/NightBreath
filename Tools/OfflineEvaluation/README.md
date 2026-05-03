@@ -17,17 +17,38 @@ Offline Evaluation은 실제 iPhone 녹음 없이 로컬 오디오 segment를 de
 
 manifest는 JSON이며 `segments` 배열을 가집니다.
 
-필드:
-- `datasetName`: 데이터셋 이름
-- `filePath`: 로컬 오디오 파일 경로. manifest 파일 위치 기준 상대 경로 또는 절대 경로
+Top-level 필드:
+- `datasetName`: 데이터셋 또는 평가 묶음 이름
+- `datasetLicenseNote`: 라이선스 확인 메모. 누락 시 warning
+- `segments`: 평가할 segment 배열
+
+Segment 필드:
 - `fileId`: 파일/segment 식별자
+- `localFilePath`: 로컬 오디오 파일 경로. manifest 파일 위치 기준 상대 경로 또는 절대 경로
+- `subjectId`: 익명화된 subject 식별자
+- `recordingType`: `publicDataset`, `personalDebugSample`, `synthetic`
+- `microphoneType`: `unknown`, `ambient`, `tracheal`, `iPhone`, `other`
 - `segmentStartSeconds`: 평가 시작 위치
 - `segmentDurationSeconds`: 평가할 길이
 - `expectedLabels`: 기대 label 배열
+- `negativeLabels`: 이 segment에서 나오지 않기를 기대하는 label 배열
+- `confidenceNote`: label 신뢰도 메모
 - `notes`: 선택 메모
-- `licenseNote`: 라이선스 확인 메모
 
-예시는 `sample_manifest.example.json`을 참고하세요.
+허용 label:
+- `snore`
+- `bruxismLike`
+- `breathingPauseSuspected`
+- `gaspLike`
+- `coughLike`
+- `sleepTalkLike`
+- `movementLike`
+- `environmentalNoise`
+- `awakeningSuspected`
+- `unknown`
+- `silence`
+
+자세한 schema와 작성 원칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고하세요. 예시는 `sample_manifest.example.json`에 있습니다.
 
 ## 실행
 
@@ -76,6 +97,11 @@ JSON은 summary와 record 전체를 보존합니다. CSV는 spreadsheet 비교�
 
 실행 후 다음 값이 출력됩니다.
 
+- manifest validation
+- valid segments
+- missing files
+- unsupported labels
+- license warnings
 - evaluated segments
 - evaluated records
 - zero-event records

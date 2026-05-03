@@ -1,24 +1,45 @@
 {
+  "datasetName": "local-detector-evaluation-example",
+  "datasetLicenseNote": "사용 전 공개 데이터셋의 원문 라이선스와 재배포 제한을 직접 확인하세요. 개인 샘플은 본인 기기 로컬에서만 사용합니다.",
   "segments": [
     {
-      "datasetName": "local-example",
-      "filePath": "../../Datasets/example/snore_segment.wav",
-      "fileId": "example-snore-001",
+      "fileId": "public-snore-001",
+      "localFilePath": "../../Datasets/public-example/snore_segment.wav",
+      "subjectId": "public-subject-anonymous-001",
+      "recordingType": "publicDataset",
+      "microphoneType": "ambient",
       "segmentStartSeconds": 0,
       "segmentDurationSeconds": 10,
       "expectedLabels": ["snore"],
-      "notes": "사용자가 직접 준비한 로컬 파일 예시입니다. 실제 오디오 파일은 커밋하지 않습니다.",
-      "licenseNote": "사용 전 데이터셋 라이선스를 직접 확인하세요."
+      "negativeLabels": ["coughLike", "gaspLike", "bruxismLike"],
+      "confidenceNote": "공개 데이터셋 label을 그대로 신뢰하지 말고 짧은 구간을 직접 들어보고 detector 개발용 참고 label로만 사용합니다.",
+      "notes": "실제 오디오 파일은 repo에 포함하지 않습니다. localFilePath는 이 manifest 파일 위치 기준 상대 경로 또는 절대 경로입니다."
     },
     {
-      "datasetName": "local-example",
-      "filePath": "../../Datasets/example/quiet_segment.wav",
-      "fileId": "example-quiet-001",
+      "fileId": "personal-cough-001",
+      "localFilePath": "../../Datasets/personal-debug/cough_segment.caf",
+      "subjectId": "self-debug-001",
+      "recordingType": "personalDebugSample",
+      "microphoneType": "iPhone",
+      "segmentStartSeconds": 4.5,
+      "segmentDurationSeconds": 6,
+      "expectedLabels": ["coughLike"],
+      "negativeLabels": ["snore", "bruxismLike"],
+      "confidenceNote": "개인 디버그 샘플은 로컬 평가용이며 공유하거나 커밋하지 않습니다.",
+      "notes": "기침 의심 소리 detector threshold 확인용 짧은 segment 예시입니다."
+    },
+    {
+      "fileId": "synthetic-quiet-001",
+      "localFilePath": "../../Datasets/synthetic/quiet_segment.wav",
+      "subjectId": "synthetic",
+      "recordingType": "synthetic",
+      "microphoneType": "unknown",
       "segmentStartSeconds": 30,
       "segmentDurationSeconds": 10,
-      "expectedLabels": ["unknown"],
-      "notes": "조용한 구간 예시입니다. 실제 오디오 파일은 커밋하지 않습니다.",
-      "licenseNote": "사용 전 데이터셋 라이선스를 직접 확인하세요."
+      "expectedLabels": ["silence"],
+      "negativeLabels": ["snore", "coughLike", "gaspLike", "environmentalNoise"],
+      "confidenceNote": "silence는 이벤트 타입이 아니라 detector false-positive-like 확인용 manifest label입니다.",
+      "notes": "조용한 구간 예시입니다. 오디오 파일은 직접 준비하고 git에 넣지 않습니다."
     }
   ]
 }

@@ -22,25 +22,120 @@ public enum OfflineEvaluationError: Error, Equatable, Sendable {
 }
 
 public struct OfflineEvaluationManifest: Codable, Equatable, Sendable {
+  public var datasetName: String?
+  public var datasetLicenseNote: String?
   public var segments: [OfflineEvaluationManifestSegment]
 
-  public init(segments: [OfflineEvaluationManifestSegment]) {
+  public init(
+    datasetName: String? = nil,
+    datasetLicenseNote: String? = nil,
+    segments: [OfflineEvaluationManifestSegment]
+  ) {
+    self.datasetName = datasetName
+    self.datasetLicenseNote = datasetLicenseNote
     self.segments = segments
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    let manifestDatasetName = try container.decodeIfPresent(String.self, forKey: .datasetName)
+    let manifestDatasetLicenseNote =
+      try container.decodeIfPresent(String.self, forKey: .datasetLicenseNote)
+      ?? container.decodeIfPresent(String.self, forKey: .licenseNote)
+    datasetName = manifestDatasetName
+    datasetLicenseNote = manifestDatasetLicenseNote
+
+    let decodedSegments =
+      try container.decodeIfPresent([OfflineEvaluationManifestSegment].self, forKey: .segments) ?? []
+    segments = decodedSegments.map { segment in
+      var copy = segment
+      if copy.datasetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+         let manifestDatasetName {
+        copy.datasetName = manifestDatasetName
+      }
+      if copy.datasetLicenseNote?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true,
+         let manifestDatasetLicenseNote {
+        copy.datasetLicenseNote = manifestDatasetLicenseNote
+      }
+      return copy
+    }
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(datasetName, forKey: .datasetName)
+    try container.encodeIfPresent(datasetLicenseNote, forKey: .datasetLicenseNote)
+    try container.encode(segments, forKey: .segments)
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case datasetName
+    case datasetLicenseNote
+    case licenseNote
+    case segments
   }
 }
 
 public struct OfflineEvaluationManifestSegment: Codable, Equatable, Identifiable, Sendable {
   public var datasetName: String
-  public var filePath: String
+  public var datasetLicenseNote: String?
   public var fileId: String
+  public var localFilePath: String
+  public var subjectId: String?
+  public var recordingType: String
+  public var microphoneType: String
   public var segmentStartSeconds: TimeInterval
   public var segmentDurationSeconds: TimeInterval
-  public var expectedLabels: [SleepEventType]
+  public var expectedLabels: [String]
+  public var negativeLabels: [String]
+  public var confidenceNote: String?
   public var notes: String?
-  public var licenseNote: String
+  public var decodedMissingFields: [String]
 
   public var id: String {
     "\(datasetName)-\(fileId)-\(segmentStartSeconds)-\(segmentDurationSeconds)"
+  }
+
+  public var filePath: String {
+    get { localFilePath }
+    set { localFilePath = newValue }
+  }
+
+  public var licenseNote: String {
+    get { datasetLicenseNote ?? "" }
+    set { datasetLicenseNote = newValue }
+  }
+
+  public init(
+    datasetName: String,
+    datasetLicenseNote: String? = nil,
+    fileId: String,
+    localFilePath: String,
+    subjectId: String? = nil,
+    recordingType: String = DatasetRecordingType.personalDebugSample.rawValue,
+    microphoneType: String = DatasetMicrophoneType.unknown.rawValue,
+    segmentStartSeconds: TimeInterval,
+    segmentDurationSeconds: TimeInterval,
+    expectedLabels: [String],
+    negativeLabels: [String] = [],
+    confidenceNote: String? = nil,
+    notes: String? = nil,
+    decodedMissingFields: [String] = []
+  ) {
+    self.datasetName = datasetName
+    self.datasetLicenseNote = datasetLicenseNote
+    self.fileId = fileId
+    self.localFilePath = localFilePath
+    self.subjectId = subjectId
+    self.recordingType = recordingType
+    self.microphoneType = microphoneType
+    self.segmentStartSeconds = max(0, segmentStartSeconds)
+    self.segmentDurationSeconds = max(0, segmentDurationSeconds)
+    self.expectedLabels = expectedLabels
+    self.negativeLabels = negativeLabels
+    self.confidenceNote = confidenceNote
+    self.notes = notes
+    self.decodedMissingFields = decodedMissingFields
   }
 
   public init(
@@ -53,14 +148,423 @@ public struct OfflineEvaluationManifestSegment: Codable, Equatable, Identifiable
     notes: String? = nil,
     licenseNote: String
   ) {
-    self.datasetName = datasetName
-    self.filePath = filePath
+    self.init(
+      datasetName: datasetName,
+      datasetLicenseNote: licenseNote,
+      fileId: fileId,
+      localFilePath: filePath,
+      segmentStartSeconds: segmentStartSeconds,
+      segmentDurationSeconds: segmentDurationSeconds,
+      expectedLabels: expectedLabels.map(\.rawValue),
+      notes: notes
+    )
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    var missingFields: [String] = []
+
+    datasetName = try Self.decodeString(
+      from: container,
+      key: .datasetName,
+      missingFields: &missingFields
+    )
+    datasetLicenseNote =
+      try container.decodeIfPresent(String.self, forKey: .datasetLicenseNote)
+      ?? container.decodeIfPresent(String.self, forKey: .licenseNote)
+    fileId = try Self.decodeString(from: container, key: .fileId, missingFields: &missingFields)
+
+    if container.contains(.localFilePath) {
+      localFilePath =
+        try container.decodeIfPresent(String.self, forKey: .localFilePath) ?? ""
+    } else if container.contains(.filePath) {
+      localFilePath = try container.decodeIfPresent(String.self, forKey: .filePath) ?? ""
+    } else {
+      localFilePath = ""
+      missingFields.append(CodingKeys.localFilePath.rawValue)
+    }
+
+    subjectId = try container.decodeIfPresent(String.self, forKey: .subjectId)
+    recordingType = try Self.decodeString(
+      from: container,
+      key: .recordingType,
+      missingFields: &missingFields
+    )
+    microphoneType = try Self.decodeString(
+      from: container,
+      key: .microphoneType,
+      missingFields: &missingFields
+    )
+
+    if container.contains(.segmentStartSeconds) {
+      segmentStartSeconds =
+        try container.decodeIfPresent(TimeInterval.self, forKey: .segmentStartSeconds) ?? 0
+    } else {
+      segmentStartSeconds = 0
+      missingFields.append(CodingKeys.segmentStartSeconds.rawValue)
+    }
+
+    if container.contains(.segmentDurationSeconds) {
+      segmentDurationSeconds =
+        try container.decodeIfPresent(TimeInterval.self, forKey: .segmentDurationSeconds) ?? 0
+    } else {
+      segmentDurationSeconds = 0
+      missingFields.append(CodingKeys.segmentDurationSeconds.rawValue)
+    }
+
+    if container.contains(.expectedLabels) {
+      expectedLabels =
+        try container.decodeIfPresent([String].self, forKey: .expectedLabels) ?? []
+    } else {
+      expectedLabels = []
+      missingFields.append(CodingKeys.expectedLabels.rawValue)
+    }
+
+    negativeLabels = try container.decodeIfPresent([String].self, forKey: .negativeLabels) ?? []
+    confidenceNote = try container.decodeIfPresent(String.self, forKey: .confidenceNote)
+    notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    decodedMissingFields = missingFields
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(datasetName, forKey: .datasetName)
+    try container.encodeIfPresent(datasetLicenseNote, forKey: .datasetLicenseNote)
+    try container.encode(fileId, forKey: .fileId)
+    try container.encode(localFilePath, forKey: .localFilePath)
+    try container.encodeIfPresent(subjectId, forKey: .subjectId)
+    try container.encode(recordingType, forKey: .recordingType)
+    try container.encode(microphoneType, forKey: .microphoneType)
+    try container.encode(segmentStartSeconds, forKey: .segmentStartSeconds)
+    try container.encode(segmentDurationSeconds, forKey: .segmentDurationSeconds)
+    try container.encode(expectedLabels, forKey: .expectedLabels)
+    if !negativeLabels.isEmpty {
+      try container.encode(negativeLabels, forKey: .negativeLabels)
+    }
+    try container.encodeIfPresent(confidenceNote, forKey: .confidenceNote)
+    try container.encodeIfPresent(notes, forKey: .notes)
+  }
+
+  private static func decodeString(
+    from container: KeyedDecodingContainer<CodingKeys>,
+    key: CodingKeys,
+    missingFields: inout [String]
+  ) throws -> String {
+    guard container.contains(key) else {
+      missingFields.append(key.rawValue)
+      return ""
+    }
+    return try container.decodeIfPresent(String.self, forKey: key) ?? ""
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case datasetName
+    case datasetLicenseNote
+    case licenseNote
+    case filePath
+    case fileId
+    case localFilePath
+    case subjectId
+    case recordingType
+    case microphoneType
+    case segmentStartSeconds
+    case segmentDurationSeconds
+    case expectedLabels
+    case negativeLabels
+    case confidenceNote
+    case notes
+  }
+}
+
+public enum OfflineEvaluationManifestIssueKind: String, Equatable, Sendable {
+  case missingRequiredField
+  case invalidSegmentDuration
+  case missingFile
+  case unsupportedLabel
+  case licenseWarning
+  case unsupportedRecordingType
+  case unsupportedMicrophoneType
+}
+
+public struct OfflineEvaluationManifestIssue: Equatable, Sendable {
+  public var kind: OfflineEvaluationManifestIssueKind
+  public var segmentIndex: Int?
+  public var fileId: String?
+  public var field: String?
+  public var value: String?
+  public var message: String
+
+  public init(
+    kind: OfflineEvaluationManifestIssueKind,
+    segmentIndex: Int? = nil,
+    fileId: String? = nil,
+    field: String? = nil,
+    value: String? = nil,
+    message: String
+  ) {
+    self.kind = kind
+    self.segmentIndex = segmentIndex
     self.fileId = fileId
-    self.segmentStartSeconds = max(0, segmentStartSeconds)
-    self.segmentDurationSeconds = max(0, segmentDurationSeconds)
-    self.expectedLabels = expectedLabels
-    self.notes = notes
-    self.licenseNote = licenseNote
+    self.field = field
+    self.value = value
+    self.message = message
+  }
+}
+
+public struct OfflineEvaluationManifestValidationResult: Equatable, Sendable {
+  public var totalSegments: Int
+  public var validSegments: [OfflineEvaluationManifestSegment]
+  public var missingRequiredFields: [OfflineEvaluationManifestIssue]
+  public var invalidDurations: [OfflineEvaluationManifestIssue]
+  public var missingFiles: [OfflineEvaluationManifestIssue]
+  public var unsupportedLabels: [OfflineEvaluationManifestIssue]
+  public var licenseWarnings: [OfflineEvaluationManifestIssue]
+  public var fieldWarnings: [OfflineEvaluationManifestIssue]
+
+  public init(
+    totalSegments: Int,
+    validSegments: [OfflineEvaluationManifestSegment],
+    missingRequiredFields: [OfflineEvaluationManifestIssue] = [],
+    invalidDurations: [OfflineEvaluationManifestIssue] = [],
+    missingFiles: [OfflineEvaluationManifestIssue] = [],
+    unsupportedLabels: [OfflineEvaluationManifestIssue] = [],
+    licenseWarnings: [OfflineEvaluationManifestIssue] = [],
+    fieldWarnings: [OfflineEvaluationManifestIssue] = []
+  ) {
+    self.totalSegments = max(0, totalSegments)
+    self.validSegments = validSegments
+    self.missingRequiredFields = missingRequiredFields
+    self.invalidDurations = invalidDurations
+    self.missingFiles = missingFiles
+    self.unsupportedLabels = unsupportedLabels
+    self.licenseWarnings = licenseWarnings
+    self.fieldWarnings = fieldWarnings
+  }
+
+  public var validSegmentCount: Int {
+    validSegments.count
+  }
+
+  public var hasBlockingIssues: Bool {
+    !missingRequiredFields.isEmpty || !invalidDurations.isEmpty || !unsupportedLabels.isEmpty
+  }
+}
+
+public struct OfflineEvaluationManifestValidator {
+  public var fileManager: FileManager
+
+  public init(fileManager: FileManager = .default) {
+    self.fileManager = fileManager
+  }
+
+  public func validate(
+    manifest: OfflineEvaluationManifest,
+    manifestDirectory: URL
+  ) -> OfflineEvaluationManifestValidationResult {
+    var validSegments: [OfflineEvaluationManifestSegment] = []
+    var missingRequiredFields: [OfflineEvaluationManifestIssue] = []
+    var invalidDurations: [OfflineEvaluationManifestIssue] = []
+    var missingFiles: [OfflineEvaluationManifestIssue] = []
+    var unsupportedLabels: [OfflineEvaluationManifestIssue] = []
+    var licenseWarnings: [OfflineEvaluationManifestIssue] = []
+    var fieldWarnings: [OfflineEvaluationManifestIssue] = []
+
+    for (index, segment) in manifest.segments.enumerated() {
+      var segmentHasBlockingIssue = false
+
+      let requiredFieldIssues = missingRequiredFieldIssues(segment: segment, index: index)
+      if !requiredFieldIssues.isEmpty {
+        segmentHasBlockingIssue = true
+        missingRequiredFields.append(contentsOf: requiredFieldIssues)
+      }
+
+      if !segment.segmentDurationSeconds.isFinite || segment.segmentDurationSeconds <= 0 {
+        segmentHasBlockingIssue = true
+        invalidDurations.append(
+          issue(
+            kind: .invalidSegmentDuration,
+            segment: segment,
+            index: index,
+            field: "segmentDurationSeconds",
+            value: "\(segment.segmentDurationSeconds)",
+            message: "segmentDurationSeconds는 0보다 커야 합니다."
+          )
+        )
+      }
+
+      for labelIssue in unsupportedLabelIssues(segment: segment, index: index) {
+        segmentHasBlockingIssue = true
+        unsupportedLabels.append(labelIssue)
+      }
+
+      if segment.datasetLicenseNote?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+        licenseWarnings.append(
+          issue(
+            kind: .licenseWarning,
+            segment: segment,
+            index: index,
+            field: "datasetLicenseNote",
+            message: "datasetLicenseNote가 비어 있습니다. 공개 데이터셋은 라이선스 확인 메모를 남겨야 합니다."
+          )
+        )
+      }
+
+      let recordingType = segment.recordingType.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !recordingType.isEmpty, DatasetRecordingType(rawValue: recordingType) == nil {
+        fieldWarnings.append(
+          issue(
+            kind: .unsupportedRecordingType,
+            segment: segment,
+            index: index,
+            field: "recordingType",
+            value: recordingType,
+            message: "recordingType은 publicDataset, personalDebugSample, synthetic 중 하나여야 합니다."
+          )
+        )
+      }
+
+      let microphoneType = segment.microphoneType.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !microphoneType.isEmpty, DatasetMicrophoneType(rawValue: microphoneType) == nil {
+        fieldWarnings.append(
+          issue(
+            kind: .unsupportedMicrophoneType,
+            segment: segment,
+            index: index,
+            field: "microphoneType",
+            value: microphoneType,
+            message: "microphoneType은 unknown, ambient, tracheal, iPhone, other 중 하나여야 합니다."
+          )
+        )
+      }
+
+      let trimmedPath = segment.localFilePath.trimmingCharacters(in: .whitespacesAndNewlines)
+      if !trimmedPath.isEmpty {
+        let fileURL = resolvedFileURL(trimmedPath, relativeTo: manifestDirectory)
+        if !fileManager.fileExists(atPath: fileURL.path) {
+          missingFiles.append(
+            issue(
+              kind: .missingFile,
+              segment: segment,
+              index: index,
+              field: "localFilePath",
+              value: trimmedPath,
+              message: "로컬 오디오 파일을 찾을 수 없습니다. 평가 record는 실패로 남기고 도구는 계속 실행합니다."
+            )
+          )
+        }
+      }
+
+      if !segmentHasBlockingIssue {
+        validSegments.append(segment)
+      }
+    }
+
+    return OfflineEvaluationManifestValidationResult(
+      totalSegments: manifest.segments.count,
+      validSegments: validSegments,
+      missingRequiredFields: missingRequiredFields,
+      invalidDurations: invalidDurations,
+      missingFiles: missingFiles,
+      unsupportedLabels: unsupportedLabels,
+      licenseWarnings: licenseWarnings,
+      fieldWarnings: fieldWarnings
+    )
+  }
+
+  private func missingRequiredFieldIssues(
+    segment: OfflineEvaluationManifestSegment,
+    index: Int
+  ) -> [OfflineEvaluationManifestIssue] {
+    let requiredFields = Set([
+      "fileId",
+      "localFilePath",
+      "recordingType",
+      "microphoneType",
+      "segmentStartSeconds",
+      "segmentDurationSeconds",
+      "expectedLabels",
+    ])
+    var missingFields = Set(segment.decodedMissingFields.filter { requiredFields.contains($0) })
+
+    if segment.datasetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      missingFields.insert("datasetName")
+    }
+    if segment.fileId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      missingFields.insert("fileId")
+    }
+    if segment.localFilePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      missingFields.insert("localFilePath")
+    }
+    if segment.recordingType.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      missingFields.insert("recordingType")
+    }
+    if segment.microphoneType.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      missingFields.insert("microphoneType")
+    }
+    if segment.expectedLabels.isEmpty {
+      missingFields.insert("expectedLabels")
+    }
+
+    return missingFields.sorted().map { field in
+      issue(
+        kind: .missingRequiredField,
+        segment: segment,
+        index: index,
+        field: field,
+        message: "\(field) 필드가 필요합니다."
+      )
+    }
+  }
+
+  private func unsupportedLabelIssues(
+    segment: OfflineEvaluationManifestSegment,
+    index: Int
+  ) -> [OfflineEvaluationManifestIssue] {
+    let labelFields = [
+      ("expectedLabels", segment.expectedLabels),
+      ("negativeLabels", segment.negativeLabels),
+    ]
+
+    return labelFields.flatMap { field, labels in
+      labels.compactMap { rawLabel in
+        let label = rawLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard DatasetManifestLabel(rawValue: label) == nil else { return nil }
+        return issue(
+          kind: .unsupportedLabel,
+          segment: segment,
+          index: index,
+          field: field,
+          value: rawLabel,
+          message: "\(field)에 허용되지 않은 label이 있습니다: \(rawLabel)"
+        )
+      }
+    }
+  }
+
+  private func issue(
+    kind: OfflineEvaluationManifestIssueKind,
+    segment: OfflineEvaluationManifestSegment,
+    index: Int,
+    field: String? = nil,
+    value: String? = nil,
+    message: String
+  ) -> OfflineEvaluationManifestIssue {
+    OfflineEvaluationManifestIssue(
+      kind: kind,
+      segmentIndex: index,
+      fileId: segment.fileId.isEmpty ? nil : segment.fileId,
+      field: field,
+      value: value,
+      message: message
+    )
+  }
+
+  private func resolvedFileURL(_ filePath: String, relativeTo manifestDirectory: URL) -> URL {
+    let expandedPath = NSString(string: filePath).expandingTildeInPath
+    if expandedPath.hasPrefix("/") {
+      return URL(fileURLWithPath: expandedPath)
+    }
+    return manifestDirectory.appendingPathComponent(expandedPath).standardizedFileURL
   }
 }
 
@@ -223,6 +727,19 @@ public struct OfflineEvaluationRunResult: Equatable, Sendable {
   public var output: OfflineEvaluationOutput
   public var csvURL: URL
   public var jsonURL: URL
+  public var validation: OfflineEvaluationManifestValidationResult?
+
+  public init(
+    output: OfflineEvaluationOutput,
+    csvURL: URL,
+    jsonURL: URL,
+    validation: OfflineEvaluationManifestValidationResult? = nil
+  ) {
+    self.output = output
+    self.csvURL = csvURL
+    self.jsonURL = jsonURL
+    self.validation = validation
+  }
 }
 
 public enum OfflineProfileComparisonError: Error, Equatable, Sendable {
@@ -862,6 +1379,16 @@ public struct OfflineEvaluationRunner {
     return try JSONDecoder().decode(OfflineEvaluationManifest.self, from: data)
   }
 
+  public func validateManifest(
+    _ manifest: OfflineEvaluationManifest,
+    manifestDirectory: URL
+  ) -> OfflineEvaluationManifestValidationResult {
+    OfflineEvaluationManifestValidator(fileManager: fileManager).validate(
+      manifest: manifest,
+      manifestDirectory: manifestDirectory
+    )
+  }
+
   public func evaluate(
     manifestURL: URL,
     outputDirectory: URL,
@@ -869,8 +1396,17 @@ public struct OfflineEvaluationRunner {
     evaluatedAt: Date = Date()
   ) throws -> OfflineEvaluationRunResult {
     let manifest = try loadManifest(from: manifestURL)
+    let validation = validateManifest(
+      manifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent()
+    )
+    let validManifest = OfflineEvaluationManifest(
+      datasetName: manifest.datasetName,
+      datasetLicenseNote: manifest.datasetLicenseNote,
+      segments: validation.validSegments
+    )
     let records = evaluateRecords(
-      manifest: manifest,
+      manifest: validManifest,
       manifestDirectory: manifestURL.deletingLastPathComponent(),
       profiles: profiles,
       evaluatedAt: evaluatedAt
@@ -878,11 +1414,13 @@ public struct OfflineEvaluationRunner {
     let output = OfflineEvaluationOutput(
       summary: OfflineEvaluationRunSummary(
         records: records,
-        manifestSegmentCount: manifest.segments.count
+        manifestSegmentCount: validManifest.segments.count
       ),
       records: records
     )
-    return try write(output: output, to: outputDirectory, evaluatedAt: evaluatedAt)
+    var result = try write(output: output, to: outputDirectory, evaluatedAt: evaluatedAt)
+    result.validation = validation
+    return result
   }
 
   public func evaluateRecords(
@@ -931,7 +1469,7 @@ public struct OfflineEvaluationRunner {
   ) -> OfflineEvaluationRecord {
     let configuration = profile.configuration
     let analyzer = configuration.makeSleepAnalyzer()
-    let fileURL = resolvedFileURL(segment.filePath, relativeTo: manifestDirectory)
+    let fileURL = resolvedFileURL(segment.localFilePath, relativeTo: manifestDirectory)
     let baseRecord = baseRecord(
       segment: segment,
       profile: profile,
@@ -1141,10 +1679,10 @@ public struct OfflineEvaluationRunner {
       tuningProfile: profile.rawValue,
       datasetName: segment.datasetName,
       fileId: segment.fileId,
-      filePath: segment.filePath,
+      filePath: segment.localFilePath,
       segmentStartSeconds: segment.segmentStartSeconds,
       segmentDurationSeconds: segment.segmentDurationSeconds,
-      expectedLabels: segment.expectedLabels.map(\.rawValue)
+      expectedLabels: segment.expectedLabels
     )
   }
 

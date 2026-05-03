@@ -16,6 +16,16 @@ struct OfflineEvaluationCLI {
       )
 
       print("Offline Evaluation complete")
+      if let validation = result.validation {
+        print("manifest validation:")
+        print("  valid segments: \(validation.validSegmentCount)/\(validation.totalSegments)")
+        print("  missing files: \(validation.missingFiles.count)")
+        print("  unsupported labels: \(validation.unsupportedLabels.count)")
+        print("  license warnings: \(validation.licenseWarnings.count)")
+        print("  missing required fields: \(validation.missingRequiredFields.count)")
+        print("  invalid durations: \(validation.invalidDurations.count)")
+        print("  field warnings: \(validation.fieldWarnings.count)")
+      }
       print("evaluated segments: \(result.output.summary.evaluatedSegments)")
       print("evaluated records: \(result.output.summary.evaluatedRecords)")
       print("zero-event records: \(result.output.summary.zeroEventRecords)")

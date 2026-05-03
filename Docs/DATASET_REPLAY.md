@@ -39,7 +39,9 @@ DEBUG 빌드에서 `설정 > 개발 > Dataset Replay`로 들어가 synthetic pat
 
 ## Manifest
 
-`PublicDatasetManifest`는 로컬 파일 경로와 expected label을 기록하기 위한 모델입니다. 실제 오디오 파일은 포함하지 않고, 라이선스 메모와 segment 정보를 별도로 남기는 용도입니다.
+`PublicDatasetManifest`는 로컬 파일 경로와 expected/negative label을 기록하기 위한 모델입니다. 실제 오디오 파일은 포함하지 않고, 라이선스 메모와 segment 정보를 별도로 남기는 용도입니다.
+
+manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
 ## Git 보호
 
