@@ -84,9 +84,21 @@ Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home_dashboard_
 
 스크립트는 simulator 목록과 boot 상태를 확인하고, 지정한 경로에 현재 화면을 저장합니다. 앱 navigation과 scenario 선택은 사용자가 DEBUG 화면에서 직접 수행합니다.
 
+## README용 Crop
+
+README 대표 screenshot은 capture 후 상단 status bar, 시간, Dynamic Island 영역을 제거한 crop 버전을 사용합니다. 원본은 보존하고 crop 결과만 `Docs/Screenshots/README/cropped/`에 생성합니다.
+
+```bash
+Tools/Screenshots/crop_readme_screenshots.sh
+```
+
+현재 crop 기준은 1206x2622 simulator screenshot에서 상단 180px 제거이며, 결과 이미지는 1206x2442입니다. README에는 crop 결과를 `width="260"` 정도로 제한해 넣습니다.
+
+Crop 후에는 title, 주요 card, CTA가 잘리지 않는지 확인합니다. crop이 실패했거나 화면을 오해하게 만들면 fake screenshot을 만들지 않고 원본을 다시 capture하거나 crop 값을 조정합니다.
+
 ## README 대표 screenshot 파일
 
-현재 README는 아래 8개 light screenshot을 대표 화면으로 사용합니다. 모두 DEBUG simulator와 mock data 상태에서 생성해야 합니다.
+현재 README는 아래 8개 light screenshot의 crop 버전을 대표 화면으로 사용합니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 합니다.
 
 - `Docs/Screenshots/README/home_dashboard_light.png`
 - `Docs/Screenshots/README/sleep_start_light.png`
@@ -96,6 +108,17 @@ Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home_dashboard_
 - `Docs/Screenshots/README/daily_rhythm_report_light.png`
 - `Docs/Screenshots/README/daily_health_card_light.png`
 - `Docs/Screenshots/README/health_dashboard_light.png`
+
+README에서 참조하는 crop output:
+
+- `Docs/Screenshots/README/cropped/home_dashboard_light.png`
+- `Docs/Screenshots/README/cropped/sleep_start_light.png`
+- `Docs/Screenshots/README/cropped/sleep_report_light.png`
+- `Docs/Screenshots/README/cropped/sleep_timeline_light.png`
+- `Docs/Screenshots/README/cropped/morning_brief_light.png`
+- `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png`
+- `Docs/Screenshots/README/cropped/daily_health_card_light.png`
+- `Docs/Screenshots/README/cropped/health_dashboard_light.png`
 
 EHM 상세 screenshot 후보는 README에 모두 넣지 않고 UI Gallery 중심으로 관리합니다.
 

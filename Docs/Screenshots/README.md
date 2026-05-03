@@ -36,6 +36,21 @@
 - `README/daily_health_card_light.png`
 - `README/health_dashboard_light.png`
 
+README 본문에는 위 원본을 직접 쓰지 않고, status bar, 시간, Dynamic Island 영역을 제거한 crop 버전을 사용합니다.
+
+- 원본 위치: `Docs/Screenshots/README/*.png`
+- README용 crop 위치: `Docs/Screenshots/README/cropped/*.png`
+- 현재 기준: 1206x2622 simulator capture에서 상단 180px 제거
+- 현재 crop 결과: 1206x2442
+
+Crop은 화면 title과 주요 content를 자르지 않아야 합니다. crop 결과가 title을 자르거나 UI를 오해하게 만들면 fake image를 만들지 말고 원본을 다시 캡처하거나 crop 값을 조정합니다.
+
+Crop script:
+
+```bash
+Tools/Screenshots/crop_readme_screenshots.sh
+```
+
 ## EHM 상세 screenshot 후보
 
 다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 후보입니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.

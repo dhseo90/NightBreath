@@ -150,19 +150,19 @@ DEBUG 빌드의 simulator screenshot preset과 캡처 절차는 `Tools/Screensho
 
 | 홈 대시보드 | 수면 시작 |
 | --- | --- |
-| ![홈 대시보드](Docs/Screenshots/README/home_dashboard_light.png) | ![수면 시작](Docs/Screenshots/README/sleep_start_light.png) |
+| <img src="Docs/Screenshots/README/cropped/home_dashboard_light.png" width="260" alt="홈 대시보드"> | <img src="Docs/Screenshots/README/cropped/sleep_start_light.png" width="260" alt="수면 시작"> |
 
 | 수면 리포트 | 이벤트 타임라인 |
 | --- | --- |
-| ![수면 리포트](Docs/Screenshots/README/sleep_report_light.png) | ![이벤트 타임라인](Docs/Screenshots/README/sleep_timeline_light.png) |
+| <img src="Docs/Screenshots/README/cropped/sleep_report_light.png" width="260" alt="수면 리포트"> | <img src="Docs/Screenshots/README/cropped/sleep_timeline_light.png" width="260" alt="이벤트 타임라인"> |
 
 | 아침 리포트 | 오늘의 리듬 |
 | --- | --- |
-| ![아침 리포트](Docs/Screenshots/README/morning_brief_light.png) | ![오늘의 리듬](Docs/Screenshots/README/daily_rhythm_report_light.png) |
+| <img src="Docs/Screenshots/README/cropped/morning_brief_light.png" width="260" alt="아침 리포트"> | <img src="Docs/Screenshots/README/cropped/daily_rhythm_report_light.png" width="260" alt="오늘의 리듬"> |
 
 | 하루 리듬 카드 | 건강 데이터 대시보드 |
 | --- | --- |
-| ![하루 리듬 카드](Docs/Screenshots/README/daily_health_card_light.png) | ![건강 데이터 대시보드](Docs/Screenshots/README/health_dashboard_light.png) |
+| <img src="Docs/Screenshots/README/cropped/daily_health_card_light.png" width="260" alt="하루 리듬 카드"> | <img src="Docs/Screenshots/README/cropped/health_dashboard_light.png" width="260" alt="건강 데이터 대시보드"> |
 
 ## V1에서 하지 않는 것
 
