@@ -24,7 +24,9 @@ struct MockHealthKitServiceTests {
 
         let sorted = samples.sortedByMeasuredAtAscending()
 
-        #expect(sorted.map(\.value) == [72.3, 72.0, 71.8, 124, 121, 120])
+        #expect(sorted.map(\.measuredAt) == sorted.map(\.measuredAt).sorted())
+        #expect(sorted.first?.measuredAt == referenceDate.addingTimeInterval(-3 * day))
+        #expect(sorted.last?.measuredAt == referenceDate)
     }
 
     @Test
@@ -59,7 +61,7 @@ struct MockHealthKitServiceTests {
         let change = builder.latestChange(samples: samples, metricType: .bodyMass)
 
         #expect(points.map(\.value) == [72.3, 72.0, 71.8])
-        #expect(change == -0.2)
+        #expect(abs((change ?? 0) - -0.2) < 0.0001)
     }
 
     @Test

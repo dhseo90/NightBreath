@@ -1,15 +1,33 @@
 import Foundation
 
 public enum HealthMetricPermissionState: String, Codable, Equatable, Sendable {
-    case notRequestedInV1
+    case notRequested
+    case readRequestCompleted
+    case denied
+    case unavailable
     case mockDataOnly
 
     public var displayName: String {
         switch self {
-        case .notRequestedInV1:
-            "V1 권한 요청 없음"
+        case .notRequested:
+            "요청 전"
+        case .readRequestCompleted:
+            "읽기 권한 요청 완료"
+        case .denied:
+            "권한 없음"
+        case .unavailable:
+            "사용할 수 없음"
         case .mockDataOnly:
             "Mock data only"
+        }
+    }
+
+    public var canFetchSamples: Bool {
+        switch self {
+        case .readRequestCompleted, .mockDataOnly:
+            true
+        case .notRequested, .denied, .unavailable:
+            false
         }
     }
 }
@@ -55,11 +73,11 @@ public struct DisabledHealthKitService: HealthKitServiceProtocol {
     public init() {}
 
     public func authorizationStatusDescription() -> String {
-        "V1에서는 건강앱 데이터 권한을 요청하지 않습니다."
+        "이 기기에서는 건강앱 read-only 연결을 사용할 수 없습니다."
     }
 
     public func requestReadPermission() async -> HealthMetricPermissionState {
-        .notRequestedInV1
+        .unavailable
     }
 
     public func fetchSamples(

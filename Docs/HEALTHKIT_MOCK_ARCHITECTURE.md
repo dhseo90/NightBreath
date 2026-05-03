@@ -1,13 +1,14 @@
 # HealthKit Mock Architecture
 
-NightBreath / 밤숨은 V1에서 iPhone 온디바이스 수면 소리 분석에 집중합니다. 이 문서는 Apple 건강앱 연동 전 단계에서 혈압, 체중, 체성분, 수면 관련 UI와 데이터 흐름을 mock data로 검증하기 위한 구조를 설명합니다.
+NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 분석에 집중합니다. 이 문서는 Apple 건강앱 연동 전 단계에서 만들었던 mock health 구조와, 실제 read-only 연동 이후에도 preview/test fallback으로 유지되는 mock service를 설명합니다.
 
 ## 현재 범위
 
-- 실제 건강앱 권한 요청을 하지 않습니다.
-- 실제 건강앱 데이터를 읽거나 쓰지 않습니다.
+- 실제 권한 요청과 sample query는 `HealthKitService`가 담당합니다.
+- mock service는 preview, 테스트, 권한 없음 상태 안내를 위해 유지합니다.
+- 실제 구현도 HealthKit에 데이터를 쓰지 않습니다.
 - 서버나 네트워크 코드를 추가하지 않습니다.
-- 건강 데이터 화면은 mock sample만 사용합니다.
+- 건강 데이터 화면은 연결 전 mock preview를 보여주고, 사용자가 연결 버튼을 누르면 실제 read-only service를 사용합니다.
 - 화면 문구는 웰니스 참고용으로 유지하며 전문적인 건강 판단을 대신하지 않습니다.
 
 ## Core 구조
@@ -17,6 +18,7 @@ NightBreath / 밤숨은 V1에서 iPhone 온디바이스 수면 소리 분석에 
 - `HealthMetricDateRange`: mock fetch filtering에 쓰는 기간 모델입니다.
 - `HealthKitServiceProtocol`: 향후 건강앱 read service를 붙이기 위한 protocol입니다.
 - `DisabledHealthKitService`: V1에서 권한 요청을 하지 않는 비활성 service입니다.
+- `HealthKitService`: Apple 건강앱 read-only 권한 요청과 quantity sample query를 담당합니다.
 - `MockHealthKitService`: mock sample을 반환하는 개발용 service입니다.
 - `HealthMetricChartDataBuilder`: chart 표시용 point와 최근 변화량을 만듭니다.
 
@@ -55,6 +57,6 @@ NightBreath / 밤숨은 V1에서 iPhone 온디바이스 수면 소리 분석에 
 
 `HealthMetricChartView`는 Swift Charts를 사용합니다. 외부 SDK는 추가하지 않습니다.
 
-## 다음 단계에서 할 일
+## 실제 Read-Only 연동
 
-실제 건강앱 연동은 별도 작업으로 진행합니다. 그 단계에서만 권한 안내, 권한 요청, 실제 sample query 구현을 검토합니다. 현재 mock architecture에는 실제 권한 요청이나 실제 건강앱 store 생성이 없습니다.
+실제 read-only 연동 세부 정책은 `Docs/HEALTHKIT_READ_ONLY.md`를 참고합니다. Mock 구조는 계속 유지하며, 권한 거부/데이터 없음/Simulator preview 상태에서도 화면이 깨지지 않도록 사용합니다.

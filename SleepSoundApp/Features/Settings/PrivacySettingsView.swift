@@ -154,6 +154,25 @@ struct PrivacySettingsView: View {
           .foregroundStyle(.secondary)
       }
 
+      Section("Apple 건강앱 데이터") {
+        PrivacyStorageStatRow(
+          title: "연동 방식",
+          value: "읽기 전용",
+          systemImage: "heart.text.square"
+        )
+        PrivacyStorageStatRow(
+          title: "권한 요청 시점",
+          value: "건강 데이터 연결 선택 시",
+          systemImage: "hand.tap"
+        )
+        Text("건강 데이터 대시보드를 켤 때만 Apple 건강앱 읽기 권한을 요청합니다. 밤숨은 HealthKit에 데이터를 쓰지 않고, 서버로 전송하지 않습니다.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+        Text("권한은 iOS 설정 또는 Apple 건강앱에서 언제든지 관리할 수 있습니다.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+
       Section("Detector 진단 요약") {
         if let diagnostics = appState.latestDetectorDiagnostics {
           PrivacyStorageStatRow(

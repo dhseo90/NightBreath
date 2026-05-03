@@ -75,4 +75,17 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             "호흡수"
         }
     }
+
+    public static var readOnlyHealthKitMetrics: [HealthMetricType] {
+        [
+            .systolicBloodPressure,
+            .diastolicBloodPressure,
+            .bodyMass,
+            .bodyFatPercentage,
+            .bodyMassIndex,
+            .leanBodyMass,
+            .restingHeartRate,
+            .respiratoryRate,
+        ]
+    }
 }

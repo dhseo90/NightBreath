@@ -81,6 +81,8 @@
 		00000000000000000000025B /* MockHealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017B /* MockHealthKitService.swift */; };
 		00000000000000000000025C /* HealthDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017C /* HealthDashboardView.swift */; };
 		00000000000000000000025D /* HealthMetricChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017D /* HealthMetricChartView.swift */; };
+		00000000000000000000025E /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017F /* HealthKitService.swift */; };
+		00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000180 /* HealthMetricUnitConversion.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -228,6 +230,11 @@
 		00000000000000000000017C /* HealthDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardView.swift; sourceTree = "<group>"; };
 		00000000000000000000017D /* HealthMetricChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricChartView.swift; sourceTree = "<group>"; };
 		00000000000000000000017E /* MockHealthKitServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHealthKitServiceTests.swift; sourceTree = "<group>"; };
+		00000000000000000000017F /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		000000000000000000000180 /* HealthMetricUnitConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricUnitConversion.swift; sourceTree = "<group>"; };
+		000000000000000000000181 /* SleepSoundApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SleepSoundApp.entitlements; sourceTree = "<group>"; };
+		000000000000000000000182 /* HealthMetricUnitConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricUnitConversionTests.swift; sourceTree = "<group>"; };
+		000000000000000000000183 /* HealthKitReadOnlyPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReadOnlyPolicyTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -276,6 +283,7 @@
 				000000000000000000000101 /* AppState.swift */,
 				000000000000000000000102 /* Formatting.swift */,
 				00000000000000000000014B /* Info.plist */,
+				000000000000000000000181 /* SleepSoundApp.entitlements */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -447,6 +455,8 @@
 			children = (
 				000000000000000000000110 /* HealthMetricType.swift */,
 				00000000000000000000010F /* HealthKitServiceProtocol.swift */,
+				00000000000000000000017F /* HealthKitService.swift */,
+				000000000000000000000180 /* HealthMetricUnitConversion.swift */,
 				00000000000000000000017B /* MockHealthKitService.swift */,
 				00000000000000000000017A /* HealthMetricChartData.swift */,
 				00000000000000000000010E /* HealthDashboardPlaceholder.swift */,
@@ -502,6 +512,8 @@
 				000000000000000000000178 /* CalibrationServiceTests.swift */,
 				000000000000000000000179 /* OnboardingCopyTests.swift */,
 				00000000000000000000017E /* MockHealthKitServiceTests.swift */,
+				000000000000000000000182 /* HealthMetricUnitConversionTests.swift */,
+				000000000000000000000183 /* HealthKitReadOnlyPolicyTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -540,6 +552,11 @@
 				TargetAttributes = {
 					000000000000000000000003 = {
 						CreatedOnToolsVersion = 16.0;
+						SystemCapabilities = {
+							com.apple.HealthKit = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -620,6 +637,8 @@
 				00000000000000000000020D /* AudioSessionManager.swift in Sources */,
 				00000000000000000000020E /* HealthDashboardPlaceholder.swift in Sources */,
 				00000000000000000000020F /* HealthKitServiceProtocol.swift in Sources */,
+				00000000000000000000025E /* HealthKitService.swift in Sources */,
+				00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */,
 				000000000000000000000210 /* HealthMetricType.swift in Sources */,
 				00000000000000000000025B /* MockHealthKitService.swift in Sources */,
 				00000000000000000000025A /* HealthMetricChartData.swift in Sources */,
@@ -797,6 +816,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SleepSoundApp/App/SleepSoundApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AJ28VHUP9L;
@@ -829,6 +849,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SleepSoundApp/App/SleepSoundApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AJ28VHUP9L;

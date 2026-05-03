@@ -100,29 +100,58 @@ struct PrivacyCopySafetyTests {
   }
 
   @Test
-  func appDoesNotRequestOrUseHealthKit() throws {
+  func healthKitUseStaysReadOnlyAndScoped() throws {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let scannedRoots = [
       repositoryRoot.appendingPathComponent("SleepSoundApp"),
       repositoryRoot.appendingPathComponent("Package.swift"),
     ]
-    let forbiddenSignatures = [
+    let allowedHealthKitServiceSuffix = "SleepSoundApp/Core/FutureHealth/HealthKitService.swift"
+    let scopedHealthKitSignatures = [
       "import HealthKit",
       "HKHealthStore",
       "requestAuthorization",
       "HKSampleQuery",
+    ]
+    let forbiddenSignatures = [
       "HKAnchoredObjectQuery",
       "HKObserverQuery",
     ]
 
     for fileURL in sourceFiles(in: scannedRoots) {
       let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      for signature in scopedHealthKitSignatures where contents.contains(signature) {
+        #expect(
+          fileURL.path.hasSuffix(allowedHealthKitServiceSuffix),
+          "\(fileURL.path) contains HealthKit implementation outside the approved read-only service: \(signature)"
+        )
+      }
+
       for signature in forbiddenSignatures {
         #expect(
           !contents.contains(signature),
-          "\(fileURL.path) contains a forbidden HealthKit implementation signature: \(signature)"
+          "\(fileURL.path) contains a forbidden HealthKit write/streaming signature: \(signature)"
         )
       }
+    }
+
+    let healthKitService = try String(
+      contentsOf: repositoryRoot.appendingPathComponent(allowedHealthKitServiceSuffix),
+      encoding: .utf8
+    )
+    #expect(healthKitService.contains("toShare: Set<HKSampleType>()"))
+
+    let forbiddenHealthKitWriteSignatures = [
+      ".save(",
+      ".delete(",
+      "HKDeletedObject",
+      "HKWorkout",
+    ]
+    for signature in forbiddenHealthKitWriteSignatures {
+      #expect(
+        !healthKitService.contains(signature),
+        "HealthKitService.swift contains a forbidden HealthKit write/delete signature: \(signature)"
+      )
     }
   }
 
