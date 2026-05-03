@@ -209,12 +209,65 @@ struct HomeDashboardView: View {
         .buttonStyle(.nbSecondary)
       }
 
+      dailyRhythmLinks
+
       NavigationLink {
         HealthDashboardView()
       } label: {
         Label("건강 데이터 대시보드", systemImage: "heart.text.square")
       }
       .buttonStyle(.nbSecondary)
+    }
+  }
+
+  private var dailyRhythmLinks: some View {
+    NBReportSection(
+      title: "Daily Rhythm",
+      subtitle: "수면, 컨디션, mock 건강 데이터를 하루 리듬으로 정리합니다.",
+      systemImage: "sparkles"
+    ) {
+      VStack(spacing: NBSpacing.md) {
+        HStack(spacing: NBSpacing.md) {
+          NavigationLink {
+            MorningBriefView(
+              nightReport: appState.latestReport,
+              morningCheckIn: appState.morningCheckIn
+            )
+          } label: {
+            Label("아침 리포트", systemImage: "sunrise")
+          }
+          .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.dawn))
+
+          NavigationLink {
+            DailyRhythmReportView(
+              nightReport: appState.latestReport,
+              morningCheckIn: appState.morningCheckIn
+            )
+          } label: {
+            Label("오늘의 리듬", systemImage: "gauge.with.dots.needle.67percent")
+          }
+          .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.accent))
+        }
+
+        HStack(spacing: NBSpacing.md) {
+          NavigationLink {
+            EveningCheckInView()
+          } label: {
+            Label("저녁 체크인", systemImage: "moon.haze")
+          }
+          .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.sleepTint))
+
+          NavigationLink {
+            DailyHealthCardView(
+              nightReport: appState.latestReport,
+              morningCheckIn: appState.morningCheckIn
+            )
+          } label: {
+            Label("하루 리듬 카드", systemImage: "rectangle.on.rectangle")
+          }
+          .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.privacyTint))
+        }
+      }
     }
   }
 
