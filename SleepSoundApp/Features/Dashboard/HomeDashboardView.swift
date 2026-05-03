@@ -281,8 +281,23 @@ private struct DashboardMetricTile: View {
 }
 
 private struct SettingsListView: View {
+  @EnvironmentObject private var appState: AppState
+
   var body: some View {
     List {
+      Section("시작하기") {
+        Button {
+          appState.resetOnboarding()
+        } label: {
+          Label("온보딩 다시 보기", systemImage: "arrow.counterclockwise.circle")
+        }
+        .disabled(!appState.canResetOnboarding)
+
+        Text("개인정보 원칙, iPhone 배치, 마이크 권한, 30초 캘리브레이션 안내를 다시 확인합니다.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+
       Section("개인정보") {
         NavigationLink {
           PrivacySettingsView()
@@ -296,6 +311,12 @@ private struct SettingsListView: View {
           DevicePlacementGuideView()
         } label: {
           Label("iPhone 배치 가이드", systemImage: "iphone")
+        }
+
+        NavigationLink {
+          CalibrationView()
+        } label: {
+          Label("30초 캘리브레이션", systemImage: "waveform.badge.magnifyingglass")
         }
       }
 

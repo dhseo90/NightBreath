@@ -6,8 +6,14 @@ struct SleepSoundApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeDashboardView()
-                .environmentObject(appState)
+            Group {
+                if appState.hasCompletedOnboarding {
+                    HomeDashboardView()
+                } else {
+                    OnboardingView()
+                }
+            }
+            .environmentObject(appState)
         }
     }
 }

@@ -13,6 +13,19 @@ struct UserSettingsTests {
     }
 
     @Test
+    func onboardingCompletionDefaultIsOffAndPersists() throws {
+        let userDefaults = try makeIsolatedUserDefaults()
+        let settings = UserSettings(userDefaults: userDefaults)
+
+        #expect(settings.hasCompletedOnboarding == false)
+
+        settings.hasCompletedOnboarding = true
+        let reloadedSettings = UserSettings(userDefaults: userDefaults)
+
+        #expect(reloadedSettings.hasCompletedOnboarding)
+    }
+
+    @Test
     func eventAudioSampleStoragePreferencePersists() throws {
         let userDefaults = try makeIsolatedUserDefaults()
         let settings = UserSettings(userDefaults: userDefaults)

@@ -53,6 +53,7 @@ final class AppState: ObservableObject {
     @Published var audioCaptureMetrics = AudioCaptureMetrics()
     @Published var debugLifecycleLog: [String] = []
     @Published private(set) var isEventAudioSampleStorageEnabled: Bool
+    @Published private(set) var hasCompletedOnboarding: Bool
     @Published private(set) var eventAudioStorageStats = EventAudioStorageStats.empty
     @Published var eventAudioStorageMessage: String?
     @Published private(set) var eventFeedbackCount = 0
@@ -119,6 +120,7 @@ final class AppState: ObservableObject {
         self.recentReports = initialRecentReports
         self.microphonePermissionState = audioSessionManager.microphonePermissionState()
         self.isEventAudioSampleStorageEnabled = userSettings.isEventAudioSampleStorageEnabled
+        self.hasCompletedOnboarding = userSettings.hasCompletedOnboarding
         self.latestDetectorDiagnostics = initialReport.detectorDiagnostics
         self.eventFeedbackCount = eventFeedbackStore.feedbackCount()
         refreshEventAudioStorageStats()
@@ -194,6 +196,31 @@ final class AppState: ObservableObject {
 
     func refreshMicrophonePermissionState() {
         microphonePermissionState = audioSessionManager.microphonePermissionState()
+    }
+
+    var canResetOnboarding: Bool {
+        hasCompletedOnboarding
+    }
+
+    func requestMicrophonePermission() async -> MicrophonePermissionState {
+        audioCaptureState = .requestingPermission
+        var permissionState = audioSessionManager.microphonePermissionState()
+        if permissionState == .notDetermined {
+            permissionState = await audioSessionManager.requestMicrophonePermission()
+        }
+        microphonePermissionState = permissionState
+        audioCaptureState = permissionState == .granted ? .ready : .failed(message: AudioCaptureError.microphonePermissionDenied.message)
+        return permissionState
+    }
+
+    func completeOnboarding() {
+        userSettings.hasCompletedOnboarding = true
+        hasCompletedOnboarding = true
+    }
+
+    func resetOnboarding() {
+        userSettings.hasCompletedOnboarding = false
+        hasCompletedOnboarding = false
     }
 
     func setEventAudioSampleStorageEnabled(_ isEnabled: Bool) {

@@ -2,10 +2,12 @@ import Foundation
 
 public protocol UserSettingsProviding: AnyObject {
     var isEventAudioSampleStorageEnabled: Bool { get set }
+    var hasCompletedOnboarding: Bool { get set }
 }
 
 public final class UserSettings: UserSettingsProviding {
     public static let eventAudioSampleStorageKey = "isEventAudioSampleStorageEnabled"
+    public static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     private let userDefaults: UserDefaults
 
@@ -19,6 +21,15 @@ public final class UserSettings: UserSettingsProviding {
         }
         set {
             userDefaults.set(newValue, forKey: Self.eventAudioSampleStorageKey)
+        }
+    }
+
+    public var hasCompletedOnboarding: Bool {
+        get {
+            userDefaults.bool(forKey: Self.hasCompletedOnboardingKey)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.hasCompletedOnboardingKey)
         }
     }
 }
