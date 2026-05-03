@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct NBCard<Content: View>: View {
+  @Environment(\.colorScheme) private var colorScheme
+
   private let padding: CGFloat
   private let background: Color
   private let stroke: Color
@@ -28,9 +30,21 @@ struct NBCard<Content: View>: View {
       .background(background)
       .overlay(
         RoundedRectangle(cornerRadius: NBCornerRadius.card, style: .continuous)
-          .stroke(stroke.opacity(0.60), lineWidth: 0.6)
+          .stroke(stroke.opacity(borderOpacity), lineWidth: borderWidth)
       )
       .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.card, style: .continuous))
-      .nbShadow(shadowStyle)
+      .nbShadow(effectiveShadow)
+  }
+
+  private var effectiveShadow: NBShadowStyle {
+    colorScheme == .dark ? NBShadow.none : shadowStyle
+  }
+
+  private var borderOpacity: Double {
+    colorScheme == .dark ? 0.86 : 0.60
+  }
+
+  private var borderWidth: CGFloat {
+    colorScheme == .dark ? 0.8 : 0.6
   }
 }

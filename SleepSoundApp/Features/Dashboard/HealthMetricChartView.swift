@@ -27,11 +27,18 @@ struct HealthMetricChartView: View {
     .chartXAxis {
       AxisMarks(values: .automatic(desiredCount: 4)) {
         AxisGridLine()
+          .foregroundStyle(NBColor.divider)
         AxisValueLabel(format: .dateTime.month().day())
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
     .chartYAxis {
-      AxisMarks(position: .leading)
+      AxisMarks(position: .leading) {
+        AxisGridLine()
+          .foregroundStyle(NBColor.divider)
+        AxisValueLabel()
+          .foregroundStyle(NBColor.secondaryText)
+      }
     }
     .chartYScale(domain: yDomain)
     .frame(height: 170)

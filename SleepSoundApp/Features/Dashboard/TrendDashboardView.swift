@@ -254,11 +254,18 @@ private struct TrendMetricSection: View {
     .chartXAxis {
       AxisMarks(values: .automatic(desiredCount: 4)) {
         AxisGridLine()
+          .foregroundStyle(NBColor.divider)
         AxisValueLabel(format: .dateTime.month().day())
+          .foregroundStyle(NBColor.secondaryText)
       }
     }
     .chartYAxis {
-      AxisMarks(position: .leading)
+      AxisMarks(position: .leading) {
+        AxisGridLine()
+          .foregroundStyle(NBColor.divider)
+        AxisValueLabel()
+          .foregroundStyle(NBColor.secondaryText)
+      }
     }
     .frame(height: 190)
     .accessibilityLabel("\(metricType.displayName) 추세 차트")

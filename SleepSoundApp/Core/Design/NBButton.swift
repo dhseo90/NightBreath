@@ -36,6 +36,8 @@ struct NBPrimaryButtonStyle: ButtonStyle {
 }
 
 struct NBSecondaryButtonStyle: ButtonStyle {
+  @Environment(\.colorScheme) private var colorScheme
+
   var tint: Color = NBColor.accent
 
   func makeBody(configuration: Configuration) -> some View {
@@ -44,13 +46,20 @@ struct NBSecondaryButtonStyle: ButtonStyle {
       .foregroundStyle(tint)
       .frame(maxWidth: .infinity, minHeight: 48)
       .padding(.horizontal, NBSpacing.lg)
-      .background(tint.opacity(configuration.isPressed ? 0.16 : 0.10))
+      .background(tint.opacity(secondaryBackgroundOpacity(isPressed: configuration.isPressed)))
       .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.medium, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: NBCornerRadius.medium, style: .continuous)
-          .stroke(tint.opacity(0.20), lineWidth: 1)
+          .stroke(tint.opacity(colorScheme == .dark ? 0.34 : 0.20), lineWidth: 1)
       )
       .animation(NBAnimation.buttonPress, value: configuration.isPressed)
+  }
+
+  private func secondaryBackgroundOpacity(isPressed: Bool) -> Double {
+    if colorScheme == .dark {
+      return isPressed ? 0.26 : 0.18
+    }
+    return isPressed ? 0.16 : 0.10
   }
 }
 

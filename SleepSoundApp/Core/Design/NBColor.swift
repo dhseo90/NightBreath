@@ -1,36 +1,114 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 enum NBColor {
-  static let background = Color(red: 0.950, green: 0.958, blue: 0.980)
-  static let groupedBackground = Color(red: 0.929, green: 0.941, blue: 0.968)
-  static let cardBackground = Color(red: 0.992, green: 0.994, blue: 1.000)
-  static let elevatedCardBackground = Color(red: 0.969, green: 0.979, blue: 0.996)
+  private struct RGBA {
+    let red: Double
+    let green: Double
+    let blue: Double
+    let alpha: Double
+  }
 
-  static let primaryText = Color(red: 0.070, green: 0.092, blue: 0.145)
-  static let secondaryText = Color(red: 0.330, green: 0.380, blue: 0.470)
-  static let tertiaryText = Color(red: 0.520, green: 0.560, blue: 0.640)
+  static let background = adaptive(
+    light: rgba(0.950, 0.958, 0.980),
+    dark: rgba(0.031, 0.047, 0.086)
+  )
+  static let groupedBackground = adaptive(
+    light: rgba(0.929, 0.941, 0.968),
+    dark: rgba(0.051, 0.075, 0.133)
+  )
+  static let cardBackground = adaptive(
+    light: rgba(0.992, 0.994, 1.000),
+    dark: rgba(0.071, 0.102, 0.169)
+  )
+  static let elevatedCardBackground = adaptive(
+    light: rgba(0.969, 0.979, 0.996),
+    dark: rgba(0.094, 0.133, 0.208)
+  )
 
-  static let accent = Color(red: 0.176, green: 0.353, blue: 0.735)
-  static let accentSoft = Color(red: 0.835, green: 0.878, blue: 0.980)
-  static let sleep = Color(red: 0.235, green: 0.302, blue: 0.647)
-  static let breath = Color(red: 0.075, green: 0.470, blue: 0.535)
-  static let privacy = Color(red: 0.095, green: 0.415, blue: 0.405)
+  static let primaryText = adaptive(
+    light: rgba(0.070, 0.092, 0.145),
+    dark: rgba(0.945, 0.961, 1.000)
+  )
+  static let secondaryText = adaptive(
+    light: rgba(0.330, 0.380, 0.470),
+    dark: rgba(0.720, 0.761, 0.839)
+  )
+  static let tertiaryText = adaptive(
+    light: rgba(0.520, 0.560, 0.640),
+    dark: rgba(0.538, 0.580, 0.667)
+  )
 
-  static let success = Color(red: 0.145, green: 0.540, blue: 0.355)
-  static let warning = Color(red: 0.820, green: 0.455, blue: 0.135)
-  static let caution = Color(red: 0.730, green: 0.600, blue: 0.170)
-  static let danger = Color(red: 0.780, green: 0.210, blue: 0.250)
-  static let neutral = Color(red: 0.430, green: 0.480, blue: 0.560)
+  static let accent = adaptive(
+    light: rgba(0.176, 0.353, 0.735),
+    dark: rgba(0.560, 0.671, 1.000)
+  )
+  static let accentSoft = adaptive(
+    light: rgba(0.835, 0.878, 0.980),
+    dark: rgba(0.114, 0.165, 0.302)
+  )
+  static let sleep = adaptive(
+    light: rgba(0.235, 0.302, 0.647),
+    dark: rgba(0.663, 0.706, 1.000)
+  )
+  static let breath = adaptive(
+    light: rgba(0.075, 0.470, 0.535),
+    dark: rgba(0.494, 0.855, 0.890)
+  )
+  static let privacy = adaptive(
+    light: rgba(0.095, 0.415, 0.405),
+    dark: rgba(0.447, 0.831, 0.788)
+  )
 
-  static let border = Color(red: 0.800, green: 0.835, blue: 0.900)
-  static let divider = Color(red: 0.865, green: 0.890, blue: 0.935)
+  static let success = adaptive(
+    light: rgba(0.145, 0.540, 0.355),
+    dark: rgba(0.447, 0.851, 0.608)
+  )
+  static let warning = adaptive(
+    light: rgba(0.820, 0.455, 0.135),
+    dark: rgba(0.953, 0.706, 0.416)
+  )
+  static let caution = adaptive(
+    light: rgba(0.730, 0.600, 0.170),
+    dark: rgba(0.882, 0.792, 0.380)
+  )
+  static let danger = adaptive(
+    light: rgba(0.780, 0.210, 0.250),
+    dark: rgba(1.000, 0.541, 0.573)
+  )
+  static let neutral = adaptive(
+    light: rgba(0.430, 0.480, 0.560),
+    dark: rgba(0.667, 0.706, 0.769)
+  )
+
+  static let border = adaptive(
+    light: rgba(0.800, 0.835, 0.900),
+    dark: rgba(0.165, 0.212, 0.314)
+  )
+  static let divider = adaptive(
+    light: rgba(0.865, 0.890, 0.935),
+    dark: rgba(0.133, 0.188, 0.286)
+  )
   static let chartPrimary = accent
   static let chartSecondary = breath
 
-  static let quietIndigo = Color(red: 0.350, green: 0.380, blue: 0.720)
+  static let quietIndigo = adaptive(
+    light: rgba(0.350, 0.380, 0.720),
+    dark: rgba(0.659, 0.682, 1.000)
+  )
   static let mistTeal = breath
-  static let lavender = Color(red: 0.500, green: 0.360, blue: 0.720)
-  static let dawn = Color(red: 0.880, green: 0.540, blue: 0.220)
+  static let lavender = adaptive(
+    light: rgba(0.500, 0.360, 0.720),
+    dark: rgba(0.820, 0.710, 1.000)
+  )
+  static let dawn = adaptive(
+    light: rgba(0.880, 0.540, 0.220),
+    dark: rgba(0.953, 0.698, 0.463)
+  )
 
   static let pageBackground = background
   static let surface = cardBackground
@@ -42,4 +120,52 @@ enum NBColor {
   static let privacyTint = privacy
   static let sleepTint = sleep
   static let audioTint = lavender
+
+  private static func rgba(
+    _ red: Double,
+    _ green: Double,
+    _ blue: Double,
+    alpha: Double = 1
+  ) -> RGBA {
+    RGBA(red: red, green: green, blue: blue, alpha: alpha)
+  }
+
+  private static func adaptive(light: RGBA, dark: RGBA) -> Color {
+    #if canImport(UIKit)
+      return Color(
+        UIColor { traitCollection in
+          uiColor(traitCollection.userInterfaceStyle == .dark ? dark : light)
+        }
+      )
+    #elseif canImport(AppKit)
+      return Color(
+        NSColor(name: nil) { appearance in
+          let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+          return nsColor(isDark ? dark : light)
+        }
+      )
+    #else
+      return Color(red: light.red, green: light.green, blue: light.blue, opacity: light.alpha)
+    #endif
+  }
+
+  #if canImport(UIKit)
+    private static func uiColor(_ rgba: RGBA) -> UIColor {
+      UIColor(
+        red: CGFloat(rgba.red),
+        green: CGFloat(rgba.green),
+        blue: CGFloat(rgba.blue),
+        alpha: CGFloat(rgba.alpha)
+      )
+    }
+  #elseif canImport(AppKit)
+    private static func nsColor(_ rgba: RGBA) -> NSColor {
+      NSColor(
+        calibratedRed: CGFloat(rgba.red),
+        green: CGFloat(rgba.green),
+        blue: CGFloat(rgba.blue),
+        alpha: CGFloat(rgba.alpha)
+      )
+    }
+  #endif
 }

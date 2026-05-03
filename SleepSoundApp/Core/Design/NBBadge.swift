@@ -49,6 +49,8 @@ enum NBStatusKind: String, CaseIterable, Sendable {
 }
 
 struct NBStatusBadge: View {
+  @Environment(\.colorScheme) private var colorScheme
+
   let text: String
   let systemImage: String?
   let tint: Color
@@ -82,7 +84,11 @@ struct NBStatusBadge: View {
     .padding(.horizontal, 10)
     .padding(.vertical, 6)
     .foregroundStyle(tint)
-    .background(tint.opacity(0.12))
+    .background(tint.opacity(colorScheme == .dark ? 0.18 : 0.12))
+    .overlay(
+      Capsule()
+        .stroke(tint.opacity(colorScheme == .dark ? 0.34 : 0.18), lineWidth: 0.7)
+    )
     .clipShape(Capsule())
     .accessibilityElement(children: .combine)
   }

@@ -12,10 +12,10 @@ struct TrendChartView: View {
                     VStack(spacing: 8) {
                         Text("\(score)")
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(NBColor.secondaryText)
 
                         RoundedRectangle(cornerRadius: 5)
-                            .fill(index == scores.count - 1 ? Color.blue : Color.teal.opacity(0.65))
+                            .fill(index == scores.count - 1 ? NBColor.chartPrimary : NBColor.chartSecondary.opacity(0.72))
                             .frame(
                                 width: barWidth,
                                 height: max(12, proxy.size.height * CGFloat(score) / 120)
@@ -23,7 +23,7 @@ struct TrendChartView: View {
 
                         Text(index == scores.count - 1 ? "최근" : "\(index + 1)")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(NBColor.secondaryText)
                     }
                     .frame(maxHeight: .infinity, alignment: .bottom)
                 }

@@ -8,6 +8,7 @@ struct NBShadowStyle {
 }
 
 enum NBShadow {
+  static let none = NBShadowStyle(color: Color.black.opacity(0), radius: 0, x: 0, y: 0)
   static let subtle = NBShadowStyle(color: Color.black.opacity(0.025), radius: 4, x: 0, y: 1)
   static let card = NBShadowStyle(color: Color.black.opacity(0.045), radius: 8, x: 0, y: 3)
   static let elevated = NBShadowStyle(color: Color.black.opacity(0.070), radius: 14, x: 0, y: 6)

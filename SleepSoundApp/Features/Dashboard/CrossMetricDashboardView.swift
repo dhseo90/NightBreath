@@ -164,10 +164,20 @@ struct CrossMetricDashboardView: View {
         }
       }
       .chartXAxis {
-        AxisMarks(position: .bottom)
+        AxisMarks(position: .bottom) {
+          AxisGridLine()
+            .foregroundStyle(NBColor.divider)
+          AxisValueLabel()
+            .foregroundStyle(NBColor.secondaryText)
+        }
       }
       .chartYAxis {
-        AxisMarks(position: .leading)
+        AxisMarks(position: .leading) {
+          AxisGridLine()
+            .foregroundStyle(NBColor.divider)
+          AxisValueLabel()
+            .foregroundStyle(NBColor.secondaryText)
+        }
       }
       .frame(height: 240)
       .accessibilityLabel("수면 소리 지표와 건강 지표 산점도")

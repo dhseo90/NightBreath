@@ -21,6 +21,8 @@
 
 파일: `SleepSoundApp/Core/Design/NBColor.swift`
 
+`NBColor`는 SwiftUI dynamic color로 정의합니다. 화면별로 직접 RGB/hex 값을 반복하지 않고, Light/Dark appearance 차이는 token 안에서 처리합니다.
+
 - `background`: 앱 전체 배경
 - `groupedBackground`: 섹션이 많은 화면의 그룹 배경
 - `cardBackground`: 기본 카드 표면
@@ -33,6 +35,8 @@
 - `chartPrimary`, `chartSecondary`: 차트 기본 색상
 
 기존 화면 호환을 위해 `pageBackground`, `surface`, `elevatedSurface`, `nightInk`, `mutedText`, `breathBlue`, `privacyTint`, `sleepTint`, `audioTint` alias도 유지합니다.
+
+Light mode는 깨끗한 blue-gray 배경, 밝은 card surface, 부드러운 shadow를 사용합니다. Dark mode는 깊은 night background, 살짝 밝은 elevated surface, 높은 text contrast, shadow보다 border 중심의 구분을 사용합니다.
 
 ## 타이포그래피
 
@@ -76,6 +80,8 @@
 - `elevated`: 중요 안내 카드
 
 밤숨의 그림자는 낮은 opacity와 작은 y offset으로 제한합니다.
+
+`NBCard`는 Light mode에서 `NBShadow.card`를 사용하고, Dark mode에서는 shadow를 거의 제거한 뒤 `border`와 `cardBackground`/`elevatedCardBackground` 대비로 표면을 구분합니다.
 
 ## Animation
 
@@ -134,6 +140,14 @@ Core/Design 컴포넌트:
 - `debug`
 
 사용 예: 측정 품질 좋음, 오디오 커버리지 낮음, 이벤트 샘플 저장 꺼짐, 원본 전체 오디오 저장 안 함, DEBUG, Core ML fallback.
+
+상태 배지는 색상만으로 의미를 전달하지 않습니다. `NBStatusBadge`는 텍스트와 SF Symbol을 함께 사용하고, Dark mode에서는 배경 tint와 stroke opacity를 높여 작은 caption 크기에서도 상태를 읽기 쉽게 유지합니다.
+
+## Chart Color
+
+- 차트의 주요 선/막대는 `NBColor.chartPrimary`, 보조 선/막대는 `NBColor.chartSecondary`를 사용합니다.
+- 낮은 측정 품질 marker는 `NBColor.warning`과 diamond symbol을 함께 사용해 색상만으로 구분하지 않습니다.
+- grid line은 `NBColor.divider`, axis label은 `NBColor.secondaryText`를 사용해 Light/Dark mode 모두에서 과하게 튀지 않게 합니다.
 
 ## Timeline Row
 
@@ -310,6 +324,24 @@ Illustrations image set은 현재 metadata-only placeholder입니다. 앱 화면
 - 수치 카드에는 의미 있는 `accessibilityLabel`을 제공합니다.
 - Dynamic Type에서 긴 한국어 문구가 줄바꿈될 수 있게 `fixedSize(horizontal: false, vertical: true)`를 사용합니다.
 - 아이콘 전용 버튼은 VoiceOver label을 반드시 가집니다.
+
+## Preview 확인
+
+주요 화면의 Light/Dark preview는 `SleepSoundApp/Features/ScreenAppearancePreviews.swift`의 `NBPrimaryScreenAppearance_Previews`에서 확인합니다.
+
+포함 화면:
+
+- `HomeDashboardView`
+- `SleepStartView`
+- `SleepRecordingView`
+- `SleepReportView`
+- `SleepTimelineView`
+- `PrivacySettingsView`
+- `HealthDashboardView`
+- `TrendDashboardView`
+- DEBUG 대표 화면: `DetectorTuningView`
+
+Xcode canvas에서 각 preview의 `Light`/`Dark` variant를 비교해 card surface, badge contrast, chart grid/axis, empty state, privacy notice 가독성을 확인합니다.
 
 ## Empty / Error State
 
