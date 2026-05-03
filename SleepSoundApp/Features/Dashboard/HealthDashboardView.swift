@@ -5,6 +5,7 @@ struct HealthDashboardView: View {
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
 
+  @EnvironmentObject private var appState: AppState
   @State private var permissionState: HealthMetricPermissionState = .notRequested
   @State private var healthSamples: [HealthMetricSample] = []
   @State private var isLoading = false
@@ -178,6 +179,25 @@ struct HealthDashboardView: View {
           )
         }
         .buttonStyle(.plain)
+
+        NavigationLink {
+          CrossMetricDashboardView(
+            reports: appState.trendReports(days: 90),
+            samples: visibleSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "수면 소리 × 건강",
+            subtitle: "수면 소리 지표와 건강 sample을 날짜 기준으로 함께 보기",
+            systemImage: "chart.dots.scatter",
+            tint: NBColor.sleepTint,
+            sampleCount: crossMetricHealthSampleCount,
+            latestDate: crossMetricLatestDate
+          )
+        }
+        .buttonStyle(.plain)
       }
     }
   }
@@ -283,6 +303,23 @@ struct HealthDashboardView: View {
       .sortedByMeasuredAtDescending()
       .first?
       .measuredAt
+  }
+
+  private var crossMetricHealthSampleCount: Int {
+    let metricSet = Set(CrossMetricAnalyzer.supportedHealthMetrics)
+    return visibleSamples.filter { metricSet.contains($0.metricType) }.count
+  }
+
+  private var crossMetricLatestDate: Date? {
+    let metricSet = Set(CrossMetricAnalyzer.supportedHealthMetrics)
+    let latestHealthDate = visibleSamples
+      .filter { metricSet.contains($0.metricType) }
+      .sortedByMeasuredAtDescending()
+      .first?
+      .measuredAt
+    let latestSleepDate = appState.trendReports(days: 90).last?.generatedAt
+
+    return [latestHealthDate, latestSleepDate].compactMap { $0 }.max()
   }
 }
 
