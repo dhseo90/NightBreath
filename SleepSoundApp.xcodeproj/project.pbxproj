@@ -249,6 +249,7 @@
 		000000000000000000000189 /* CrossMetricAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossMetricAnalysis.swift; sourceTree = "<group>"; };
 		00000000000000000000018A /* CrossMetricDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossMetricDashboardView.swift; sourceTree = "<group>"; };
 		00000000000000000000018B /* CrossMetricAnalysisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossMetricAnalysisTests.swift; sourceTree = "<group>"; };
+		00000000000000000000018C /* AppStoreReadinessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReadinessTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -536,6 +537,7 @@
 				000000000000000000000183 /* HealthKitReadOnlyPolicyTests.swift */,
 				000000000000000000000188 /* HealthMetricTrendCalculatorTests.swift */,
 				00000000000000000000018B /* CrossMetricAnalysisTests.swift */,
+				00000000000000000000018C /* AppStoreReadinessTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -850,8 +852,8 @@
 				DEVELOPMENT_TEAM = AJ28VHUP9L;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SleepSoundApp/App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = NightBreath;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 감지된 소리 기반 지표를 온디바이스로 분석하기 위해 마이크 접근이 필요합니다.";
+				INFOPLIST_KEY_CFBundleDisplayName = "밤숨";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 소리 기반 지표를 iPhone 안에서 분석하기 위해 마이크 접근이 필요합니다. 원본 전체 오디오는 저장하지 않습니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -883,8 +885,8 @@
 				DEVELOPMENT_TEAM = AJ28VHUP9L;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SleepSoundApp/App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = NightBreath;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 감지된 소리 기반 지표를 온디바이스로 분석하기 위해 마이크 접근이 필요합니다.";
+				INFOPLIST_KEY_CFBundleDisplayName = "밤숨";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "수면 중 소리 기반 지표를 iPhone 안에서 분석하기 위해 마이크 접근이 필요합니다. 원본 전체 오디오는 저장하지 않습니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = audio;

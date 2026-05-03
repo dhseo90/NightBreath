@@ -6,8 +6,8 @@ public struct HealthDashboardPlaceholder: Equatable {
     public var plannedMetrics: [HealthMetricType]
 
     public init(
-        title: String = "건강 대시보드 확장 준비",
-        message: String = "V1에서는 건강앱 권한을 요청하지 않고, 수면 중 소리 기반 지표에 집중합니다.",
+        title: String = "건강 데이터 대시보드",
+        message: String = "Apple 건강앱 데이터를 read-only로 읽어 로컬 화면에 정리합니다. 건강 데이터 연결을 선택할 때만 권한을 요청합니다.",
         plannedMetrics: [HealthMetricType] = HealthMetricType.allCases
     ) {
         self.title = title

@@ -7,7 +7,7 @@ struct HomeDashboardView: View {
     TabView {
       NavigationStack {
         dashboardContent
-          .navigationTitle("NightBreath")
+          .navigationTitle("밤숨")
       }
       .tabItem {
         Label("홈", systemImage: "house")
@@ -114,7 +114,7 @@ struct HomeDashboardView: View {
         NavigationLink {
           HealthDashboardView()
         } label: {
-          Label("건강 데이터 대시보드 준비 중", systemImage: "heart.text.square")
+          Label("건강 데이터 대시보드", systemImage: "heart.text.square")
         }
         .buttonStyle(.nbSecondary)
 
@@ -212,7 +212,7 @@ struct HomeDashboardView: View {
         Text(placeholder.plannedMetrics.prefix(5).map(\.displayName).joined(separator: " · "))
           .font(.footnote)
           .foregroundStyle(.secondary)
-        Text("현재는 mock data로 UI를 검증하며 실제 건강앱 권한 요청은 비활성화되어 있습니다.")
+        Text("건강 데이터 연결 버튼을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. HealthKit에는 데이터를 쓰지 않습니다.")
           .font(.footnote)
           .foregroundStyle(.secondary)
       }
@@ -334,15 +334,10 @@ private struct SettingsListView: View {
         NavigationLink {
           HealthDashboardView()
         } label: {
-          Label("건강 데이터 대시보드 준비 중", systemImage: "heart.text.square")
+          Label("건강 데이터 대시보드", systemImage: "heart.text.square")
         }
 
-        Button {} label: {
-          Label("건강앱 권한 요청은 다음 단계", systemImage: "heart.text.square")
-        }
-        .disabled(true)
-
-        Text("혈압, 체중, 체지방률, BMI, 심박수, 수면 데이터는 mock 구조로 먼저 검증합니다.")
+        Text("건강 데이터 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. 서버 전송 없이 로컬 화면에 표시합니다.")
           .font(.footnote)
           .foregroundStyle(.secondary)
       }

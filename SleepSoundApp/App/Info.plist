@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>NightBreath</string>
+	<string>밤숨</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,7 +23,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>수면 중 감지된 소리 기반 지표를 온디바이스로 분석하기 위해 마이크 접근이 필요합니다.</string>
+	<string>수면 중 소리 기반 지표를 iPhone 안에서 분석하기 위해 마이크 접근이 필요합니다. 원본 전체 오디오는 저장하지 않습니다.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>혈압, 체중, 체성분, 심박수, 호흡수 데이터를 읽어 건강 데이터 대시보드에 로컬로 표시하기 위해 사용합니다. 데이터는 서버로 전송되지 않으며 HealthKit에 쓰지 않습니다.</string>
 	<key>UIApplicationSceneManifest</key>
