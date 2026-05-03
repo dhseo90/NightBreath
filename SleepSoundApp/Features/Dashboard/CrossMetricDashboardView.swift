@@ -42,7 +42,7 @@ struct CrossMetricDashboardView: View {
           messages: [
             "개인 패턴을 살펴보기 위한 참고용 보기입니다.",
             "인과관계를 의미하지 않습니다.",
-            "수면 소리 리포트와 Apple 건강앱 read-only sample을 기기 안에서만 나란히 표시합니다.",
+            "수면 소리 리포트와 Apple 건강앱 read-only 샘플을 기기 안에서만 나란히 표시합니다.",
             "HealthKit에 데이터를 쓰지 않습니다.",
           ],
           systemImage: "lock.shield"
@@ -51,6 +51,7 @@ struct CrossMetricDashboardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("수면 소리 × 건강")
   }
 
@@ -243,7 +244,7 @@ struct CrossMetricDashboardView: View {
   private var insufficientDataSection: some View {
     HealthDataEmptyStateView(
       title: "비교 가능한 데이터가 아직 부족합니다.",
-      message: "같은 기간에 매칭되는 수면 리포트와 건강 sample이 3개 이상 모이면 그래프와 요약을 표시합니다. 측정 품질 낮음으로 표시된 수면 리포트는 요약 계산에서 제외합니다."
+      message: "같은 기간에 매칭되는 수면 리포트와 건강 샘플이 3개 이상 모이면 그래프와 요약을 표시합니다. 측정 품질 낮음으로 표시된 수면 리포트는 요약 계산에서 제외합니다."
     )
   }
 
@@ -281,7 +282,7 @@ struct CrossMetricDashboardView: View {
     [
       "\(selectedSleepMetric.displayName) \(formattedSleepValue(point.sleepValue))",
       "\(selectedHealthMetric.displayName) \(HealthMetricDashboardFormatting.valueString(point.healthValue, unit: selectedHealthMetric.unitLabel))",
-      "건강 sample \(SleepFormatters.shortDate(point.healthSampleDate)) \(SleepFormatters.shortTime(point.healthSampleDate))",
+      "건강 샘플 \(SleepFormatters.shortDate(point.healthSampleDate)) \(SleepFormatters.shortTime(point.healthSampleDate))",
       point.healthSourceName,
       "커버리지 \(percentString(point.audioCoverageRatio))",
     ].joined(separator: " · ")

@@ -22,7 +22,7 @@ struct MockHealthDataServiceTests {
             .bodyMassIndex,
             .leanBodyMass,
         ])
-        #expect(Set(sourcesByName["Apple Health Mock"]?.map(\.metricType) ?? []) == [
+        #expect(Set(sourcesByName["Apple 건강앱 예시"]?.map(\.metricType) ?? []) == [
             .stepCount,
             .activeEnergy,
             .heartRate,
@@ -73,7 +73,7 @@ struct MockHealthDataServiceTests {
         #expect(summary.date == dayStart)
         #expect(summary.sampleCount == HealthMetricType.dailyRhythmMockMetrics.count)
         #expect(Set(summary.metricTypes) == Set(HealthMetricType.dailyRhythmMockMetrics))
-        #expect(summary.sourceNames == ["Apple Health Mock", "Fitdays", "Omron Connect"])
+        #expect(summary.sourceNames == ["Apple 건강앱 예시", "Fitdays", "Omron Connect"])
         #expect(summary.samples == summary.samples.sortedByMeasuredAtAscending())
     }
 

@@ -32,7 +32,7 @@ struct MorningBriefView: View {
           messages: [
             "개인 참고용 리포트입니다.",
             "이 앱은 진단 목적의 의료기기가 아닙니다.",
-            "건강 데이터는 mock source로 표시합니다.",
+            "건강 데이터는 예시 데이터 출처로 표시합니다.",
           ],
           systemImage: "sunrise"
         )
@@ -40,6 +40,7 @@ struct MorningBriefView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("아침 리포트")
   }
 
@@ -50,7 +51,7 @@ struct MorningBriefView: View {
           .font(NBTypography.titleLarge)
           .foregroundStyle(NBColor.primaryText)
 
-        Text("수면 소리, 아침 컨디션, mock 건강 데이터를 사용 가능한 범위에서 함께 정리합니다.")
+        Text("수면 소리, 아침 컨디션, 예시 건강 데이터를 사용 가능한 범위에서 함께 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
@@ -141,11 +142,11 @@ struct MorningBriefView: View {
   }
 
   private var morningHealthSection: some View {
-    NBReportSection(title: "아침 건강 mock data", systemImage: "heart.text.square") {
+    NBReportSection(title: "아침 건강 예시 데이터", systemImage: "heart.text.square") {
       if bundle.healthSamples.isEmpty {
         NBEmptyStateView(
-          title: "건강 mock data가 없습니다",
-          message: "mock source가 준비되면 혈압과 체중/체성분 데이터를 이 영역에 표시합니다.",
+          title: "건강 예시 데이터가 없습니다",
+          message: "예시 데이터가 준비되면 혈압과 체중/체성분 데이터를 이 영역에 표시합니다.",
           systemImage: "tray"
         )
       } else {
@@ -186,7 +187,7 @@ struct MorningBriefView: View {
     if let systolic = bundle.latestSample(.systolicBloodPressure),
        let diastolic = bundle.latestSample(.diastolicBloodPressure) {
       NBListRow(
-        title: "아침 혈압 mock data",
+        title: "아침 혈압 예시 데이터",
         value: "\(Int(systolic.value.rounded()))/\(Int(diastolic.value.rounded())) mmHg",
         subtitle: "\(systolic.sourceName) · \(SleepFormatters.shortTime(systolic.measuredAt))",
         systemImage: "heart",
@@ -194,7 +195,7 @@ struct MorningBriefView: View {
       )
     } else {
       NBListRow(
-        title: "아침 혈압 mock data",
+        title: "아침 혈압 예시 데이터",
         value: "데이터 없음",
         subtitle: "해당 항목은 제한적으로 표시됩니다.",
         systemImage: "heart.slash",
@@ -217,7 +218,7 @@ struct MorningBriefView: View {
       NBListRow(
         title: metricType.displayName,
         value: "데이터 없음",
-        subtitle: "mock sample이 없는 항목입니다.",
+        subtitle: "예시 샘플이 없는 항목입니다.",
         systemImage: DailyRhythmUI.icon(for: metricType),
         tint: NBColor.neutral
       )

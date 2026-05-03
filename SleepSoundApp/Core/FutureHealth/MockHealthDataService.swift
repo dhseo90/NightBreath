@@ -10,7 +10,7 @@ public struct MockHealthDataService: HealthDataServiceProtocol {
         bundleIdentifier: "com.fitdays.app"
     )
     public static let appleHealthMockSource = (
-        name: "Apple Health Mock",
+        name: "Apple 건강앱 예시",
         bundleIdentifier: "com.apple.Health.mock"
     )
 

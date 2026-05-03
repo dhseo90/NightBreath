@@ -112,15 +112,15 @@ struct HealthDataAccessStateView: View {
     case .notRequested:
       if isPreviewData {
         NBStatusBadge(
-          "연결 전: mock preview로 그래프를 확인합니다.",
+          "연결 전: 예시 미리보기로 그래프를 확인합니다.",
           kind: .neutral,
           systemImage: "eye"
         )
       }
     case .mockDataOnly:
       NBStatusBadge(
-        "Mock data only",
-        kind: .debug,
+        "예시 데이터만 표시",
+        kind: .neutral,
         systemImage: "sparkles"
       )
     case .readRequestCompleted:
@@ -212,7 +212,7 @@ struct HealthPeriodOverviewSection: View {
         "평균 \(HealthMetricDashboardFormatting.valueString(average, unit: primaryMetric.unitLabel))"
       )
     } else {
-      parts.append("평균 계산 sample 부족")
+      parts.append("평균 계산 샘플 부족")
     }
 
     if let change = summary.changeFromPreviousPeriod {
@@ -220,7 +220,7 @@ struct HealthPeriodOverviewSection: View {
         "이전 \(summary.period.displayName) 평균 대비 \(HealthMetricDashboardFormatting.signedValueString(change, unit: primaryMetric.unitLabel))"
       )
     } else {
-      parts.append("이전 기간 비교 sample 부족")
+      parts.append("이전 기간 비교 샘플 부족")
     }
 
     return parts.joined(separator: " · ")
@@ -251,7 +251,7 @@ struct HealthLatestSampleDetailSection: View {
       return NBListRow(
         title: metricType.displayName,
         value: "--",
-        subtitle: "선택한 기간에 표시할 sample이 없습니다.",
+        subtitle: "선택한 기간에 표시할 샘플이 없습니다.",
         systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
         tint: HealthMetricDashboardFormatting.tint(for: metricType)
       )
@@ -365,7 +365,7 @@ struct HealthTrendSummaryRows: View {
                 .font(.caption)
                 .foregroundStyle(NBColor.secondaryText)
             } else {
-              Text("이전 기간과 비교할 sample이 아직 부족합니다.")
+              Text("이전 기간과 비교할 샘플이 아직 부족합니다.")
                 .font(.caption)
                 .foregroundStyle(NBColor.secondaryText)
             }

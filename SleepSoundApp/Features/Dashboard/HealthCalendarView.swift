@@ -46,7 +46,7 @@ struct HealthCalendarView: View {
         NBPrivacyNoticeCard(
           title: "날짜별 데이터 안내",
           messages: [
-            "캘린더는 기기 안의 수면 리포트, HealthKit read-only sample, 로컬 import sample을 날짜 기준으로 묶어 보여줍니다.",
+            "캘린더는 기기 안의 수면 리포트, HealthKit read-only 샘플, 로컬 import 샘플을 날짜 기준으로 묶어 보여줍니다.",
             "같은 날짜에 여러 데이터가 있어도 인과관계를 의미하지 않습니다.",
             "서버로 전송하지 않고 HealthKit에 데이터를 쓰지 않습니다.",
           ],
@@ -56,6 +56,7 @@ struct HealthCalendarView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("건강 캘린더")
   }
 
@@ -95,12 +96,12 @@ struct HealthCalendarView: View {
   @ViewBuilder
   private var stateNotice: some View {
     if isPreviewData {
-      NBStatusBadge("연결 전 sample은 mock preview로 표시됩니다.", kind: .neutral, systemImage: "eye")
+      NBStatusBadge("연결 전 샘플은 예시 미리보기로 표시됩니다.", kind: .neutral, systemImage: "eye")
     }
 
     switch permissionState {
     case .denied:
-      NBStatusBadge("HealthKit 권한이 없어도 로컬 import sample과 수면 데이터는 표시할 수 있습니다.", kind: .caution, systemImage: "lock.slash")
+      NBStatusBadge("HealthKit 권한이 없어도 로컬 import 샘플과 수면 데이터는 표시할 수 있습니다.", kind: .caution, systemImage: "lock.slash")
     case .unavailable:
       NBStatusBadge("HealthKit을 사용할 수 없어도 로컬 데이터는 표시할 수 있습니다.", kind: .warning, systemImage: "exclamationmark.triangle")
     case .notRequested, .readRequestCompleted, .mockDataOnly:
@@ -249,11 +250,11 @@ struct DailyMeasurementDetailView: View {
         sleepSection
         morningCheckInSection
         eveningCheckInSection
-        metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "이날 기록된 혈압 sample이 없습니다.")
-        metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "이날 기록된 체성분 sample이 없습니다.")
+        metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "이날 기록된 혈압 샘플이 없습니다.")
+        metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "이날 기록된 체성분 샘플이 없습니다.")
         metricSection(title: "Fitdays 확장 체성분", systemImage: "square.and.arrow.down", samples: detailData.fitdaysExtendedSamples, emptyMessage: "이날 가져온 Fitdays 확장 지표가 없습니다.")
-        metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "이날 기록된 활동 sample이 없습니다.")
-        metricSection(title: "앱 계산 지표", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "이날 앱 계산 지표 sample이 없습니다.")
+        metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "이날 기록된 활동 샘플이 없습니다.")
+        metricSection(title: "앱 계산 지표", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "이날 앱 계산 지표 샘플이 없습니다.")
         sourceSection
 
         NBPrivacyNoticeCard(
@@ -269,6 +270,7 @@ struct DailyMeasurementDetailView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle(SleepFormatters.shortDate(detailData.date))
   }
 
@@ -276,7 +278,7 @@ struct DailyMeasurementDetailView: View {
     NBReportSection(title: "이날 기록된 데이터", systemImage: "calendar.badge.clock") {
       LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
         NBMetricCard(
-          title: "건강 sample",
+          title: "건강 샘플",
           value: "\(detailData.summary.sampleCount)개",
           systemImage: "number",
           tint: NBColor.privacyTint
@@ -451,7 +453,7 @@ struct DailyMeasurementDetailView: View {
       if sourceBreakdown.isEmpty && detailData.sleepReports.isEmpty && detailData.morningCheckIns.isEmpty && detailData.eveningCheckIns.isEmpty {
         NBEmptyStateView(
           title: "표시할 데이터 출처가 없습니다",
-          message: "해당 날짜에 sample이나 리포트가 없습니다.",
+          message: "해당 날짜에 샘플이나 리포트가 없습니다.",
           systemImage: "tray"
         )
       } else {
@@ -592,7 +594,7 @@ private struct CalendarDayCell: View {
     guard summary.hasAnyData else {
       return "\(dateText), 데이터 없음"
     }
-    return "\(dateText), sample \(summary.sampleCount)개, 데이터 품질 \(summary.dataQuality.displayName)"
+    return "\(dateText), 샘플 \(summary.sampleCount)개, 데이터 품질 \(summary.dataQuality.displayName)"
   }
 }
 

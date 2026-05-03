@@ -58,6 +58,7 @@ struct TrendDashboardView: View {
       .padding(.vertical, NBSpacing.sectionVertical)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("수면 트렌드")
   }
 

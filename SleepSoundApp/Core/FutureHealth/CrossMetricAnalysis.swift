@@ -265,9 +265,9 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
     public func matchingWindowDescription(for healthMetric: HealthMetricType) -> String {
         switch matchingStrategy(for: healthMetric) {
         case .nextMorning:
-            "수면 리포트 날짜 다음날 04:00부터 12:00까지의 \(healthMetric.displayName) sample을 찾습니다."
+            "수면 리포트 날짜 다음날 04:00부터 12:00까지의 \(healthMetric.displayName) 샘플을 찾습니다."
         case .sameCalendarDay:
-            "수면 리포트와 같은 날짜의 \(healthMetric.displayName) sample을 찾습니다."
+            "수면 리포트와 같은 날짜의 \(healthMetric.displayName) 샘플을 찾습니다."
         }
     }
 
@@ -301,7 +301,7 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
             return "비교 가능한 데이터가 아직 부족합니다."
         }
 
-        let baseText = "\(sleepMetric.referencePhrase)와 \(healthMetric.displayName) sample \(includedCount)개를 날짜 기준으로 함께 표시합니다."
+        let baseText = "\(sleepMetric.referencePhrase)와 \(healthMetric.displayName) 샘플 \(includedCount)개를 날짜 기준으로 함께 표시합니다."
         guard excludedCount > 0 else {
             return baseText
         }

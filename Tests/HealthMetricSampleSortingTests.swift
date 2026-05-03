@@ -72,7 +72,7 @@ struct HealthMetricSampleSortingTests {
             value: value,
             unit: metricType.unitLabel,
             measuredAt: referenceDate.addingTimeInterval(offset),
-            sourceName: "Apple Health Mock",
+            sourceName: "Apple 건강앱 예시",
             sourceBundleIdentifier: "com.apple.Health.mock"
         )
     }

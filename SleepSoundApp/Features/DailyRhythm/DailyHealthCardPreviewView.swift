@@ -31,6 +31,7 @@ struct DailyHealthCardPreviewView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("카드 미리보기")
   }
 

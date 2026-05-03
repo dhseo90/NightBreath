@@ -63,6 +63,7 @@ struct DailyHealthCardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("하루 리듬 카드")
   }
 
@@ -112,7 +113,7 @@ struct DailyHealthCardSurface: View {
         } else if content.keyMetrics.isEmpty {
           NBEmptyStateView(
             title: "표시할 핵심 지표가 없습니다",
-            message: "사용 가능한 mock data가 생기면 카드에 표시합니다.",
+            message: "사용 가능한 예시 데이터가 생기면 카드에 표시합니다.",
             systemImage: "tray"
           )
         } else {

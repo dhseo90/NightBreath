@@ -53,7 +53,7 @@ struct BloodPressureDashboardView: View {
             )
             HealthDailyRhythmConnectionSection(
               focus: "오늘의 리듬 참고 데이터",
-              message: "혈압 sample은 아침 리포트와 하루 리듬 카드에서 날짜별 참고 데이터로 함께 정리할 수 있습니다."
+              message: "혈압 샘플은 아침 리포트와 하루 리듬 카드에서 날짜별 참고 데이터로 함께 정리할 수 있습니다."
             )
           }
         }
@@ -67,6 +67,7 @@ struct BloodPressureDashboardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("혈압")
   }
 
@@ -106,7 +107,7 @@ struct BloodPressureDashboardView: View {
   private var header: some View {
     NBReportSection(title: "혈압 추세", systemImage: "heart") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("혈압 데이터를 보기 쉽게 정리합니다. 수축기/이완기 혈압 sample을 기간별로 비교합니다.")
+        Text("혈압 데이터를 보기 쉽게 정리합니다. 수축기/이완기 혈압 샘플을 기간별로 비교합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
         if let latestMeasuredAt {
@@ -140,7 +141,7 @@ struct BloodPressureDashboardView: View {
         NBListRow(
           title: "아침",
           value: "\(timeOfDayCounts.morning)개",
-          subtitle: "정오 이전 측정 sample",
+          subtitle: "정오 이전 측정 샘플",
           systemImage: "sunrise",
           tint: NBColor.warning
         )
@@ -148,11 +149,11 @@ struct BloodPressureDashboardView: View {
         NBListRow(
           title: "저녁",
           value: "\(timeOfDayCounts.evening)개",
-          subtitle: "정오 이후 측정 sample",
+          subtitle: "정오 이후 측정 샘플",
           systemImage: "moon",
           tint: NBColor.sleep
         )
-        Text("수축기 혈압 sample의 측정 시각 기준입니다.")
+        Text("수축기 혈압 샘플의 측정 시각 기준입니다.")
           .font(NBTypography.footnote)
           .foregroundStyle(NBColor.secondaryText)
       }
@@ -245,7 +246,7 @@ private struct BloodPressureLatestPairCard: View {
 
   private var detailText: String {
     guard let latestSample else {
-      return "선택한 기간에 함께 표시할 혈압 sample이 없습니다."
+      return "선택한 기간에 함께 표시할 혈압 샘플이 없습니다."
     }
 
     return "\(SleepFormatters.shortDate(latestSample.measuredAt)) \(SleepFormatters.shortTime(latestSample.measuredAt)) · \(latestSample.sourceName)"

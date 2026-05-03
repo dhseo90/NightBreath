@@ -144,11 +144,11 @@ public enum MetricDetailEmptyStateReason: Equatable, Sendable {
     public var title: String {
         switch self {
         case .noMetricSamples:
-            "표시할 sample이 없습니다"
+            "표시할 샘플이 없습니다"
         case .noSamplesForSource:
-            "선택한 출처의 sample이 없습니다"
+            "선택한 출처의 샘플이 없습니다"
         case .noSamplesForPeriod:
-            "선택한 기간의 sample이 없습니다"
+            "선택한 기간의 샘플이 없습니다"
         }
     }
 
@@ -191,14 +191,14 @@ public struct MetricDetailExplanation: Equatable, Sendable {
         if metadata.category == .app || metadata.category == .sleep {
             return MetricDetailExplanation(messages: [
                 "\(metadata.displayNameKo)는 밤숨 앱에서 기기 안에서 계산하거나 로컬 기록으로 정리한 지표입니다.",
-                "다른 건강 sample과 함께 볼 수 있지만 인과관계를 의미하지 않습니다.",
+                "다른 건강 샘플과 함께 볼 수 있지만 인과관계를 의미하지 않습니다.",
                 "값은 개인 참고용으로만 정리합니다.",
             ])
         }
 
         return MetricDetailExplanation(messages: [
             metadata.description,
-            metadata.disclaimer ?? "로컬 sample과 허용된 read-only sample을 정리해 표시합니다.",
+            metadata.disclaimer ?? "로컬 샘플과 허용된 read-only 샘플을 정리해 표시합니다.",
             "값은 개인 참고용으로만 정리합니다.",
         ])
     }

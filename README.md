@@ -25,17 +25,17 @@ NightBreath / 밤숨은 수면 중 소리 기반 리포트에서 시작해, 수�
 
 ## NightBreath / 밤숨의 확장 방향
 
-NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 리포트와 하루 동안의 컨디션/활동/mock 건강 데이터를 연결하는 Daily Rhythm 경험으로 확장합니다.
+NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 리포트와 하루 동안의 컨디션/활동/예시 건강 데이터를 연결하는 Daily Rhythm 경험으로 확장합니다.
 
 - 수면 소리 리포트: 수면 중 소리 이벤트, 수면 소리 점수, 측정 품질, 이벤트 타임라인을 온디바이스로 정리합니다.
-- 아침 리포트: 지난밤 수면 요약, 아침 컨디션, mock 혈압/체중/체성분 데이터를 같은 날짜의 시작점으로 보여줍니다.
+- 아침 리포트: 지난밤 수면 요약, 아침 컨디션, 예시 혈압/체중/체성분 데이터를 같은 날짜의 시작점으로 보여줍니다.
 - 오늘의 리듬 점수: 수면, 회복 리듬, 활동, 혈압, 체성분 component를 데이터 품질과 함께 요약하는 웰니스/개인 참고용 점수입니다.
 - 하루 리듬 카드: 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 보여줄 수 있는 레이아웃이며, privacy level에 따라 민감 수치 표시를 줄일 수 있습니다.
-- 건강 데이터 mock architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health mock source를 분리합니다.
+- 예시 건강 데이터 architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health 예시 source를 분리합니다.
 - HealthKit read-only 연동: 사용자가 건강 데이터 대시보드에서 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다.
 - Extended Health Metrics: HealthKit 표준 지표와 Fitdays CSV/local-only 확장 지표를 `UnifiedHealthMetricSample`로 함께 표현합니다.
 - Fitdays CSV/import: 사용자가 직접 선택한 export 파일만 로컬에서 읽고, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다.
-- 건강 지표 통계/그래프: 7일/30일/90일/1년/전체 기간의 metric별 흐름, source, raw sample 목록을 확인합니다.
+- 건강 지표 통계/그래프: 7일/30일/90일/1년/전체 기간의 metric별 흐름, source, raw 샘플 목록을 확인합니다.
 - 월 건강 캘린더: 데이터가 있는 날짜를 표시하고, 날짜별 수면/건강/check-in/앱 계산 지표를 category별로 봅니다.
 - 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.
 
@@ -96,16 +96,16 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - multiclass event classifier 준비 도구
 - Simulator QA scenarios
 - NightBreath 전용 디자인 시스템
-- `HealthDataServiceProtocol`과 `MockHealthDataService` 기반 mock 건강 데이터 구조
+- `HealthDataServiceProtocol`과 `MockHealthDataService` 기반 예시 건강 데이터 구조
 - `RealHealthKitService` 기반 read-only adapter
-- mock preview와 HealthKit read-only 연결을 함께 지원하는 건강 데이터 대시보드
+- 예시 미리보기와 HealthKit read-only 연결을 함께 지원하는 건강 데이터 대시보드
 - 혈압/체중/체성분 건강 데이터 dashboard
 - 수면 소리 지표와 건강 지표 교차 보기
 - HealthKit 표준 지표와 Fitdays extended local-only 지표를 함께 표현하는 metric catalog
 - Fitdays CSV 또는 structured export import flow
 - 전체 건강 지표 통계/그래프 화면
 - 월 건강 캘린더와 날짜별 전체 데이터 상세 화면
-- metric별 상세 통계/그래프/source filter/raw sample 목록 화면
+- metric별 상세 통계/그래프/source filter/raw 샘플 목록 화면
 - Daily Rhythm 도메인 모델
 - Mock Health Data Service
 - Daily Rhythm Score 계산기
@@ -126,25 +126,25 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 수면 녹음 중: 세션 경과 시간, 실제 오디오 수신/분석 시간, 녹음 커버리지, detector backend, 수면 종료 버튼을 표시합니다.
 - 수면 리포트와 이벤트 타임라인: 주요 수면 소리 지표, detector diagnostics 요약, zero-event analysis, 이벤트별 시간/재생/삭제 상태를 보여줍니다.
 - 아침 컨디션 체크인: 개운함, 피로감, 기억나는 각성, 메모를 사용자의 주관적 기록으로 저장합니다.
-- 아침 리포트: 수면 소리 요약, 아침 컨디션, mock 혈압/체중/체성분 데이터, 데이터 품질을 함께 보여줍니다.
+- 아침 리포트: 수면 소리 요약, 아침 컨디션, 예시 혈압/체중/체성분 데이터, 데이터 품질을 함께 보여줍니다.
 - 오늘의 리듬 리포트: 오늘의 리듬 점수, component score, data quality, Daily Insight 목록을 참고용으로 보여줍니다.
 - 저녁 체크인: 하루 피로도, 스트레스, optional 기분, 생활 태그, 메모를 `EveningCheckIn` 형태로 기록할 준비를 합니다.
 - 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
-- 건강 대시보드: mock preview와 HealthKit read-only adapter, Fitdays CSV import, 전체 건강 지표, 월 캘린더, 혈압/체성분/교차 보기 진입점을 제공합니다.
+- 건강 대시보드: 예시 미리보기와 HealthKit read-only adapter, Fitdays CSV import, 전체 건강 지표, 월 캘린더, 혈압/체성분/교차 보기 진입점을 제공합니다.
 - 전체 건강 지표: HealthKit-backed 지표, Fitdays local-only 지표, 수동/앱 계산 지표를 category별로 묶고 기간별 통계와 그래프로 보여줍니다.
 - 월 건강 캘린더: 수면, 혈압, 체성분, 활동, 체크인, 앱 계산 지표가 있는 날짜를 표시하고 날짜별 상세 보기로 이동합니다.
-- Metric Detail: 특정 health metric 하나의 최근 값, 통계, 그래프, source filter, raw sample list를 개인 참고용으로 보여줍니다.
+- Metric Detail: 특정 health metric 하나의 최근 값, 통계, 그래프, source filter, raw 샘플 목록을 개인 참고용으로 보여줍니다.
 - Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, sample capture 검증에 사용합니다.
 
 ## 주요 화면 미리보기
 
-아래 이미지는 mock data와 simulator scenario로 생성된 예시 화면입니다.
+아래 이미지는 예시 데이터와 simulator scenario로 생성된 화면입니다.
 
 자세한 화면별 설명은 `Docs/UI_GALLERY.md`를 참고하세요.
 
-스크린샷은 mock data와 simulator scenario를 사용하며 실제 개인 건강 데이터나 실제 오디오 데이터는 포함하지 않습니다.
+스크린샷은 예시 데이터와 simulator scenario를 사용하며 실제 개인 건강 데이터나 실제 오디오 데이터는 포함하지 않습니다.
 
 DEBUG 빌드의 simulator screenshot preset과 캡처 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
 
@@ -380,7 +380,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 ## Regression Tests
 
-회귀 테스트는 실제 오디오 fixture 없이 synthetic audio와 mock data를 사용합니다.
+회귀 테스트는 실제 오디오 fixture 없이 synthetic audio와 예시 데이터를 사용합니다.
 
 주요 테스트 영역:
 
@@ -450,9 +450,9 @@ NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`
 
 - `DailyHealthSnapshot`, `DailyRhythmReport`, `DailyRhythmScore`, `DailyInsight`, `EveningCheckIn`
 - `HealthDataServiceProtocol`과 `MockHealthDataService`
-- Omron Connect mock 혈압 source
-- Fitdays mock 체중/체성분 source
-- Apple Health Mock 활동/심박/수면/호흡 source
+- Omron Connect 예시 혈압 source
+- Fitdays 예시 체중/체성분 source
+- Apple 건강앱 예시 활동/심박/수면/호흡 source
 - `RealHealthKitService` read-only adapter
 - 건강 데이터 연결 버튼을 통한 HealthKit 읽기 권한 요청
 - Daily Rhythm Score 계산기와 Daily Insight 생성기

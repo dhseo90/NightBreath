@@ -18,7 +18,7 @@ public enum HealthMetricPermissionState: String, Codable, Equatable, Sendable {
         case .unavailable:
             "사용할 수 없음"
         case .mockDataOnly:
-            "Mock data only"
+            "예시 데이터만 표시"
         }
     }
 

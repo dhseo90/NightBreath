@@ -63,6 +63,7 @@ struct SleepStartView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
   }
 
   private var permissionStatusCard: some View {

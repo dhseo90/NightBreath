@@ -22,6 +22,7 @@ struct SleepRecordingView: View {
       .padding(.vertical, NBSpacing.sectionVertical)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .onChange(of: scenePhase) { _, newPhase in
       appState.recordDebugLifecycleEvent("scene phase: \(scenePhaseText(newPhase))")
     }

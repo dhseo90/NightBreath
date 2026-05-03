@@ -130,7 +130,7 @@ public enum HealthMetricSourceType: String, Codable, CaseIterable, Identifiable,
         case .appComputed:
             "앱 계산값"
         case .mock:
-            "Mock data"
+            "예시 데이터"
         }
     }
 }
@@ -403,7 +403,7 @@ private extension MetricCatalog {
             isHealthKitBacked: isHealthKitBacked,
             isExtendedLocalOnly: localOnly,
             description: source ?? "개인 패턴을 살펴보기 위해 표시하는 참고용 지표입니다.",
-            disclaimer: localOnly ? "HealthKit에서 직접 읽지 않고 로컬 import, 수동 입력, 앱 계산값 또는 mock data로만 다룹니다." : nil
+            disclaimer: localOnly ? "HealthKit에서 직접 읽지 않고 로컬 import, 수동 입력, 앱 계산값 또는 예시 데이터로만 다룹니다." : nil
         )
     }
 }

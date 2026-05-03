@@ -116,6 +116,7 @@ struct HomeDashboardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
   }
 
   private var scoreHeader: some View {
@@ -223,7 +224,7 @@ struct HomeDashboardView: View {
   private var dailyRhythmLinks: some View {
     NBReportSection(
       title: "Daily Rhythm",
-      subtitle: "수면, 컨디션, mock 건강 데이터를 하루 리듬으로 정리합니다.",
+      subtitle: "수면, 컨디션, 예시 건강 데이터를 하루 리듬으로 정리합니다.",
       systemImage: "sparkles"
     ) {
       VStack(spacing: NBSpacing.md) {
@@ -574,5 +575,6 @@ private struct SettingsListView: View {
     }
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
   }
 }

@@ -51,20 +51,21 @@ struct BodyCompositionDashboardView: View {
             )
             HealthDailyRhythmConnectionSection(
               focus: "하루 리듬 카드 참고 데이터",
-              message: "체중과 체성분 sample은 오늘의 리듬 점수와 건강 대시보드에서 개인 참고용으로 함께 정리할 수 있습니다."
+              message: "체중과 체성분 샘플은 오늘의 리듬 점수와 건강 대시보드에서 개인 참고용으로 함께 정리할 수 있습니다."
             )
           }
         }
 
         NBPrivacyNoticeCard(
           title: "체성분 데이터 안내",
-          message: "Apple 건강앱에서 읽은 체중/체성분 sample을 기간별로 정리합니다. 수치에 대한 확정적 해석을 제공하지 않습니다.",
+          message: "Apple 건강앱에서 읽은 체중/체성분 샘플을 기간별로 정리합니다. 수치에 대한 확정적 해석을 제공하지 않습니다.",
           systemImage: "scalemass"
         )
       }
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("체중/체성분")
   }
 
@@ -104,7 +105,7 @@ struct BodyCompositionDashboardView: View {
   private var header: some View {
     NBReportSection(title: "체중/체성분 추세", systemImage: "scalemass") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("체중, 체지방률, BMI, 제지방량 sample을 기간별로 보기 쉽게 정리합니다.")
+        Text("체중, 체지방률, BMI, 제지방량 샘플을 기간별로 보기 쉽게 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
         if let latestMeasuredAt {

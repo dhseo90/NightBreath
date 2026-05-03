@@ -28,6 +28,7 @@ struct SleepReportView: View {
     .navigationTitle("어젯밤 수면 리포트")
     .toolbar(.hidden, for: .tabBar)
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
   }
 
   private var summaryCard: some View {
@@ -756,6 +757,7 @@ private struct SevenDaySleepTrendView: View {
     }
     .navigationTitle("7일 추세")
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
   }
 
   private var trendPoints: [SleepTrendPoint] {

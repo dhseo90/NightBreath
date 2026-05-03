@@ -71,7 +71,7 @@ struct MockHealthKitServiceTests {
 
         #expect(sourceNames.contains("Omron Connect"))
         #expect(sourceNames.contains("Fitdays"))
-        #expect(sourceNames.contains("Apple Health Mock"))
+        #expect(sourceNames.contains("Apple 건강앱 예시"))
     }
 
     private var referenceDate: Date {

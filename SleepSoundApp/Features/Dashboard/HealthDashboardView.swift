@@ -49,6 +49,7 @@ struct HealthDashboardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("건강 데이터")
     .onAppear {
       loadImportedUnifiedSamples()
@@ -151,14 +152,14 @@ struct HealthDashboardView: View {
     switch permissionState {
     case .notRequested:
       NBStatusBadge(
-        "연결 전: 아래 값은 mock preview입니다.",
+        "연결 전: 아래 값은 예시 미리보기입니다.",
         kind: .neutral,
         systemImage: "eye"
       )
     case .mockDataOnly:
       NBStatusBadge(
-        "Mock data only",
-        kind: .debug,
+        "예시 데이터만 표시",
+        kind: .neutral,
         systemImage: "sparkles"
       )
     case .readRequestCompleted:
@@ -379,14 +380,14 @@ struct HealthDashboardView: View {
       "아직 건강 데이터 연결을 요청하지 않았습니다."
     case .readRequestCompleted:
       sampleCount > 0
-        ? "건강앱 sample \(sampleCount)개를 로컬에서 읽었습니다. 허용된 항목만 표시됩니다."
+        ? "건강앱 샘플 \(sampleCount)개를 로컬에서 읽었습니다. 허용된 항목만 표시됩니다."
         : "권한이 허용되었더라도 항목별 권한 또는 데이터 유무에 따라 값이 비어 있을 수 있습니다."
     case .denied:
       "건강 데이터 권한이 허용되지 않았습니다. 앱은 기존 수면 소리 기능을 계속 사용할 수 있습니다."
     case .unavailable:
       "이 기기에서는 건강앱 read-only 연결을 사용할 수 없습니다."
     case .mockDataOnly:
-      "Mock data로 화면을 표시합니다."
+      "예시 데이터로 화면을 표시합니다."
     }
   }
 
@@ -480,8 +481,8 @@ private struct HealthDashboardEntryCard: View {
 
   private var latestText: String {
     guard let latestDate else {
-      return "sample \(sampleCount)개"
+      return "샘플 \(sampleCount)개"
     }
-    return "sample \(sampleCount)개 · 최근 \(SleepFormatters.shortDate(latestDate))"
+    return "샘플 \(sampleCount)개 · 최근 \(SleepFormatters.shortDate(latestDate))"
   }
 }

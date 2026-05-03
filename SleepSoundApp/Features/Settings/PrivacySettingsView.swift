@@ -262,6 +262,7 @@ struct PrivacySettingsView: View {
     .navigationTitle("개인정보")
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .onAppear {
       appState.refreshEventAudioStorageStats()
       appState.refreshEventFeedbackCount()

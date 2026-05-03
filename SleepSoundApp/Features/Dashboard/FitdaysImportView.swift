@@ -34,6 +34,7 @@ struct FitdaysImportView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("Fitdays 가져오기")
     .fileImporter(
       isPresented: $isFileImporterPresented,
@@ -84,7 +85,7 @@ struct FitdaysImportView: View {
   private var emptyState: some View {
     NBEmptyStateView(
       title: "가져온 파일이 없습니다",
-      message: "Fitdays에서 export/share한 CSV 파일을 선택하면 저장 전 preview를 확인할 수 있습니다.",
+      message: "Fitdays에서 export/share한 CSV 파일을 선택하면 저장 전 미리보기를 확인할 수 있습니다.",
       systemImage: "doc.text.magnifyingglass",
       actionTitle: "파일 선택"
     ) {
@@ -93,11 +94,11 @@ struct FitdaysImportView: View {
   }
 
   private func resultSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "Import 결과", systemImage: "list.bullet.rectangle") {
+    NBReportSection(title: "가져오기 결과", systemImage: "list.bullet.rectangle") {
       VStack(spacing: NBSpacing.medium) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           NBMetricCard(
-            title: "생성 sample",
+            title: "생성 샘플",
             value: "\(result.importedSampleCount)",
             systemImage: "number",
             tint: NBColor.mistTeal,
@@ -151,7 +152,7 @@ struct FitdaysImportView: View {
   }
 
   private func previewSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "Preview", systemImage: "eye") {
+    NBReportSection(title: "미리보기", systemImage: "eye") {
       VStack(spacing: NBSpacing.small) {
         ForEach(result.samples.prefix(8)) { sample in
           if let displayModel = sample.displayModel() {
@@ -166,7 +167,7 @@ struct FitdaysImportView: View {
         }
 
         if result.samples.count > 8 {
-          Text("외 \(result.samples.count - 8)개 sample")
+            Text("외 \(result.samples.count - 8)개 샘플")
             .font(NBTypography.footnote)
             .foregroundStyle(NBColor.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -191,7 +192,7 @@ struct FitdaysImportView: View {
       }
 
       importResult = try service.previewImport(from: url)
-      statusMessage = "저장 전 preview를 만들었습니다."
+      statusMessage = "저장 전 미리보기를 만들었습니다."
     } catch {
       importResult = nil
       errorMessage = error.localizedDescription
@@ -201,7 +202,7 @@ struct FitdaysImportView: View {
   private func save(_ result: FitdaysImportResult) {
     do {
       try repository.save(batch: result.batch, samples: result.samples)
-      statusMessage = "로컬 저장소에 \(result.importedSampleCount)개 sample을 저장했습니다."
+      statusMessage = "로컬 저장소에 \(result.importedSampleCount)개 샘플을 저장했습니다."
       errorMessage = nil
     } catch {
       errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"

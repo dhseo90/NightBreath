@@ -21,8 +21,8 @@ struct HealthMetricsOverviewView: View {
 
         if samples.isEmpty {
           HealthDataEmptyStateView(
-            title: "표시할 건강 지표 sample이 없습니다",
-            message: "Apple 건강앱 read-only 연결 또는 Fitdays CSV 가져오기를 통해 sample을 추가하면 지표별 통계와 그래프를 볼 수 있습니다."
+            title: "표시할 건강 지표 샘플이 없습니다",
+            message: "Apple 건강앱 read-only 연결 또는 Fitdays CSV 가져오기를 통해 샘플을 추가하면 지표별 통계와 그래프를 볼 수 있습니다."
           )
         } else {
           ForEach(grouping.groups()) { group in
@@ -33,7 +33,7 @@ struct HealthMetricsOverviewView: View {
         NBPrivacyNoticeCard(
           title: "개인 참고용 통계",
           messages: [
-            "HealthKit read-only sample과 로컬 import sample을 한곳에서 정리합니다.",
+            "HealthKit read-only 샘플과 로컬 import 샘플을 한곳에서 정리합니다.",
             "수치의 평균, 최소, 최대, 최근 변화는 참고용 계산입니다.",
             "HealthKit에 데이터를 쓰지 않고 서버로 전송하지 않습니다.",
           ],
@@ -43,6 +43,7 @@ struct HealthMetricsOverviewView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("전체 건강 지표")
   }
 
@@ -68,7 +69,7 @@ struct HealthMetricsOverviewView: View {
   private var stateNotice: some View {
     if isPreviewData {
       NBStatusBadge(
-        "연결 전 sample은 mock preview로 표시됩니다.",
+        "연결 전 샘플은 예시 미리보기로 표시됩니다.",
         kind: .neutral,
         systemImage: "eye"
       )
@@ -77,13 +78,13 @@ struct HealthMetricsOverviewView: View {
     switch permissionState {
     case .denied:
       NBStatusBadge(
-        "Apple 건강앱 권한이 없어도 로컬 import sample은 볼 수 있습니다.",
+        "Apple 건강앱 권한이 없어도 로컬 import 샘플은 볼 수 있습니다.",
         kind: .caution,
         systemImage: "lock.slash"
       )
     case .unavailable:
       NBStatusBadge(
-        "HealthKit을 사용할 수 없어도 로컬 import sample은 볼 수 있습니다.",
+        "HealthKit을 사용할 수 없어도 로컬 import 샘플은 볼 수 있습니다.",
         kind: .warning,
         systemImage: "exclamationmark.triangle"
       )
@@ -136,7 +137,7 @@ struct HealthMetricsOverviewView: View {
         subtitle: metricRowSubtitle(summary: summary, sources: sources),
         systemImage: metricIcon(for: metadata),
         tint: metricTint(for: metadata),
-        accessibilityLabel: "\(metadata.displayNameKo), \(summary.sampleCount)개 sample"
+        accessibilityLabel: "\(metadata.displayNameKo), 샘플 \(summary.sampleCount)개"
       )
 
       Spacer()
@@ -151,7 +152,7 @@ struct HealthMetricsOverviewView: View {
     summary: MetricStatisticsSummary,
     sources: [MetricSourceBreakdown]
   ) -> String {
-    var parts: [String] = ["\(selectedPeriod.displayName) sample \(summary.sampleCount)개"]
+    var parts: [String] = ["\(selectedPeriod.displayName) 샘플 \(summary.sampleCount)개"]
 
     if let latestMeasuredAt = summary.latestMeasuredAt {
       parts.append("최근 \(SleepFormatters.shortDate(latestMeasuredAt))")
@@ -249,6 +250,7 @@ struct MetricDetailView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle(metric.displayNameKo)
   }
 
@@ -352,7 +354,7 @@ struct MetricDetailView: View {
     NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
       if viewModel.sourceBreakdown.isEmpty {
         NBEmptyStateView(
-          title: "선택한 기간에 source가 없습니다",
+          title: "선택한 기간에 출처가 없습니다",
           message: "다른 기간이나 출처 필터를 선택해 보세요.",
           systemImage: "tray"
         )
@@ -485,7 +487,7 @@ struct MetricChartView: View {
     NBReportSection(title: "그래프", systemImage: "chart.xyaxis.line") {
       if points.isEmpty {
         NBEmptyStateView(
-          title: "선택한 기간에 표시할 sample이 없습니다",
+          title: "선택한 기간에 표시할 샘플이 없습니다",
           message: "기간을 바꾸거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요.",
           systemImage: "chart.xyaxis.line"
         )
@@ -634,7 +636,7 @@ struct MetricSummaryCard: View {
         }
 
         if summary.firstMeasuredAt == nil && summary.latestMeasuredAt == nil {
-          Text("선택한 기간에 계산할 sample이 아직 없습니다.")
+          Text("선택한 기간에 계산할 샘플이 아직 없습니다.")
             .font(.caption)
             .foregroundStyle(NBColor.secondaryText)
         } else {
@@ -659,7 +661,7 @@ struct MetricSummaryCard: View {
 
   private var deltaText: String {
     guard let delta = summary.deltaFromPreviousPeriod else {
-      return "이전 기간 비교 sample 부족"
+      return "이전 기간 비교 샘플 부족"
     }
     return "최근 변화 \(UnifiedMetricFormatting.signedValueString(delta, unit: metric.unit))"
   }

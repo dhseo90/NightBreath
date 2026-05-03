@@ -324,7 +324,7 @@ final class AppState: ObservableObject {
             applyScreenshotRecordingState()
         }
 
-        audioCaptureMessage = "Screenshot preset ‘\(scenario.displayName)’를 적용했습니다. mock data만 사용하며 실제 오디오 파일은 생성하지 않습니다."
+        audioCaptureMessage = "Screenshot preset ‘\(scenario.displayName)’를 적용했습니다. 예시 데이터만 사용하며 실제 오디오 파일은 생성하지 않습니다."
         eventAudioStorageMessage = "Screenshot preset mock 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
         recordDebugLifecycleEvent("screenshot scenario applied: \(scenario.displayName)")
     }

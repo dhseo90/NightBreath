@@ -25,6 +25,7 @@ struct EveningCheckInView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
     .navigationTitle("저녁 체크인")
   }
 
@@ -38,7 +39,7 @@ struct EveningCheckInView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
-        NBStatusBadge("기기 안 mock 저장", kind: .debug, systemImage: "sparkles")
+        NBStatusBadge("기기 안 예시 저장", kind: .neutral, systemImage: "sparkles")
       }
     }
   }

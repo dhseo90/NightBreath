@@ -47,7 +47,7 @@ struct DailyHealthSnapshotBuilderTests {
             value: 6_800,
             unit: HealthMetricType.stepCount.unitLabel,
             measuredAt: dayStart.addingTimeInterval(25 * hour),
-            sourceName: "Apple Health Mock",
+            sourceName: "Apple 건강앱 예시",
             sourceBundleIdentifier: "com.apple.Health.mock"
         )
         let builder = DailyHealthSnapshotBuilder(calendar: calendar)

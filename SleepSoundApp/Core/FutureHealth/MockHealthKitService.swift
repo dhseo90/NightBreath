@@ -12,7 +12,7 @@ public struct MockHealthKitService: HealthKitServiceProtocol {
     }
 
     public func authorizationStatusDescription() -> String {
-        "Mock 데이터로 건강 대시보드를 미리 확인합니다. 실제 건강앱 권한은 요청하지 않습니다."
+        "예시 데이터로 건강 대시보드를 미리 확인합니다. 실제 건강앱 권한은 요청하지 않습니다."
     }
 
     public func requestReadPermission() async -> HealthMetricPermissionState {
@@ -33,7 +33,7 @@ public struct MockHealthKitService: HealthKitServiceProtocol {
     public static func makeDefaultSamples(referenceDate: Date = Date()) -> [HealthMetricSample] {
         let omron = ("Omron Connect", "com.omronhealthcare.omronconnect")
         let fitdays = ("Fitdays", "com.fitdays.app")
-        let appleHealth = ("Apple Health Mock", "com.apple.Health.mock")
+        let appleHealth = ("Apple 건강앱 예시", "com.apple.Health.mock")
         var samples: [HealthMetricSample] = []
 
         let systolicValues = [124, 122, 121, 119, 120, 118, 121]

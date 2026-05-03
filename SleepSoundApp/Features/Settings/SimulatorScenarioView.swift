@@ -99,7 +99,7 @@ struct SimulatorScenarioView: View {
           Label("선택 화면 열기", systemImage: "rectangle.inset.filled")
         }
 
-        Text("먼저 preset을 적용한 뒤 선택 화면을 열어 캡처합니다. 모든 상태는 mock data 또는 simulator scenario 기반이며 실제 건강 데이터나 실제 오디오 파일을 사용하지 않습니다.")
+        Text("먼저 preset을 적용한 뒤 선택 화면을 열어 캡처합니다. 모든 상태는 예시 데이터 또는 simulator scenario 기반이며 실제 건강 데이터나 실제 오디오 파일을 사용하지 않습니다.")
           .font(.footnote)
           .foregroundStyle(NBColor.secondaryText)
       }

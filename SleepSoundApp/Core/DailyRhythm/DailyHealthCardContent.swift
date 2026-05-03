@@ -247,7 +247,7 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         calendar: Calendar
     ) -> String {
         guard privacyLevel.includesSourceDetails else {
-            return "\(sample.metricType.dashboardSectionName) mock data"
+            return "\(sample.metricType.dashboardSectionName) 예시 데이터"
         }
 
         let components = calendar.dateComponents([.hour, .minute], from: sample.measuredAt)

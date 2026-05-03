@@ -133,7 +133,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .eventTimeline:
       "이벤트 시간, 타입, duration, 오디오 샘플 상태가 보이게 캡처합니다."
     case .morningBrief:
-      "수면 요약, 아침 컨디션, mock 혈압/체성분, 데이터 품질이 보이게 캡처합니다."
+      "수면 요약, 아침 컨디션, 예시 혈압/체성분, 데이터 품질이 보이게 캡처합니다."
     case .dailyRhythmReport:
       "오늘의 리듬 점수, component score, Daily Insight, 인과관계 아님 안내가 보이게 캡처합니다."
     case .dailyHealthCard:

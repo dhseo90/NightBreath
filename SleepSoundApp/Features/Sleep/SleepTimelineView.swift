@@ -23,8 +23,18 @@ struct SleepTimelineView: View {
         }
 
         NBCard {
-          EventTimelineBand(events: events)
-            .frame(height: 130)
+          VStack(alignment: .leading, spacing: NBSpacing.medium) {
+            EventTimelineBand(events: events)
+              .frame(height: 130)
+
+            if !events.isEmpty {
+              Text("색상은 이벤트 유형을 나타냅니다.")
+                .font(NBTypography.caption)
+                .foregroundStyle(NBColor.secondaryText)
+
+              timelineLegend
+            }
+          }
         }
 
         if events.isEmpty {
@@ -63,6 +73,62 @@ struct SleepTimelineView: View {
     }
     .navigationTitle("타임라인")
     .background(NBColor.pageBackground)
+    .nbAvoidFloatingTabBar()
+  }
+
+  private var timelineLegend: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: NBSpacing.small) {
+        ForEach(timelineLegendTypes, id: \.rawValue) { type in
+          TimelineLegendChip(type: type)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
+  private var timelineLegendTypes: [SleepEventType] {
+    let preferred: [SleepEventType] = [
+      .environmentalNoise,
+      .awakeningSuspected,
+      .snore,
+      .movementLike,
+      .coughLike,
+    ]
+
+    var types = preferred.filter { preferredType in
+      events.contains { $0.type == preferredType }
+    }
+
+    for event in events where !types.contains(event.type) {
+      types.append(event.type)
+      if types.count >= 5 {
+        break
+      }
+    }
+
+    return types
+  }
+}
+
+private struct TimelineLegendChip: View {
+  let type: SleepEventType
+
+  var body: some View {
+    HStack(spacing: NBSpacing.xs) {
+      Circle()
+        .fill(type.tintColor)
+        .frame(width: 8, height: 8)
+
+      Text(type.timelineDisplayName)
+        .font(NBTypography.captionEmphasis)
+        .foregroundStyle(NBColor.secondaryText)
+        .lineLimit(1)
+    }
+    .padding(.horizontal, NBSpacing.sm)
+    .padding(.vertical, NBSpacing.xs)
+    .background(type.tintColor.opacity(0.10))
+    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
   }
 }
 

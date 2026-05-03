@@ -13,6 +13,7 @@ enum NBSpacing {
   static let sectionVertical: CGFloat = 24
   static let cardPadding: CGFloat = 16
   static let rowPadding: CGFloat = 12
+  static let floatingTabBarAvoidance: CGFloat = 84
 
   static let xSmall = xxs
   static let small = sm
@@ -20,4 +21,14 @@ enum NBSpacing {
   static let large = lg
   static let xLarge = xl
   static let xxLarge = xxl
+}
+
+extension View {
+  func nbAvoidFloatingTabBar() -> some View {
+    safeAreaInset(edge: .bottom, spacing: 0) {
+      Color.clear
+        .frame(height: NBSpacing.floatingTabBarAvoidance)
+        .allowsHitTesting(false)
+    }
+  }
 }
