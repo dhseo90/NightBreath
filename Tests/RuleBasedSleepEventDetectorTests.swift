@@ -20,7 +20,7 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
-    func detectsLongSilenceAsSuspectedBreathingPauseCandidate() {
+    func longSilenceDoesNotBecomeSuspectedBreathingPauseCandidate() {
         let output = RuleBasedSleepEventDetector().detect(
             features: makeFeatures(
                 duration: 12,
@@ -32,9 +32,7 @@ struct RuleBasedSleepEventDetectorTests {
             )
         )
 
-        #expect(output.count == 1)
-        #expect(output.first?.eventType == .breathingPauseSuspected)
-        #expect(output.first?.debugReason?.contains("placeholder") == true)
+        #expect(output.isEmpty)
     }
 
     @Test

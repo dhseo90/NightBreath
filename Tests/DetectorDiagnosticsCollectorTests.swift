@@ -125,11 +125,16 @@ struct DetectorDiagnosticsCollectorTests {
             debugReason: "sequence test"
         )
         let summary = SuspectedBreathingPauseSequenceSummary(
+            lowActivityObservedCount: 4,
+            lowActivityDurationTotal: 31,
             lowActivityCandidateCount: 2,
             noiseContaminatedLowActivityCount: 1,
             recoveryPatternCount: 1,
             pauseCandidatesRejectedByNoise: 1,
             pauseCandidatesRejectedByDuration: 3,
+            pauseCandidatesRejectedByNoRecovery: 2,
+            pauseCandidatesRejectedByInsufficientContext: 1,
+            pauseCandidatesRejectedByLikelySilence: 1,
             pauseCandidatesPromotedByGasp: 1,
             latestBreathingActivityScore: 0.10,
             latestLowActivityDurationSeconds: 12,
@@ -145,16 +150,25 @@ struct DetectorDiagnosticsCollectorTests {
         let diagnostics = try finalized(collector)
 
         #expect(diagnostics.rawCandidateCountByType[.breathingPauseSuspected] == 1)
+        #expect(diagnostics.lowActivityObservedCount == 4)
+        #expect(diagnostics.lowActivityDurationTotal == 31)
         #expect(diagnostics.lowActivityCandidateCount == 2)
         #expect(diagnostics.noiseContaminatedLowActivityCount == 1)
         #expect(diagnostics.recoveryPatternCount == 1)
         #expect(diagnostics.pauseCandidatesRejectedByNoise == 1)
         #expect(diagnostics.pauseCandidatesRejectedByDuration == 3)
+        #expect(diagnostics.pauseCandidatesRejectedByNoRecovery == 2)
+        #expect(diagnostics.pauseCandidatesRejectedByInsufficientContext == 1)
+        #expect(diagnostics.pauseCandidatesRejectedByLikelySilence == 1)
         #expect(diagnostics.pauseCandidatesPromotedByGasp == 1)
         #expect(diagnostics.latestRecoveryPatternDetected == true)
         #expect(diagnostics.latestPauseCandidateConfidence == 0.62)
         #expect(diagnostics.rejectedCountByReason[.tooShort] == 3)
         #expect(diagnostics.rejectedCountByReason[.likelyEnvironmentalNoise] == 1)
+        #expect(diagnostics.rejectedCountByReason[.noiseContaminated] == 1)
+        #expect(diagnostics.rejectedCountByReason[.noRecoveryPattern] == 2)
+        #expect(diagnostics.rejectedCountByReason[.insufficientBreathingContext] == 1)
+        #expect(diagnostics.rejectedCountByReason[.likelySilenceOnly] == 1)
     }
 
     private func makeCollector(

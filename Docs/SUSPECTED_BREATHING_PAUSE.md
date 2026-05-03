@@ -5,7 +5,7 @@
 ## 목적
 
 - 짧은 chunk 하나가 아니라 시간 흐름에서 breathing activity가 낮은 구간을 추적합니다.
-- 낮은 활동이 일정 시간 이상 이어진 뒤 `gaspLike` 또는 `snore` 재개 후보가 나타나면 `호흡정지 의심 구간` 후보 confidence를 높입니다.
+- 낮은 활동이 일정 시간 이상 이어지고, 그 전후에 호흡/코골기 맥락과 회복 패턴이 함께 보일 때만 `호흡정지 의심 구간` 후보로 승격합니다.
 - 환경 소음이나 움직임 의심 소리와 겹치면 confidence를 낮추거나 후보에서 제외합니다.
 - 녹음 시간당 의심 구간 수는 개발용 요약값이며, 임상 지표 계산으로 사용하지 않습니다.
 
@@ -14,10 +14,12 @@
 1. `BreathingActivityEstimator`가 각 `AudioFeatures`에서 `breathingActivityScore`를 계산합니다.
 2. score가 낮거나 silence로 보이는 구간을 low activity로 표시합니다.
 3. `SuspectedBreathingPauseSequenceDetector`가 low activity 구간을 시간순으로 묶습니다.
-4. low activity가 기본 10초 이상 지속되면 후보가 될 수 있습니다.
-5. 후보 이후 짧은 시간 안에 `gaspLike` 또는 `snore` 후보가 있으면 recovery pattern으로 보고 confidence를 올립니다.
-6. `environmentalNoise` 또는 높은 estimated noise가 있으면 confidence를 낮춥니다.
-7. 강한 `movementLike` overlap이 있으면 움직임 영향으로 confidence를 낮춥니다.
+4. low activity가 기본 10초 이상 지속되면 우선 관찰 구간으로 기록합니다.
+5. low activity 이전에 호흡 활동 또는 코골기 유사 맥락이 있어야 후보가 될 수 있습니다.
+6. 후보 이후 짧은 시간 안에 `gaspLike`, `snore` 재개, 또는 호흡 활동 재개가 있어야 recovery pattern으로 봅니다.
+7. 순수 silence나 낮은 에너지 소음만 지속되는 경우는 관찰/탈락 이유로 남기고 `호흡정지 의심 구간` 이벤트로 승격하지 않습니다.
+8. `environmentalNoise` 또는 높은 estimated noise가 있으면 confidence를 낮추거나 후보에서 제외합니다.
+9. 강한 `movementLike` overlap이 있으면 움직임 영향으로 confidence를 낮춥니다.
 
 ## 안전한 표현
 
@@ -41,10 +43,15 @@
 `DetectorDiagnostics`에는 sequence detector 해석을 돕는 개발용 필드가 저장됩니다.
 
 - `lowActivityCandidateCount`
+- `lowActivityObservedCount`
+- `lowActivityDurationTotal`
 - `noiseContaminatedLowActivityCount`
 - `recoveryPatternCount`
 - `pauseCandidatesRejectedByNoise`
 - `pauseCandidatesRejectedByDuration`
+- `pauseCandidatesRejectedByNoRecovery`
+- `pauseCandidatesRejectedByInsufficientContext`
+- `pauseCandidatesRejectedByLikelySilence`
 - `pauseCandidatesPromotedByGasp`
 - `latestBreathingActivityScore`
 - `latestLowActivityDurationSeconds`

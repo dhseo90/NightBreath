@@ -79,6 +79,28 @@ struct RegressionTestSuiteTests {
   }
 
   @Test
+  func pureSilenceDoesNotBecomeBreathingPauseCandidate() throws {
+    let result = try makeRegressionResult(pattern: .silence, duration: 12)
+
+    #expect(result.rawOutputs.isEmpty)
+    #expect(result.events.isEmpty)
+    #expect(result.diagnostics.rawCandidateCount == 0)
+    #expect(result.diagnostics.finalEventCountByType[.breathingPauseSuspected] == nil)
+    #expect((result.diagnostics.lowActivityObservedCount ?? 0) >= 1)
+    #expect(result.diagnostics.lowActivityCandidateCount == 0)
+    #expect((result.diagnostics.pauseCandidatesRejectedByLikelySilence ?? 0) >= 1)
+  }
+
+  @Test
+  func lowEnergyNoiseDoesNotBecomeBreathingPauseEvent() throws {
+    let result = try makeRegressionResult(pattern: .lowEnergyNoise, duration: 12)
+
+    #expect(result.rawOutputs.contains { $0.eventType == .breathingPauseSuspected } == false)
+    #expect(result.events.contains { $0.type == .breathingPauseSuspected } == false)
+    #expect(result.diagnostics.finalEventCountByType[.breathingPauseSuspected] == nil)
+  }
+
+  @Test
   func zeroEventSessionExplainsCandidatesRemovedBySmoothing() throws {
     let startedAt = Date(timeIntervalSince1970: 10_000)
     var metrics = AudioCaptureMetrics()

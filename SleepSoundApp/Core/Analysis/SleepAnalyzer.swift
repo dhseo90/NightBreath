@@ -226,6 +226,7 @@ public struct SleepAnalyzer: SleepAnalyzing {
       "smoothing.bruxismLikeConfidenceThreshold": smoothingPolicy.bruxismLikeConfidenceThreshold,
       "sequence.suspectedPauseMinimumLowActivityDuration": suspectedBreathingPauseSequenceDetector.minimumLowActivityDuration,
       "sequence.recoveryWindowSeconds": suspectedBreathingPauseSequenceDetector.recoveryWindowSeconds,
+      "sequence.priorContextWindowSeconds": suspectedBreathingPauseSequenceDetector.priorContextWindowSeconds,
       "sequence.minimumOutputConfidence": suspectedBreathingPauseSequenceDetector.minimumOutputConfidence,
     ]
   }

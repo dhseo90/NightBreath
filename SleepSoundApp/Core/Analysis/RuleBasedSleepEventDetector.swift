@@ -74,18 +74,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         // 임시 로직이며 추후 ML 모델로 대체 예정입니다.
         if features.isLikelySilence || features.rms < silenceRMS {
-            guard features.duration >= suspectedPauseMinimumDuration else {
-                return []
-            }
-            return [
-                makeOutput(
-                    .breathingPauseSuspected,
-                    features: features,
-                    confidence: 0.48 + min(features.duration / 120, 0.18),
-                    intensity: 0.2,
-                    debugReason: "긴 저에너지 구간 placeholder"
-                )
-            ]
+            return []
         }
 
         var outputs: [DetectorOutput] = []

@@ -221,8 +221,8 @@ struct SleepReportView: View {
               color: .orange
             )
             ReportMetricCard(
-              title: "저활동 후보",
-              value: "\(diagnostics.lowActivityCandidateCount ?? 0)개",
+              title: "저활동 관찰",
+              value: "\(diagnostics.lowActivityObservedCount ?? 0)개",
               systemImage: "lungs",
               color: .cyan
             )
@@ -255,6 +255,9 @@ struct SleepReportView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
+            Text("sequence 제외: 맥락 부족 \(diagnostics.pauseCandidatesRejectedByInsufficientContext ?? 0)개, 회복 패턴 없음 \(diagnostics.pauseCandidatesRejectedByNoRecovery ?? 0)개, 무음만 지속 \(diagnostics.pauseCandidatesRejectedByLikelySilence ?? 0)개")
+              .font(.caption)
+              .foregroundStyle(.secondary)
           }
 
           if let zeroEventText = diagnostics.summaryTextForZeroEvents {

@@ -164,9 +164,13 @@
           DetectorFeatureStatsRow(title: "Mid Band", stats: diagnostics.midBandEnergySummary)
           DetectorFeatureStatsRow(title: "High Band", stats: diagnostics.highBandEnergySummary)
           DetectorTuningRow(
+            title: "저활동 관찰",
+            value: "\(diagnostics.lowActivityObservedCount ?? 0)개",
+            systemImage: "waveform.path.ecg")
+          DetectorTuningRow(
             title: "저활동 후보",
             value: "\(diagnostics.lowActivityCandidateCount ?? 0)개",
-            systemImage: "waveform.path.ecg")
+            systemImage: "lungs")
           DetectorTuningRow(
             title: "소음 영향 저활동",
             value: "\(diagnostics.noiseContaminatedLowActivityCount ?? 0)개",
@@ -179,6 +183,18 @@
             title: "duration 제외",
             value: "\(diagnostics.pauseCandidatesRejectedByDuration ?? 0)개",
             systemImage: "timer")
+          DetectorTuningRow(
+            title: "맥락 부족 제외",
+            value: "\(diagnostics.pauseCandidatesRejectedByInsufficientContext ?? 0)개",
+            systemImage: "arrow.left.and.right")
+          DetectorTuningRow(
+            title: "회복 없음 제외",
+            value: "\(diagnostics.pauseCandidatesRejectedByNoRecovery ?? 0)개",
+            systemImage: "arrow.uturn.backward")
+          DetectorTuningRow(
+            title: "무음만 지속 제외",
+            value: "\(diagnostics.pauseCandidatesRejectedByLikelySilence ?? 0)개",
+            systemImage: "speaker.slash")
           DetectorTuningRow(
             title: "noise 제외",
             value: "\(diagnostics.pauseCandidatesRejectedByNoise ?? 0)개",

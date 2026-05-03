@@ -8,6 +8,10 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
     case mergedIntoNearbyEvent
     case likelyEnvironmentalNoise
     case likelySilence
+    case insufficientBreathingContext
+    case noRecoveryPattern
+    case likelySilenceOnly
+    case noiseContaminated
     case modelUnavailable
     case unknown
 
@@ -27,6 +31,14 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
             "환경 소음 가능성"
         case .likelySilence:
             "무음/저활동 가능성"
+        case .insufficientBreathingContext:
+            "이전 호흡 맥락 부족"
+        case .noRecoveryPattern:
+            "회복 패턴 없음"
+        case .likelySilenceOnly:
+            "무음만 지속"
+        case .noiseContaminated:
+            "소음 영향 큼"
         case .modelUnavailable:
             "모델 사용 불가"
         case .unknown:
@@ -159,11 +171,16 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var highBandEnergySummary: SummaryStats
     public var thresholdsSnapshot: [String: Double]
     public var eventAudioSampleStorageEnabled: Bool
+    public var lowActivityObservedCount: Int?
+    public var lowActivityDurationTotal: TimeInterval?
     public var lowActivityCandidateCount: Int?
     public var noiseContaminatedLowActivityCount: Int?
     public var recoveryPatternCount: Int?
     public var pauseCandidatesRejectedByNoise: Int?
     public var pauseCandidatesRejectedByDuration: Int?
+    public var pauseCandidatesRejectedByNoRecovery: Int?
+    public var pauseCandidatesRejectedByInsufficientContext: Int?
+    public var pauseCandidatesRejectedByLikelySilence: Int?
     public var pauseCandidatesPromotedByGasp: Int?
     public var latestBreathingActivityScore: Double?
     public var latestLowActivityDurationSeconds: TimeInterval?
@@ -199,11 +216,16 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         highBandEnergySummary: SummaryStats = SummaryStats(),
         thresholdsSnapshot: [String: Double] = [:],
         eventAudioSampleStorageEnabled: Bool,
+        lowActivityObservedCount: Int = 0,
+        lowActivityDurationTotal: TimeInterval = 0,
         lowActivityCandidateCount: Int = 0,
         noiseContaminatedLowActivityCount: Int = 0,
         recoveryPatternCount: Int = 0,
         pauseCandidatesRejectedByNoise: Int = 0,
         pauseCandidatesRejectedByDuration: Int = 0,
+        pauseCandidatesRejectedByNoRecovery: Int = 0,
+        pauseCandidatesRejectedByInsufficientContext: Int = 0,
+        pauseCandidatesRejectedByLikelySilence: Int = 0,
         pauseCandidatesPromotedByGasp: Int = 0,
         latestBreathingActivityScore: Double = 0,
         latestLowActivityDurationSeconds: TimeInterval = 0,
@@ -238,11 +260,16 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.highBandEnergySummary = highBandEnergySummary
         self.thresholdsSnapshot = thresholdsSnapshot.filter { $0.value.isFinite }
         self.eventAudioSampleStorageEnabled = eventAudioSampleStorageEnabled
+        self.lowActivityObservedCount = max(0, lowActivityObservedCount)
+        self.lowActivityDurationTotal = max(0, lowActivityDurationTotal)
         self.lowActivityCandidateCount = max(0, lowActivityCandidateCount)
         self.noiseContaminatedLowActivityCount = max(0, noiseContaminatedLowActivityCount)
         self.recoveryPatternCount = max(0, recoveryPatternCount)
         self.pauseCandidatesRejectedByNoise = max(0, pauseCandidatesRejectedByNoise)
         self.pauseCandidatesRejectedByDuration = max(0, pauseCandidatesRejectedByDuration)
+        self.pauseCandidatesRejectedByNoRecovery = max(0, pauseCandidatesRejectedByNoRecovery)
+        self.pauseCandidatesRejectedByInsufficientContext = max(0, pauseCandidatesRejectedByInsufficientContext)
+        self.pauseCandidatesRejectedByLikelySilence = max(0, pauseCandidatesRejectedByLikelySilence)
         self.pauseCandidatesPromotedByGasp = max(0, pauseCandidatesPromotedByGasp)
         self.latestBreathingActivityScore = Self.clampedRatio(latestBreathingActivityScore)
         self.latestLowActivityDurationSeconds = max(0, latestLowActivityDurationSeconds)
@@ -391,6 +418,16 @@ public final class DetectorDiagnosticsCollector {
         }
         if sequenceResult.summary.pauseCandidatesRejectedByNoise > 0 {
             rejectedCountByReason[.likelyEnvironmentalNoise, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByNoise
+            rejectedCountByReason[.noiseContaminated, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByNoise
+        }
+        if sequenceResult.summary.pauseCandidatesRejectedByNoRecovery > 0 {
+            rejectedCountByReason[.noRecoveryPattern, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByNoRecovery
+        }
+        if sequenceResult.summary.pauseCandidatesRejectedByInsufficientContext > 0 {
+            rejectedCountByReason[.insufficientBreathingContext, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByInsufficientContext
+        }
+        if sequenceResult.summary.pauseCandidatesRejectedByLikelySilence > 0 {
+            rejectedCountByReason[.likelySilenceOnly, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByLikelySilence
         }
     }
 
@@ -439,11 +476,16 @@ public final class DetectorDiagnosticsCollector {
             highBandEnergySummary: SummaryStats.make(values: highBandEnergyValues),
             thresholdsSnapshot: thresholdsSnapshot,
             eventAudioSampleStorageEnabled: eventAudioSampleStorageEnabled,
+            lowActivityObservedCount: sequenceSummary.lowActivityObservedCount,
+            lowActivityDurationTotal: sequenceSummary.lowActivityDurationTotal,
             lowActivityCandidateCount: sequenceSummary.lowActivityCandidateCount,
             noiseContaminatedLowActivityCount: sequenceSummary.noiseContaminatedLowActivityCount,
             recoveryPatternCount: sequenceSummary.recoveryPatternCount,
             pauseCandidatesRejectedByNoise: sequenceSummary.pauseCandidatesRejectedByNoise,
             pauseCandidatesRejectedByDuration: sequenceSummary.pauseCandidatesRejectedByDuration,
+            pauseCandidatesRejectedByNoRecovery: sequenceSummary.pauseCandidatesRejectedByNoRecovery,
+            pauseCandidatesRejectedByInsufficientContext: sequenceSummary.pauseCandidatesRejectedByInsufficientContext,
+            pauseCandidatesRejectedByLikelySilence: sequenceSummary.pauseCandidatesRejectedByLikelySilence,
             pauseCandidatesPromotedByGasp: sequenceSummary.pauseCandidatesPromotedByGasp,
             latestBreathingActivityScore: sequenceSummary.latestBreathingActivityScore,
             latestLowActivityDurationSeconds: sequenceSummary.latestLowActivityDurationSeconds,

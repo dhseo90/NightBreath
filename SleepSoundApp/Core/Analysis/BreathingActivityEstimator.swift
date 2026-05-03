@@ -7,6 +7,7 @@ public struct BreathingActivityEstimate: Equatable, Sendable {
     public var isLowActivity: Bool
     public var isNoiseContaminated: Bool
     public var debugReason: String
+    public var isLikelySilence: Bool
 
     public var duration: TimeInterval {
         max(0, endedAt.timeIntervalSince(startedAt))
@@ -18,7 +19,8 @@ public struct BreathingActivityEstimate: Equatable, Sendable {
         breathingActivityScore: Double,
         isLowActivity: Bool,
         isNoiseContaminated: Bool,
-        debugReason: String
+        debugReason: String,
+        isLikelySilence: Bool = false
     ) {
         self.startedAt = startedAt
         self.endedAt = max(startedAt, endedAt)
@@ -26,6 +28,7 @@ public struct BreathingActivityEstimate: Equatable, Sendable {
         self.isLowActivity = isLowActivity
         self.isNoiseContaminated = isNoiseContaminated
         self.debugReason = debugReason
+        self.isLikelySilence = isLikelySilence
     }
 
     private static func clamp(_ value: Double) -> Double {
@@ -81,7 +84,8 @@ public struct BreathingActivityEstimator: Equatable, Sendable {
             breathingActivityScore: score,
             isLowActivity: lowActivity,
             isNoiseContaminated: noiseContaminated,
-            debugReason: reason
+            debugReason: reason,
+            isLikelySilence: features.isLikelySilence
         )
     }
 
