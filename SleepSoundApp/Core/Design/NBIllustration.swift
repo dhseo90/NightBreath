@@ -2,9 +2,12 @@ import SwiftUI
 
 enum NBIllustrationKind: Sendable {
   case breath
+  case moonBreath
   case moonSleep
   case privacyOnDevice
   case devicePlacement
+  case sleepReport
+  case healthDashboard
   case emptyReport
   case emptyTimeline
 
@@ -12,12 +15,18 @@ enum NBIllustrationKind: Sendable {
     switch self {
     case .breath:
       "부드러운 호흡 파형 일러스트"
+    case .moonBreath:
+      "달과 숨결 파형 일러스트"
     case .moonSleep:
       "달과 수면 파형 일러스트"
     case .privacyOnDevice:
       "온디바이스 개인정보 보호 일러스트"
     case .devicePlacement:
       "침대 옆 iPhone 배치 일러스트"
+    case .sleepReport:
+      "수면 리포트 카드 일러스트"
+    case .healthDashboard:
+      "건강 대시보드 카드 일러스트"
     case .emptyReport:
       "아직 리포트가 없는 상태 일러스트"
     case .emptyTimeline:
@@ -39,14 +48,20 @@ struct NBIllustration: View {
     switch kind {
     case .breath:
       NBBreathWaveIllustration()
+    case .moonBreath:
+      NBMoonBreathIllustration()
     case .moonSleep:
       NBMoonSleepIllustration()
     case .privacyOnDevice:
       NBPrivacyOnDeviceIllustration()
     case .devicePlacement:
       NBDevicePlacementIllustration()
+    case .sleepReport:
+      NBSleepReportIllustration()
+    case .healthDashboard:
+      NBHealthDashboardIllustration()
     case .emptyReport:
-      NBMoonSleepIllustration(tint: NBColor.sleep, accent: NBColor.breath)
+      NBSleepReportIllustration(tint: NBColor.sleep, accent: NBColor.breath)
     case .emptyTimeline:
       NBBreathWaveIllustration(tint: NBColor.neutral, accent: NBColor.sleep)
     }
@@ -119,6 +134,15 @@ struct NBMoonSleepIllustration: View {
   var accent: Color = NBColor.breath
 
   var body: some View {
+    NBMoonBreathIllustration(tint: tint, accent: accent)
+  }
+}
+
+struct NBMoonBreathIllustration: View {
+  var tint: Color = NBColor.sleep
+  var accent: Color = NBColor.breath
+
+  var body: some View {
     GeometryReader { proxy in
       let width = proxy.size.width
       let height = proxy.size.height
@@ -167,6 +191,67 @@ struct NBMoonSleepIllustration: View {
   }
 }
 
+struct NBSleepReportIllustration: View {
+  var tint: Color = NBColor.sleep
+  var accent: Color = NBColor.breath
+
+  var body: some View {
+    GeometryReader { proxy in
+      let width = proxy.size.width
+      let height = proxy.size.height
+      let cardWidth = width * 0.56
+      let cardHeight = height * 0.58
+
+      ZStack {
+        NBIllustrationBackground(tint: tint, accent: accent)
+
+        RoundedRectangle(cornerRadius: width * 0.045, style: .continuous)
+          .fill(NBColor.cardBackground)
+          .frame(width: cardWidth, height: cardHeight)
+          .overlay(
+            RoundedRectangle(cornerRadius: width * 0.045, style: .continuous)
+              .stroke(tint.opacity(0.42), lineWidth: 2)
+          )
+          .position(x: width * 0.50, y: height * 0.52)
+
+        Circle()
+          .trim(from: 0, to: 0.74)
+          .stroke(accent, style: StrokeStyle(lineWidth: max(4, width * 0.035), lineCap: .round))
+          .rotationEffect(.degrees(-90))
+          .frame(width: width * 0.20, height: width * 0.20)
+          .position(x: width * 0.37, y: height * 0.43)
+
+        VStack(alignment: .leading, spacing: max(5, height * 0.025)) {
+          reportLine(width: width * 0.20, color: tint.opacity(0.60))
+          reportLine(width: width * 0.30, color: NBColor.divider)
+          reportLine(width: width * 0.24, color: NBColor.divider)
+        }
+        .position(x: width * 0.60, y: height * 0.44)
+
+        HStack(spacing: max(6, width * 0.025)) {
+          RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(tint.opacity(0.28))
+            .frame(width: width * 0.10, height: height * 0.11)
+          RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(accent.opacity(0.34))
+            .frame(width: width * 0.10, height: height * 0.17)
+          RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(NBColor.privacy.opacity(0.28))
+            .frame(width: width * 0.10, height: height * 0.08)
+        }
+        .position(x: width * 0.52, y: height * 0.67)
+      }
+    }
+    .aspectRatio(1.62, contentMode: .fit)
+  }
+
+  private func reportLine(width: CGFloat, color: Color) -> some View {
+    Capsule()
+      .fill(color)
+      .frame(width: width, height: 5)
+  }
+}
+
 struct NBPrivacyOnDeviceIllustration: View {
   var tint: Color = NBColor.privacy
   var accent: Color = NBColor.breath
@@ -203,6 +288,68 @@ struct NBPrivacyOnDeviceIllustration: View {
       }
     }
     .aspectRatio(1.62, contentMode: .fit)
+  }
+}
+
+struct NBHealthDashboardIllustration: View {
+  var tint: Color = NBColor.privacy
+  var accent: Color = NBColor.sleep
+
+  var body: some View {
+    GeometryReader { proxy in
+      let width = proxy.size.width
+      let height = proxy.size.height
+
+      ZStack {
+        NBIllustrationBackground(tint: tint, accent: accent)
+
+        RoundedRectangle(cornerRadius: width * 0.05, style: .continuous)
+          .fill(NBColor.cardBackground)
+          .frame(width: width * 0.58, height: height * 0.52)
+          .overlay(
+            RoundedRectangle(cornerRadius: width * 0.05, style: .continuous)
+              .stroke(tint.opacity(0.42), lineWidth: 2)
+          )
+          .position(x: width * 0.50, y: height * 0.52)
+
+        Image(systemName: "heart.text.square")
+          .font(.system(size: max(18, width * 0.10), weight: .semibold))
+          .foregroundStyle(tint)
+          .position(x: width * 0.35, y: height * 0.41)
+
+        dashboardLine(width: width * 0.24, color: NBColor.divider)
+          .position(x: width * 0.61, y: height * 0.38)
+        dashboardLine(width: width * 0.30, color: NBColor.divider)
+          .position(x: width * 0.64, y: height * 0.49)
+
+        healthWave(width: width, height: height)
+          .stroke(accent, style: StrokeStyle(lineWidth: max(3, width * 0.018), lineCap: .round, lineJoin: .round))
+
+        Circle()
+          .fill(NBColor.breath.opacity(0.18))
+          .frame(width: width * 0.13, height: width * 0.13)
+          .position(x: width * 0.72, y: height * 0.64)
+      }
+    }
+    .aspectRatio(1.62, contentMode: .fit)
+  }
+
+  private func dashboardLine(width: CGFloat, color: Color) -> some View {
+    Capsule()
+      .fill(color)
+      .frame(width: width, height: 5)
+  }
+
+  private func healthWave(width: CGFloat, height: CGFloat) -> Path {
+    Path { path in
+      path.move(to: CGPoint(x: width * 0.30, y: height * 0.64))
+      path.addLine(to: CGPoint(x: width * 0.39, y: height * 0.64))
+      path.addLine(to: CGPoint(x: width * 0.43, y: height * 0.58))
+      path.addLine(to: CGPoint(x: width * 0.49, y: height * 0.70))
+      path.addLine(to: CGPoint(x: width * 0.55, y: height * 0.59))
+      path.addLine(to: CGPoint(x: width * 0.61, y: height * 0.64))
+      path.addLine(to: CGPoint(x: width * 0.70, y: height * 0.64))
+    }
   }
 }
 
@@ -282,9 +429,12 @@ struct NBIllustration_Previews: PreviewProvider {
   static var previews: some View {
     VStack(spacing: NBSpacing.md) {
       NBIllustration(kind: .breath)
+      NBIllustration(kind: .moonBreath)
       NBIllustration(kind: .moonSleep)
       NBIllustration(kind: .privacyOnDevice)
       NBIllustration(kind: .devicePlacement)
+      NBIllustration(kind: .sleepReport)
+      NBIllustration(kind: .healthDashboard)
     }
     .padding()
     .background(NBColor.background)

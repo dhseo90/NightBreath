@@ -291,12 +291,17 @@ Original SwiftUI icon:
 Original SwiftUI illustration:
 
 - `NBBreathWaveIllustration`
+- `NBMoonBreathIllustration`
 - `NBMoonSleepIllustration`
 - `NBPrivacyOnDeviceIllustration`
 - `NBDevicePlacementIllustration`
+- `NBSleepReportIllustration`
+- `NBHealthDashboardIllustration`
 - `NBIllustration(kind:)`
 
 Illustration은 onboarding, device placement guide, privacy notice, empty report, empty timeline 상태에서 사용합니다. 실제 bitmap asset이 아니라 SwiftUI `Shape`, `Path`, `Circle`, `RoundedRectangle`, SF Symbols 기반의 original placeholder입니다.
+
+온보딩 illustration 제작 원칙과 최종 bitmap 교체 기준은 `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md`에서 관리합니다.
 
 ## Asset Catalog
 
@@ -310,12 +315,32 @@ Illustration은 onboarding, device placement guide, privacy notice, empty report
 - `Illustrations/onboarding_device_placement_placeholder.imageset`
 - `Illustrations/empty_report_placeholder.imageset`
 - `Illustrations/empty_timeline_placeholder.imageset`
+- `Screenshots/`: App Store screenshot 후보를 문서화하기 위한 metadata-only placeholder namespace
+- `Screenshots/home_dashboard_placeholder.imageset`
+- `Screenshots/recording_placeholder.imageset`
+- `Screenshots/sleep_report_placeholder.imageset`
+- `Screenshots/timeline_placeholder.imageset`
+- `Screenshots/privacy_placeholder.imageset`
+- `Screenshots/health_dashboard_placeholder.imageset`
 
 Illustrations image set은 현재 metadata-only placeholder입니다. 앱 화면에서는 `NBIllustration.swift`의 SwiftUI original illustration을 사용하며, 최종 bitmap illustration이 필요한 경우 별도 디자인 작업 후 같은 slot에 export합니다.
+
+Screenshots image set은 실제 App Store Connect 업로드용 screenshot 저장소가 아니라 후보 화면과 future placement를 나타내는 placeholder입니다. 최종 screenshot 이미지는 별도 캡처/review 후 관리 위치를 정합니다.
 
 이번 작업에서는 고품질 앱 아이콘 이미지를 만들지 않습니다. 실제 아이콘 제작은 별도 디자인 작업으로 남깁니다.
 
 앱 아이콘 제작 가이드는 `Docs/APP_ICON_GUIDE.md`를 기준으로 합니다.
+
+App Store screenshot 후보와 headline copy는 `Docs/APP_STORE_SCREENSHOT_GUIDE.md`를 기준으로 합니다.
+
+## Screenshot Scenario
+
+위치: `SleepSoundApp/Features/ScreenshotScenarios.swift`
+
+- `ScreenshotScenario`: 홈, 녹음 중, 리포트, 타임라인, 개인정보 설정, 건강 대시보드 후보를 정의합니다.
+- `ScreenshotScenarioFactory`: 기존 mock/simulator QA state를 사용해 screenshot capture에 필요한 demo app state를 만듭니다.
+- screenshot scenario는 `#if DEBUG` 안에 있으므로 Release 사용자 화면에는 노출되지 않습니다.
+- 실제 screenshot PNG를 생성하거나 App Store 제출을 진행하지 않습니다.
 
 ## 접근성
 

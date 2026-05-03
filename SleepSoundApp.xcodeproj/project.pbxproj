@@ -99,6 +99,7 @@
 		00000000000000000000026D /* NBIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000194 /* NBIcon.swift */; };
 		00000000000000000000026E /* NBIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000195 /* NBIllustration.swift */; };
 		000000000000000000000270 /* ScreenAppearancePreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000026F /* ScreenAppearancePreviews.swift */; };
+		000000000000000000000272 /* ScreenshotScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000271 /* ScreenshotScenarios.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -270,6 +271,7 @@
 		000000000000000000000194 /* NBIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIcon.swift; sourceTree = "<group>"; };
 		000000000000000000000195 /* NBIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBIllustration.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
+		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -328,6 +330,7 @@
 			isa = PBXGroup;
 			children = (
 				00000000000000000000026F /* ScreenAppearancePreviews.swift */,
+				000000000000000000000271 /* ScreenshotScenarios.swift */,
 				00000000000000000000001E /* Onboarding */,
 				000000000000000000000013 /* Sleep */,
 				000000000000000000000014 /* Dashboard */,
@@ -729,6 +732,7 @@
 				00000000000000000000026C /* NBLoadingStateView.swift in Sources */,
 				00000000000000000000026D /* NBIcon.swift in Sources */,
 				00000000000000000000026E /* NBIllustration.swift in Sources */,
+				000000000000000000000272 /* ScreenshotScenarios.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
 				00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,
