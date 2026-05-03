@@ -100,6 +100,132 @@ struct EventAudioSnippetStoreTests {
         try? FileManager.default.removeItem(at: root)
     }
 
+    @Test
+    func savingSnippetDoesNotAutomaticallyDeleteExistingSamples() throws {
+        let root = makeTemporaryDirectory()
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let existingSample = root.appendingPathComponent("existing_event_sample.caf")
+        try Data([0, 1, 2, 3]).write(to: existingSample)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date(timeIntervalSince1970: 0)],
+            ofItemAtPath: existingSample.path
+        )
+
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(
+                maxSnippetsPerSession: 10,
+                maxFolderSizeBytes: 2_000_000,
+                maxSnippetAge: 60
+            )
+        )
+
+        _ = try store.saveSnippet(
+            sessionId: UUID(),
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 400)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 399))
+        )
+
+        #expect(FileManager.default.fileExists(atPath: existingSample.path))
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func storageStatsSeparatesLinkedAndOrphanSamples() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(maxSnippetsPerSession: 10, maxFolderSizeBytes: 2_000_000)
+        )
+
+        let linkedSnippet = try store.saveSnippet(
+            sessionId: UUID(),
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 500)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 499))
+        )
+        _ = try store.saveSnippet(
+            sessionId: UUID(),
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 510)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 509))
+        )
+
+        let stats = store.storageStats(linkedFileNames: [linkedSnippet.fileName])
+
+        #expect(stats.sampleCount == 2)
+        #expect(stats.linkedSampleCount == 1)
+        #expect(stats.orphanSampleCount == 1)
+        #expect(stats.totalBytes > 0)
+        #expect(stats.linkedBytes > 0)
+        #expect(stats.orphanBytes > 0)
+        #expect(stats.totalDurationSeconds > 0)
+        #expect(!stats.formattedTotalSize.isEmpty)
+        #expect(stats.latestSampleCreatedAt != nil)
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func cleanupOrphanSnippetsDeletesOnlyUnlinkedSamples() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(maxSnippetsPerSession: 10, maxFolderSizeBytes: 2_000_000)
+        )
+
+        let linkedSnippet = try store.saveSnippet(
+            sessionId: UUID(),
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 600)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 599))
+        )
+        let orphanSnippet = try store.saveSnippet(
+            sessionId: UUID(),
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 610)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 609))
+        )
+
+        let cleanupResult = store.cleanupOrphanSnippets(linkedFileNames: [linkedSnippet.fileName])
+        let statsAfterCleanup = store.storageStats(linkedFileNames: [linkedSnippet.fileName])
+
+        #expect(cleanupResult.deletedFileCount == 1)
+        #expect(cleanupResult.deletedBytes > 0)
+        #expect(cleanupResult.failedFileCount == 0)
+        #expect(store.snippetExists(fileName: linkedSnippet.fileName))
+        #expect(!store.snippetExists(fileName: orphanSnippet.fileName))
+        #expect(statsAfterCleanup.sampleCount == 1)
+        #expect(statsAfterCleanup.orphanSampleCount == 0)
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func statsAndCleanupIgnoreMissingOrMalformedFilesWithoutCrashing() throws {
+        let root = makeTemporaryDirectory()
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let malformedFile = root.appendingPathComponent("malformed_orphan.caf")
+        try Data([0, 1, 2, 3]).write(to: malformedFile)
+        let store = EventAudioSnippetStore(snippetsDirectory: root)
+
+        let stats = store.storageStats(linkedFileNames: ["missing-linked-sample.caf"])
+        let cleanupResult = store.cleanupOrphanSnippets(linkedFileNames: ["missing-linked-sample.caf"])
+
+        #expect(stats.sampleCount == 1)
+        #expect(stats.totalBytes == 4)
+        #expect(stats.totalDurationSeconds == 0)
+        #expect(cleanupResult.deletedFileCount == 1)
+        #expect(cleanupResult.failedFileCount == 0)
+        #expect(!FileManager.default.fileExists(atPath: malformedFile.path))
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func formatsStorageByteCountsForDisplay() {
+        #expect(EventAudioStorageStats.formatBytes(0) == "0B")
+        #expect(EventAudioStorageStats.formatBytes(845 * 1_024) == "845KB")
+        #expect(EventAudioStorageStats.formatBytes(2_579_988) == "2.46MB")
+    }
+
     private func makeOutput(startedAt: Date) -> DetectorOutput {
         DetectorOutput(
             eventType: .coughLike,

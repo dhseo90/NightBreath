@@ -112,7 +112,7 @@ struct SleepRepositoryTests {
             confidence: 0.7,
             intensity: 0.4
         )
-        let report = NightReport(
+        var report = NightReport(
             sessionId: session.id,
             generatedAt: now.addingTimeInterval(generatedOffset),
             measurementDuration: session.measurementDuration,
@@ -131,8 +131,41 @@ struct SleepRepositoryTests {
             mostDisturbedHourRange: nil,
             mainDisturbanceReason: "어젯밤은 비교적 조용하고 안정적인 수면 소리 패턴을 보였습니다."
         )
+        report.detectorDiagnostics = makeDetectorDiagnostics(sessionId: session.id, startedAt: startedAt, endedAt: endedAt)
         let checkIn = MorningCheckIn(sessionId: session.id, refreshScore: 4, fatigueScore: 2, memo: "")
 
         return (session, [event], report, checkIn)
+    }
+
+    private func makeDetectorDiagnostics(sessionId: UUID, startedAt: Date, endedAt: Date) -> DetectorDiagnostics {
+        DetectorDiagnostics(
+            sessionId: sessionId,
+            startedAt: startedAt,
+            endedAt: endedAt,
+            detectorBackend: "Rule-based",
+            modelInstalled: false,
+            modelFallbackCount: 0,
+            analyzedChunkCount: 42,
+            receivedAudioSeconds: 180,
+            analyzedAudioSeconds: 179,
+            audioCoverageRatio: 0.98,
+            rawCandidateCount: 3,
+            rawCandidateCountByType: [.snore: 2, .environmentalNoise: 1],
+            preSmoothingCandidateCount: 3,
+            postSmoothingEventCount: 2,
+            finalEventCountByType: [.snore: 1],
+            rejectedCountByReason: [.tooShort: 1],
+            confidenceHistogram: ["0.6-0.8": 2, "0.8-1.0": 1],
+            rmsSummary: SummaryStats.make(values: [0.01, 0.03, 0.05]),
+            energySummary: SummaryStats.make(values: [0.001, 0.004, 0.009]),
+            zeroCrossingRateSummary: SummaryStats.make(values: [0.2, 0.3]),
+            spectralCentroidSummary: SummaryStats.make(values: [1200, 1800]),
+            lowBandEnergySummary: SummaryStats.make(values: [0.002, 0.003]),
+            midBandEnergySummary: SummaryStats.make(values: [0.001, 0.002]),
+            highBandEnergySummary: SummaryStats.make(values: [0.0005, 0.001]),
+            thresholdsSnapshot: ["rule.snoreRMS": 0.03],
+            eventAudioSampleStorageEnabled: false,
+            notes: ["테스트용 detector 진단 요약"]
+        )
     }
 }
