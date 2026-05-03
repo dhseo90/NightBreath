@@ -563,7 +563,7 @@ private struct SettingsListView: View {
           NavigationLink {
             SimulatorScenarioView()
           } label: {
-            Label("Simulator QA Scenario", systemImage: "iphone.gen3.radiowaves.left.and.right")
+            Label("Simulator QA / Screenshot Scenario", systemImage: "iphone.gen3.radiowaves.left.and.right")
           }
 
           Text("개인 오디오 샘플은 서버로 전송되지 않습니다. 전체 밤 오디오는 저장하지 않으며, 이 기능은 Release 빌드에 포함되지 않습니다.")

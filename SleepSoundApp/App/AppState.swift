@@ -62,6 +62,7 @@ final class AppState: ObservableObject {
     @Published private(set) var detectorTuningProfile: DetectorTuningProfile
     #if DEBUG
     @Published var activeSimulatorQAScenario: SimulatorQAScenarioPreset?
+    @Published var activeScreenshotScenario: ScreenshotScenario?
     #endif
 
     private let repository: any SleepRepository
@@ -269,6 +270,7 @@ final class AppState: ObservableObject {
         simulatorQAStorageStatsOverride = bundle.eventAudioStorageStats
         eventAudioStorageStats = bundle.eventAudioStorageStats
         activeSimulatorQAScenario = preset
+        activeScreenshotScenario = nil
         activeSession = nil
 
         audioCaptureMetrics = AudioCaptureMetrics(
@@ -305,8 +307,24 @@ final class AppState: ObservableObject {
         recordDebugLifecycleEvent("simulator QA scenario applied: \(preset.displayName)")
     }
 
+    func applyScreenshotScenario(_ scenario: ScreenshotScenario) {
+        applySimulatorQAScenario(scenario.simulatorPreset)
+        activeScreenshotScenario = scenario
+        microphonePermissionState = .granted
+        morningCheckIn = ScreenshotScenarioFactory.makeScreenshotMorningCheckIn(sessionId: latestSession.id)
+
+        if scenario == .sleepRecording {
+            applyScreenshotRecordingState()
+        }
+
+        audioCaptureMessage = "Screenshot preset ‘\(scenario.displayName)’를 적용했습니다. mock data만 사용하며 실제 오디오 파일은 생성하지 않습니다."
+        eventAudioStorageMessage = "Screenshot preset mock 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
+        recordDebugLifecycleEvent("screenshot scenario applied: \(scenario.displayName)")
+    }
+
     func clearSimulatorQAScenario() {
         activeSimulatorQAScenario = nil
+        activeScreenshotScenario = nil
         simulatorQAStorageStatsOverride = nil
         isEventAudioSampleStorageEnabled = userSettings.isEventAudioSampleStorageEnabled
         loadLatestStoredReportOrSample(message: "Simulator QA 시나리오를 해제했습니다.")
@@ -319,6 +337,7 @@ final class AppState: ObservableObject {
 
         #if DEBUG
         activeSimulatorQAScenario = nil
+        activeScreenshotScenario = nil
         simulatorQAStorageStatsOverride = nil
         isEventAudioSampleStorageEnabled = userSettings.isEventAudioSampleStorageEnabled
         #endif
@@ -648,6 +667,45 @@ final class AppState: ObservableObject {
         }
         #endif
     }
+
+    #if DEBUG
+    private func applyScreenshotRecordingState() {
+        var session = latestSession
+        session.endedAt = nil
+        session.measurementDuration = 2 * 60 * 60 + 18 * 60
+
+        let now = session.startedAt.addingTimeInterval(session.measurementDuration)
+        let receivedAudioSeconds = session.measurementDuration * 0.97
+        let analyzedAudioSeconds = session.measurementDuration * 0.965
+
+        activeSession = session
+        latestSession = session
+        audioCaptureState = .capturing(startedAt: session.startedAt)
+        audioCaptureMetrics = AudioCaptureMetrics(
+            captureStartedAt: session.startedAt,
+            sessionElapsedSeconds: session.measurementDuration,
+            captureActiveSeconds: session.measurementDuration,
+            receivedAudioSeconds: receivedAudioSeconds,
+            analyzedAudioSeconds: analyzedAudioSeconds,
+            receivedChunkCount: Int(receivedAudioSeconds),
+            analyzedChunkCount: Int(analyzedAudioSeconds),
+            totalReceivedFrameCount: Int64(receivedAudioSeconds * 16_000),
+            totalAnalyzedFrameCount: Int64(analyzedAudioSeconds * 16_000),
+            sampleRate: 16_000,
+            lastChunkReceivedAt: now.addingTimeInterval(-4),
+            lastChunkAnalyzedAt: now.addingTimeInterval(-6),
+            interruptionCount: 0,
+            longestChunkGapSeconds: 4,
+            currentChunkGapSeconds: 4,
+            audioCoverageRatio: 0.97
+        )
+        latestAudioLevel = 0.08
+        capturedAudioChunkCount = 128
+        detectedEventCandidateCount = 6
+        latestDetectedEventText = "코골기 후보"
+        latestDetectedEventAt = now.addingTimeInterval(-12 * 60)
+    }
+    #endif
 
     private func installLifecycleObservers() {
         #if DEBUG && os(iOS)

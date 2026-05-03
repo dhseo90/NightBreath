@@ -8,7 +8,7 @@
 2. 혈압/체성분 대시보드 고도화
 3. 수면 지표와 건강 지표 교차 분석 문구 점검
 4. Daily Health Card 이미지 export 설계
-5. mock/simulator screenshot 생성 workflow 정리
+5. mock/simulator screenshot 실제 캡처와 README 대표 이미지 선별
 6. 공개 데이터 manifest 작성
 7. snore detector Offline Evaluation 실행
 8. 실제 iPhone background smoke test
@@ -27,7 +27,7 @@
 - Daily Health Card export 전 privacy level 확인 흐름
 - App Store screenshot용 mock scenario 정리
 - Morning Brief / Daily Rhythm Report / Daily Health Card screenshot 후보 선별
-- UI Gallery의 `screenshot pending` 항목별 capture 우선순위 정리
+- UI Gallery의 `screenshot pending` 항목별 실제 capture 진행
 
 주의:
 
@@ -100,6 +100,7 @@
 - `minimal`, `standard`, `detailed` privacy level별 screenshot 후보를 준비합니다.
 - App Store screenshot은 Daily Rhythm 확장 방향을 보여주되, 건강 상태를 확정하는 표현을 쓰지 않습니다.
 - README 대표 screenshot은 mock data 또는 simulator scenario로만 생성합니다.
+- DEBUG screenshot preset을 적용한 뒤 `Tools/Screenshots/capture_screenshots.sh`로 현재 화면을 저장합니다.
 
 ## 문서 유지보수
 

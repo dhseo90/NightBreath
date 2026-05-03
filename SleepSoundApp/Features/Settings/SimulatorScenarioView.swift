@@ -4,6 +4,7 @@ import SwiftUI
 struct SimulatorScenarioView: View {
   @EnvironmentObject private var appState: AppState
   @State private var selectedPreset: SimulatorQAScenarioPreset = .quietNight
+  @State private var selectedScreenshotScenario: ScreenshotScenario = .homeDashboard
 
   private var previewBundle: SimulatorQAScenarioBundle {
     SimulatorQAScenarioFactory.make(preset: selectedPreset)
@@ -59,6 +60,48 @@ struct SimulatorScenarioView: View {
           }
           .buttonStyle(.nbSecondary)
         }
+      }
+
+      Section("Screenshot Preset") {
+        Picker("Screenshot", selection: $selectedScreenshotScenario) {
+          ForEach(ScreenshotScenario.allCases) { scenario in
+            Text(scenario.displayName)
+              .tag(scenario)
+          }
+        }
+
+        VStack(alignment: .leading, spacing: 6) {
+          Text(selectedScreenshotScenario.headlineCopy)
+            .font(.headline)
+          Text(selectedScreenshotScenario.captureNote)
+            .font(.callout)
+            .foregroundStyle(NBColor.secondaryText)
+          Text("Suggested path: \(selectedScreenshotScenario.suggestedScreenshotPath)")
+            .font(.caption.monospaced())
+            .foregroundStyle(NBColor.tertiaryText)
+        }
+        .padding(.vertical, 4)
+
+        Button {
+          appState.applyScreenshotScenario(selectedScreenshotScenario)
+        } label: {
+          Label("Screenshot preset 적용", systemImage: "camera.viewfinder")
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
+
+        if let activeScenario = appState.activeScreenshotScenario {
+          NBStatusBadge("현재 screenshot preset: \(activeScenario.displayName)", kind: .debug, systemImage: "camera")
+        }
+
+        NavigationLink {
+          screenshotDestination(for: selectedScreenshotScenario)
+        } label: {
+          Label("선택 화면 열기", systemImage: "rectangle.inset.filled")
+        }
+
+        Text("먼저 preset을 적용한 뒤 선택 화면을 열어 캡처합니다. 모든 상태는 mock data 또는 simulator scenario 기반이며 실제 건강 데이터나 실제 오디오 파일을 사용하지 않습니다.")
+          .font(.footnote)
+          .foregroundStyle(NBColor.secondaryText)
       }
 
       Section("Preview Summary") {
@@ -175,6 +218,49 @@ struct SimulatorScenarioView: View {
     .navigationTitle("Simulator QA")
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
+  }
+}
+
+extension SimulatorScenarioView {
+  @ViewBuilder
+  private func screenshotDestination(for scenario: ScreenshotScenario) -> some View {
+    switch scenario {
+    case .homeDashboard:
+      HomeDashboardView()
+    case .sleepStart:
+      SleepStartView()
+    case .sleepRecording:
+      SleepRecordingView()
+        .navigationTitle("수면 기록 중")
+    case .sleepReport, .zeroEventReport, .lowCoverageReport:
+      SleepReportView(report: appState.latestReport, events: appState.latestEvents)
+    case .eventTimeline:
+      SleepTimelineView(report: appState.latestReport, events: appState.latestEvents)
+    case .morningBrief:
+      MorningBriefView(
+        nightReport: appState.latestReport,
+        morningCheckIn: appState.morningCheckIn,
+        referenceDate: appState.latestReport.generatedAt
+      )
+    case .dailyRhythmReport:
+      DailyRhythmReportView(
+        nightReport: appState.latestReport,
+        morningCheckIn: appState.morningCheckIn,
+        referenceDate: appState.latestReport.generatedAt
+      )
+    case .dailyHealthCard:
+      DailyHealthCardPreviewView(
+        nightReport: appState.latestReport,
+        morningCheckIn: appState.morningCheckIn,
+        referenceDate: appState.latestReport.generatedAt
+      )
+    case .healthDashboard:
+      HealthDashboardView()
+    case .privacySettings, .eventAudioStorageOff:
+      PrivacySettingsView()
+    case .debugTools:
+      DetectorTuningView()
+    }
   }
 }
 

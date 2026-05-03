@@ -337,10 +337,14 @@ App Store screenshot 후보와 headline copy는 `Docs/APP_STORE_SCREENSHOT_GUIDE
 
 위치: `SleepSoundApp/Features/ScreenshotScenarios.swift`
 
-- `ScreenshotScenario`: 홈, 녹음 중, 리포트, 타임라인, 개인정보 설정, 건강 대시보드 후보를 정의합니다.
+- `ScreenshotScenario`: README와 UI Gallery에 사용할 DEBUG 전용 screenshot 후보를 정의합니다.
 - `ScreenshotScenarioFactory`: 기존 mock/simulator QA state를 사용해 screenshot capture에 필요한 demo app state를 만듭니다.
 - screenshot scenario는 `#if DEBUG` 안에 있으므로 Release 사용자 화면에는 노출되지 않습니다.
 - 실제 screenshot PNG를 생성하거나 App Store 제출을 진행하지 않습니다.
+- screenshot scenario는 `SimulatorScenarioView`의 `Screenshot Preset` 섹션에서 선택하고, mock data 또는 simulator scenario만 사용합니다.
+- scenario 이름과 suggested path는 `Docs/UI_GALLERY.md`와 `Tools/Screenshots/README.md`에 맞춰 관리합니다.
+- fake screenshot, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플은 사용하지 않습니다.
+- capture helper는 `Tools/Screenshots/capture_screenshots.sh`를 사용하되, scenario 선택과 화면 이동은 DEBUG 앱 안에서 사람이 확인합니다.
 
 ## Screenshot 문서화 원칙
 

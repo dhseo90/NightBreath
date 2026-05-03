@@ -133,6 +133,8 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 
 현재 실제 screenshot 파일은 아직 추가하지 않았습니다. 파일이 준비되기 전까지 broken image link를 만들지 않고 `screenshot pending` 상태로 관리합니다.
 
+DEBUG 빌드의 simulator screenshot preset과 캡처 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
+
 ## V1에서 하지 않는 것
 
 - HealthKit 쓰기

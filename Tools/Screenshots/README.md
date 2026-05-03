@@ -1,0 +1,93 @@
+# Screenshot Capture Workflow
+
+NightBreath / 밤숨의 README와 UI Gallery screenshot은 DEBUG 빌드에서 mock data 또는 simulator scenario만 사용해 생성합니다.
+
+## 준비
+
+1. Xcode 또는 `xcodebuild`로 DEBUG 빌드를 실행합니다.
+2. Simulator에서 앱을 엽니다.
+3. 앱의 `설정 > 개발 > Simulator QA / Screenshot Scenario`로 이동합니다.
+4. `Screenshot Preset`에서 원하는 scenario를 선택합니다.
+5. `Screenshot preset 적용`을 누릅니다.
+6. `선택 화면 열기`로 대상 화면을 엽니다.
+
+Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
+
+## Scenario
+
+- `ScreenshotHomeScenario`
+- `ScreenshotSleepStartScenario`
+- `ScreenshotRecordingScenario`
+- `ScreenshotSleepReportScenario`
+- `ScreenshotTimelineScenario`
+- `ScreenshotMorningBriefScenario`
+- `ScreenshotDailyRhythmScenario`
+- `ScreenshotDailyHealthCardScenario`
+- `ScreenshotHealthDashboardScenario`
+- `ScreenshotPrivacyScenario`
+- `ScreenshotZeroEventScenario`
+- `ScreenshotLowCoverageScenario`
+- `ScreenshotEventAudioStorageOffScenario`
+- `ScreenshotDebugScenario`
+
+## Light / Dark
+
+Simulator appearance는 수동으로 전환하거나 아래 명령을 사용합니다.
+
+```bash
+xcrun simctl ui booted appearance light
+xcrun simctl ui booted appearance dark
+```
+
+같은 scenario에서 light/dark를 각각 확인하고, 긴 한국어 문구, 배지, chart axis, empty state가 잘리지 않는지 봅니다.
+
+## 저장 경로
+
+README 대표 screenshot 후보:
+
+```text
+Docs/Screenshots/README/
+```
+
+전체 UI Gallery screenshot 후보:
+
+```text
+Docs/Screenshots/Home/
+Docs/Screenshots/Sleep/
+Docs/Screenshots/DailyRhythm/
+Docs/Screenshots/Health/
+Docs/Screenshots/Privacy/
+Docs/Screenshots/EdgeStates/
+Docs/Screenshots/Debug/
+```
+
+## Capture 명령
+
+수동 capture 예시:
+
+```bash
+xcrun simctl io booted screenshot Docs/Screenshots/README/home-dashboard.png
+```
+
+보조 스크립트:
+
+```bash
+Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home-dashboard.png light
+```
+
+스크립트는 simulator 목록과 boot 상태를 확인하고, 지정한 경로에 현재 화면을 저장합니다. 앱 navigation과 scenario 선택은 사용자가 DEBUG 화면에서 직접 수행합니다.
+
+## 금지
+
+- fake screenshot을 만들지 않습니다.
+- 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
+- 공개/개인 오디오 파일을 repo에 커밋하지 않습니다.
+- 서버 전송, 자동 공유, 외부 SDK를 사용하지 않습니다.
+- 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하는 copy를 쓰지 않습니다.
+
+## README와 UI Gallery 구분
+
+- README에는 대표 screenshot만 넣습니다.
+- 화면별 상세 상태, edge state, DEBUG-only 화면은 `Docs/UI_GALLERY.md`에서 관리합니다.
+- 실제 screenshot 파일이 준비되기 전에는 image markdown을 추가하지 않고 `screenshot pending` 상태로 둡니다.
+

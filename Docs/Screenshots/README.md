@@ -9,7 +9,8 @@
 - README에는 대표 screenshot만 사용합니다.
 - 가능한 모든 화면과 edge state 설명은 `Docs/UI_GALLERY.md`에서 관리합니다.
 - 실제 screenshot 파일이 없는 경우 문서에는 `screenshot pending`으로 표시하고 broken image link를 만들지 않습니다.
-- screenshot 생성 방법과 파일명 규칙은 다음 작업에서 추가합니다.
+- screenshot 생성 방법은 `Tools/Screenshots/README.md`에서 관리합니다.
+- DEBUG 앱의 `Simulator QA / Screenshot Scenario` 화면에서 screenshot preset을 선택한 뒤 캡처합니다.
 
 ## 폴더
 
@@ -25,4 +26,3 @@
 ## 주의
 
 Screenshot은 앱의 제품 방향을 보여주는 문서 자료입니다. 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하는 copy를 사용하지 않습니다.
-

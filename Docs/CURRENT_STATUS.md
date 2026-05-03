@@ -66,6 +66,8 @@
 - Daily Rhythm 관련 unit test
 - UI gallery 문서 구조
 - mock/simulator screenshot 폴더 구조
+- DEBUG 전용 screenshot scenario preset
+- screenshot capture workflow 문서와 simctl helper script
 
 ## 현재 개발 전략
 

@@ -27,17 +27,17 @@
 
 ## Screenshot 문서 상태
 
-실제 screenshot 파일은 아직 추가하지 않았습니다. 모든 screenshot은 mock data 또는 simulator scenario 기반으로 생성하며, 파일이 준비되기 전에는 `screenshot pending`으로 관리합니다. 전체 화면별 설명은 `Docs/UI_GALLERY.md`, 폴더 원칙은 `Docs/Screenshots/README.md`를 기준으로 합니다.
+실제 screenshot 파일은 아직 추가하지 않았습니다. 모든 screenshot은 mock data 또는 simulator scenario 기반으로 생성하며, 파일이 준비되기 전에는 `screenshot pending`으로 관리합니다. 전체 화면별 설명은 `Docs/UI_GALLERY.md`, 폴더 원칙은 `Docs/Screenshots/README.md`, capture 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
 
-| 화면 그룹 | Screenshot path | 현재 상태 | README 대표 후보 | Release/Debug |
-| --- | --- | --- | --- | --- |
-| Home / Dashboard | `Docs/Screenshots/Home/` | screenshot pending | 후보 | Release |
-| Sleep Flow | `Docs/Screenshots/Sleep/` | screenshot pending | 후보 | Release |
-| Daily Rhythm | `Docs/Screenshots/DailyRhythm/` | screenshot pending | 후보 | Release |
-| Health Dashboard | `Docs/Screenshots/Health/` | screenshot pending | 후보 | Release |
-| Privacy / Settings | `Docs/Screenshots/Privacy/` | screenshot pending | 후보 | Release |
-| Empty / Edge States | `Docs/Screenshots/EdgeStates/` | screenshot pending | README에는 보통 제외 | Release |
-| Debug-only Screens | `Docs/Screenshots/Debug/` | screenshot pending | 제외 | DEBUG only |
+| 화면 그룹 | Suggested scenario | Screenshot path | 현재 상태 | README 대표 후보 | Release/Debug |
+| --- | --- | --- | --- | --- | --- |
+| Home / Dashboard | `ScreenshotHomeScenario` | `Docs/Screenshots/Home/` | screenshot pending | 후보 | Release |
+| Sleep Flow | `ScreenshotSleepStartScenario`, `ScreenshotRecordingScenario`, `ScreenshotSleepReportScenario`, `ScreenshotTimelineScenario` | `Docs/Screenshots/Sleep/` | screenshot pending | 후보 | Release |
+| Daily Rhythm | `ScreenshotMorningBriefScenario`, `ScreenshotDailyRhythmScenario`, `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/DailyRhythm/` | screenshot pending | 후보 | Release |
+| Health Dashboard | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/Health/` | screenshot pending | 후보 | Release |
+| Privacy / Settings | `ScreenshotPrivacyScenario` | `Docs/Screenshots/Privacy/` | screenshot pending | 후보 | Release |
+| Empty / Edge States | `ScreenshotZeroEventScenario`, `ScreenshotLowCoverageScenario`, `ScreenshotEventAudioStorageOffScenario` | `Docs/Screenshots/EdgeStates/` | screenshot pending | README에는 보통 제외 | Release |
+| Debug-only Screens | `ScreenshotDebugScenario` | `Docs/Screenshots/Debug/` | screenshot pending | 제외 | DEBUG only |
 
 Daily Rhythm 전환 이후 README 대표 screenshot 후보는 홈, 수면 리포트, 오늘의 리듬 리포트, 하루 리듬 카드, 건강 대시보드 중 mock state가 안정적인 화면에서 고릅니다. DEBUG-only 화면은 개발 문서에만 사용하고 Release 사용자용 자료에는 포함하지 않습니다.
 

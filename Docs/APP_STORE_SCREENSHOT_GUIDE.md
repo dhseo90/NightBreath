@@ -13,11 +13,19 @@ README 대표 screenshot과 전체 UI gallery 후보는 `Docs/UI_GALLERY.md`와 
 | Scenario | 화면 | Demo state | Headline copy 초안 |
 | --- | --- | --- | --- |
 | `ScreenshotHomeScenario` | 홈 대시보드 | 최근 리포트와 점수, 측정 품질, privacy notice | 수면 중 소리 기반 지표를 한눈에 |
+| `ScreenshotSleepStartScenario` | 수면 시작 | 마이크 권한, 기기 배치, 이벤트 샘플 저장 상태 | 잠들기 전 준비를 차분하게 |
 | `ScreenshotRecordingScenario` | 수면 녹음 중 | 녹음 중, 실제 오디오 수신 시간, 커버리지 | iPhone 안에서 조용히 분석 |
-| `ScreenshotReportScenario` | 수면 리포트 | 수면 소리 점수, 주요 이벤트, diagnostics 요약 | 아침에 읽기 쉬운 수면 소리 리포트 |
+| `ScreenshotSleepReportScenario` | 수면 리포트 | 수면 소리 점수, 주요 이벤트, diagnostics 요약 | 아침에 읽기 쉬운 수면 소리 리포트 |
 | `ScreenshotTimelineScenario` | 이벤트 타임라인 | 코골기, 환경 소음, 샘플 상태 | 코골기와 환경 소음 흐름 확인 |
-| `ScreenshotPrivacyScenario` | 개인정보 설정 | opt-in, 저장 용량, 삭제 액션 | 전체 밤 오디오는 저장하지 않습니다 |
+| `ScreenshotMorningBriefScenario` | 아침 리포트 | 수면 요약, 아침 컨디션, mock 건강 데이터 | 아침에 시작하는 하루 건강 리듬 |
+| `ScreenshotDailyRhythmScenario` | 오늘의 리듬 | 오늘의 리듬 점수, component, insight | 오늘의 리듬 점수를 참고용으로 |
+| `ScreenshotDailyHealthCardScenario` | 하루 리듬 카드 | 카드 template, privacy level, mock 카드 | 하루 리듬을 카드 한 장으로 |
 | `ScreenshotHealthDashboardScenario` | 건강 대시보드 | read-only 방향, 혈압/체성분 진입 | 혈압/체성분 대시보드 준비 |
+| `ScreenshotPrivacyScenario` | 개인정보 설정 | opt-in, 저장 용량, 삭제 액션 | 전체 밤 오디오는 저장하지 않습니다 |
+| `ScreenshotZeroEventScenario` | 이벤트 0개 리포트 | zero-event 분석, 측정 품질 | 이벤트가 적은 밤도 측정 맥락과 함께 |
+| `ScreenshotLowCoverageScenario` | 낮은 커버리지 리포트 | 제한 안내, 측정 품질 배지 | 측정 품질이 낮은 날은 제한적으로 |
+| `ScreenshotEventAudioStorageOffScenario` | 샘플 저장 OFF | opt-in 꺼짐, 저장 없음 안내 | 이벤트 샘플 저장은 사용자가 선택 |
+| `ScreenshotDebugScenario` | DEBUG 검증 화면 | Detector Tuning 또는 Dataset Replay | DEBUG에서만 확인하는 검증 화면 |
 
 ## DEBUG Screenshot Preset
 
@@ -33,6 +41,7 @@ README 대표 screenshot과 전체 UI gallery 후보는 `Docs/UI_GALLERY.md`와 
 - `ScreenshotScenarioFactory.makeAppState(for:)`
 - scenario별 headline copy와 capture note
 - 기존 `SimulatorQAScenarioFactory` 기반 mock report state
+- `SimulatorScenarioView`의 `Screenshot Preset` 섹션에서 선택
 
 실제 오디오 파일, 서버 전송, HealthKit 권한 요청, storage schema 변경은 포함하지 않습니다.
 
