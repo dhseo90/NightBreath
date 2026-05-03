@@ -92,6 +92,9 @@ let package = Package(
         "OfflineEvaluationSupport",
       ],
       path: "Tests",
+      resources: [
+        .copy("Fixtures"),
+      ],
       swiftSettings: [
         .unsafeFlags([
           "-F",

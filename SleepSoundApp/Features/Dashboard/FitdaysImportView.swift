@@ -1,0 +1,254 @@
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct FitdaysImportView: View {
+  private let service: FitdaysImportService
+  private let repository: any UnifiedHealthMetricSampleRepositoryProtocol
+
+  @State private var isFileImporterPresented = false
+  @State private var importResult: FitdaysImportResult?
+  @State private var statusMessage: String?
+  @State private var errorMessage: String?
+
+  init(
+    service: FitdaysImportService = FitdaysImportService(),
+    repository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
+  ) {
+    self.service = service
+    self.repository = repository
+  }
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        headerSection
+        policySection
+
+        if let importResult {
+          resultSection(importResult)
+          previewSection(importResult)
+        } else {
+          emptyState
+        }
+      }
+      .padding(NBSpacing.screenHorizontal)
+    }
+    .background(NBColor.pageBackground)
+    .navigationTitle("Fitdays 가져오기")
+    .fileImporter(
+      isPresented: $isFileImporterPresented,
+      allowedContentTypes: [.commaSeparatedText, .plainText, .text],
+      allowsMultipleSelection: false,
+      onCompletion: handleFileImporterResult
+    )
+  }
+
+  private var headerSection: some View {
+    NBReportSection(title: "Fitdays CSV 가져오기", systemImage: "square.and.arrow.down") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        Text("사용자가 직접 선택한 Fitdays export 파일을 로컬에서 읽어 체성분 지표를 정리합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+
+        Button {
+          isFileImporterPresented = true
+        } label: {
+          Label("CSV 파일 선택", systemImage: "doc.badge.plus")
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+
+        if let statusMessage {
+          NBStatusBadge(statusMessage, kind: .good, systemImage: "checkmark.circle")
+        }
+
+        if let errorMessage {
+          NBStatusBadge(errorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
+        }
+      }
+    }
+  }
+
+  private var policySection: some View {
+    NBPrivacyNoticeCard(
+      title: "로컬 파일 import",
+      messages: [
+        "Fitdays 서버나 비공식 API에 연결하지 않습니다.",
+        "선택한 파일은 기기 안에서만 parsing합니다.",
+        "HealthKit에 데이터를 쓰지 않습니다.",
+        "가져온 값은 개인 참고용 보기로만 표시합니다.",
+      ],
+      systemImage: "lock.doc"
+    )
+  }
+
+  private var emptyState: some View {
+    NBEmptyStateView(
+      title: "가져온 파일이 없습니다",
+      message: "Fitdays에서 export/share한 CSV 파일을 선택하면 저장 전 preview를 확인할 수 있습니다.",
+      systemImage: "doc.text.magnifyingglass",
+      actionTitle: "파일 선택"
+    ) {
+      isFileImporterPresented = true
+    }
+  }
+
+  private func resultSection(_ result: FitdaysImportResult) -> some View {
+    NBReportSection(title: "Import 결과", systemImage: "list.bullet.rectangle") {
+      VStack(spacing: NBSpacing.medium) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+          NBMetricCard(
+            title: "생성 sample",
+            value: "\(result.importedSampleCount)",
+            systemImage: "number",
+            tint: NBColor.mistTeal,
+            footnote: result.batch.fileName
+          )
+
+          NBMetricCard(
+            title: "건너뛴 row",
+            value: "\(result.skippedRowCount)",
+            systemImage: "arrow.uturn.forward",
+            tint: result.skippedRowCount > 0 ? NBColor.warning : NBColor.success,
+            footnote: "오류 \(result.errorCount)개"
+          )
+        }
+
+        if !result.unknownColumns.isEmpty {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("알 수 없는 column")
+              .font(NBTypography.caption.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+            Text(result.unknownColumns.joined(separator: ", "))
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        if !result.rowErrors.isEmpty {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("확인 필요")
+              .font(NBTypography.caption.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+            ForEach(result.rowErrors.prefix(4)) { error in
+              Text("Row \(error.rowNumber): \(error.message)")
+                .font(NBTypography.footnote)
+                .foregroundStyle(NBColor.secondaryText)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        Button {
+          save(result)
+        } label: {
+          Label("로컬에 저장", systemImage: "tray.and.arrow.down")
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.sleepTint))
+        .disabled(result.samples.isEmpty)
+      }
+    }
+  }
+
+  private func previewSection(_ result: FitdaysImportResult) -> some View {
+    NBReportSection(title: "Preview", systemImage: "eye") {
+      VStack(spacing: NBSpacing.small) {
+        ForEach(result.samples.prefix(8)) { sample in
+          if let displayModel = sample.displayModel() {
+            NBListRow(
+              title: displayModel.metadata.displayNameKo,
+              value: displayModel.valueText,
+              subtitle: "\(SleepFormatters.shortDate(sample.measuredAt)) · \(displayModel.sourceText)",
+              systemImage: icon(for: displayModel.metadata.category),
+              tint: tint(for: displayModel.metadata.category)
+            )
+          }
+        }
+
+        if result.samples.count > 8 {
+          Text("외 \(result.samples.count - 8)개 sample")
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+    }
+  }
+
+  private func handleFileImporterResult(_ result: Result<[URL], Error>) {
+    errorMessage = nil
+    statusMessage = nil
+
+    do {
+      guard let url = try result.get().first else {
+        return
+      }
+      let didStartAccessing = url.startAccessingSecurityScopedResource()
+      defer {
+        if didStartAccessing {
+          url.stopAccessingSecurityScopedResource()
+        }
+      }
+
+      importResult = try service.previewImport(from: url)
+      statusMessage = "저장 전 preview를 만들었습니다."
+    } catch {
+      importResult = nil
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  private func save(_ result: FitdaysImportResult) {
+    do {
+      try repository.save(batch: result.batch, samples: result.samples)
+      statusMessage = "로컬 저장소에 \(result.importedSampleCount)개 sample을 저장했습니다."
+      errorMessage = nil
+    } catch {
+      errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"
+    }
+  }
+
+  private func icon(for category: MetricCategory) -> String {
+    switch category {
+    case .sleep:
+      "moon.zzz"
+    case .bloodPressure:
+      "heart"
+    case .bodyComposition:
+      "scalemass"
+    case .activity:
+      "figure.walk"
+    case .recovery:
+      "waveform.path.ecg"
+    case .app:
+      "sparkles"
+    }
+  }
+
+  private func tint(for category: MetricCategory) -> Color {
+    switch category {
+    case .sleep:
+      NBColor.sleepTint
+    case .bloodPressure:
+      NBColor.danger
+    case .bodyComposition:
+      NBColor.mistTeal
+    case .activity:
+      NBColor.success
+    case .recovery:
+      NBColor.privacyTint
+    case .app:
+      NBColor.dawn
+    }
+  }
+}
+
+#if DEBUG
+struct FitdaysImportView_Previews: PreviewProvider {
+  static var previews: some View {
+    NavigationStack {
+      FitdaysImportView(repository: InMemoryUnifiedHealthMetricSampleRepository())
+    }
+  }
+}
+#endif

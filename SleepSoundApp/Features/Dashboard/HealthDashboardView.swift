@@ -186,6 +186,20 @@ struct HealthDashboardView: View {
         .buttonStyle(.plain)
 
         NavigationLink {
+          FitdaysImportView()
+        } label: {
+          HealthDashboardEntryCard(
+            title: "Fitdays CSV 가져오기",
+            subtitle: "HealthKit에 없는 체성분 지표를 로컬 파일로 추가",
+            systemImage: "square.and.arrow.down",
+            tint: NBColor.mistTeal,
+            sampleCount: 0,
+            latestDate: nil
+          )
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
           CrossMetricDashboardView(
             reports: appState.trendReports(days: 90),
             samples: visibleSamples,
