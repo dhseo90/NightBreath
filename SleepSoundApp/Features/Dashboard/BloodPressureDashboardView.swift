@@ -30,10 +30,31 @@ struct BloodPressureDashboardView: View {
             )
           } else {
             latestSection
-            BloodPressureTrendChart(samples: periodSamples)
+            HealthLatestSampleDetailSection(
+              title: "최근 측정 세부 정보",
+              metricTypes: metrics,
+              samples: periodSamples
+            )
+            HealthPeriodOverviewSection(
+              samples: samples,
+              metricTypes: metrics,
+              primaryMetric: .systolicBloodPressure,
+              title: "기간별 혈압 요약"
+            )
+            BloodPressureTrendChart(samples: periodSamples, period: selectedPeriod)
             timeOfDaySection
             HealthTrendSummaryRows(summaries: trendSummaries)
-            HealthSourceSummarySection(sourceSummaries: calculator.sourceSummaries(samples: periodSamples))
+            HealthSourceSummarySection(
+              sourceSummaries: calculator.sourceSummaries(
+                samples: samples,
+                metricTypes: metrics,
+                period: selectedPeriod
+              )
+            )
+            HealthDailyRhythmConnectionSection(
+              focus: "오늘의 리듬 참고 데이터",
+              message: "혈압 sample은 아침 리포트와 하루 리듬 카드에서 날짜별 참고 데이터로 함께 정리할 수 있습니다."
+            )
           }
         }
 
@@ -67,13 +88,11 @@ struct BloodPressureDashboardView: View {
   }
 
   private var trendSummaries: [HealthMetricTrendSummary] {
-    metrics.map { metricType in
-      calculator.summary(
-        samples: samples,
-        metricType: metricType,
-        period: selectedPeriod
-      )
-    }
+    calculator.summaries(
+      samples: samples,
+      metricTypes: metrics,
+      period: selectedPeriod
+    )
   }
 
   private var latestMeasuredAt: Date? {
@@ -101,9 +120,16 @@ struct BloodPressureDashboardView: View {
 
   private var latestSection: some View {
     NBReportSection(title: "최근 혈압", systemImage: "clock") {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-        latestMetricCard(.systolicBloodPressure)
-        latestMetricCard(.diastolicBloodPressure)
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        BloodPressureLatestPairCard(
+          systolic: latestSystolicSample,
+          diastolic: latestDiastolicSample
+        )
+
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+          latestMetricCard(.systolicBloodPressure)
+          latestMetricCard(.diastolicBloodPressure)
+        }
       }
     }
   }
@@ -145,6 +171,14 @@ struct BloodPressureDashboardView: View {
     return (morningCount, max(0, systolicSamples.count - morningCount))
   }
 
+  private var latestSystolicSample: HealthMetricSample? {
+    periodSamples.latestSample(metricType: .systolicBloodPressure)
+  }
+
+  private var latestDiastolicSample: HealthMetricSample? {
+    periodSamples.latestSample(metricType: .diastolicBloodPressure)
+  }
+
   private func latestMetricCard(_ metricType: HealthMetricType) -> NBMetricCard {
     let sample = periodSamples.latestSample(metricType: metricType)
     return NBMetricCard(
@@ -154,19 +188,90 @@ struct BloodPressureDashboardView: View {
       } ?? "--",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
+      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) \(SleepFormatters.shortTime($0.measuredAt)) · \($0.sourceName)" },
       accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
     )
   }
 }
 
+private struct BloodPressureLatestPairCard: View {
+  let systolic: HealthMetricSample?
+  let diastolic: HealthMetricSample?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      HStack(alignment: .firstTextBaseline) {
+        Label("최근 측정값", systemImage: "heart.text.square")
+          .font(.callout.weight(.semibold))
+          .foregroundStyle(NBColor.primaryText)
+
+        Spacer()
+
+        NBStatusBadge(timeOfDayLabel, systemImage: timeOfDayIcon, tint: NBColor.danger)
+      }
+
+      HStack(alignment: .firstTextBaseline, spacing: NBSpacing.xSmall) {
+        Text(pairValue)
+          .font(NBTypography.metricNumber)
+          .foregroundStyle(NBColor.primaryText)
+          .lineLimit(1)
+          .minimumScaleFactor(0.72)
+
+        Text("mmHg")
+          .font(NBTypography.captionEmphasis)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+
+      Text(detailText)
+        .font(NBTypography.caption)
+        .foregroundStyle(NBColor.secondaryText)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("최근 혈압, \(pairValue) mmHg, \(detailText)")
+  }
+
+  private var pairValue: String {
+    guard let systolic, let diastolic else { return "--/--" }
+    return "\(Int(systolic.value.rounded()))/\(Int(diastolic.value.rounded()))"
+  }
+
+  private var latestSample: HealthMetricSample? {
+    [systolic, diastolic]
+      .compactMap { $0 }
+      .sortedByMeasuredAtDescending()
+      .first
+  }
+
+  private var detailText: String {
+    guard let latestSample else {
+      return "선택한 기간에 함께 표시할 혈압 sample이 없습니다."
+    }
+
+    return "\(SleepFormatters.shortDate(latestSample.measuredAt)) \(SleepFormatters.shortTime(latestSample.measuredAt)) · \(latestSample.sourceName)"
+  }
+
+  private var timeOfDayLabel: String {
+    guard let latestSample else { return "데이터 없음" }
+    let hour = Calendar.current.component(.hour, from: latestSample.measuredAt)
+    return hour < 12 ? "아침 측정" : "저녁 측정"
+  }
+
+  private var timeOfDayIcon: String {
+    guard let latestSample else { return "tray" }
+    let hour = Calendar.current.component(.hour, from: latestSample.measuredAt)
+    return hour < 12 ? "sunrise" : "moon"
+  }
+}
+
 private struct BloodPressureTrendChart: View {
   let samples: [HealthMetricSample]
+  let period: HealthMetricTrendPeriod
 
   private let builder = HealthMetricChartDataBuilder()
 
   var body: some View {
-    NBReportSection(title: "그래프", systemImage: "chart.xyaxis.line") {
+    NBReportSection(title: "\(period.displayName) 그래프", systemImage: "chart.xyaxis.line") {
       Chart {
         ForEach(systolicPoints) { point in
           LineMark(

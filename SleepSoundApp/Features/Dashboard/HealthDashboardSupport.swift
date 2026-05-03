@@ -160,6 +160,138 @@ struct HealthDataEmptyStateView: View {
   }
 }
 
+struct HealthPeriodOverviewSection: View {
+  let samples: [HealthMetricSample]
+  let metricTypes: [HealthMetricType]
+  let primaryMetric: HealthMetricType
+  let title: String
+
+  private let calculator = HealthMetricTrendCalculator()
+
+  var body: some View {
+    NBReportSection(title: title, systemImage: "calendar.badge.clock") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        ForEach(periodSummaries, id: \.period) { summary in
+          NBListRow(
+            title: summary.period.displayName,
+            value: "\(sampleCount(for: summary.period))개",
+            subtitle: periodSubtitle(for: summary),
+            systemImage: "chart.line.uptrend.xyaxis",
+            tint: HealthMetricDashboardFormatting.tint(for: primaryMetric)
+          )
+
+          if summary.period != periodSummaries.last?.period {
+            Divider().overlay(NBColor.divider)
+          }
+        }
+      }
+    }
+  }
+
+  private var periodSummaries: [HealthMetricTrendSummary] {
+    calculator.periodSummaries(
+      samples: samples,
+      metricType: primaryMetric
+    )
+  }
+
+  private func sampleCount(for period: HealthMetricTrendPeriod) -> Int {
+    calculator.samples(
+      samples,
+      metricTypes: metricTypes,
+      period: period
+    )
+    .count
+  }
+
+  private func periodSubtitle(for summary: HealthMetricTrendSummary) -> String {
+    var parts: [String] = []
+
+    if let average = summary.average {
+      parts.append(
+        "평균 \(HealthMetricDashboardFormatting.valueString(average, unit: primaryMetric.unitLabel))"
+      )
+    } else {
+      parts.append("평균 계산 sample 부족")
+    }
+
+    if let change = summary.changeFromPreviousPeriod {
+      parts.append(
+        "이전 \(summary.period.displayName) 평균 대비 \(HealthMetricDashboardFormatting.signedValueString(change, unit: primaryMetric.unitLabel))"
+      )
+    } else {
+      parts.append("이전 기간 비교 sample 부족")
+    }
+
+    return parts.joined(separator: " · ")
+  }
+}
+
+struct HealthLatestSampleDetailSection: View {
+  let title: String
+  let metricTypes: [HealthMetricType]
+  let samples: [HealthMetricSample]
+
+  var body: some View {
+    NBReportSection(title: title, systemImage: "clock.badge.checkmark") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        ForEach(metricTypes) { metricType in
+          latestRow(metricType)
+
+          if metricType != metricTypes.last {
+            Divider().overlay(NBColor.divider)
+          }
+        }
+      }
+    }
+  }
+
+  private func latestRow(_ metricType: HealthMetricType) -> NBListRow {
+    guard let sample = samples.latestSample(metricType: metricType) else {
+      return NBListRow(
+        title: metricType.displayName,
+        value: "--",
+        subtitle: "선택한 기간에 표시할 sample이 없습니다.",
+        systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
+        tint: HealthMetricDashboardFormatting.tint(for: metricType)
+      )
+    }
+
+    return NBListRow(
+      title: metricType.displayName,
+      value: HealthMetricDashboardFormatting.valueString(sample.value, unit: sample.unit),
+      subtitle: "\(SleepFormatters.shortDate(sample.measuredAt)) \(SleepFormatters.shortTime(sample.measuredAt)) · \(sample.sourceName)",
+      systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
+      tint: HealthMetricDashboardFormatting.tint(for: metricType),
+      accessibilityLabel:
+        "\(metricType.displayName), \(HealthMetricDashboardFormatting.valueString(sample.value, unit: sample.unit)), \(SleepFormatters.shortDate(sample.measuredAt)) \(SleepFormatters.shortTime(sample.measuredAt)), \(sample.sourceName)"
+    )
+  }
+}
+
+struct HealthDailyRhythmConnectionSection: View {
+  let focus: String
+  let message: String
+
+  var body: some View {
+    NBReportSection(title: "Daily Rhythm 연결", systemImage: "sun.max") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        NBStatusBadge(focus, kind: .privacy, systemImage: "heart.text.square")
+
+        Text(message)
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+
+        Text("수면 소리 지표와 건강 데이터를 함께 볼 수 있지만, 원인과 결과를 의미하지 않습니다.")
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.tertiaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+}
+
 struct HealthSourceSummarySection: View {
   let sourceSummaries: [HealthMetricSourceSummary]
 
@@ -212,10 +344,20 @@ struct HealthTrendSummaryRows: View {
                 .foregroundStyle(NBColor.secondaryText)
             }
 
-            HStack {
+            LazyVGrid(
+              columns: [GridItem(.flexible()), GridItem(.flexible())],
+              spacing: NBSpacing.small
+            ) {
               summaryValue("평균", summary.average, unit: summary.metricType.unitLabel)
+              summaryValue("최근", summary.latest?.value, unit: summary.metricType.unitLabel)
               summaryValue("최소", summary.minimum, unit: summary.metricType.unitLabel)
               summaryValue("최대", summary.maximum, unit: summary.metricType.unitLabel)
+            }
+
+            if let latest = summary.latest {
+              Text("최근 측정: \(SleepFormatters.shortDate(latest.measuredAt)) \(SleepFormatters.shortTime(latest.measuredAt)) · \(latest.sourceName)")
+                .font(.caption)
+                .foregroundStyle(NBColor.secondaryText)
             }
 
             if let change = summary.changeFromPreviousPeriod {

@@ -9,18 +9,23 @@ NightBreath / 밤숨의 건강 데이터 대시보드는 Daily Rhythm 확장의 
 - `BloodPressureDashboardView`: 혈압 전용 화면
 - `BodyCompositionDashboardView`: 체중/체성분 전용 화면
 - `HealthMetricTrendCalculator`: 7일/30일/90일 추세 계산
+- `HealthPeriodOverviewSection`: 7일/30일/90일 sample 수와 평균 변화 요약
+- `HealthLatestSampleDetailSection`: metric별 최근 측정값, 측정 시각, source 표시
 - `HealthSourceSummarySection`: sourceName/sourceBundleIdentifier 표시
 
 ## 혈압 Dashboard
 
 혈압 화면은 다음을 표시합니다.
 
+- 최근 혈압 pair
 - 최근 수축기 혈압
 - 최근 이완기 혈압
-- 최근 측정 시각
-- 7일/30일/90일 그래프
+- 최근 측정 시각과 sourceName
+- 선택한 7일/30일/90일 그래프
+- 7일/30일/90일 기간별 sample 수와 평균 변화
 - 아침/저녁 측정 sample 수
 - sourceName과 sourceBundleIdentifier
+- Daily Rhythm 참고 데이터 안내
 
 Omron Connect에서 Apple 건강앱으로 동기화된 혈압 데이터는 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Omron Connect 앱에 직접 연결하지 않습니다.
 
@@ -32,9 +37,12 @@ Omron Connect에서 Apple 건강앱으로 동기화된 혈압 데이터는 Healt
 - 체지방률
 - BMI
 - 제지방량
-- 7일/30일/90일 그래프
+- 최근 측정 시각과 sourceName
+- 선택한 7일/30일/90일 그래프
+- 7일/30일/90일 기간별 체중 sample 수와 평균 변화
 - metric별 평균/최신/min/max/이전 기간 대비 변화
 - sourceName과 sourceBundleIdentifier
+- Daily Rhythm 참고 데이터 안내
 
 Fitdays에서 Apple 건강앱으로 동기화된 체중/체성분 데이터는 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Fitdays 앱에 직접 연결하지 않습니다.
 
@@ -50,6 +58,12 @@ Fitdays에서 Apple 건강앱으로 동기화된 체중/체성분 데이터는 H
 - `sampleCount`
 
 `changeFromPreviousPeriod`는 선택한 기간의 평균과 바로 이전 같은 길이 기간의 평균 차이입니다. 이전 기간 sample이 부족하면 표시하지 않습니다.
+
+대시보드는 같은 calculator를 사용해 다중 metric summary, 7일/30일/90일 period summary, 기간별 source grouping을 만듭니다. 모든 값은 개인 참고용 보기이며, 수치에 대한 확정적 건강 상태 표현을 붙이지 않습니다.
+
+## Daily Rhythm 연결
+
+혈압 및 체성분 dashboard는 Daily Rhythm 확장의 상세 보기입니다. 아침 리포트, 오늘의 리듬 점수, 하루 리듬 카드에서 허용된 건강 sample을 함께 정리할 수 있지만, 수면 소리 지표와 건강 지표 사이의 원인과 결과를 의미하지 않습니다.
 
 ## 데이터 없음 / 권한 없음
 

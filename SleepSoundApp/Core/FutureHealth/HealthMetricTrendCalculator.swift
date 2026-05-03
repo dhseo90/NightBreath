@@ -137,6 +137,38 @@ public struct HealthMetricTrendCalculator: Equatable, Sendable {
         )
     }
 
+    public func summaries(
+        samples: [HealthMetricSample],
+        metricTypes: [HealthMetricType],
+        period: HealthMetricTrendPeriod,
+        endingAt endDate: Date = Date()
+    ) -> [HealthMetricTrendSummary] {
+        metricTypes.map { metricType in
+            summary(
+                samples: samples,
+                metricType: metricType,
+                period: period,
+                endingAt: endDate
+            )
+        }
+    }
+
+    public func periodSummaries(
+        samples: [HealthMetricSample],
+        metricType: HealthMetricType,
+        periods: [HealthMetricTrendPeriod] = HealthMetricTrendPeriod.allCases,
+        endingAt endDate: Date = Date()
+    ) -> [HealthMetricTrendSummary] {
+        periods.map { period in
+            summary(
+                samples: samples,
+                metricType: metricType,
+                period: period,
+                endingAt: endDate
+            )
+        }
+    }
+
     public func sourceSummaries(samples: [HealthMetricSample]) -> [HealthMetricSourceSummary] {
         Dictionary(grouping: samples, by: \.sourceBundleIdentifier)
             .compactMap { bundleIdentifier, samples in
@@ -157,6 +189,22 @@ public struct HealthMetricTrendCalculator: Equatable, Sendable {
                 }
                 return lhs.latestMeasuredAt > rhs.latestMeasuredAt
             }
+    }
+
+    public func sourceSummaries(
+        samples: [HealthMetricSample],
+        metricTypes: [HealthMetricType],
+        period: HealthMetricTrendPeriod,
+        endingAt endDate: Date = Date()
+    ) -> [HealthMetricSourceSummary] {
+        sourceSummaries(
+            samples: self.samples(
+                samples,
+                metricTypes: metricTypes,
+                period: period,
+                endingAt: endDate
+            )
+        )
     }
 
     private func previousPeriodSamples(

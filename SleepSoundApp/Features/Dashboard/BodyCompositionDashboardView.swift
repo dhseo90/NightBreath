@@ -29,9 +29,30 @@ struct BodyCompositionDashboardView: View {
             )
           } else {
             latestSection
+            HealthLatestSampleDetailSection(
+              title: "최근 측정 세부 정보",
+              metricTypes: metrics,
+              samples: periodSamples
+            )
+            HealthPeriodOverviewSection(
+              samples: samples,
+              metricTypes: metrics,
+              primaryMetric: .bodyMass,
+              title: "기간별 체중 요약"
+            )
             trendChartsSection
             HealthTrendSummaryRows(summaries: trendSummaries)
-            HealthSourceSummarySection(sourceSummaries: calculator.sourceSummaries(samples: periodSamples))
+            HealthSourceSummarySection(
+              sourceSummaries: calculator.sourceSummaries(
+                samples: samples,
+                metricTypes: metrics,
+                period: selectedPeriod
+              )
+            )
+            HealthDailyRhythmConnectionSection(
+              focus: "하루 리듬 카드 참고 데이터",
+              message: "체중과 체성분 sample은 오늘의 리듬 점수와 건강 대시보드에서 개인 참고용으로 함께 정리할 수 있습니다."
+            )
           }
         }
 
@@ -65,13 +86,11 @@ struct BodyCompositionDashboardView: View {
   }
 
   private var trendSummaries: [HealthMetricTrendSummary] {
-    metrics.map { metricType in
-      calculator.summary(
-        samples: samples,
-        metricType: metricType,
-        period: selectedPeriod
-      )
-    }
+    calculator.summaries(
+      samples: samples,
+      metricTypes: metrics,
+      period: selectedPeriod
+    )
   }
 
   private var latestMeasuredAt: Date? {
@@ -111,7 +130,7 @@ struct BodyCompositionDashboardView: View {
     VStack(alignment: .leading, spacing: NBSpacing.large) {
       ForEach(metrics) { metricType in
         NBReportSection(
-          title: "\(metricType.dashboardSectionName) 그래프",
+          title: "\(selectedPeriod.displayName) \(metricType.dashboardSectionName) 그래프",
           systemImage: HealthMetricDashboardFormatting.icon(for: metricType)
         ) {
           HealthMetricChartView(
@@ -133,7 +152,7 @@ struct BodyCompositionDashboardView: View {
       } ?? "--",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
+      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) \(SleepFormatters.shortTime($0.measuredAt)) · \($0.sourceName)" },
       accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
     )
   }

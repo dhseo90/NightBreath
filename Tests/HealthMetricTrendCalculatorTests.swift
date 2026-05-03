@@ -102,6 +102,64 @@ struct HealthMetricTrendCalculatorTests {
         #expect(try #require(sources.last).sampleCount == 2)
     }
 
+    @Test
+    func summariesBuildMultipleMetricRowsInRequestedOrder() throws {
+        let samples = [
+            sample(.systolicBloodPressure, 122, daysAgo: 1),
+            sample(.diastolicBloodPressure, 79, daysAgo: 1),
+            sample(.bodyMass, 71, daysAgo: 1),
+        ]
+
+        let summaries = calculator.summaries(
+            samples: samples,
+            metricTypes: [.diastolicBloodPressure, .systolicBloodPressure],
+            period: .sevenDays,
+            endingAt: referenceDate
+        )
+
+        #expect(summaries.map(\.metricType) == [.diastolicBloodPressure, .systolicBloodPressure])
+        #expect(try #require(summaries.first).latest?.value == 79)
+        #expect(try #require(summaries.last).latest?.value == 122)
+    }
+
+    @Test
+    func periodSummariesExposeSevenThirtyAndNinetyDayWindows() {
+        let samples = [
+            sample(.bodyMass, 70, daysAgo: 1),
+            sample(.bodyMass, 71, daysAgo: 15),
+            sample(.bodyMass, 72, daysAgo: 60),
+        ]
+
+        let summaries = calculator.periodSummaries(
+            samples: samples,
+            metricType: .bodyMass,
+            endingAt: referenceDate
+        )
+
+        #expect(summaries.map(\.period) == [.sevenDays, .thirtyDays, .ninetyDays])
+        #expect(summaries.map(\.sampleCount) == [1, 2, 3])
+    }
+
+    @Test
+    func scopedSourceGroupingFiltersByMetricAndPeriod() throws {
+        let samples = [
+            sample(.systolicBloodPressure, 120, daysAgo: 1, source: ("Omron Connect", "omron")),
+            sample(.diastolicBloodPressure, 77, daysAgo: 1, source: ("Omron Connect", "omron")),
+            sample(.bodyMass, 71, daysAgo: 1, source: ("Fitdays", "fitdays")),
+            sample(.systolicBloodPressure, 122, daysAgo: 20, source: ("Old BP", "old-bp")),
+        ]
+
+        let sources = calculator.sourceSummaries(
+            samples: samples,
+            metricTypes: [.systolicBloodPressure, .diastolicBloodPressure],
+            period: .sevenDays,
+            endingAt: referenceDate
+        )
+
+        #expect(sources.map(\.sourceName) == ["Omron Connect"])
+        #expect(try #require(sources.first).sampleCount == 2)
+    }
+
     private var referenceDate: Date {
         Date(timeIntervalSince1970: 1_777_680_000)
     }
