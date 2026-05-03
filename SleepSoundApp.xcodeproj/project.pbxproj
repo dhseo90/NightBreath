@@ -111,6 +111,9 @@
 		00000000000000000000027B /* HealthDataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001A3 /* HealthDataServiceProtocol.swift */; };
 		00000000000000000000027C /* MockHealthDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001A4 /* MockHealthDataService.swift */; };
 		00000000000000000000027D /* DailyHealthSnapshotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001A5 /* DailyHealthSnapshotBuilder.swift */; };
+		00000000000000000000027E /* DailyRhythmScoreCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001A9 /* DailyRhythmScoreCalculator.swift */; };
+		00000000000000000000027F /* DailyInsightGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001AA /* DailyInsightGenerator.swift */; };
+		000000000000000000000280 /* DailyRhythmReportBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001AB /* DailyRhythmReportBuilder.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -300,6 +303,12 @@
 		0000000000000000000001A6 /* MockHealthDataServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHealthDataServiceTests.swift; sourceTree = "<group>"; };
 		0000000000000000000001A7 /* HealthMetricSampleSortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricSampleSortingTests.swift; sourceTree = "<group>"; };
 		0000000000000000000001A8 /* DailyHealthSnapshotBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthSnapshotBuilderTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001A9 /* DailyRhythmScoreCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmScoreCalculator.swift; sourceTree = "<group>"; };
+		0000000000000000000001AA /* DailyInsightGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyInsightGenerator.swift; sourceTree = "<group>"; };
+		0000000000000000000001AB /* DailyRhythmReportBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmReportBuilder.swift; sourceTree = "<group>"; };
+		0000000000000000000001AC /* DailyRhythmScoreCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmScoreCalculatorTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001AD /* DailyInsightGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyInsightGeneratorTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001AE /* DailyRhythmReportBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyRhythmReportBuilderTests.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -553,7 +562,10 @@
 				00000000000000000000019A /* DailyHealthSnapshot.swift */,
 				0000000000000000000001A5 /* DailyHealthSnapshotBuilder.swift */,
 				00000000000000000000019B /* DailyRhythmScore.swift */,
+				0000000000000000000001A9 /* DailyRhythmScoreCalculator.swift */,
 				00000000000000000000019C /* DailyRhythmReport.swift */,
+				0000000000000000000001AA /* DailyInsightGenerator.swift */,
+				0000000000000000000001AB /* DailyRhythmReportBuilder.swift */,
 				00000000000000000000019D /* MockDailyRhythmData.swift */,
 			);
 			path = DailyRhythm;
@@ -624,7 +636,10 @@
 				00000000000000000000018C /* AppStoreReadinessTests.swift */,
 				00000000000000000000019E /* DailyHealthSnapshotTests.swift */,
 				0000000000000000000001A8 /* DailyHealthSnapshotBuilderTests.swift */,
+				0000000000000000000001AC /* DailyRhythmScoreCalculatorTests.swift */,
+				0000000000000000000001AD /* DailyInsightGeneratorTests.swift */,
 				00000000000000000000019F /* DailyRhythmReportTests.swift */,
+				0000000000000000000001AE /* DailyRhythmReportBuilderTests.swift */,
 				0000000000000000000001A0 /* EveningCheckInTests.swift */,
 				0000000000000000000001A1 /* LifestyleTagTests.swift */,
 				0000000000000000000001A2 /* DailyDataQualityTests.swift */,
@@ -776,7 +791,10 @@
 				000000000000000000000277 /* DailyHealthSnapshot.swift in Sources */,
 				00000000000000000000027D /* DailyHealthSnapshotBuilder.swift in Sources */,
 				000000000000000000000278 /* DailyRhythmScore.swift in Sources */,
+				00000000000000000000027E /* DailyRhythmScoreCalculator.swift in Sources */,
 				000000000000000000000279 /* DailyRhythmReport.swift in Sources */,
+				00000000000000000000027F /* DailyInsightGenerator.swift in Sources */,
+				000000000000000000000280 /* DailyRhythmReportBuilder.swift in Sources */,
 				00000000000000000000027A /* MockDailyRhythmData.swift in Sources */,
 				000000000000000000000217 /* AudioRetentionPolicy.swift in Sources */,
 				000000000000000000000218 /* PrivacyPolicyModel.swift in Sources */,
