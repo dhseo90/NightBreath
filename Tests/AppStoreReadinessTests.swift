@@ -14,12 +14,7 @@ struct AppStoreReadinessTests {
         #expect(microphoneCopy.contains("iPhone 안에서"))
         #expect(microphoneCopy.contains("원본 전체 오디오는 저장하지 않습니다"))
 
-        let healthCopy = try #require(plist["NSHealthShareUsageDescription"] as? String)
-        #expect(healthCopy.contains("혈압"))
-        #expect(healthCopy.contains("체중"))
-        #expect(healthCopy.contains("로컬로 표시"))
-        #expect(healthCopy.contains("서버로 전송되지"))
-        #expect(healthCopy.contains("HealthKit에 쓰지 않습니다"))
+        #expect(plist["NSHealthShareUsageDescription"] == nil)
     }
 
     @Test

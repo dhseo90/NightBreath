@@ -5,22 +5,44 @@ import Testing
 @Suite("HealthKit Read-Only Policy")
 struct HealthKitReadOnlyPolicyTests {
     @Test
-    func healthKitServiceRequestsReadOnlyAuthorization() throws {
+    func actualHealthKitImplementationIsNotPresentYet() throws {
         let contents = try sourceContents("SleepSoundApp/Core/FutureHealth/HealthKitService.swift")
+        let entitlements = try sourceContents("SleepSoundApp/App/SleepSoundApp.entitlements")
+        let infoPlist = try sourceContents("SleepSoundApp/App/Info.plist")
+        let project = try sourceContents("SleepSoundApp.xcodeproj/project.pbxproj")
 
-        #expect(contents.contains("toShare: Set<HKSampleType>()"))
-
-        let forbiddenWriteSignatures = [
-            ".save(",
-            ".delete(",
+        let forbiddenHealthKitSignatures = [
+            "import HealthKit",
+            "HKHealthStore",
+            "requestAuthorization",
+            "HKSampleQuery",
+            "HKAnchoredObjectQuery",
+            "HKObserverQuery",
+            "HKSampleType",
+            "HKQuantityType",
             "HKDeletedObject",
             "HKWorkout",
+            "NSHealthShareUsageDescription",
+            "com.apple.developer.healthkit",
+            "com.apple.HealthKit",
         ]
 
-        for signature in forbiddenWriteSignatures {
+        for signature in forbiddenHealthKitSignatures {
             #expect(
                 !contents.contains(signature),
-                "HealthKitService.swift must not contain HealthKit write/delete usage: \(signature)"
+                "HealthKitService.swift must not contain actual HealthKit implementation: \(signature)"
+            )
+            #expect(
+                !entitlements.contains(signature),
+                "Entitlements must not enable HealthKit before the real read-only integration task: \(signature)"
+            )
+            #expect(
+                !infoPlist.contains(signature),
+                "Info.plist must not include HealthKit permission copy before the real integration task: \(signature)"
+            )
+            #expect(
+                !project.contains(signature),
+                "Xcode project must not enable HealthKit capability before the real integration task: \(signature)"
             )
         }
     }

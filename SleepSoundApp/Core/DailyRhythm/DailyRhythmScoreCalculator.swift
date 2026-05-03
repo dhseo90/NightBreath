@@ -54,7 +54,10 @@ public struct DailyRhythmScoreCalculator: Sendable {
                 Component(score: bodyMetric.score, weight: 0.15, isAvailable: bodyMetric.isAvailable),
             ]
         )
-        let dataQuality = DailyDataQuality.quality(for: snapshot.dataCompletenessScore)
+        let dataQuality = dataQuality(
+            for: snapshot.dataCompletenessScore,
+            sleepAvailable: sleep.isAvailable
+        )
 
         return DailyRhythmScoreCalculation(
             score: DailyRhythmScore(
@@ -173,6 +176,39 @@ public struct DailyRhythmScoreCalculator: Sendable {
         }
 
         return DailyRhythmScore.clampedScore(Int((weightedSum / weightSum).rounded()))
+    }
+
+    private func dataQuality(
+        for completenessScore: Double,
+        sleepAvailable: Bool
+    ) -> DailyDataQuality {
+        let baselineQuality = DailyDataQuality.quality(for: completenessScore)
+        guard sleepAvailable else {
+            return Self.moreLimitedQuality(baselineQuality, cap: .limited)
+        }
+        return baselineQuality
+    }
+
+    private static func moreLimitedQuality(
+        _ quality: DailyDataQuality,
+        cap: DailyDataQuality
+    ) -> DailyDataQuality {
+        severityRank(quality) >= severityRank(cap) ? quality : cap
+    }
+
+    private static func severityRank(_ quality: DailyDataQuality) -> Int {
+        switch quality {
+        case .excellent:
+            0
+        case .good:
+            1
+        case .limited:
+            2
+        case .poor:
+            3
+        case .insufficient:
+            4
+        }
     }
 
     private func averageComponentScore(_ scores: [Int]) -> ComponentScore {

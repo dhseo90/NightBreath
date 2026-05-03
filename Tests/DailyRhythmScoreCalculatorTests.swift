@@ -46,6 +46,53 @@ struct DailyRhythmScoreCalculatorTests {
     }
 
     @Test
+    func missingSleepReportCapsDataQualityAtLimited() {
+        let fixture = makeFixtureWithoutSleepReport()
+        let calculator = DailyRhythmScoreCalculator(calendar: calendar)
+
+        let calculation = calculator.calculate(
+            snapshot: fixture.snapshot,
+            morningCheckIn: fixture.morningCheckIn,
+            eveningCheckIn: fixture.eveningCheckIn,
+            healthMetricSamples: fixture.samples,
+            computedAt: referenceDate
+        )
+
+        #expect(fixture.snapshot.dataQuality == .good)
+        #expect(calculation.dataQuality == .limited)
+        #expect(calculation.score.sleepComponent == 50)
+        #expect(calculation.score.totalScore > 50)
+    }
+
+    @Test
+    func bloodPressureAndBodyMetricComponentsStayMissingWhenSamplesAreUnavailable() {
+        let fixture = makeFixture(
+            excluding: [
+                .systolicBloodPressure,
+                .diastolicBloodPressure,
+                .bodyMass,
+                .bodyFatPercentage,
+                .bodyMassIndex,
+                .leanBodyMass,
+            ]
+        )
+        let calculator = DailyRhythmScoreCalculator(calendar: calendar)
+
+        let calculation = calculator.calculate(
+            snapshot: fixture.snapshot,
+            nightReport: fixture.report,
+            morningCheckIn: fixture.morningCheckIn,
+            eveningCheckIn: fixture.eveningCheckIn,
+            healthMetricSamples: fixture.samples,
+            computedAt: referenceDate
+        )
+
+        #expect(calculation.score.bloodPressureComponent == 50)
+        #expect(calculation.score.bodyMetricComponent == 50)
+        #expect(calculation.score.totalScore > 50)
+    }
+
+    @Test
     func lowAudioCoverageReducesSleepComponentConfidence() {
         let highCoverage = makeFixture(audioCoverage: 0.95)
         let lowCoverage = makeFixture(audioCoverage: 0.40)
@@ -193,6 +240,44 @@ struct DailyRhythmScoreCalculatorTests {
             longestSuspectedPause: 0,
             mostDisturbedHourRange: nil,
             mainDisturbanceReason: "수면 소리 기록"
+        )
+    }
+
+    private func makeFixtureWithoutSleepReport() -> DailyRhythmFixture {
+        let morningCheckIn = MorningCheckIn(
+            sessionId: UUID(uuidString: "70000000-0000-0000-0000-000000000001")!,
+            refreshScore: 4,
+            fatigueScore: 2,
+            createdAt: dayStart.addingTimeInterval(8 * hour)
+        )
+        let eveningCheckIn = EveningCheckIn(
+            date: referenceDate,
+            fatigueScore: 2,
+            stressScore: 2,
+            moodScore: 4,
+            exercise: true,
+            createdAt: dayStart.addingTimeInterval(21 * hour)
+        )
+        let samples = MockHealthDataService.makeDefaultSamples(
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        .filter { calendar.isDate($0.measuredAt, inSameDayAs: referenceDate) }
+        let snapshot = DailyHealthSnapshotBuilder(calendar: calendar).build(
+            date: referenceDate,
+            sleepReport: nil,
+            morningCheckIn: morningCheckIn,
+            eveningCheckIn: eveningCheckIn,
+            healthMetricSamples: samples,
+            createdAt: referenceDate
+        )
+
+        return DailyRhythmFixture(
+            snapshot: snapshot,
+            report: makeNightReport(audioCoverage: 0.95),
+            morningCheckIn: morningCheckIn,
+            eveningCheckIn: eveningCheckIn,
+            samples: samples
         )
     }
 

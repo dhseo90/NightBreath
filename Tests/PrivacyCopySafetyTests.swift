@@ -8,25 +8,30 @@ struct PrivacyCopySafetyTests {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let scannedRoots = [
       repositoryRoot.appendingPathComponent("SleepSoundApp"),
+      repositoryRoot.appendingPathComponent("README.md"),
+      repositoryRoot.appendingPathComponent("Docs"),
+      repositoryRoot.appendingPathComponent("QA_CHECKLIST.md"),
       repositoryRoot.appendingPathComponent("Tools/OfflineEvaluation"),
     ]
     let forbiddenPhrases = [
       "수면무호흡증 " + "진단",
       "AHI " + "정확 측정",
       "이갈이 " + "확진",
-      "질병 " + "판정",
+      "고혈압" + "입니다",
+      "비만" + "입니다",
+      "질병 " + "예측",
       "치료 " + "필요",
+      "건강 " + "진단 " + "점수",
+      "코골기 " + "때문에 혈압이 올랐습니다",
     ]
 
-    for root in scannedRoots where FileManager.default.fileExists(atPath: root.path) {
-      for fileURL in swiftAndMarkdownFiles(under: root) {
-        let contents = try String(contentsOf: fileURL, encoding: .utf8)
-        for phrase in forbiddenPhrases {
-          #expect(
-            !contents.contains(phrase),
-            "\(fileURL.path) contains a restricted claim phrase: \(phrase)"
-          )
-        }
+    for fileURL in textFiles(in: scannedRoots) {
+      let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      for phrase in forbiddenPhrases {
+        #expect(
+          !contents.contains(phrase),
+          "\(fileURL.path) contains a restricted claim phrase: \(phrase)"
+        )
       }
     }
   }
@@ -100,58 +105,35 @@ struct PrivacyCopySafetyTests {
   }
 
   @Test
-  func healthKitUseStaysReadOnlyAndScoped() throws {
+  func actualHealthKitImplementationIsNotPresentYet() throws {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let scannedRoots = [
       repositoryRoot.appendingPathComponent("SleepSoundApp"),
       repositoryRoot.appendingPathComponent("Package.swift"),
+      repositoryRoot.appendingPathComponent("SleepSoundApp.xcodeproj/project.pbxproj"),
     ]
-    let allowedHealthKitServiceSuffix = "SleepSoundApp/Core/FutureHealth/HealthKitService.swift"
-    let scopedHealthKitSignatures = [
+    let forbiddenHealthKitSignatures = [
       "import HealthKit",
       "HKHealthStore",
       "requestAuthorization",
       "HKSampleQuery",
-    ]
-    let forbiddenSignatures = [
       "HKAnchoredObjectQuery",
       "HKObserverQuery",
+      "HKSampleType",
+      "HKQuantityType",
+      "NSHealthShareUsageDescription",
+      "com.apple.developer.healthkit",
+      "com.apple.HealthKit",
     ]
 
-    for fileURL in sourceFiles(in: scannedRoots) {
+    for fileURL in textFiles(in: scannedRoots) {
       let contents = try String(contentsOf: fileURL, encoding: .utf8)
-      for signature in scopedHealthKitSignatures where contents.contains(signature) {
-        #expect(
-          fileURL.path.hasSuffix(allowedHealthKitServiceSuffix),
-          "\(fileURL.path) contains HealthKit implementation outside the approved read-only service: \(signature)"
-        )
-      }
-
-      for signature in forbiddenSignatures {
+      for signature in forbiddenHealthKitSignatures {
         #expect(
           !contents.contains(signature),
-          "\(fileURL.path) contains a forbidden HealthKit write/streaming signature: \(signature)"
+          "\(fileURL.path) contains actual HealthKit implementation or capability: \(signature)"
         )
       }
-    }
-
-    let healthKitService = try String(
-      contentsOf: repositoryRoot.appendingPathComponent(allowedHealthKitServiceSuffix),
-      encoding: .utf8
-    )
-    #expect(healthKitService.contains("toShare: Set<HKSampleType>()"))
-
-    let forbiddenHealthKitWriteSignatures = [
-      ".save(",
-      ".delete(",
-      "HKDeletedObject",
-      "HKWorkout",
-    ]
-    for signature in forbiddenHealthKitWriteSignatures {
-      #expect(
-        !healthKitService.contains(signature),
-        "HealthKitService.swift contains a forbidden HealthKit write/delete signature: \(signature)"
-      )
     }
   }
 
@@ -187,6 +169,42 @@ struct PrivacyCopySafetyTests {
     return enumerator.compactMap { item in
       guard let url = item as? URL,
             ["swift", "md"].contains(url.pathExtension.lowercased()) else {
+        return nil
+      }
+      return url
+    }
+  }
+
+  private func textFiles(in roots: [URL]) -> [URL] {
+    roots.flatMap { root in
+      if root.hasDirectoryPath {
+        return textFiles(under: root)
+      }
+
+      return FileManager.default.fileExists(atPath: root.path) ? [root] : []
+    }
+  }
+
+  private func textFiles(under root: URL) -> [URL] {
+    guard let enumerator = FileManager.default.enumerator(
+      at: root,
+      includingPropertiesForKeys: [.isRegularFileKey],
+      options: [.skipsHiddenFiles]
+    ) else {
+      return []
+    }
+
+    return enumerator.compactMap { item in
+      guard let url = item as? URL,
+            [
+              "swift",
+              "md",
+              "plist",
+              "entitlements",
+              "pbxproj",
+              "json",
+              "xml",
+            ].contains(url.pathExtension.lowercased()) else {
         return nil
       }
       return url
