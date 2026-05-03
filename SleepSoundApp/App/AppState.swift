@@ -181,6 +181,13 @@ final class AppState: ObservableObject {
         }
     }
 
+    func checkIn(for sessionId: UUID) -> MorningCheckIn? {
+        if morningCheckIn.sessionId == sessionId {
+            return morningCheckIn
+        }
+        return repository.checkIn(for: sessionId)
+    }
+
     var currentDetectorBackend: SleepDetectionBackend {
         sleepAnalyzer.detectorBackend
     }

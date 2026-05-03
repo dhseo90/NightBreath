@@ -78,9 +78,41 @@ struct HealthDashboardView: View {
     let healthSourceType: HealthMetricSourceType = isPreviewData ? .mock : .healthKit
     return (
       visibleSamples.map { $0.unifiedSample(sourceType: healthSourceType) }
+        + appComputedCalendarSamples
         + importedUnifiedSamples
     )
     .sortedByMeasuredAtAscending()
+  }
+
+  private var calendarReports: [NightReport] {
+    appState.trendReports(days: 370)
+  }
+
+  private var calendarMorningCheckIns: [MorningCheckIn] {
+    calendarReports.compactMap { appState.checkIn(for: $0.sessionId) }
+  }
+
+  private var appComputedCalendarSamples: [UnifiedHealthMetricSample] {
+    calendarReports.flatMap { report in
+      [
+        UnifiedHealthMetricSample(
+          metricID: .sleepSoundScore,
+          value: Double(report.sleepSoundScore),
+          unit: "점",
+          measuredAt: report.generatedAt,
+          sourceType: .appComputed,
+          sourceName: "밤숨 앱"
+        ),
+        UnifiedHealthMetricSample(
+          metricID: .audioCoverageRatio,
+          value: report.audioCoverageRatio * 100,
+          unit: "%",
+          measuredAt: report.generatedAt,
+          sourceType: .appComputed,
+          sourceName: "밤숨 앱"
+        ),
+      ]
+    }
   }
 
   private var header: some View {
@@ -181,6 +213,27 @@ struct HealthDashboardView: View {
             tint: NBColor.privacyTint,
             sampleCount: unifiedDashboardSamples.count,
             latestDate: unifiedDashboardLatestDate
+          )
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+          HealthCalendarView(
+            samples: unifiedDashboardSamples,
+            sleepReports: calendarReports,
+            morningCheckIns: calendarMorningCheckIns,
+            eveningCheckIns: [],
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "건강 캘린더",
+            subtitle: "날짜별 수면·건강·체크인 데이터 보기",
+            systemImage: "calendar",
+            tint: NBColor.dawn,
+            sampleCount: unifiedDashboardSamples.count + calendarReports.count,
+            latestDate: healthCalendarLatestDate
           )
         }
         .buttonStyle(.plain)
@@ -384,6 +437,15 @@ struct HealthDashboardView: View {
 
   private var unifiedDashboardLatestDate: Date? {
     unifiedDashboardSamples.sortedByMeasuredAtDescending().first?.measuredAt
+  }
+
+  private var healthCalendarLatestDate: Date? {
+    [
+      unifiedDashboardLatestDate,
+      calendarReports.sorted { $0.generatedAt > $1.generatedAt }.first?.generatedAt,
+    ]
+    .compactMap { $0 }
+    .max()
   }
 }
 
