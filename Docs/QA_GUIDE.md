@@ -232,25 +232,36 @@ Server transfer observed: no
 
 ## Fitdays CSV Import QA
 
-1. 실제 개인 CSV는 repository 밖에 둡니다.
+Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
+
+1. 실제 개인 CSV 또는 structured export file은 repository 밖에 둡니다.
 2. screenshot이나 public review에는 synthetic CSV만 사용합니다.
-3. 사용자가 명시적으로 파일을 선택할 때만 import가 시작되는지 확인합니다.
-4. valid CSV에서 preview, result, sample count, skipped row, unknown column이 표시되는지 확인합니다.
-5. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.
-6. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
-7. Fitdays 확장 지표는 HealthKit-backed가 아니라 local-only로 설명되는지 확인합니다.
-8. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
+3. Reports / Data Reports / Chart / History Records / More Data에서 Share / Export 버튼과 CSV format 선택지를 확인합니다.
+4. Files / iCloud Drive / AirDrop / Mail 등으로 로컬 파일을 저장할 수 있는지 확인합니다.
+5. CSV가 보이지 않으면 Account / Export My Data / Customer Service Center 경로를 확인합니다.
+6. 그래도 export 파일을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 고유 지표는 manual input follow-up으로 남깁니다.
+7. 사용자가 명시적으로 파일을 선택할 때만 import가 시작되는지 확인합니다.
+8. valid CSV에서 preview, result, sample count, skipped row, unknown column이 표시되는지 확인합니다.
+9. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.
+10. localized column name, 단위 suffix, 날짜/시간 형식 차이가 flexible mapping으로 처리되는지 확인합니다.
+11. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
+12. Fitdays 확장 지표는 HealthKit-backed가 아니라 local-only로 설명되는지 확인합니다.
+13. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
+14. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
 
 ```text
-CSV type: private Fitdays export / synthetic fixture
+Export type: private Fitdays CSV or structured export / synthetic fixture
+App path checked: Reports / Data Reports / Chart / History Records / More Data / Customer Service Center
+Fallback used: CSV export / data request / Apple Health read-only / manual follow-up
 Rows parsed:
 Samples created:
 Skipped rows:
 Unknown columns:
 Local-only metric visible: yes / no
 Actual file name recorded in repo: no
+Actual path recorded in screenshot: no
 ```
 
 ## Event Audio Sample QA

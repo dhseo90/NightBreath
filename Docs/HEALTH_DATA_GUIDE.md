@@ -12,7 +12,7 @@
 - HealthKit 권한 요청은 사용자가 건강 데이터 연결을 명시적으로 선택한 경우에만 시작합니다.
 - HealthKit 데이터를 서버로 전송하지 않습니다.
 - Fitdays 서버/API 직접 연결, 비공식 연결 방식, reverse engineering은 하지 않습니다.
-- Fitdays CSV/export file은 사용자가 직접 선택한 로컬 파일만 처리합니다.
+- Fitdays CSV 또는 structured export file은 사용자가 직접 선택한 로컬 파일만 처리합니다.
 - 실제 개인 CSV 파일은 repository에 포함하지 않습니다.
 - 건강 데이터는 개인 참고용으로만 표시하며, 상태를 단정하거나 지표 사이의 원인과 결과를 주장하지 않습니다.
 
@@ -33,7 +33,7 @@
 HealthKit mock과 Fitdays import mock은 다릅니다.
 
 - HealthKit mock: Apple 건강앱에 들어오는 표준 지표를 미리 보기 위한 preview/test fallback입니다.
-- Fitdays CSV import mock: HealthKit에 없는 extended local-only 지표를 미리 보기 위한 synthetic import fixture입니다.
+- Fitdays CSV/structured export import mock: HealthKit에 없는 extended local-only 지표를 미리 보기 위한 synthetic import fixture입니다.
 
 HealthKit mock service가 Fitdays 서버 연결, HealthKit custom type, HealthKit write를 의미하지 않습니다.
 
@@ -97,11 +97,18 @@ Fitdays local-only metric 예시:
 - 피하지방률
 - 대사 나이
 
-CSV에 HealthKit 표준 지표가 포함되어 있어도 `sourceType == fitdaysCSV`로 유지합니다. Apple 건강앱 read-only sample과 사용자가 가져온 CSV sample을 UI badge, sourceName, sourceType으로 구분하기 위해서입니다.
+CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있어도 `sourceType == fitdaysCSV`로 유지합니다. Apple 건강앱 read-only sample과 사용자가 가져온 export sample을 UI badge, sourceName, sourceType으로 구분하기 위해서입니다.
 
 ## Fitdays CSV Import
 
-Fitdays import는 사용자가 직접 선택한 CSV/export file만 로컬에서 parsing합니다.
+기능명은 V1에서 `Fitdays CSV Import`로 유지합니다. 다만 제품 설명과 importer 설계는 Fitdays 앱에서 사용자가 직접 저장하거나 공유한 CSV 또는 CSV-compatible structured export file을 로컬에서 가져오는 흐름으로 둡니다.
+
+2026-05-04 기준 조사 메모:
+
+- Fitdays 공식 도움말의 Progress Report 공유 흐름에는 Image, PDF, CSV 형식 선택지가 있고 CSV는 분석용 raw data 형식으로 설명되어 있습니다. 참고: [Fitdays - How to share body data?](https://fitdays.org/docs/app-functions/share-body-data)
+- Fitdays privacy 문서에는 앱 데이터가 CSV 형식으로 저장되며, History Records / Data Reports 같은 앱 기능에서 CSV export를 지원한다고 설명되어 있습니다. 참고: [Fitdays App Privacy Policy](https://fitdays.org/app-privacy)
+- Fitdays+ privacy 문서에는 사용자가 personal data를 CSV 형식으로 export 요청할 권리가 있다고 설명되어 있습니다. 참고: [Fitdays+ Privacy Policy](https://plus.fitdays.cn/app/privacy?language=en&source=0)
+- 실제 메뉴명과 export 위치는 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태, 연결된 scale 모델에 따라 다를 수 있습니다. NightBreath 문서는 특정 메뉴명을 단정하지 않고 사용자가 직접 확보한 로컬 export 파일만 다룹니다.
 
 구성:
 
@@ -110,6 +117,22 @@ Fitdays import는 사용자가 직접 선택한 CSV/export file만 로컬에서 
 - `FitdaysCSVColumnMapping`
 - `ImportBatch`
 - `UnifiedHealthMetricSampleRepository`
+
+사용자 확인 경로:
+
+- Fitdays 앱의 Reports / Data Reports / Chart / History Records / More Data 영역을 확인합니다.
+- Share / Export 버튼이 있는지 확인합니다.
+- Format 선택지에서 CSV 또는 유사한 structured export 형식이 있는지 확인합니다.
+- Files, iCloud Drive, AirDrop, Mail 등으로 파일을 저장할 수 있는지 확인합니다.
+- export 파일의 column 이름, 날짜/시간 필드, 단위 표기, metric 값 형식을 private QA note에서만 확인합니다. 실제 파일명, 실제 path, 실제 수치는 repository와 screenshot에 남기지 않습니다.
+
+CSV가 보이지 않을 때 fallback:
+
+- Account / Export My Data / Customer Service Center 같은 데이터 추출 요청 경로가 있는지 확인합니다.
+- Fitdays+ 사용자라면 personal data export 요청 경로를 확인합니다.
+- 그래도 CSV 또는 structured export file을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용합니다.
+- HealthKit에 없는 Fitdays 고유 지표는 manual input 또는 향후 로컬 입력 기능의 follow-up으로 남깁니다.
+- NightBreath는 이 fallback을 위해 Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식을 구현하지 않습니다.
 
 지원하는 mapping 예시:
 
@@ -126,6 +149,18 @@ Fitdays import는 사용자가 직접 선택한 CSV/export file만 로컬에서 
 - `Protein` -> `proteinPercentage`
 - `Subcutaneous Fat` -> `subcutaneousFatPercentage`
 - `Body Age` -> `metabolicAge`
+
+Importer 설계 원칙:
+
+- 입력은 사용자가 명시적으로 선택한 local file URL입니다.
+- CSV-compatible text를 우선 지원하고, 향후 structured export file이 확인되면 같은 privacy boundary 안에서 parser를 추가합니다.
+- column mapping은 영어, 한국어, punctuation/space/case 차이를 유연하게 받아들입니다.
+- unknown column은 전체 실패가 아니라 warning으로 남깁니다.
+- invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
+- CSV delimiter, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
+- 같은 파일을 다시 가져오면 duplicate import handling으로 이전 batch를 교체할 수 있어야 합니다.
+- 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
+- import batch는 삭제 가능해야 하며, 삭제 시 해당 `importBatchId`를 가진 sample도 함께 정리할 수 있어야 합니다.
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 

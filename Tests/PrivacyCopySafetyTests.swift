@@ -60,7 +60,10 @@ struct PrivacyCopySafetyTests {
     let fixtureRoot = repositoryRoot.appendingPathComponent("Tests/Fixtures/Fitdays")
     let csvFiles = files(under: fixtureRoot, extensions: ["csv"])
 
-    #expect(csvFiles.map(\.lastPathComponent) == ["sample_fitdays_export.csv"])
+    #expect(csvFiles.map(\.lastPathComponent).sorted() == [
+      "sample_fitdays_export.csv",
+      "sample_fitdays_export_ko.csv",
+    ])
 
     let restrictedFixtureTokens = [
       "Name",

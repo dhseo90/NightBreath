@@ -112,24 +112,30 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             "Measure Date",
             "Measurement Date",
             "Measured Date",
+            "Record Date",
             "측정일",
+            "측정 날짜",
             "날짜",
+            "기록일",
         ],
         timeColumnNames: [
             "Time",
             "Measure Time",
             "Measurement Time",
             "Measured Time",
+            "Record Time",
             "측정시간",
+            "측정 시간",
             "시간",
+            "기록시간",
         ],
         metricColumnAliases: [
-            .bodyMass: ["Weight", "Body Weight", "체중"],
+            .bodyMass: ["Weight", "Body Weight", "체중", "몸무게"],
             .bodyMassIndex: ["BMI", "Body Mass Index"],
             .bodyFatPercentage: ["Body Fat", "Body Fat %", "Body Fat Percentage", "체지방률"],
-            .muscleMass: ["Muscle Mass", "근육량"],
+            .muscleMass: ["Muscle Mass", "근육량", "근육"],
             .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "골격근량"],
-            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "체수분"],
+            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "체수분", "체수분률"],
             .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "내장지방", "내장지방 레벨"],
             .visceralFatPercentage: ["Visceral Fat %", "Visceral Fat Percentage", "복부지방률"],
             .boneMass: ["Bone Mass", "Bone", "골량"],
@@ -138,8 +144,8 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             .proteinPercentage: ["Protein", "Protein %", "Protein Percentage", "단백질률"],
             .subcutaneousFatPercentage: ["Subcutaneous Fat", "Subcutaneous Fat %", "피하지방률"],
             .metabolicAge: ["Body Age", "Metabolic Age", "대사 나이"],
-            .bodyScore: ["Body Score", "Fitdays Body Score"],
-            .obesityLevel: ["Obesity Level", "Body Type Level"],
+            .bodyScore: ["Body Score", "Fitdays Body Score", "바디 점수", "몸 점수"],
+            .obesityLevel: ["Obesity Level", "Body Type Level", "체형 레벨"],
             .systolicBloodPressure: ["Systolic", "Systolic BP", "SYS", "수축기 혈압"],
             .diastolicBloodPressure: ["Diastolic", "Diastolic BP", "DIA", "이완기 혈압"],
             .heartRate: ["Heart Rate", "Pulse", "심박수"],
@@ -426,6 +432,10 @@ private struct MetricColumn: Equatable {
 
 enum CSVTableParser {
     static func rows(from csv: String) -> [[String]] {
+        rows(from: csv, delimiter: inferredDelimiter(from: csv))
+    }
+
+    private static func rows(from csv: String, delimiter: Character) -> [[String]] {
         var rows: [[String]] = []
         var row: [String] = []
         var field = ""
@@ -443,7 +453,7 @@ enum CSVTableParser {
                 } else {
                     isInsideQuotes.toggle()
                 }
-            } else if character == ",", !isInsideQuotes {
+            } else if character == delimiter, !isInsideQuotes {
                 row.append(field)
                 field = ""
             } else if character == "\n", !isInsideQuotes {
@@ -466,5 +476,39 @@ enum CSVTableParser {
         }
 
         return rows
+    }
+
+    private static func inferredDelimiter(from csv: String) -> Character {
+        guard let headerLine = csv.split(whereSeparator: { $0 == "\n" || $0 == "\r" }).first else {
+            return ","
+        }
+
+        let candidates: [Character] = [",", ";", "\t"]
+        return candidates.max { lhs, rhs in
+            delimiterCount(lhs, in: headerLine) < delimiterCount(rhs, in: headerLine)
+        } ?? ","
+    }
+
+    private static func delimiterCount(_ delimiter: Character, in text: Substring) -> Int {
+        var count = 0
+        var isInsideQuotes = false
+        var index = text.startIndex
+
+        while index < text.endIndex {
+            let character = text[index]
+            if character == "\"" {
+                let nextIndex = text.index(after: index)
+                if isInsideQuotes, nextIndex < text.endIndex, text[nextIndex] == "\"" {
+                    index = nextIndex
+                } else {
+                    isInsideQuotes.toggle()
+                }
+            } else if character == delimiter, !isInsideQuotes {
+                count += 1
+            }
+            index = text.index(after: index)
+        }
+
+        return count
     }
 }

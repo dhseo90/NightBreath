@@ -34,7 +34,7 @@ NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 �
 - 예시 건강 데이터 architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health 예시 source를 분리합니다.
 - HealthKit read-only 연동: 사용자가 건강 데이터 대시보드에서 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다.
 - Extended Health Metrics: HealthKit 표준 지표와 Fitdays CSV/local-only 확장 지표를 `UnifiedHealthMetricSample`로 함께 표현합니다.
-- Fitdays CSV/import: 사용자가 직접 선택한 export 파일만 로컬에서 읽고, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다.
+- Fitdays CSV/import: 사용자가 직접 선택한 CSV 또는 structured export 파일만 로컬에서 읽고, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다.
 - 건강 지표 통계/그래프: 7일/30일/90일/1년/전체 기간의 metric별 흐름, source, raw 샘플 목록을 확인합니다.
 - 월 건강 캘린더: 데이터가 있는 날짜를 표시하고, 날짜별 수면/건강/check-in/앱 계산 지표를 category별로 봅니다.
 - 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.
@@ -130,7 +130,7 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
-- 건강 대시보드: 예시 미리보기와 HealthKit read-only adapter, Fitdays CSV import, 전체 건강 지표, 월 캘린더, 혈압/체성분/교차 보기 진입점을 제공합니다.
+- 건강 대시보드: 예시 미리보기와 HealthKit read-only adapter, Fitdays CSV/structured export import, 전체 건강 지표, 월 캘린더, 혈압/체성분/교차 보기 진입점을 제공합니다.
 - 전체 건강 지표: HealthKit-backed 지표, Fitdays local-only 지표, 수동/앱 계산 지표를 category별로 묶고 기간별 통계와 그래프로 보여줍니다.
 - 월 건강 캘린더: 수면, 혈압, 체성분, 활동, 체크인, 앱 계산 지표가 있는 날짜를 표시하고 날짜별 상세 보기로 이동합니다.
 - Metric Detail: 특정 health metric 하나의 최근 값, 통계, 그래프, source filter, raw 샘플 목록을 개인 참고용으로 보여줍니다.
