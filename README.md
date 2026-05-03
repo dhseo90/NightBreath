@@ -30,7 +30,10 @@ V1 프로토타입은 실제 iPhone에서 기본적인 오디오 캡처 흐름�
 - 아침 컨디션 체크인
 - 로컬 저장소 기반 세션/이벤트/리포트/체크인 저장
 - 개인정보 설정의 로컬 데이터 삭제
+- 앱 세션 시간, 실제 오디오 수신 시간, 실제 분석 시간, 녹음 커버리지 표시
+- 감지 이벤트 전후 짧은 오디오 샘플 로컬 저장, 재생, 삭제
 - DEBUG 빌드 전용 오디오 디버그 화면
+- DEBUG 빌드 전용 짧은 샘플 수집 화면
 - 향후 HealthKit 확장을 위한 모델과 placeholder
 
 ## V1에서 하지 않는 것
@@ -47,6 +50,7 @@ V1 프로토타입은 실제 iPhone에서 기본적인 오디오 캡처 흐름�
 - 계정/로그인 시스템
 - Core ML 모델 추가
 - 전체 밤 원본 오디오 파일 저장
+- 이벤트와 무관한 연속 오디오 보관
 - 잠꼬대/말소리 텍스트 변환
 - 임상 지표로서의 AHI 계산
 - 질병 확정 판단
@@ -98,6 +102,7 @@ SleepSoundApp
     - PrivacySettingsView.swift
     - DevicePlacementGuideView.swift
     - AudioDebugView.swift
+    - SampleCaptureView.swift
 
 - Core
   - Audio
@@ -105,6 +110,7 @@ SleepSoundApp
     - AudioCaptureService.swift
     - AudioCaptureServiceProtocol.swift
     - AudioCaptureState.swift
+    - AudioCaptureMetrics.swift
     - AudioRingBuffer.swift
     - AudioChunk.swift
   - Analysis
@@ -119,6 +125,7 @@ SleepSoundApp
     - SleepScoreCalculator.swift
   - Models
   - Storage
+    - EventAudioSnippetStore.swift
   - Privacy
   - FutureHealth
 
@@ -166,8 +173,10 @@ xcrun swift test --cache-path .build/swiftpm-cache
 8. 주변에서 짧은 소리를 내고 이벤트 후보 또는 level 값이 변하는지 확인합니다.
 9. “수면 종료”를 누릅니다.
 10. 수면 리포트가 생성되고 홈/리포트 화면에서 다시 볼 수 있는지 확인합니다.
-11. 앱을 종료 후 재실행해 최근 리포트가 유지되는지 확인합니다.
-12. 개인정보 설정에서 로컬 데이터 삭제가 동작하는지 확인합니다.
+11. 리포트에서 앱 동작 시간, 실제 오디오 수신 시간, 실제 분석 시간, 녹음 커버리지를 확인합니다.
+12. 이벤트가 감지된 경우 타임라인에서 짧은 이벤트 오디오 샘플을 재생하고 삭제할 수 있는지 확인합니다.
+13. 앱을 종료 후 재실행해 최근 리포트가 유지되는지 확인합니다.
+14. 개인정보 설정에서 로컬 데이터 삭제가 동작하는지 확인합니다.
 
 권한을 거부한 경우 iOS 설정 앱에서 밤숨의 마이크 권한을 다시 허용한 뒤 재시도합니다.
 
@@ -218,6 +227,14 @@ Models/CoreML/SnoreDetector.mlmodel
 - 전체 밤 원본 오디오 파일을 기본 저장하지 않습니다.
 - 잠꼬대/말소리 내용을 텍스트로 변환하지 않습니다.
 - 저장 대상은 로컬 수면 세션, 이벤트 요약, 리포트, 아침 컨디션 체크인입니다.
+- 이벤트 판단 시점 확인이 필요할 때는 이벤트 전후의 짧은 오디오 샘플만 로컬에 저장합니다.
+- 이벤트 오디오 샘플은 `Application Support/NightBreath/EventAudioSnippets/`에 저장되며, 전체 밤 오디오가 아닙니다.
+- 이벤트 오디오 샘플은 앱에서 재생하거나 개별/전체 삭제할 수 있습니다.
+
+현재 남은 개인정보 관련 개선:
+
+- 이벤트 오디오 샘플 저장을 사용자 설정 토글로 명확히 켜고 끄는 UI는 아직 없습니다.
+- V1 프로토타입에서는 이벤트 검증을 위해 짧은 이벤트 샘플 저장이 동작하지만, 제품화 전 opt-in 설정을 추가해야 합니다.
 
 ## HealthKit 상태
 
@@ -240,6 +257,14 @@ V1에는 HealthKit 실제 연동이 없습니다.
 ## 테스트와 QA
 
 상세한 수동 QA 절차는 `QA_CHECKLIST.md`를 확인합니다.
+
+백그라운드/화면 잠금 녹음 QA는 `Docs/BACKGROUND_RECORDING_QA.md`를 확인합니다.
+
+현재 detector QA 한계:
+
+- 리포트에는 실제 오디오 수신 시간과 분석 시간이 저장됩니다.
+- raw detector 후보 수, smoothing 전/후 후보 수, threshold 탈락 이유, RMS/energy 분포 요약은 아직 세션별로 영구 저장하지 않습니다.
+- 장시간 측정에서 이벤트가 0개일 때, 실제로 조용했는지 detector가 보수적으로 필터링했는지는 추가 진단 로그 없이는 구분이 어렵습니다.
 
 기본 확인 명령:
 

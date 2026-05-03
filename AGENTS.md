@@ -52,7 +52,8 @@
 - 기본 동작으로 밤새 원본 오디오 전체를 저장하지 않습니다.
 - 잠꼬대/말소리를 텍스트로 변환하지 않습니다.
 - 명시적으로 요청되지 않는 한 로컬 이벤트 요약만 저장합니다.
-- 향후 원본 오디오 샘플 저장 기능을 만들더라도 짧은 이벤트 샘플에 한정하고 선택 기능으로만 제공합니다.
+- 명시적 요청 또는 사용자 설정이 있는 경우에만 짧은 이벤트 전후 오디오 샘플을 로컬에 저장할 수 있습니다.
+- 이벤트 오디오 샘플은 전체 밤 오디오가 아니어야 하며, 저장 시간/개수/용량/보관 기간 제한과 삭제 기능을 가져야 합니다.
 
 ## V1 범위
 
@@ -163,9 +164,21 @@ SleepEvent:
 - confidence
 - intensity
 - reviewedByUser
+- audioSnippetFileName
+- audioSnippetDuration
 
 NightReport:
 - sessionId
+- measurementDuration
+- estimatedSleepDuration
+- detectedEventDuration
+- savedAudioDuration
+- receivedAudioDuration
+- analyzedAudioDuration
+- audioCoverageRatio
+- interruptionCount
+- longestAudioGapSeconds
+- measurementQuality
 - sleepSoundScore
 - snoreTotalSeconds
 - snoreRatio
@@ -270,3 +283,10 @@ UI 문구는 한국어를 우선 사용합니다.
 - 명시적으로 요청되지 않은 HealthKit 권한 요청
 - 의료 진단 문구
 - 밤새 원본 오디오 전체 저장
+
+짧은 오디오 샘플 예외:
+- 이벤트 판단 시점 확인을 위한 짧은 로컬 샘플은 명시적으로 요청되었거나 사용자가 켠 경우에만 허용합니다.
+- 기본 정책은 이벤트 전 2초, 이벤트 후 3초, 샘플 최대 10초, 세션당 최대 100개, 폴더 최대 200MB, 7일 보관입니다.
+- 샘플은 `Application Support/NightBreath/EventAudioSnippets/`에 저장할 수 있습니다.
+- 샘플 재생과 개별/전체 삭제 기능을 유지해야 합니다.
+- sleep talk 내용은 텍스트로 변환하지 않습니다.
