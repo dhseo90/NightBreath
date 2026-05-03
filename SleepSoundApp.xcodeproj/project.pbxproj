@@ -124,6 +124,7 @@
 		000000000000000000000288 /* DailyHealthCardTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B7 /* DailyHealthCardTemplate.swift */; };
 		000000000000000000000289 /* CardRendererProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B8 /* CardRendererProtocol.swift */; };
 		00000000000000000000028A /* DailyHealthCardPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001B9 /* DailyHealthCardPreviewView.swift */; };
+		00000000000000000000028B /* UnifiedHealthMetricCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001BA /* UnifiedHealthMetricCatalog.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -330,6 +331,7 @@
 		0000000000000000000001B7 /* DailyHealthCardTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardTemplate.swift; sourceTree = "<group>"; };
 		0000000000000000000001B8 /* CardRendererProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardRendererProtocol.swift; sourceTree = "<group>"; };
 		0000000000000000000001B9 /* DailyHealthCardPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthCardPreviewView.swift; sourceTree = "<group>"; };
+		0000000000000000000001BA /* UnifiedHealthMetricCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedHealthMetricCatalog.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -579,6 +581,7 @@
 				00000000000000000000017F /* HealthKitService.swift */,
 				000000000000000000000180 /* HealthMetricUnitConversion.swift */,
 				000000000000000000000184 /* HealthMetricTrendCalculator.swift */,
+				0000000000000000000001BA /* UnifiedHealthMetricCatalog.swift */,
 				000000000000000000000189 /* CrossMetricAnalysis.swift */,
 				00000000000000000000017B /* MockHealthKitService.swift */,
 				0000000000000000000001A4 /* MockHealthDataService.swift */,
@@ -811,6 +814,7 @@
 				00000000000000000000025E /* HealthKitService.swift in Sources */,
 				00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */,
 				000000000000000000000260 /* HealthMetricTrendCalculator.swift in Sources */,
+				00000000000000000000028B /* UnifiedHealthMetricCatalog.swift in Sources */,
 				000000000000000000000264 /* CrossMetricAnalysis.swift in Sources */,
 				000000000000000000000210 /* HealthMetricType.swift in Sources */,
 				00000000000000000000025B /* MockHealthKitService.swift in Sources */,
