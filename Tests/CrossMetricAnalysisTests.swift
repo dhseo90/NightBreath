@@ -175,7 +175,7 @@ struct CrossMetricAnalysisTests {
         let scannedFiles = [
             "SleepSoundApp/Core/FutureHealth/CrossMetricAnalysis.swift",
             "SleepSoundApp/Features/Dashboard/CrossMetricDashboardView.swift",
-            "Docs/CROSS_METRIC_ANALYSIS.md",
+            "Docs/HEALTH_DATA_GUIDE.md",
         ]
         let restrictedPhrases = [
             "혈압이 " + "높아진 " + "원" + "인은",

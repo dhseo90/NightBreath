@@ -8,7 +8,7 @@
 2. App Store screenshot marketing version 준비
 3. 실제 Fitdays CSV 수동 import QA
 4. EHM regression test 강화
-5. Health Calendar / Metric Detail screenshot 추가
+5. 혈압/체성분/교차 보기/edge screenshot 추가
 6. 실제 HealthKit permission flow manual QA
 7. Daily Health Card image export/share 설계
 8. 실제 iPhone smoke test
@@ -23,7 +23,7 @@
 - App Store screenshot headline copy와 mock scenario 재캡처
 - App Store Connect용 screenshot size/export 절차 정리
 - App Store product page copy 최종 점검
-- `Docs/APP_STORE_COPY_DRAFT.md`와 `Docs/APP_STORE_SCREENSHOT_GUIDE.md` 최신화
+- `Docs/APP_RELEASE_GUIDE.md` 최신화
 - TestFlight 내부 테스트 체크리스트 정리
 - App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 재검토
 
@@ -57,7 +57,7 @@
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강
-- Fitdays CSV import 문서의 실제 앱 버전별 export 차이 추적
+- `Docs/HEALTH_DATA_GUIDE.md`의 Fitdays CSV/export 차이 추적
 
 주의:
 
@@ -92,7 +92,7 @@
 
 `QA_CHECKLIST.md`는 일상 개발 중 매번 실행하는 체크리스트가 아니라 release/TestFlight 전 실제 iPhone manual QA 문서로 유지합니다.
 
-실제 실행 순서와 민감정보 없는 기록 템플릿은 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 기준으로 합니다. 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 repository에 기록하지 않습니다.
+실제 실행 순서와 민감정보 없는 기록 템플릿은 `Docs/QA_GUIDE.md`를 기준으로 합니다. 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 repository에 기록하지 않습니다.
 
 ## Detector / ML
 
@@ -114,7 +114,8 @@
 
 - README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 README용 crop으로 반영 완료
 - README screenshot crop/재캡처는 앱 UI나 simulator device가 바뀔 때 유지보수 항목으로 관리
-- Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 상세 screenshot은 추가 캡처 후보
+- Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 반영 완료
+- 혈압, 체성분, 교차 보기, edge state, DEBUG-only 상세 screenshot은 추가 캡처 후보
 - Privacy, edge state, DEBUG-only 상세 screenshot은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리

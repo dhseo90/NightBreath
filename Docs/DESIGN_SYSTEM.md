@@ -395,9 +395,9 @@ README와 UI Gallery용 문서 screenshot은 `Docs/Screenshots/`에서 관리합
 
 이번 작업에서는 고품질 앱 아이콘 이미지를 만들지 않습니다. 실제 아이콘 제작은 별도 디자인 작업으로 남깁니다.
 
-앱 아이콘 제작 가이드는 `Docs/APP_ICON_GUIDE.md`를 기준으로 합니다.
+앱 아이콘 제작 가이드는 `Docs/APP_RELEASE_GUIDE.md`를 기준으로 합니다.
 
-App Store screenshot 후보와 headline copy는 `Docs/APP_STORE_SCREENSHOT_GUIDE.md`를 기준으로 합니다.
+App Store screenshot 후보와 headline copy는 `Docs/APP_RELEASE_GUIDE.md`를 기준으로 합니다.
 
 ## Screenshot Scenario
 

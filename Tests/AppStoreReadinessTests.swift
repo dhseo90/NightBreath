@@ -29,8 +29,7 @@ struct AppStoreReadinessTests {
     func appStoreDocumentsExistAndUseSafeCopy() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let documentPaths = [
-            "Docs/APP_STORE_COPY_DRAFT.md",
-            "Docs/TESTFLIGHT_CHECKLIST.md",
+            "Docs/APP_RELEASE_GUIDE.md",
         ]
         let forbiddenPhrases = [
             "수면무호흡증 " + "진단",

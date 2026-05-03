@@ -10,53 +10,41 @@
 - 실제 개인 CSV, 실제 개인 건강 데이터, 실제 오디오 파일, 실제 HealthKit export는 업로드하지 않습니다.
 - Detector/ML, App Store, real-device QA처럼 목적이 좁은 리뷰는 해당 주제 문서를 추가하고 관련 없는 문서는 줄입니다.
 
-## 전체 앱 리뷰용 필수 20개
+## 전체 앱 리뷰용 우선 세트
 
 1. `AGENTS.md`
 2. `README.md`
 3. `Docs/CURRENT_STATUS.md`
 4. `Docs/NEXT_ISSUES.md`
 5. `QA_CHECKLIST.md`
-6. `Docs/PRIVACY_STORAGE_AUDIT.md`
-7. `Docs/PRODUCT_DIRECTION.md`
+6. `Docs/PRODUCT_DIRECTION.md`
+7. `Docs/PRIVACY_STORAGE_AUDIT.md`
 8. `Docs/DEVELOPMENT_WORKFLOW.md`
 9. `Docs/DESIGN_SYSTEM.md`
 10. `Docs/UI_SCREEN_MAP.md`
 11. `Docs/UI_GALLERY.md`
-12. `Docs/HEALTHKIT_READ_ONLY.md`
-13. `Docs/HEALTH_DASHBOARD.md`
-14. `Docs/EXTENDED_HEALTH_METRICS.md`
-15. `Docs/FITDAYS_IMPORT.md`
-16. `Docs/HEALTH_METRIC_TRENDS.md`
-17. `Docs/HEALTH_CALENDAR.md`
-18. `Docs/METRIC_DETAIL_VIEW.md`
-19. `Docs/DAILY_RHYTHM_SCORE.md`
-20. `Docs/DAILY_HEALTH_CARD.md`
+12. `Docs/HEALTH_DATA_GUIDE.md`
+13. `Docs/QA_GUIDE.md`
+14. `Docs/APP_RELEASE_GUIDE.md`
+15. `Docs/DAILY_RHYTHM_SCORE.md`
+16. `Docs/DAILY_HEALTH_CARD.md`
 
-## EHM 리뷰용 필수 20개
+## EHM 리뷰용 우선 세트
 
 1. `AGENTS.md`
 2. `README.md`
 3. `Docs/CURRENT_STATUS.md`
 4. `Docs/NEXT_ISSUES.md`
 5. `QA_CHECKLIST.md`
-6. `Docs/PRIVACY_STORAGE_AUDIT.md`
-7. `Docs/PRODUCT_DIRECTION.md`
+6. `Docs/PRODUCT_DIRECTION.md`
+7. `Docs/PRIVACY_STORAGE_AUDIT.md`
 8. `Docs/DESIGN_SYSTEM.md`
 9. `Docs/UI_SCREEN_MAP.md`
 10. `Docs/UI_GALLERY.md`
-11. `Docs/HEALTHKIT_READ_ONLY.md`
-12. `Docs/HEALTHKIT_MOCK_ARCHITECTURE.md`
-13. `Docs/HEALTH_DASHBOARD.md`
-14. `Docs/EXTENDED_HEALTH_METRICS.md`
-15. `Docs/FITDAYS_IMPORT.md`
-16. `Docs/HEALTH_METRIC_TRENDS.md`
-17. `Docs/HEALTH_CALENDAR.md`
-18. `Docs/METRIC_DETAIL_VIEW.md`
-19. `Docs/CROSS_METRIC_ANALYSIS.md`
-20. `Docs/DAILY_RHYTHM_SCORE.md`
+11. `Docs/HEALTH_DATA_GUIDE.md`
+12. `Docs/QA_GUIDE.md`
 
-## UI / Screenshot 리뷰용 필수 20개
+## UI / Screenshot 리뷰용 우선 세트
 
 1. `AGENTS.md`
 2. `README.md`
@@ -67,28 +55,22 @@
 7. `Docs/CURRENT_STATUS.md`
 8. `Docs/NEXT_ISSUES.md`
 9. `Docs/PRIVACY_STORAGE_AUDIT.md`
-10. `Docs/APP_STORE_SCREENSHOT_GUIDE.md`
-11. `Docs/APP_ICON_GUIDE.md`
-12. `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md`
-13. `Docs/DAILY_HEALTH_CARD.md`
-14. `Docs/DAILY_RHYTHM_SCORE.md`
-15. `Docs/HEALTH_DASHBOARD.md`
-16. `Docs/EXTENDED_HEALTH_METRICS.md`
-17. `Docs/HEALTH_CALENDAR.md`
-18. `Docs/METRIC_DETAIL_VIEW.md`
-19. `Docs/FITDAYS_IMPORT.md`
-20. `QA_CHECKLIST.md`
+10. `Docs/APP_RELEASE_GUIDE.md`
+11. `Docs/HEALTH_DATA_GUIDE.md`
+12. `Docs/DAILY_HEALTH_CARD.md`
+13. `Docs/DAILY_RHYTHM_SCORE.md`
+14. `QA_CHECKLIST.md`
 
 ## 생략 가능 문서
 
-- App Store 작업이 아니면 App Store 관련 문서는 생략할 수 있습니다.
+- App Store 작업이 아니면 `Docs/APP_RELEASE_GUIDE.md`는 생략할 수 있습니다.
 - Detector/ML 작업이 아니면 detector, dataset, offline evaluation, Core ML 문서는 생략할 수 있습니다.
-- 실제 기기 오디오 QA가 아니면 background recording, real-device required tests, dataset replay 문서는 생략할 수 있습니다.
-- HealthKit/EHM 작업이 아니면 Fitdays import, metric trend, health calendar, metric detail 문서는 우선순위를 낮출 수 있습니다.
+- 실제 기기 오디오 QA가 아니면 `Docs/QA_GUIDE.md`의 관련 section만 공유해도 됩니다.
+- HealthKit/EHM 작업이 아니면 `Docs/HEALTH_DATA_GUIDE.md`는 우선순위를 낮출 수 있습니다.
 - screenshot 리뷰가 아니면 PNG 파일과 screenshot capture workflow는 링크만 공유해도 됩니다.
 
 ## 추가 추천
 
-- 20개 제한이 없다면 `Docs/TESTING.md`, `Docs/SIMULATOR_QA.md`, `Docs/APP_STORE_READINESS.md`, `Docs/REAL_DEVICE_REQUIRED_TESTS.md`, `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 함께 올립니다.
+- 20개 제한이 없다면 detector/ML 작업용으로 `Docs/DETECTOR_TUNING.md`, `Docs/DATASET_GUIDE.md`, `Docs/DATASET_MANIFEST_GUIDE.md`, `Docs/SNORE_ML_V0.md`, `Docs/MULTICLASS_EVENT_CLASSIFIER.md`를 함께 올립니다.
 - screenshot 품질 리뷰라면 `Docs/Screenshots/README/cropped/`의 대표 PNG와 `Docs/Screenshots/Health/cropped/`의 EHM PNG를 함께 올립니다.
 - privacy/storage 리뷰라면 `Tests/PrivacyCopySafetyTests.swift`와 `Tests/HealthKitReadOnlyPolicyTests.swift`도 함께 검토합니다.

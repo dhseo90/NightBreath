@@ -94,6 +94,7 @@
 - README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
 - 실제 iPhone QA runbook과 기록 템플릿
+- Health/QA/App Release 문서 통합 정리
 
 ## 현재 개발 전략
 
@@ -129,7 +130,7 @@
 - 실제 App Store screenshot export
 - 실제 Daily Health Card image share/export
 - UI Gallery 상세/edge/debug screenshot 전체 캡처
-- Health Calendar / Metric Detail 상세 screenshot 전체 캡처
+- 혈압/체성분/교차 보기/edge/debug 상세 screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증
 - 실제 Fitdays CSV import manual QA
 - 실제 `.mlmodel` 앱 bundle 적용

@@ -56,11 +56,9 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 관련 문서:
 
 - `Docs/DEVELOPMENT_WORKFLOW.md`
-- `Docs/SIMULATOR_QA.md`
+- `Docs/QA_GUIDE.md`
 - `Docs/DATASET_REPLAY.md`
 - `Docs/DETECTOR_TUNING.md`
-- `Docs/REAL_DEVICE_REQUIRED_TESTS.md`
-- `Docs/BACKGROUND_RECORDING_QA.md`
 - `Docs/PRIVACY_STORAGE_AUDIT.md`
 
 ## V1 기능
@@ -359,7 +357,7 @@ Dataset Replay는 실제 마이크 없이 synthetic audio 또는 로컬 오디�
 문서:
 
 - `Docs/DATASET_REPLAY.md`
-- `Docs/REAL_DEVICE_REQUIRED_TESTS.md`
+- `Docs/QA_GUIDE.md`
 
 ## Offline Evaluation
 
@@ -401,7 +399,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 문서:
 
-- `Docs/TESTING.md`
+- `Docs/QA_GUIDE.md`
 
 ## 실제 iPhone 테스트가 필요한 경우
 
@@ -418,8 +416,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 자세한 절차:
 
-- `Docs/REAL_DEVICE_REQUIRED_TESTS.md`
-- `Docs/BACKGROUND_RECORDING_QA.md`
+- `Docs/QA_GUIDE.md`
 
 ## 개인정보 원칙
 
@@ -485,15 +482,7 @@ HealthKit을 연결하더라도 read-only 원칙만 허용합니다. 앱은 Heal
 - `Docs/PRODUCT_DIRECTION.md`
 - `Docs/DAILY_RHYTHM_SCORE.md`
 - `Docs/DAILY_HEALTH_CARD.md`
-- `Docs/HEALTHKIT_MOCK_ARCHITECTURE.md`
-- `Docs/HEALTHKIT_READ_ONLY.md`
-- `Docs/HEALTH_DASHBOARD.md`
-- `Docs/CROSS_METRIC_ANALYSIS.md`
-- `Docs/EXTENDED_HEALTH_METRICS.md`
-- `Docs/FITDAYS_IMPORT.md`
-- `Docs/HEALTH_METRIC_TRENDS.md`
-- `Docs/HEALTH_CALENDAR.md`
-- `Docs/METRIC_DETAIL_VIEW.md`
+- `Docs/HEALTH_DATA_GUIDE.md`
 
 ## 현재 상태와 다음 이슈
 

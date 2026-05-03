@@ -1,0 +1,268 @@
+# Health Data Guide
+
+이 문서는 NightBreath / 밤숨의 HealthKit read-only 연동, mock health data, Extended Health Metrics, Fitdays CSV import, 건강 대시보드, metric trend, 월 건강 캘린더, Metric Detail, 수면/건강 지표 교차 보기를 한곳에 묶은 기준 문서입니다.
+
+이전에는 주제별로 작은 문서가 나뉘어 있었지만, 현재 제품 방향에서는 모두 같은 건강 데이터 흐름의 일부입니다.
+
+## 핵심 원칙
+
+- HealthKit은 read-only로만 사용합니다.
+- 앱은 HealthKit에 데이터를 쓰지 않습니다.
+- 앱 첫 실행, 수면 시작, 수면 종료 흐름에서는 HealthKit 권한을 요청하지 않습니다.
+- HealthKit 권한 요청은 사용자가 건강 데이터 연결을 명시적으로 선택한 경우에만 시작합니다.
+- HealthKit 데이터를 서버로 전송하지 않습니다.
+- Fitdays 서버/API 직접 연결, 비공식 연결 방식, reverse engineering은 하지 않습니다.
+- Fitdays CSV/export file은 사용자가 직접 선택한 로컬 파일만 처리합니다.
+- 실제 개인 CSV 파일은 repository에 포함하지 않습니다.
+- 건강 데이터는 개인 참고용으로만 표시하며, 상태를 단정하거나 지표 사이의 원인과 결과를 주장하지 않습니다.
+
+## 서비스 구조
+
+주요 경계:
+
+- `HealthKitServiceProtocol`
+- `DisabledHealthKitService`
+- `RealHealthKitService`
+- `MockHealthKitService`
+- `MockHealthDataService`
+- `FitdaysImportService`
+- `UnifiedHealthMetricSampleRepository`
+
+`RealHealthKitService`는 Apple 건강앱 read-only 권한 요청과 quantity sample query를 담당합니다. 테스트와 preview에서는 mock service를 사용하며, 권한 없음/데이터 없음/일부 권한 허용 상태도 protocol 뒤에서 안전하게 표현합니다.
+
+HealthKit mock과 Fitdays import mock은 다릅니다.
+
+- HealthKit mock: Apple 건강앱에 들어오는 표준 지표를 미리 보기 위한 preview/test fallback입니다.
+- Fitdays CSV import mock: HealthKit에 없는 extended local-only 지표를 미리 보기 위한 synthetic import fixture입니다.
+
+HealthKit mock service가 Fitdays 서버 연결, HealthKit custom type, HealthKit write를 의미하지 않습니다.
+
+## HealthKit Read-Only 범위
+
+현재 read-only 대상:
+
+- 수축기 혈압
+- 이완기 혈압
+- 체중
+- 체지방률
+- BMI
+- 제지방량
+- 걸음 수
+- 활동 에너지
+- 심박수
+- 안정시 심박수
+- 호흡수
+
+권한 거부 또는 데이터 없음 상태에서는 수면 기능이 계속 동작해야 합니다. 건강 대시보드는 연결 안내, empty state, 데이터 품질 안내를 표시합니다.
+
+HealthKit 제한:
+
+- `requestAuthorization(toShare: Set<HKSampleType>(), read: ...)`처럼 share 대상은 비워 둡니다.
+- `save`, `delete`, streaming query, write/update usage description을 사용하지 않습니다.
+- 수면 소리 점수, 오늘의 리듬 점수, 이벤트, 리포트, 피드백을 HealthKit에 기록하지 않습니다.
+
+## Extended Health Metrics
+
+통합 metric catalog는 HealthKit 표준 지표, Fitdays local-only 확장 지표, 앱 계산 지표를 같은 UI 흐름에서 다루기 위한 구조입니다.
+
+주요 타입:
+
+- `UnifiedHealthMetricID`
+- `UnifiedHealthMetricSample`
+- `HealthMetricSourceType`
+- `MetricDisplayMetadata`
+- `MetricCatalog`
+
+`HealthMetricSourceType`:
+
+- `healthKit`
+- `fitdaysCSV`
+- `manual`
+- `appComputed`
+- `mock`
+
+HealthKit-backed metric은 Apple 건강앱에서 read-only로 읽은 표준 지표입니다. Fitdays extended local-only metric은 HealthKit에 없는 지표이며 HealthKit으로 읽으려 하지 않습니다.
+
+Fitdays local-only metric 예시:
+
+- 체수분률
+- 내장지방 레벨
+- 복부지방률
+- 골격근량
+- 근육량
+- 무기질
+- 골량
+- 기초대사량
+- 단백질률
+- 피하지방률
+- 대사 나이
+
+CSV에 HealthKit 표준 지표가 포함되어 있어도 `sourceType == fitdaysCSV`로 유지합니다. Apple 건강앱 read-only sample과 사용자가 가져온 CSV sample을 UI badge, sourceName, sourceType으로 구분하기 위해서입니다.
+
+## Fitdays CSV Import
+
+Fitdays import는 사용자가 직접 선택한 CSV/export file만 로컬에서 parsing합니다.
+
+구성:
+
+- `FitdaysImportView`
+- `FitdaysImportService`
+- `FitdaysCSVColumnMapping`
+- `ImportBatch`
+- `UnifiedHealthMetricSampleRepository`
+
+지원하는 mapping 예시:
+
+- `Weight` -> `bodyMass`
+- `BMI` -> `bodyMassIndex`
+- `Body Fat` -> `bodyFatPercentage`
+- `Muscle Mass` -> `muscleMass`
+- `Skeletal Muscle` -> `skeletalMuscleMass`
+- `Body Water` -> `bodyWaterPercentage`
+- `Visceral Fat` -> `visceralFatLevel`
+- `Bone Mass` -> `boneMass`
+- `Mineral` -> `mineralMass`
+- `BMR` -> `basalMetabolicRate`
+- `Protein` -> `proteinPercentage`
+- `Subcutaneous Fat` -> `subcutaneousFatPercentage`
+- `Body Age` -> `metabolicAge`
+
+가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
+
+검증해야 할 상태:
+
+- valid CSV preview/result
+- invalid date/time row skip
+- unknown column warning
+- duplicate import handling
+- batch 삭제 시 관련 sample 삭제
+- 실제 파일명과 실제 개인 수치가 문서/screenshot에 노출되지 않음
+
+## Health Dashboard
+
+`HealthDashboardView`는 건강 데이터 흐름의 허브입니다.
+
+진입점:
+
+- HealthKit read-only 연결
+- 혈압 대시보드
+- 체성분 대시보드
+- 수면/건강 지표 교차 보기
+- 전체 건강 지표
+- 월 건강 캘린더
+- Fitdays CSV 가져오기
+
+혈압/체성분 대시보드는 최근 값, 측정 시각, sourceName, 7일/30일/90일 추세를 보여줍니다. 수치를 상태 판정으로 표현하지 않고, 개인 참고용 데이터와 출처를 함께 표시합니다.
+
+## Metric Trends
+
+`HealthMetricsOverviewView`와 `MetricChartView`는 모든 health metric을 category별로 보여줍니다.
+
+지원 기간:
+
+- 7일
+- 30일
+- 90일
+- 1년
+
+통계:
+
+- 최근값
+- 평균
+- 최소
+- 최대
+- 이전 기간 대비 변화량
+- 측정 횟수
+- 첫 측정 시각
+- 최근 측정 시각
+
+`MetricStatisticsCalculator`와 `HealthMetricTrendCalculator`는 SwiftUI View 밖에서 계산합니다. 차트는 Swift Charts를 사용하고 외부 chart SDK는 추가하지 않습니다.
+
+## Health Calendar
+
+`HealthCalendarView`는 월 단위로 데이터가 있는 날짜를 표시합니다.
+
+`CalendarDaySummary`는 다음 상태를 요약합니다.
+
+- 수면 리포트 존재 여부
+- 혈압 데이터 존재 여부
+- 체성분 데이터 존재 여부
+- 활동 데이터 존재 여부
+- 아침/저녁 체크인 존재 여부
+- sample count
+- source types
+- data quality
+
+날짜를 선택하면 `DailyMeasurementDetailView`에서 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 category별로 보여줍니다.
+
+## Metric Detail
+
+`MetricDetailView`는 metric 하나를 자세히 보는 화면입니다.
+
+표시:
+
+- metric 표시 이름과 설명
+- 최근 값과 측정 시각
+- unit
+- 기간 선택
+- source filter
+- trend chart
+- summary stats
+- raw sample list
+
+source filter:
+
+- 전체
+- HealthKit
+- Fitdays CSV
+- Manual
+- App Computed
+- Mock는 DEBUG/screenshot scenario에서만 사용합니다.
+
+HealthKit-backed metric은 Apple 건강앱 read-only sample로 설명하고, Fitdays local-only metric은 CSV import 또는 수동/앱 계산 데이터로만 표시한다고 설명합니다.
+
+## Cross Metric Analysis
+
+수면 소리 지표와 건강 지표는 날짜 기준으로 함께 볼 수 있습니다. 이 화면은 개인 패턴 탐색용이며 지표 사이의 원인과 결과를 말하지 않습니다.
+
+수면 지표 예시:
+
+- 수면 소리 점수
+- 코골기 시간
+- 이갈이 의심 소리 수
+- 호흡정지 의심 구간 수
+- 기침 의심 소리 수
+- 환경 소음 수
+- 오디오 커버리지
+
+건강 지표 예시:
+
+- 수축기 혈압
+- 이완기 혈압
+- 체중
+- 체지방률
+- BMI
+- 안정시 심박수
+
+날짜 매칭:
+
+- 수면 리포트 날짜
+- 다음날 아침 혈압
+- 같은 날짜 체중/체성분
+
+matched sample 수가 부족하면 분석 요약을 만들지 않고 “비교 가능한 데이터가 아직 부족합니다”처럼 제한 안내를 표시합니다. 낮은 오디오 커버리지 데이터는 구분하거나 요약에서 제외합니다.
+
+허용 표현:
+
+- 코골기 시간이 긴 날과 다음날 혈압 데이터를 함께 표시합니다.
+- 개인 패턴을 살펴보기 위한 참고용 보기입니다.
+- 인과관계를 의미하지 않습니다.
+
+## Screenshot / QA 원칙
+
+- screenshot은 mock data 또는 simulator scenario 기반으로만 생성합니다.
+- 실제 HealthKit 데이터, 실제 Fitdays CSV, 실제 오디오 파일을 screenshot에 사용하지 않습니다.
+- DEBUG screenshot scenario는 Release 사용자에게 노출하지 않습니다.
+- README에는 대표 screenshot만 두고 상세 화면은 `Docs/UI_GALLERY.md`에서 관리합니다.
+
+관련 QA는 `Docs/QA_GUIDE.md`를 따릅니다.

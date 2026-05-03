@@ -116,7 +116,7 @@ DEBUG 빌드에서:
 
 문서:
 
-- `Docs/SIMULATOR_QA.md`
+- `Docs/QA_GUIDE.md`
 
 ## 실기기 테스트가 필요한 조건
 
