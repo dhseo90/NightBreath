@@ -10,7 +10,7 @@
 4. EHM regression test 강화
 5. 혈압/체성분/교차 보기/edge screenshot 추가
 6. 실제 HealthKit permission flow manual QA
-7. Daily Health Card image export/share 설계
+7. Daily Health Card image export/share 구현
 8. 실제 iPhone smoke test
 9. TestFlight 준비
 10. Legal/App Review audit
@@ -68,16 +68,19 @@
 
 ## Daily Health Card
 
-- SwiftUI view to image rendering 방식 검토
-- `minimal`, `standard`, `detailed` privacy level별 export 전 확인 화면 설계
-- 민감 수치가 포함된 카드의 사용자 명시 액션 흐름 설계
-- 저장/공유 실패 state와 취소 state 설계
+- `ImageRenderer` 기반 SwiftUI view to image renderer 구현
+- `minimal`, `standard`, `detailed` privacy level별 export preview UI 구현
+- 민감 수치가 포함된 카드의 사용자 명시 액션 흐름 구현
+- 저장/공유 실패 state와 취소 state 구현
+- privacy level별 snapshot/regression test 추가
+- 서버 업로드, 외부 SDK, 자동 공유가 없음을 확인하는 privacy test 추가
 - README용 대표 카드와 App Store용 카드의 표시 데이터 분리
 
 주의:
 
 - 자동 공유, 서버 업로드, 외부 SDK 사용은 제외합니다.
 - 사용자가 명시적으로 선택하기 전에는 민감 데이터가 들어간 이미지를 export/share하지 않습니다.
+- export preview에는 실제 personal CSV 파일명, 실제 local path, 실제 HealthKit device 식별자를 표시하지 않습니다.
 
 ## 실제 iPhone QA
 

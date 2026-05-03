@@ -80,6 +80,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | `EveningCheckInView` | 저녁 컨디션 기록 | 피로도, 스트레스, 기분, 생활 태그, 메모 | 예시/in-memory 체크인 저장 | 생활 태그는 개인 패턴 참고용 | `ScreenshotDailyRhythmScenario` 이후 수동 진입 | `Docs/Screenshots/DailyRhythm/evening-check-in.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
 | `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | ![DailyHealthCardView](Screenshots/README/cropped/daily_health_card_light.png) | Release | `Docs/DAILY_HEALTH_CARD.md` |
 | `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, 예시 카드 미리보기 | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | ![DailyHealthCardPreviewView](Screenshots/README/cropped/daily_health_card_light.png) | Release | `Docs/DAILY_HEALTH_CARD.md` |
+| `DailyHealthCardExportPreviewView` | export/share 전 확인 화면 | export preview, privacy level, 포함 항목, 민감 수치 안내, 저장/공유/취소/실패 state | 저장 또는 공유 명시 선택, 취소, 다시 시도 | 자동 공유 없음, 서버 업로드 없음, 외부 SDK 없음, local path와 파일명 미표시 | 추가 필요 | `Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png` | screenshot pending | Release | `Docs/DAILY_HEALTH_CARD.md`, `Docs/PRIVACY_STORAGE_AUDIT.md` |
 
 ## Health Dashboard
 

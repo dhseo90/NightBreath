@@ -216,6 +216,36 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - HealthKit-backed sample, Fitdays CSV sample, manual/appComputed/mock sample은 source type과 UI badge로 구분합니다.
 - 실제 개인 CSV, 실제 개인 건강 데이터, 실제 HealthKit source device 식별 정보는 문서용 screenshot에 사용하지 않습니다.
 
+## Daily Health Card export/share 점검
+
+Daily Health Card image export/share는 아직 구현하지 않았으며, 다음 구현 단계에서도 로컬 렌더링과 사용자 명시 액션을 기준으로 제한합니다.
+
+허용되는 항목:
+
+- SwiftUI export 전용 view를 iOS 로컬 renderer로 이미지화
+- export 전 preview와 privacy level 선택
+- `minimal`, `standard`, `detailed` privacy level에 따른 표시 항목 제한
+- 민감할 수 있는 건강 수치 포함 여부 안내
+- 사용자가 명시적으로 선택한 저장 또는 시스템 share sheet 열기
+- 저장/공유 취소 state와 실패 state 표시
+
+제한 사항:
+
+- 자동 공유를 만들지 않습니다.
+- 서버 업로드를 만들지 않습니다.
+- 외부 SDK나 외부 API를 사용하지 않습니다.
+- HealthKit에 export 이미지나 카드 요약을 쓰지 않습니다.
+- 생성된 이미지를 analytics event, crash log, debug log에 첨부하지 않습니다.
+- 실제 personal CSV 파일명, 실제 local path, 실제 HealthKit device 식별자를 export preview나 screenshot에 표시하지 않습니다.
+
+privacy level 기준:
+
+- `minimal`: 날짜, 오늘의 리듬 점수, 한 줄 요약 중심으로 표시하고 혈압, 체중, 체성분 같은 민감할 수 있는 수치는 숨깁니다.
+- `standard`: 주요 점수와 사용자가 허용한 주요 건강 수치를 표시하되 source 세부 정보와 기록 시간은 줄입니다.
+- `detailed`: 사용자가 허용한 주요 건강 수치, source, 기록 시간을 표시할 수 있지만 internal id, import batch id, 파일명, local path는 표시하지 않습니다.
+
+사용자가 저장 또는 공유를 취소한 경우 생성된 이미지는 앱 밖으로 나가지 않았다는 상태만 표시합니다. 렌더링이나 저장이 실패한 경우 이미지를 만들지 못했다는 안내와 다시 시도 동작만 제공합니다.
+
 ## git 제외 규칙
 
 `.gitignore`에서 다음 항목을 제외합니다.

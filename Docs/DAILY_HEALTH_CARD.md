@@ -41,6 +41,25 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 실제 구현 시에도 렌더링은 로컬 기기 안에서 수행해야 하며, 생성된 이미지를 서버로 보내면 안 됩니다.
 
+렌더링 대상 view는 일반 화면용 card view와 분리한 export 전용 SwiftUI view로 둡니다. 화면 표시용 view는 현재 device width와 navigation chrome의 영향을 받지만, export view는 정해진 card size, safe padding, template palette, privacy level을 입력으로 받아 같은 데이터가 항상 같은 이미지 구조로 렌더링되도록 합니다.
+
+렌더링 입력:
+
+- `DailyRhythmReport`
+- `DailyHealthCardTemplate`
+- `DailyHealthCardPrivacyLevel`
+- 표시 날짜와 locale
+- 민감 수치 포함 여부
+- export용 display model
+
+렌더링 출력:
+
+- 로컬 이미지 데이터
+- 렌더링 size
+- 적용된 template/privacy level
+- 포함된 section 목록
+- 사용자에게 보여줄 privacy notice
+
 ## Export / Share 설계
 
 이번 단계에서는 실제 export/share 기능을 구현하지 않고, 다음 구현 이슈에서 붙일 수 있도록 흐름만 고정합니다.
@@ -73,6 +92,29 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 
 사용자가 확인 화면에서 명시적으로 export 또는 share를 선택한 경우에만 이미지 생성과 공유 흐름을 시작합니다.
 
+확인 흐름:
+
+1. 카드 화면에서 export/share 버튼을 누릅니다.
+2. template과 privacy level을 선택하거나 기존 선택값을 확인합니다.
+3. export preview를 생성하기 전에 포함될 항목 목록을 먼저 보여줍니다.
+4. `standard` 또는 `detailed`에서 민감할 수 있는 수치가 포함되면 안내 문구를 표시합니다.
+5. 사용자가 저장 또는 공유를 명시적으로 선택한 경우에만 이미지 렌더링을 시작합니다.
+6. 저장을 선택한 경우 로컬 photo/file 저장 흐름으로 이동합니다.
+7. 공유를 선택한 경우 시스템 share sheet를 엽니다.
+8. 사용자가 취소하면 이미지가 앱 밖으로 나가지 않았음을 표시하고 원래 화면으로 돌아갑니다.
+
+저장/공유/취소/실패 state:
+
+| State | 동작 | 사용자 안내 |
+| --- | --- | --- |
+| `preview` | export 전 card preview와 포함 항목을 표시 | 표시 항목을 확인한 뒤 저장 또는 공유를 선택 |
+| `rendering` | 로컬에서 SwiftUI view를 이미지로 변환 | 잠시 기다리기 |
+| `saveRequested` | 사용자가 저장을 명시적으로 선택 | 저장 위치 또는 사진 접근 흐름으로 이동 |
+| `shareRequested` | 사용자가 공유를 명시적으로 선택 | 시스템 share sheet 표시 |
+| `cancelled` | 사용자가 저장/공유를 취소 | 카드가 공유되지 않았다는 짧은 확인 표시 |
+| `failed` | 렌더링, 저장, share sheet 준비가 실패 | 이미지를 만들지 못했으며 다시 시도할 수 있음 |
+| `completed` | 저장 또는 공유 흐름이 정상 종료 | 완료 상태만 표시하고 자동 재공유는 하지 않음 |
+
 ### Privacy Level별 표시 항목
 
 | Privacy level | 표시 항목 | 숨기는 항목 |
@@ -83,6 +125,25 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 
 `privacyMinimal` template은 항상 `minimal` 표시 수준으로 export합니다.
 
+세부 표시 기준:
+
+| 항목 | `minimal` | `standard` | `detailed` |
+| --- | --- | --- | --- |
+| 날짜 | 표시 | 표시 | 표시 |
+| 오늘의 리듬 점수 | 표시 | 표시 | 표시 |
+| 한 줄 요약 | 표시 | 표시 | 표시 |
+| 수면 소리 점수 | 숨김 또는 범주형 요약 | 표시 | 표시 |
+| 측정 품질 | 숨김 또는 짧은 문구 | 표시 | 표시 |
+| 아침/저녁 컨디션 | 요약만 표시 | 주요 선택값 표시 | 주요 선택값과 기록 시간 표시 |
+| 활동 | 요약만 표시 | 주요 값 표시 | 주요 값과 source 표시 |
+| 혈압 | 숨김 | 사용자가 허용한 경우 주요 값 표시 | 사용자가 허용한 경우 값, 시간, source 표시 |
+| 체중/체성분 | 숨김 | 사용자가 허용한 경우 주요 값 표시 | 사용자가 허용한 경우 값, 시간, source 표시 |
+| source | 숨김 | source 종류만 표시 | source 이름과 기록 시간 표시 |
+| import batch id | 숨김 | 숨김 | 숨김 |
+| 파일명/local path | 숨김 | 숨김 | 숨김 |
+
+`standard`와 `detailed`에서도 사용자가 preview에서 특정 section을 끄면 해당 section은 export 이미지에 포함하지 않습니다. 파일명, local path, import batch id 같은 내부 추적 값은 어떤 privacy level에서도 표시하지 않습니다.
+
 ### 민감 수치 포함 경고
 
 `standard` 또는 `detailed`에서 혈압, 체중, 체지방률, 체성분, 심박수 같은 민감할 수 있는 수치가 포함되면 확인 화면에 다음 성격의 문구를 표시합니다.
@@ -92,6 +153,20 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 ```
 
 이 문구는 사용자를 겁주기 위한 경고가 아니라, 공유 전 표시 항목을 다시 확인하게 하는 개인정보 안내입니다.
+
+추가 안내 문구 후보:
+
+```text
+공유 이미지에는 선택한 건강 수치가 그대로 보일 수 있습니다.
+```
+
+```text
+공유 전 날짜, 점수, 건강 수치, source 표시 여부를 확인해 주세요.
+```
+
+```text
+이 이미지는 사용자가 선택한 경우에만 저장 또는 공유됩니다.
+```
 
 ### 공유 원칙
 
@@ -104,6 +179,8 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 - 사용자가 명시적으로 선택한 경우에만 export/share
 - share sheet를 열기 전 preview와 privacy level을 다시 확인
 - 생성된 이미지는 사용자가 저장/공유를 선택하지 않으면 앱 밖으로 나가지 않음
+- 생성된 이미지는 analytics event, crash log, debug log에 첨부하지 않음
+- export preview screenshot에는 실제 personal CSV 파일명, 실제 local path, 실제 HealthKit device 식별자를 표시하지 않음
 
 ### 다음 구현 이슈
 
@@ -113,6 +190,8 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 - export preview confirmation view 추가
 - privacy level별 export snapshot test 추가
 - 민감 수치 포함 여부 계산 helper 추가
+- 저장/공유 취소 state와 실패 state UI 추가
+- 자동 공유/서버 업로드/외부 SDK 부재를 검증하는 privacy regression test 추가
 - 공유 sheet 연결
 
 ## 의료 진단 아님
