@@ -150,6 +150,34 @@ final class AppState: ObservableObject {
         detectorTuningProfile.configuration
     }
 
+    func trendReports(days: Int) -> [NightReport] {
+        let dayCount = max(days, 1)
+        let cutoff = Date().addingTimeInterval(-TimeInterval(dayCount) * 24 * 60 * 60)
+        var reports = repository.recentReports(days: dayCount)
+
+        if latestReport.generatedAt >= cutoff,
+           !reports.contains(where: { $0.sessionId == latestReport.sessionId }) {
+            reports.append(latestReport)
+        }
+
+        let uniqueReports = reports.reduce(into: [UUID: NightReport]()) { result, report in
+            guard report.generatedAt >= cutoff else { return }
+
+            if let existing = result[report.sessionId], existing.generatedAt > report.generatedAt {
+                return
+            }
+
+            result[report.sessionId] = report
+        }
+
+        return uniqueReports.values.sorted { lhs, rhs in
+            if lhs.generatedAt == rhs.generatedAt {
+                return lhs.sessionId.uuidString < rhs.sessionId.uuidString
+            }
+            return lhs.generatedAt < rhs.generatedAt
+        }
+    }
+
     var currentDetectorBackend: SleepDetectionBackend {
         sleepAnalyzer.detectorBackend
     }

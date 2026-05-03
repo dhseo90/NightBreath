@@ -72,6 +72,8 @@
 		00000000000000000000023F /* DetectorTuningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000155 /* DetectorTuningView.swift */; };
 		000000000000000000000253 /* BreathingActivityEstimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000170 /* BreathingActivityEstimator.swift */; };
 		000000000000000000000254 /* SuspectedBreathingPauseSequenceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000171 /* SuspectedBreathingPauseSequenceDetector.swift */; };
+		000000000000000000000255 /* TrendAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000172 /* TrendAnalytics.swift */; };
+		000000000000000000000256 /* TrendDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000173 /* TrendDashboardView.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -206,6 +208,9 @@
 		00000000000000000000016F /* SimulatorQAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorQAScenarioTests.swift; sourceTree = "<group>"; };
 		000000000000000000000170 /* BreathingActivityEstimator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreathingActivityEstimator.swift; sourceTree = "<group>"; };
 		000000000000000000000171 /* SuspectedBreathingPauseSequenceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspectedBreathingPauseSequenceDetector.swift; sourceTree = "<group>"; };
+		000000000000000000000172 /* TrendAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendAnalytics.swift; sourceTree = "<group>"; };
+		000000000000000000000173 /* TrendDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendDashboardView.swift; sourceTree = "<group>"; };
+		000000000000000000000174 /* TrendAggregatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendAggregatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -300,6 +305,7 @@
 			children = (
 				00000000000000000000011D /* HomeDashboardView.swift */,
 				00000000000000000000011E /* TrendChartView.swift */,
+				000000000000000000000173 /* TrendDashboardView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -330,6 +336,7 @@
 				00000000000000000000012F /* DetectionSmoothingPolicy.swift */,
 				000000000000000000000170 /* BreathingActivityEstimator.swift */,
 				000000000000000000000171 /* SuspectedBreathingPauseSequenceDetector.swift */,
+				000000000000000000000172 /* TrendAnalytics.swift */,
 				00000000000000000000012E /* AudioFeatures.swift */,
 				000000000000000000000104 /* AudioFeatureExtractor.swift */,
 				000000000000000000000136 /* FeatureCSVExporter.swift */,
@@ -459,6 +466,7 @@
 				000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */,
 				000000000000000000000133 /* SleepAnalysisPipelineTests.swift */,
 				000000000000000000000134 /* SleepRepositoryTests.swift */,
+				000000000000000000000174 /* TrendAggregatorTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -545,6 +553,7 @@
 				00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */,
 				000000000000000000000253 /* BreathingActivityEstimator.swift in Sources */,
 				000000000000000000000254 /* SuspectedBreathingPauseSequenceDetector.swift in Sources */,
+				000000000000000000000255 /* TrendAnalytics.swift in Sources */,
 				000000000000000000000206 /* RuleBasedSleepEventDetector.swift in Sources */,
 				000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */,
 				00000000000000000000022B /* FeatureCSVExporter.swift in Sources */,
@@ -604,6 +613,7 @@
 				000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */,
 				00000000000000000000021B /* HomeDashboardView.swift in Sources */,
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
+				000000000000000000000256 /* TrendDashboardView.swift in Sources */,
 				00000000000000000000021D /* DevicePlacementGuideView.swift in Sources */,
 				00000000000000000000021E /* PrivacySettingsView.swift in Sources */,
 				00000000000000000000022A /* AudioDebugView.swift in Sources */,

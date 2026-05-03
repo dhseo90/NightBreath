@@ -104,6 +104,13 @@ struct HomeDashboardView: View {
         }
         .buttonStyle(.nbSecondary)
 
+        NavigationLink {
+          TrendDashboardView()
+        } label: {
+          Label("수면 트렌드 보기", systemImage: "chart.line.uptrend.xyaxis")
+        }
+        .buttonStyle(.nbSecondary)
+
         NBReportSection(title: "최근 수면 소리 점수", systemImage: "chart.xyaxis.line") {
           TrendChartView(scores: trendScores)
             .frame(height: 160)
