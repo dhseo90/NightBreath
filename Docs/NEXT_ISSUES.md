@@ -4,15 +4,38 @@
 
 ## 우선순위 후보
 
-1. 공개 데이터 manifest 작성
-2. snore detector Offline Evaluation 실행
-3. profile tuning report 생성
-4. threshold 변경 후보 수동 검토
-5. Core ML 모델 실제 적용 준비
-6. HealthKit read-only 실기기 permission/source smoke test
-7. 실제 iPhone background smoke test
-8. 잠금 30분 테스트
-9. overnight test
+1. Daily Rhythm 도메인 모델 설계
+2. Mock Health Data 구조 정리
+3. Daily Rhythm Score 계산기 초안
+4. Morning Brief 화면 설계
+5. Daily Health Card UI 초안
+6. 혈압/체성분 대시보드 mock data polish
+7. 수면 지표와 건강 지표 교차 분석 문구 점검
+8. 공개 데이터 manifest 작성
+9. snore detector Offline Evaluation 실행
+10. 실제 iPhone background smoke test
+11. 잠금 30분 테스트
+12. overnight test
+
+## Daily Rhythm
+
+수면 소리 리포트를 유지하면서 온디바이스 개인 건강 리듬 리포트로 확장하기 위한 다음 작업 후보입니다.
+
+- `DailyRhythmReport` 도메인 모델
+- `DailyRhythmScore` 계산기
+- 아침 리포트와 하루 리듬 카드의 데이터 계약
+- Mock Health Data seed 구조
+- 아침/저녁 컨디션 체크인 확장
+- 데이터 품질과 권한 제한 상태 모델
+- 건강 대시보드와 Daily Rhythm 카드의 navigation 연결
+- 수면 지표와 건강 지표 교차 분석의 안전한 문구
+
+주의:
+
+- 실제 HealthKit 권한 요청과 `HKHealthStore` query는 이번 단계에서 추가하지 않습니다.
+- HealthKit 실제 연동 전에는 mock service/protocol 기반으로 설계합니다.
+- 오늘의 리듬 점수는 웰니스/개인 참고용이며 의료 점수가 아닙니다.
+- 수면 소리와 건강 지표 사이의 인과관계를 주장하지 않습니다.
 
 ## Detector / ML
 
@@ -59,16 +82,17 @@
 
 ## Health Dashboard / HealthKit
 
-HealthKit read-only service와 mock fallback, 혈압/체중/체성분 dashboard, 수면 소리 지표와 건강 지표 교차 보기는 구현되어 있습니다.
+건강 대시보드는 Daily Rhythm 확장의 상세 보기로 다룹니다. 먼저 mock/protocol 기반으로 혈압, 체중, 체성분, 활동, 컨디션 데이터를 표시하고, 실제 HealthKit read-only 연동은 나중 단계의 별도 작업으로 둡니다.
 
 다음 확인 항목:
 
-- 실제 iPhone에서 HealthKit 권한 sheet 확인
-- 권한 거부/일부 허용/데이터 없음 상태 smoke test
-- Omron Connect 혈압 source 표시 확인
-- Fitdays 체중/체성분 source 표시 확인
+- Daily Rhythm mock data source 구조
+- 권한 없음/일부 허용/데이터 없음 상태 문구
+- Omron Connect 혈압 source mock 표시
+- Fitdays 체중/체성분 source mock 표시
 - 교차 보기에서 matched sample 부족 안내 확인
-- HealthKit 쓰기 API가 없는지 release 전 재점검
+- HealthKit read-only 연동 설계 문서화
+- HealthKit 실제 구현 단계에서 쓰기 API가 없는지 재점검
 
 ## 문서 유지보수
 

@@ -46,9 +46,10 @@
 - Simulator QA scenarios
 - Regression Test Suite
 - NightBreath 디자인 시스템
-- HealthKit read-only service
-- 혈압/체중/체성분 건강 데이터 dashboard
-- 수면 소리 지표와 건강 지표 교차 보기
+- HealthKit mock/protocol 기반 건강 데이터 dashboard 방향
+- mock 기반 혈압/체중/체성분 건강 데이터 dashboard 설계
+- 수면 소리 지표와 건강 지표 교차 보기 설계
+- Daily Rhythm 제품 방향 문서화
 
 ## 현재 개발 전략
 
@@ -64,6 +65,7 @@
 ## 의도적으로 미구현 / 제한
 
 - HealthKit 쓰기
+- 실제 HealthKit 권한 요청과 `HKHealthStore` 기반 query 신규 구현
 - 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
 - HealthKit에 수면 소리 점수/이벤트/리포트/피드백 기록
 - Apple 건강앱 수면 데이터 query
@@ -90,7 +92,8 @@
 - 저장된 샘플은 개별/전체 삭제할 수 있습니다.
 - orphan sample cleanup이 있습니다.
 - 공개/개인 오디오 파일은 git에 포함하지 않습니다.
-- HealthKit은 read-only이며 사용자가 건강 데이터 연결을 선택할 때만 권한을 요청합니다.
+- 현재 Daily Rhythm 방향 전환 단계에서는 실제 HealthKit 권한 요청을 새로 추가하지 않습니다.
+- HealthKit은 나중 단계에서 read-only로만 검토합니다.
 - 서버 전송, HealthKit 쓰기, 외부 SDK는 없습니다.
 
 ## 실기기 확인이 남은 항목

@@ -152,7 +152,8 @@ DEBUG 빌드에서:
 - `swift test --no-parallel`
 - `xcodebuild ... generic/platform=iOS ... build`
 - `git ls-files "*.wav" "*.caf" "*.m4a"` 결과 없음
-- HealthKit은 read-only이고 권한 요청이 건강 데이터 연결 flow에만 묶여 있음
+- Daily Rhythm 확장은 mock/protocol 기반으로 먼저 검증
+- 실제 HealthKit 연동은 후속 단계에서 read-only로만 검토
 - HealthKit save/delete/write API 없음
 - 서버/네트워크 코드 없음
 - 전체 밤 원본 오디오 저장 코드 없음

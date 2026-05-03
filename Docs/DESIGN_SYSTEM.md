@@ -217,7 +217,7 @@ Core/Design 컴포넌트:
 - `MorningCheckInView`: `NBCard`, `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 개운함, 피로감, 기억나는 각성, 메모 저장 흐름을 주관적 컨디션 기록 톤으로 정리합니다.
 - `PrivacySettingsView`: `NBPrivacyNoticeCard`, `NBMetricCard`, `NBSecondaryButton`, `NBDangerButton`, `NBDiagnosticCard`로 이벤트 오디오 샘플 opt-in, 저장량, orphan cleanup, 전체 삭제, feedback 삭제 UI를 유지합니다.
 - `DevicePlacementGuideView`: `NBIllustration`, `NBCard`, `NBReportSection`, `NBListRow`, `NBStatusBadge`, `NBPrivacyNoticeCard`로 iPhone 배치, 마이크 가림 방지, 충전 연결, 저전력 모드 확인, 30초 캘리브레이션 진입을 정리합니다.
-- `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 HealthKit read-only 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
+- `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 mock/future read-only 건강 데이터 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
 - `BloodPressureDashboardView`: 최근 수축기/이완기 혈압, 측정 시각, 데이터 출처, 추세와 데이터 없음 상태를 `NBMetricCard`, `NBListRow`, `NBEmptyStateView` 중심으로 표시합니다.
 - `BodyCompositionDashboardView`: 체중, 체지방률, BMI, 제지방량과 추세를 `NBMetricCard`와 `NBReportSection`으로 정리합니다.
 - `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, matched sample count, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.

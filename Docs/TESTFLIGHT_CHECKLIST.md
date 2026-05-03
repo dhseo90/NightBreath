@@ -5,14 +5,15 @@
 - 앱 표시 이름이 `밤숨`인지 확인한다.
 - 영어 브랜드 표기는 `NightBreath`로 유지한다.
 - 부제는 `수면 소리 리포트`를 우선 사용한다.
-- 앱 설명에는 온디바이스 분석, 원본 전체 오디오 미저장, HealthKit read-only, 서버 전송 없음이 들어가야 한다.
+- 앱 설명에는 온디바이스 분석, 원본 전체 오디오 미저장, 향후 HealthKit read-only 방향, 서버 전송 없음이 들어가야 한다.
 
 ## 빌드 설정
 
 - `MARKETING_VERSION`과 `CURRENT_PROJECT_VERSION`을 TestFlight 업로드 전에 확인한다.
 - Bundle Identifier가 `com.local.NightBreath`에서 배포용 identifier로 바뀌어야 하는지 확인한다.
 - Release configuration으로 archive한다.
-- `CODE_SIGN_STYLE`, Team, Provisioning Profile, HealthKit capability를 확인한다.
+- `CODE_SIGN_STYLE`, Team, Provisioning Profile을 확인한다.
+- HealthKit capability는 실제 read-only 연동을 진행하는 단계에서만 별도로 확인한다.
 - `NSMicrophoneUsageDescription`과 `NSHealthShareUsageDescription`이 한국어 우선 문구인지 확인한다.
 
 ## Release 노출 점검
@@ -31,7 +32,8 @@
 - 원본 전체 오디오는 저장하지 않는다는 문구가 온보딩/설정/권한 설명에 들어가 있는지 확인한다.
 - 이벤트 오디오 샘플 저장 기본값이 OFF인지 확인한다.
 - 이벤트 오디오 샘플은 opt-in, 짧은 구간, 로컬 저장, 삭제 가능 정책을 유지한다.
-- HealthKit은 read-only로만 사용한다.
+- Daily Rhythm 확장은 mock/protocol 기반으로 먼저 검증한다.
+- 실제 HealthKit 연동은 read-only로만 사용한다.
 - HealthKit에 수면 소리 점수나 앱 데이터를 쓰지 않는다.
 - 서버 업로드, 클라우드 처리, 외부 분석 SDK, 광고 SDK가 없는지 확인한다.
 - 계정/로그인 기능이 없는지 확인한다.

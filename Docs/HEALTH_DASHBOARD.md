@@ -1,6 +1,6 @@
 # Health Data Dashboard
 
-NightBreath / 밤숨의 건강 데이터 대시보드는 Apple 건강앱에 저장된 혈압, 체중, 체성분 sample을 로컬에서 읽어 보기 쉽게 정리하는 화면입니다. 이 기능은 HealthKit read-only 정책을 유지하며, HealthKit에 값을 쓰지 않습니다.
+NightBreath / 밤숨의 건강 데이터 대시보드는 Daily Rhythm 확장의 상세 보기입니다. 현재 방향은 mock/protocol 기반으로 혈압, 체중, 체성분 sample을 보기 쉽게 정리하고, 향후 Apple 건강앱 read-only 연결을 검토하는 것입니다. 실제 HealthKit 권한 요청과 query는 이번 단계에서 새로 구현하지 않습니다.
 
 ## 구조
 
@@ -22,7 +22,7 @@ NightBreath / 밤숨의 건강 데이터 대시보드는 Apple 건강앱에 저�
 - 아침/저녁 측정 sample 수
 - sourceName과 sourceBundleIdentifier
 
-Omron Connect에서 Apple 건강앱으로 동기화된 혈압 데이터는 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Omron Connect 앱에 직접 연결하지 않습니다.
+Omron Connect에서 Apple 건강앱으로 동기화된 혈압 데이터는 향후 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Omron Connect 앱에 직접 연결하지 않습니다.
 
 ## 체중/체성분 Dashboard
 
@@ -36,7 +36,7 @@ Omron Connect에서 Apple 건강앱으로 동기화된 혈압 데이터는 Healt
 - metric별 평균/최신/min/max/이전 기간 대비 변화
 - sourceName과 sourceBundleIdentifier
 
-Fitdays에서 Apple 건강앱으로 동기화된 체중/체성분 데이터는 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Fitdays 앱에 직접 연결하지 않습니다.
+Fitdays에서 Apple 건강앱으로 동기화된 체중/체성분 데이터는 향후 HealthKit sample source로 표시될 수 있습니다. 밤숨은 Fitdays 앱에 직접 연결하지 않습니다.
 
 ## Trend 계산
 
@@ -60,12 +60,13 @@ Fitdays에서 Apple 건강앱으로 동기화된 체중/체성분 데이터는 H
 
 특정 앱 설치를 강제하지 않습니다. 사용자가 Apple 건강앱에 저장한 source만 읽습니다.
 
-권한이 없으면 “건강 데이터 읽기 권한이 필요합니다.”로 안내하고, 권한은 iOS 설정 또는 Apple 건강앱에서 관리할 수 있다고 설명합니다.
+향후 HealthKit 연결 후 권한이 없으면 “건강 데이터 읽기 권한이 필요합니다.”로 안내하고, 권한은 iOS 설정 또는 Apple 건강앱에서 관리할 수 있다고 설명합니다.
 
-## Read-Only 정책
+## Read-Only 방향
 
-- HealthKit 권한 요청은 건강 데이터 연결 버튼을 누를 때만 발생합니다.
-- `HealthKitService`는 read type만 요청하고 share type은 빈 set으로 유지합니다.
+- 실제 HealthKit 권한 요청은 이번 단계에서 새로 구현하지 않습니다.
+- 향후 HealthKit 권한 요청은 건강 데이터 연결 버튼을 누를 때만 발생해야 합니다.
+- 향후 adapter는 read type만 요청하고 share type은 빈 set으로 유지합니다.
 - HealthKit save/delete API를 사용하지 않습니다.
 - 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백은 HealthKit에 쓰지 않습니다.
 - 서버/클라우드 전송은 없습니다.

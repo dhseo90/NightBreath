@@ -1,8 +1,10 @@
 # NightBreath / 밤숨
 
-밤숨(NightBreath)은 iPhone 온디바이스 기반 수면 소리 리포트 앱입니다.
+밤숨(NightBreath)은 iPhone 온디바이스 기반 개인 건강 리듬 리포트 앱입니다.
 
-사용자가 자기 전 수면 측정을 시작하면 앱은 iPhone 내부에서 마이크 입력을 처리하고, 아침에 감지된 수면 중 소리 이벤트를 바탕으로 웰니스 성격의 `수면 소리 점수`와 리포트를 보여줍니다.
+NightBreath / 밤숨은 수면 중 소리 기반 리포트에서 시작해, 수면·혈압·체중·체성분·활동·컨디션 데이터를 한곳에서 볼 수 있는 온디바이스 개인 건강 리듬 리포트 앱으로 확장됩니다.
+
+사용자가 자기 전 수면 측정을 시작하면 앱은 iPhone 내부에서 마이크 입력을 처리하고, 아침에 감지된 수면 중 소리 이벤트를 바탕으로 웰니스 성격의 `수면 소리 점수`와 리포트를 보여줍니다. 이후 방향은 이 아침 리포트를 하루 리듬의 시작점으로 삼고, 건강 데이터와 컨디션 기록을 함께 정리하는 `오늘의 리듬 점수`, `하루 리듬 카드`, 건강 대시보드로 넓혀 갑니다.
 
 이 앱은 질병을 확정하거나 치료 판단을 제공하지 않습니다. 리포트는 수면 중 소리 기반 참고 지표입니다.
 
@@ -12,6 +14,14 @@
 - 영어 프로젝트 / 브랜드 이름: NightBreath
 - 한국어 부제: 수면 소리 리포트
 - 영어 부제: Sleep Sound Report
+
+제품 확장 방향:
+
+- 한국어 방향: 온디바이스 개인 건강 리듬 리포트
+- 영어 방향: On-device Personal Health Rhythm Report
+- 핵심 문구: 오늘의 리듬 점수, 아침 리포트, 하루 리듬 카드, 회복 리듬
+
+자세한 제품 방향은 `Docs/PRODUCT_DIRECTION.md`를 참고합니다.
 
 ## 현재 개발 전략
 
@@ -70,9 +80,10 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - multiclass event classifier 준비 도구
 - Simulator QA scenarios
 - NightBreath 전용 디자인 시스템
-- HealthKit read-only service
-- 혈압/체중/체성분 건강 데이터 대시보드
-- 수면 소리 지표와 건강 지표 교차 보기
+- HealthKit service protocol과 mock/fallback 구조
+- mock 기반 혈압/체중/체성분 건강 데이터 대시보드 방향
+- 수면 소리 지표와 건강 지표 교차 보기 설계
+- Daily Rhythm 확장을 위한 문서화와 제품 원칙
 
 ## 주요 화면
 
@@ -85,12 +96,13 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 아침 컨디션 체크인: 개운함, 피로감, 기억나는 각성, 메모를 사용자의 주관적 기록으로 저장합니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
-- 건강 대시보드: HealthKit read-only 데이터를 로컬 화면에서 보기 좋게 정리하고, 수면 소리 지표와 건강 지표를 참고용으로 비교합니다.
+- 건강 대시보드: 현재는 mock/protocol 기반으로 혈압, 체중, 체성분, 컨디션 데이터를 보기 좋게 정리하는 방향을 검증하고, 향후 HealthKit read-only 연결을 준비합니다.
 - Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, sample capture 검증에 사용합니다.
 
 ## V1에서 하지 않는 것
 
 - HealthKit 쓰기
+- 실제 HealthKit 권한 요청 또는 `HKHealthStore` query를 이번 단계에서 새로 구현
 - 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
 - HealthKit에 수면 소리 점수나 앱 데이터를 기록
 - Apple Watch 연동
@@ -131,6 +143,22 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 이갈이를 확정하는 표현
 - 치료 판단처럼 읽히는 표현
 - 사용자의 건강 상태를 단정하는 표현
+
+Daily Rhythm 확장에서도 같은 원칙을 유지합니다.
+
+사용하는 표현:
+
+- 오늘의 리듬 점수
+- 회복 리듬
+- 아침 리포트
+- 하루 리듬 카드
+- 개인 패턴을 살펴보기 위한 참고용 보기
+
+피하는 방향:
+
+- 건강 데이터를 질병 여부로 해석하는 표현
+- 특정 수면 소리 이벤트와 혈압/체중/체성분 변화 사이의 인과관계를 단정하는 표현
+- 치료나 의학적 조치를 직접 권하는 표현
 
 ## 프로젝트 구조
 
@@ -332,18 +360,19 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - 이벤트 오디오 샘플은 `Application Support/NightBreath/EventAudioSnippets/`에 저장되며, 전체 밤 오디오가 아닙니다.
 - 이벤트 오디오 샘플은 앱에서 재생하거나 개별/전체 삭제할 수 있습니다.
 - 개인정보 화면에서 저장된 이벤트 오디오 샘플 수, 총 시간, 총 용량, 연결되지 않은 샘플 수/용량을 확인하고 정리할 수 있습니다.
-- HealthKit 데이터는 사용자가 건강 데이터 대시보드에서 연결 버튼을 누른 경우에만 read-only 권한을 요청해 로컬 화면에 표시합니다.
-- HealthKit에 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백을 쓰지 않습니다.
+- 현재 방향 전환 단계에서는 HealthKit 실제 권한 요청을 새로 추가하지 않습니다.
+- HealthKit 연동은 나중 단계에서 read-only로만 검토합니다.
+- HealthKit에 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백을 쓰지 않는 원칙을 유지합니다.
 
 토글을 끄면 이후 새 이벤트의 오디오 샘플은 저장하지 않고, 이벤트 요약과 리포트 수치만 남깁니다. 기존 저장 샘플은 자동 삭제하지 않으며, 개인정보 설정에서 별도로 삭제할 수 있습니다.
 
-## HealthKit 상태
+## Daily Rhythm / HealthKit 방향
 
-현재 앱에는 HealthKit read-only 연동이 있습니다.
+NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다.
 
-권한 요청은 앱 첫 실행이나 수면 측정 시작 시 자동으로 발생하지 않습니다. 사용자가 `건강 데이터 대시보드`에서 `건강 데이터 연결`을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. 앱은 HealthKit에 데이터를 쓰지 않습니다.
+이번 제품 방향 전환 작업에서는 실제 HealthKit 권한 요청이나 `HKHealthStore` 기반 query를 새로 구현하지 않습니다. 먼저 protocol과 mock service 기반으로 도메인 모델, 화면, empty state, 데이터 품질 안내, 점수 계산 기준을 정리합니다.
 
-현재 read-only 표시 대상:
+앞으로 read-only 방향으로 검토할 수 있는 표시 대상:
 
 - 수축기 혈압
 - 이완기 혈압
@@ -353,8 +382,19 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - 제지방량
 - 안정시 심박수
 - 호흡수
+- 수면 시간
+- 활동 지표
+- 아침/저녁 컨디션
 
-수면 시간은 모델/mock data에는 남아 있지만 실제 HealthKit query 대상은 아직 아닙니다. 자세한 정책은 `Docs/HEALTHKIT_READ_ONLY.md`, dashboard 구조는 `Docs/HEALTH_DASHBOARD.md`, 수면 소리와 건강 지표 교차 보기는 `Docs/CROSS_METRIC_ANALYSIS.md`를 참고합니다.
+HealthKit을 연결하더라도 read-only 원칙만 허용합니다. 앱은 HealthKit에 데이터를 쓰지 않고, HealthKit 데이터를 서버로 보내지 않으며, Omron Connect 또는 Fitdays 앱에 직접 연결하지 않습니다.
+
+관련 문서:
+
+- `Docs/PRODUCT_DIRECTION.md`
+- `Docs/HEALTHKIT_MOCK_ARCHITECTURE.md`
+- `Docs/HEALTHKIT_READ_ONLY.md`
+- `Docs/HEALTH_DASHBOARD.md`
+- `Docs/CROSS_METRIC_ANALYSIS.md`
 
 ## 현재 상태와 다음 이슈
 

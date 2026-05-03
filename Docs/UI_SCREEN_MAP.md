@@ -15,9 +15,9 @@
 | `PrivacySettingsView` | 로컬 저장과 개인정보 설정 | 이벤트 오디오 샘플 opt-in, 저장된 샘플 수, 총 시간, 용량, orphan 샘플 수, feedback 데이터 상태, 전체 밤 원본 오디오 저장 안 함, 서버 전송 없음 | 이벤트 샘플 저장 토글, orphan 샘플 정리, 전체 이벤트 샘플 삭제, feedback 삭제 |
 | `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 침대 옆 배치, 마이크 가림 방지, 충전 연결 권장, 저전력 모드 확인, 너무 멀거나 밀폐된 위치 피하기 | 30초 캘리브레이션 실행 |
 | `TrendDashboardView` | 최근 7일/30일/90일 수면 소리 지표 흐름 | 수면 소리 점수, 코골기 시간, 호흡정지 의심 구간, 이갈이 의심 소리, 환경 소음, 측정 품질 추세 | 기간 선택 |
-| `HealthDashboardView` | 건강 데이터 dashboard 허브 | HealthKit read-only 상태, 최근 건강 지표, 데이터 출처, BloodPressure/BodyComposition/CrossMetric 진입 | 건강 데이터 연결, 하위 dashboard 진입 |
-| `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 최근 측정 시각, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택, HealthKit 연결 흐름 진입 |
-| `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택, HealthKit 연결 흐름 진입 |
+| `HealthDashboardView` | 건강 데이터 dashboard 허브 | mock/future read-only 상태, 최근 건강 지표, 데이터 출처, BloodPressure/BodyComposition/CrossMetric 진입 | 건강 데이터 연결 방향 안내, 하위 dashboard 진입 |
+| `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 최근 측정 시각, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택, 향후 HealthKit 연결 흐름 진입 |
+| `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택, 향후 HealthKit 연결 흐름 진입 |
 | `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, matched sample count, 데이터 부족 상태, 인과관계 아님 안내 | 비교 항목/기간 선택 |
 
 ## Navigation 구조
