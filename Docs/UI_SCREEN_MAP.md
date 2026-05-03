@@ -6,12 +6,17 @@
 
 | 화면 | 역할 | 주요 표시 데이터 | 주요 액션 |
 | --- | --- | --- | --- |
-| `HomeDashboardView` | 앱 홈과 최근 리포트 허브 | 앱 이름, 최근 수면 리포트, 수면 소리 점수, 측정 품질, 실제 오디오 수신 시간, 녹음 커버리지, 주요 이벤트 요약, 이벤트 오디오 샘플 저장 상태 | 수면 시작, 리포트 보기, 타임라인 보기, 트렌드/건강/개인정보/가이드 진입 |
+| `HomeDashboardView` | 앱 홈과 최근 리포트 허브 | 앱 이름, 최근 수면 리포트, 수면 소리 점수, 측정 품질, 실제 오디오 수신 시간, 녹음 커버리지, 주요 이벤트 요약, 이벤트 오디오 샘플 저장 상태 | 수면 시작, 리포트 보기, 타임라인 보기, Daily Rhythm/트렌드/건강/개인정보/가이드 진입 |
 | `SleepStartView` | 오늘 밤 측정 시작 전 준비 화면 | 측정 안내, 기기 배치 요약, 마이크 권한, 이벤트 오디오 샘플 저장 ON/OFF, 원본 전체 오디오 저장 안 함, 온디바이스 분석 안내 | 수면 시작, 배치 가이드/개인정보 설정 진입 |
 | `SleepRecordingView` | 수면 기록 중 상태 화면 | 세션 경과 시간, 실제 오디오 수신 시간, 실제 분석 시간, 녹음 커버리지, 마지막 입력/분석 시각, 입력 공백, detector backend, tuning profile, 이벤트 오디오 샘플 저장 상태 | 수면 종료, 리포트 보기 |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 측정 시간, 오디오 커버리지, 주요 이벤트 카드, 저장된 이벤트 오디오 시간/용량, detector diagnostics 요약, zero-event analysis, 주요 원인 설명 | 타임라인 보기, 아침 체크인 진입, 개인정보 설정 진입 |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 시간, 이벤트 타입, duration, confidence, 설명, 오디오 샘플 보유 여부, feedback 상태 | 오디오 샘플 재생/삭제, 이벤트 feedback 저장 |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 두통 여부, 입마름 여부, 목아픔 여부, 기억나는 중간 각성 횟수, 메모 | 체크인 저장 |
+| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 수면 요약, 수면 소리 점수, 측정 품질, 아침 컨디션, mock 아침 혈압/체중/체성분, 데이터 품질, 개인 참고용 안내 | 수면 리포트와 Daily Rhythm 흐름 확인 |
+| `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, data quality, 수면/회복/활동/혈압/체성분 component, Daily Insight 목록, 인과관계 아님 안내 | 하루 리듬 요약 확인 |
+| `EveningCheckInView` | 저녁 컨디션 기록 | 하루 피로도, 스트레스, optional 기분, 카페인/음주/야식/운동/낮잠, 메모 | mock/in-memory 체크인 저장 |
+| `DailyHealthCardView` | 하루 리듬 카드 표시 | 날짜, 오늘의 리듬 점수, 수면 소리 점수, 측정 품질, 핵심 지표, 한 줄 요약, 개인 참고용 문구 | 카드 UI 확인 |
+| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level 선택, mock 리포트 기반 카드 preview | template/privacy level 전환 |
 | `PrivacySettingsView` | 로컬 저장과 개인정보 설정 | 이벤트 오디오 샘플 opt-in, 저장된 샘플 수, 총 시간, 용량, orphan 샘플 수, feedback 데이터 상태, 전체 밤 원본 오디오 저장 안 함, 서버 전송 없음 | 이벤트 샘플 저장 토글, orphan 샘플 정리, 전체 이벤트 샘플 삭제, feedback 삭제 |
 | `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 침대 옆 배치, 마이크 가림 방지, 충전 연결 권장, 저전력 모드 확인, 너무 멀거나 밀폐된 위치 피하기 | 30초 캘리브레이션 실행 |
 | `TrendDashboardView` | 최근 7일/30일/90일 수면 소리 지표 흐름 | 수면 소리 점수, 코골기 시간, 호흡정지 의심 구간, 이갈이 의심 소리, 환경 소음, 측정 품질 추세 | 기간 선택 |
@@ -34,6 +39,11 @@ HomeDashboardView
   - SleepTimelineView
   - MorningCheckInView
   - PrivacySettingsView
+- MorningBriefView
+- DailyRhythmReportView
+- EveningCheckInView
+- DailyHealthCardPreviewView
+  - DailyHealthCardView
 - TrendDashboardView
 - HealthDashboardView
   - BloodPressureDashboardView
@@ -69,9 +79,9 @@ Release 빌드에서는 detector threshold 조정, dataset replay, raw feature s
 
 ## Health Dashboard 방향
 
-Health dashboard는 Apple 건강앱 데이터를 read-only로 읽어 로컬 화면에 정리하는 확장 영역입니다.
+Health dashboard는 향후 Apple 건강앱 데이터를 read-only로 읽어 로컬 화면에 정리하는 확장 영역입니다. 현재 화면과 Daily Rhythm 흐름은 mock/protocol 기반 데이터를 사용합니다.
 
-- 권한 요청은 사용자가 `HealthDashboardView`에서 건강 데이터 연결을 선택할 때만 시작합니다.
+- 권한 요청은 후속 HealthKit 작업에서 사용자가 `HealthDashboardView`의 연결 액션을 선택할 때만 검토합니다.
 - 앱은 HealthKit에 데이터를 쓰지 않습니다.
 - 건강 데이터는 서버나 외부 앱으로 전송하지 않습니다.
 - `CrossMetricDashboardView`는 수면 소리 지표와 건강 지표를 개인 패턴 참고용으로 비교하며, 인과관계를 의미하지 않습니다.
@@ -85,3 +95,5 @@ Health dashboard는 Apple 건강앱 데이터를 read-only로 읽어 로컬 화�
 - 저장된 오디오 샘플 없음: opt-in 상태와 삭제/저장 정책을 같이 안내합니다.
 - HealthKit 권한 없음 또는 데이터 없음: read-only 연결 흐름과 로컬 표시 원칙을 안내합니다.
 - 낮은 오디오 커버리지: 색상만이 아니라 배지와 문장으로 상태를 설명합니다.
+- Daily Rhythm 데이터 부족: `DailyDataQuality`와 제한 안내를 우선 표시합니다.
+- Daily Health Card 민감 수치 숨김: `minimal` privacy level에서 점수와 한 줄 요약 중심으로 표시합니다.

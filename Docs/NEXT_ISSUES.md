@@ -4,31 +4,29 @@
 
 ## 우선순위 후보
 
-1. Daily Rhythm 도메인 모델 설계
-2. Mock Health Data 구조 정리
-3. Daily Rhythm Score 계산기 초안
-4. Morning Brief 화면 설계
-5. Daily Health Card UI 초안
-6. 혈압/체성분 대시보드 mock data polish
-7. 수면 지표와 건강 지표 교차 분석 문구 점검
-8. 공개 데이터 manifest 작성
-9. snore detector Offline Evaluation 실행
-10. 실제 iPhone background smoke test
-11. 잠금 30분 테스트
-12. overnight test
+1. HealthKit read-only 실제 연동 설계와 권한 UX
+2. 혈압/체성분 대시보드 고도화
+3. 수면 지표와 건강 지표 교차 분석 문구 점검
+4. Daily Health Card 이미지 export 설계
+5. App Store screenshot 준비
+6. 공개 데이터 manifest 작성
+7. snore detector Offline Evaluation 실행
+8. 실제 iPhone background smoke test
+9. 잠금 30분 테스트
+10. overnight test
 
 ## Daily Rhythm
 
 수면 소리 리포트를 유지하면서 온디바이스 개인 건강 리듬 리포트로 확장하기 위한 다음 작업 후보입니다.
 
-- `DailyRhythmReport` 도메인 모델
-- `DailyRhythmScore` 계산기
-- 아침 리포트와 하루 리듬 카드의 데이터 계약
-- Mock Health Data seed 구조
-- 아침/저녁 컨디션 체크인 확장
-- 데이터 품질과 권한 제한 상태 모델
-- 건강 대시보드와 Daily Rhythm 카드의 navigation 연결
-- 수면 지표와 건강 지표 교차 분석의 안전한 문구
+- HealthKit read-only 실제 연동 전 상세 설계
+- 건강 데이터 권한 없음/일부 허용/데이터 없음 상태 문구 정리
+- 혈압/체성분 대시보드의 날짜별 요약과 source 표시 고도화
+- 수면 지표와 건강 지표 교차 분석의 안전한 문구 재점검
+- Daily Health Card 이미지 export UX 설계
+- Daily Health Card export 전 privacy level 확인 흐름
+- App Store screenshot용 mock scenario 정리
+- Morning Brief / Daily Rhythm Report / Daily Health Card screenshot 후보 선별
 
 주의:
 
@@ -36,6 +34,7 @@
 - HealthKit 실제 연동 전에는 mock service/protocol 기반으로 설계합니다.
 - 오늘의 리듬 점수는 웰니스/개인 참고용이며 의료 점수가 아닙니다.
 - 수면 소리와 건강 지표 사이의 인과관계를 주장하지 않습니다.
+- Daily Health Card 이미지는 사용자의 명시 액션 없이 export/share하지 않습니다.
 
 ## Detector / ML
 
@@ -86,13 +85,19 @@
 
 다음 확인 항목:
 
-- Daily Rhythm mock data source 구조
 - 권한 없음/일부 허용/데이터 없음 상태 문구
 - Omron Connect 혈압 source mock 표시
 - Fitdays 체중/체성분 source mock 표시
 - 교차 보기에서 matched sample 부족 안내 확인
 - HealthKit read-only 연동 설계 문서화
 - HealthKit 실제 구현 단계에서 쓰기 API가 없는지 재점검
+
+## App Store / 카드 export
+
+- Daily Health Card 이미지 export는 로컬 렌더링 기반으로 설계합니다.
+- 자동 공유, 서버 업로드, 외부 SDK 사용은 제외합니다.
+- `minimal`, `standard`, `detailed` privacy level별 screenshot 후보를 준비합니다.
+- App Store screenshot은 Daily Rhythm 확장 방향을 보여주되, 건강 상태를 확정하는 표현을 쓰지 않습니다.
 
 ## 문서 유지보수
 

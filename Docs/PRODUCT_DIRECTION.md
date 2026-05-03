@@ -16,6 +16,19 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - 실제 HealthKit 구현 전에는 protocol과 mock service를 우선 사용합니다.
 - 리포트는 웰니스와 개인 참고용이며, 진단 목적의 의료기기가 아닙니다.
 
+## 현재 Daily Rhythm 구현 범위
+
+현재 앱에는 Daily Rhythm 확장을 위한 기반이 mock/protocol 중심으로 들어가 있습니다.
+
+- `DailyHealthSnapshot`, `DailyRhythmReport`, `DailyRhythmScore`, `DailyInsight`, `EveningCheckIn` 등 하루 단위 도메인 모델
+- `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder` 기반 mock 건강 데이터 구조
+- Omron Connect 혈압, Fitdays 체중/체성분, Apple Health Mock 활동/심박수 source 예시
+- `DailyRhythmScoreCalculator`, `DailyInsightGenerator`, `DailyRhythmReportBuilder`
+- `MorningBriefView`, `DailyRhythmReportView`, `EveningCheckInView`
+- `DailyHealthCardView`, `DailyHealthCardPreviewView`, 카드 template/privacy level 구조
+
+이 구현은 실제 HealthKit 연결 전 단계입니다. 권한 요청, `HKHealthStore` query, HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.
+
 ## 수면 소리 리포트에서 개인 건강 리듬 리포트로
 
 기존 앱의 중심은 수면 시작, 수면 종료, 수면 소리 점수, 이벤트 타임라인, 아침 컨디션 체크인입니다. 확장 방향에서는 이 수면 리포트를 하루 리듬의 시작점으로 봅니다.
@@ -47,13 +60,15 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - 낮 동안의 활동 또는 컨디션 기록
 - 향후 사용자가 허용한 read-only 건강 데이터의 존재 여부와 데이터 품질
 
-점수는 사용자가 하루 흐름을 빠르게 돌아보기 위한 요약입니다. 건강 상태를 판정하거나, 질병 가능성을 예측하거나, 치료 행동을 권고하지 않습니다.
+점수는 사용자가 하루 흐름을 빠르게 돌아보기 위한 요약입니다. 건강 상태를 단정하거나, 의학적 조치를 안내하지 않습니다.
 
 ## 아침 리포트, 하루 리듬 카드, 건강 대시보드
 
 아침 리포트는 지난밤 수면 소리와 아침 컨디션을 가장 먼저 보여주는 화면입니다. 기존 수면 리포트의 역할을 유지합니다.
 
-하루 리듬 카드는 하루 중 확인할 수 있는 핵심 지표를 작게 묶은 카드입니다. 수면, 혈압, 체중, 체성분, 활동, 컨디션 중 데이터가 있는 항목만 조심스럽게 보여줍니다.
+하루 리듬 카드는 하루 중 확인할 수 있는 핵심 지표를 작게 묶은 카드입니다. 수면, 혈압, 체중, 체성분, 활동, 컨디션 중 데이터가 있는 항목만 조심스럽게 보여줍니다. 현재는 `simple`, `sleepFocused`, `healthSummary`, `privacyMinimal` template과 `minimal`, `standard`, `detailed` privacy level을 준비해 민감 수치 표시 범위를 조절합니다.
+
+이미지 export/share는 아직 구현하지 않았습니다. 향후에도 사용자의 명시 액션을 통해서만 로컬 렌더링하는 방향이며, 자동 공유나 업로드는 하지 않습니다.
 
 건강 대시보드는 사용자가 더 자세히 보고 싶을 때 들어가는 화면입니다. 혈압, 체중, 체성분, 활동, 수면 지표를 각각의 출처와 측정 시각, 데이터 품질과 함께 보여줍니다.
 
@@ -70,7 +85,7 @@ HealthKit은 향후 read-only로만 사용합니다.
 - Apple 건강앱 데이터를 서버나 외부 앱으로 전송하지 않습니다.
 - Omron Connect와 Fitdays에는 직접 연결하지 않고, 사용자가 Apple 건강앱에 동기화한 데이터를 읽는 방향만 가정합니다.
 
-이번 방향 전환 단계에서는 실제 HealthKit 권한 요청, `HKHealthStore` query, capability 변경을 새로 구현하지 않습니다. 우선 `HealthKitServiceProtocol` 같은 추상화와 mock data로 화면, 점수 계산, empty state, 권한 제한 안내를 검증합니다.
+이번 방향 전환 단계에서는 실제 HealthKit 권한 요청, `HKHealthStore` query, capability 변경을 새로 구현하지 않습니다. 우선 `HealthDataServiceProtocol`과 `MockHealthDataService`로 화면, 점수 계산, empty state, 권한 제한 안내를 검증합니다.
 
 ## 개인정보와 오디오 저장
 
@@ -86,7 +101,7 @@ HealthKit은 향후 read-only로만 사용합니다.
 
 ## 표현 원칙
 
-앱은 건강 데이터와 수면 소리 데이터를 함께 보여줄 수 있지만, 진단, 질병 판정, 치료 권고, 확정적 인과관계 표현을 사용하지 않습니다.
+앱은 건강 데이터와 수면 소리 데이터를 함께 보여줄 수 있지만, 건강 상태 확정, 의학적 조치 안내, 확정적 인과관계 표현을 사용하지 않습니다.
 
 권장 표현:
 
@@ -103,7 +118,7 @@ HealthKit은 향후 read-only로만 사용합니다.
 - 수면 소리 이벤트로 건강 상태를 단정하는 문구
 - 혈압, 체중, 체성분 수치를 질병 여부로 해석하는 문구
 - 특정 지표가 다른 지표를 변화시켰다고 말하는 문구
-- 치료나 의학적 조치를 직접 권하는 문구
+- 의학적 조치를 직접 권하는 문구
 - 임상 지표처럼 정확도를 보장하는 문구
 
 ## 데이터 품질과 권한별 제한

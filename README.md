@@ -23,6 +23,18 @@ NightBreath / 밤숨은 수면 중 소리 기반 리포트에서 시작해, 수�
 
 자세한 제품 방향은 `Docs/PRODUCT_DIRECTION.md`를 참고합니다.
 
+## NightBreath / 밤숨의 확장 방향
+
+NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 리포트와 하루 동안의 컨디션/활동/mock 건강 데이터를 연결하는 Daily Rhythm 경험으로 확장합니다.
+
+- 수면 소리 리포트: 수면 중 소리 이벤트, 수면 소리 점수, 측정 품질, 이벤트 타임라인을 온디바이스로 정리합니다.
+- 아침 리포트: 지난밤 수면 요약, 아침 컨디션, mock 혈압/체중/체성분 데이터를 같은 날짜의 시작점으로 보여줍니다.
+- 오늘의 리듬 점수: 수면, 회복 리듬, 활동, 혈압, 체성분 component를 데이터 품질과 함께 요약하는 웰니스/개인 참고용 점수입니다.
+- 하루 리듬 카드: 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 보여줄 수 있는 레이아웃이며, privacy level에 따라 민감 수치 표시를 줄일 수 있습니다.
+- 건강 데이터 mock architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health mock source를 분리합니다.
+- 실제 HealthKit 연동은 아직 없음: 현재 앱은 mock/protocol 기반이며, HealthKit 권한 요청이나 `HKHealthStore` query를 새로 실행하지 않습니다.
+- 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.
+
 ## 현재 개발 전략
 
 NightBreath는 Simulator-first 방식으로 개발합니다.
@@ -80,9 +92,17 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - multiclass event classifier 준비 도구
 - Simulator QA scenarios
 - NightBreath 전용 디자인 시스템
-- HealthKit service protocol과 mock/fallback 구조
+- `HealthDataServiceProtocol`과 `MockHealthDataService` 기반 mock 건강 데이터 구조
 - mock 기반 혈압/체중/체성분 건강 데이터 대시보드 방향
 - 수면 소리 지표와 건강 지표 교차 보기 설계
+- Daily Rhythm 도메인 모델
+- Mock Health Data Service
+- Daily Rhythm Score 계산기
+- Daily Insight 생성기
+- Morning Brief 화면
+- Daily Rhythm Report 화면
+- Evening Check-in 화면
+- Daily Health Card 화면과 카드 template/privacy level 구조
 - Daily Rhythm 확장을 위한 문서화와 제품 원칙
 
 ## 주요 화면
@@ -94,6 +114,10 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 수면 녹음 중: 세션 경과 시간, 실제 오디오 수신/분석 시간, 녹음 커버리지, detector backend, 수면 종료 버튼을 표시합니다.
 - 수면 리포트와 이벤트 타임라인: 주요 수면 소리 지표, detector diagnostics 요약, zero-event analysis, 이벤트별 시간/재생/삭제 상태를 보여줍니다.
 - 아침 컨디션 체크인: 개운함, 피로감, 기억나는 각성, 메모를 사용자의 주관적 기록으로 저장합니다.
+- 아침 리포트: 수면 소리 요약, 아침 컨디션, mock 혈압/체중/체성분 데이터, 데이터 품질을 함께 보여줍니다.
+- 오늘의 리듬 리포트: 오늘의 리듬 점수, component score, data quality, Daily Insight 목록을 참고용으로 보여줍니다.
+- 저녁 체크인: 하루 피로도, 스트레스, optional 기분, 생활 태그, 메모를 `EveningCheckIn` 형태로 기록할 준비를 합니다.
+- 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
 - 건강 대시보드: 현재는 mock/protocol 기반으로 혈압, 체중, 체성분, 컨디션 데이터를 보기 좋게 정리하는 방향을 검증하고, 향후 HealthKit read-only 연결을 준비합니다.
@@ -176,6 +200,12 @@ SleepSoundApp
     - SleepReportView.swift
     - SleepTimelineView.swift
     - MorningCheckInView.swift
+  - DailyRhythm
+    - MorningBriefView.swift
+    - DailyRhythmReportView.swift
+    - EveningCheckInView.swift
+    - DailyHealthCardView.swift
+    - DailyHealthCardPreviewView.swift
   - Dashboard
     - HomeDashboardView.swift
     - TrendChartView.swift
@@ -201,6 +231,7 @@ SleepSoundApp
   - Audio
   - Analysis
   - Design
+  - DailyRhythm
   - FutureHealth
   - Models
   - Privacy
@@ -319,6 +350,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - zero-event analysis
 - event audio opt-in
 - storage stats / orphan cleanup
+- daily rhythm score / insight / card content
 - privacy copy safety
 - simulator QA scenarios
 
@@ -368,9 +400,20 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 ## Daily Rhythm / HealthKit 방향
 
-NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다.
+NightBreath는 수면 소리 리포트를 기반으로 `오늘의 리듬 점수`, `아침 리포트`, `하루 리듬 카드`, 건강 대시보드로 확장됩니다. 현재 구현은 실제 건강앱 연결 전 단계의 mock architecture입니다.
 
-이번 제품 방향 전환 작업에서는 실제 HealthKit 권한 요청이나 `HKHealthStore` 기반 query를 새로 구현하지 않습니다. 먼저 protocol과 mock service 기반으로 도메인 모델, 화면, empty state, 데이터 품질 안내, 점수 계산 기준을 정리합니다.
+현재 준비된 것:
+
+- `DailyHealthSnapshot`, `DailyRhythmReport`, `DailyRhythmScore`, `DailyInsight`, `EveningCheckIn`
+- `HealthDataServiceProtocol`과 `MockHealthDataService`
+- Omron Connect mock 혈압 source
+- Fitdays mock 체중/체성분 source
+- Apple Health Mock 활동/심박/수면/호흡 source
+- Daily Rhythm Score 계산기와 Daily Insight 생성기
+- Morning Brief, Daily Rhythm Report, Evening Check-in, Daily Health Card 화면
+- Daily Health Card template과 privacy level
+
+이번 단계에서는 실제 HealthKit 권한 요청이나 `HKHealthStore` 기반 query를 새로 구현하지 않습니다. 먼저 protocol과 mock service 기반으로 도메인 모델, 화면, empty state, 데이터 품질 안내, 점수 계산 기준을 검증합니다.
 
 앞으로 read-only 방향으로 검토할 수 있는 표시 대상:
 
@@ -391,6 +434,8 @@ HealthKit을 연결하더라도 read-only 원칙만 허용합니다. 앱은 Heal
 관련 문서:
 
 - `Docs/PRODUCT_DIRECTION.md`
+- `Docs/DAILY_RHYTHM_SCORE.md`
+- `Docs/DAILY_HEALTH_CARD.md`
 - `Docs/HEALTHKIT_MOCK_ARCHITECTURE.md`
 - `Docs/HEALTHKIT_READ_ONLY.md`
 - `Docs/HEALTH_DASHBOARD.md`

@@ -50,6 +50,19 @@
 - mock 기반 혈압/체중/체성분 건강 데이터 dashboard 설계
 - 수면 소리 지표와 건강 지표 교차 보기 설계
 - Daily Rhythm 제품 방향 문서화
+- Daily Rhythm 도메인 모델
+- Mock Health Data Service
+- DailyHealthSnapshotBuilder
+- Daily Rhythm Score 계산기
+- Daily Insight 생성기
+- Daily Rhythm Report Builder
+- Morning Brief 화면
+- Daily Rhythm Report 화면
+- Evening Check-in 화면
+- Daily Health Card 화면
+- Daily Health Card template/privacy level 구조
+- Daily Health Card renderer placeholder
+- Daily Rhythm 관련 unit test
 
 ## 현재 개발 전략
 
@@ -65,6 +78,7 @@
 ## 의도적으로 미구현 / 제한
 
 - HealthKit 쓰기
+- 실제 HealthKit read-only 연동
 - 실제 HealthKit 권한 요청과 `HKHealthStore` 기반 query 신규 구현
 - 앱 첫 실행 또는 수면 측정 시작 시 HealthKit 권한 요청
 - HealthKit에 수면 소리 점수/이벤트/리포트/피드백 기록
@@ -79,10 +93,12 @@
 - 전체 밤 원본 오디오 저장
 - 이벤트와 무관한 연속 오디오 보관
 - sleep talk 텍스트 변환
+- 실제 App Store screenshot export
+- 실제 Daily Health Card image share/export
 - 실제 `.mlmodel` 앱 bundle 적용
 - detector 성능 확정 검증
 - 임상 지표 산출
-- 질환명 확정 또는 의료적 판정
+- 건강 상태를 확정하는 기능
 
 ## 개인정보 상태
 
