@@ -65,6 +65,15 @@ struct HealthKitReadOnlyPolicyTests {
     }
 
     @Test
+    func permissionStatesGateFetchBehaviorExplicitly() {
+        #expect(!HealthMetricPermissionState.notRequested.canFetchSamples)
+        #expect(HealthMetricPermissionState.readRequestCompleted.canFetchSamples)
+        #expect(!HealthMetricPermissionState.denied.canFetchSamples)
+        #expect(!HealthMetricPermissionState.unavailable.canFetchSamples)
+        #expect(HealthMetricPermissionState.mockDataOnly.canFetchSamples)
+    }
+
+    @Test
     func disabledHealthKitServiceReturnsSafeUnavailableAndEmptyState() async {
         let service = DisabledHealthKitService()
         let samples = await service.fetchSamples(
@@ -92,6 +101,24 @@ struct HealthKitReadOnlyPolicyTests {
     }
 
     @Test
+    func partialReadPermissionStateReturnsOnlyAllowedMetricSamples() async {
+        let service = PartialReadCompletedHealthKitService()
+        let bloodPressureSamples = await service.fetchSamples(
+            metricType: .systolicBloodPressure,
+            dateRange: .days(7, endingAt: referenceDate)
+        )
+        let bodyMassSamples = await service.fetchSamples(
+            metricType: .bodyMass,
+            dateRange: .days(7, endingAt: referenceDate)
+        )
+
+        #expect(service.isAvailable)
+        #expect(await service.requestReadPermission() == .readRequestCompleted)
+        #expect(bloodPressureSamples.count == 1)
+        #expect(bodyMassSamples.isEmpty)
+    }
+
+    @Test
     func emptyDataStateKeepsReadRequestCompletedButReturnsNoSamples() async {
         let service = EmptyReadCompletedHealthKitService()
         let samples = await service.fetchSamples(
@@ -103,6 +130,49 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(await service.requestReadPermission() == .readRequestCompleted)
         #expect(samples.isEmpty)
         #expect(await service.fetchLatestSample(metricType: .bodyMass) == nil)
+    }
+
+    @Test
+    func healthKitAndFitdaysSamplesRemainDistinctInMixedSourceState() {
+        let healthKitSample = HealthMetricSample(
+            metricType: .bodyMass,
+            value: 71.6,
+            unit: "kg",
+            measuredAt: referenceDate,
+            sourceName: "Apple 건강앱",
+            sourceBundleIdentifier: "com.apple.Health"
+        ).unifiedSample(sourceType: .healthKit)
+        let fitdaysSample = UnifiedHealthMetricSample(
+            metricID: .bodyWaterPercentage,
+            value: 56.8,
+            unit: "%",
+            measuredAt: referenceDate,
+            sourceType: .fitdaysCSV,
+            sourceName: "Fitdays CSV Import",
+            importBatchId: "synthetic-batch",
+            createdAt: referenceDate
+        )
+        let summary = HealthCalendarBuilder().summary(
+            for: referenceDate,
+            samples: [healthKitSample, fitdaysSample],
+            sleepReports: [],
+            calendar: calendar
+        )
+
+        #expect(healthKitSample.sourceType == .healthKit)
+        #expect(fitdaysSample.sourceType == .fitdaysCSV)
+        #expect(summary.sourceTypes == [.healthKit, .fitdaysCSV])
+        #expect(summary.hasBodyComposition)
+    }
+
+    private var referenceDate: Date {
+        Date(timeIntervalSince1970: 1_777_680_000)
+    }
+
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
     }
 
     private func sourceContents(_ relativePath: String) throws -> String {
@@ -153,6 +223,43 @@ struct HealthKitReadOnlyPolicyTests {
 
         func fetchLatestSample(metricType: HealthMetricType) async -> HealthMetricSample? {
             nil
+        }
+    }
+
+    private struct PartialReadCompletedHealthKitService: HealthKitServiceProtocol {
+        var isAvailable: Bool { true }
+
+        private var sample: HealthMetricSample {
+            HealthMetricSample(
+                metricType: .systolicBloodPressure,
+                value: 118,
+                unit: "mmHg",
+                measuredAt: Date(timeIntervalSince1970: 1_777_680_000),
+                sourceName: "Apple 건강앱",
+                sourceBundleIdentifier: "com.apple.Health"
+            )
+        }
+
+        func authorizationStatusDescription() -> String {
+            "일부 항목 읽기 권한 요청 완료"
+        }
+
+        func requestReadPermission() async -> HealthMetricPermissionState {
+            .readRequestCompleted
+        }
+
+        func fetchSamples(
+            metricType: HealthMetricType,
+            dateRange: HealthMetricDateRange
+        ) async -> [HealthMetricSample] {
+            guard metricType == sample.metricType, dateRange.contains(sample.measuredAt) else {
+                return []
+            }
+            return [sample]
+        }
+
+        func fetchLatestSample(metricType: HealthMetricType) async -> HealthMetricSample? {
+            metricType == sample.metricType ? sample : nil
         }
     }
 }

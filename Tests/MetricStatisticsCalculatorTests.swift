@@ -102,6 +102,29 @@ struct MetricStatisticsCalculatorTests {
         #expect(sources.map(\.sampleCount) == [1, 1, 1])
     }
 
+    @Test
+    func sourceBreakdownGroupsBySourceTypeAndName() {
+        let samples = [
+            sample(.bodyMass, 71.4, daysAgo: 4, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyMass, 71.6, daysAgo: 2, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyMass, 71.8, daysAgo: 1, sourceType: .fitdaysCSV, sourceName: "Second Synthetic CSV"),
+            sample(.bodyMass, 72.0, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+
+        let sources = calculator.sourceBreakdown(
+            samples: samples,
+            metricID: .bodyMass,
+            dateRange: .days(7, endingAt: referenceDate)
+        )
+
+        let countsBySource = Dictionary(uniqueKeysWithValues: sources.map { ($0.sourceName, $0.sampleCount) })
+
+        #expect(countsBySource["Fitdays CSV Import"] == 2)
+        #expect(countsBySource["Second Synthetic CSV"] == 1)
+        #expect(countsBySource["Apple 건강앱"] == 1)
+        #expect(sources.filter { $0.sourceType == .fitdaysCSV }.count == 2)
+    }
+
     private var referenceDate: Date {
         Date(timeIntervalSince1970: 1_777_680_000)
     }

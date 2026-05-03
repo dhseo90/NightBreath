@@ -104,4 +104,33 @@ struct SimulatorQAScenarioTests {
     #expect(bundle.eventAudioStorageStats.orphanDurationSeconds > 0)
     #expect(bundle.events.contains { $0.audioSnippetFileName != nil })
   }
+
+  @Test
+  func debugScreenshotScenariosExposeExtendedHealthMetricScreens() throws {
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+    let simulatorScenarioView = try sourceContents("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift")
+    let expectedScenarioNames = [
+      "ScreenshotHealthMetricsOverviewScenario",
+      "ScreenshotFitdaysImportScenario",
+      "ScreenshotHealthCalendarScenario",
+      "ScreenshotDailyMeasurementDetailScenario",
+      "ScreenshotMetricDetailScenario",
+      "ScreenshotImportErrorScenario",
+      "ScreenshotLocalOnlyMetricScenario",
+    ]
+
+    #expect(screenshotScenarios.contains("#if DEBUG\nenum ScreenshotScenario"))
+    #expect(simulatorScenarioView.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("#if DEBUG"))
+    for scenarioName in expectedScenarioNames {
+      #expect(screenshotScenarios.contains(scenarioName), "\(scenarioName) should stay available for simulator screenshot QA.")
+    }
+    #expect(simulatorScenarioView.contains("EHM 화면 상태"))
+    #expect(simulatorScenarioView.contains("HealthKit unavailable"))
+    #expect(simulatorScenarioView.contains("source mixed"))
+  }
+
+  private func sourceContents(_ relativePath: String) throws -> String {
+    let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
+  }
 }

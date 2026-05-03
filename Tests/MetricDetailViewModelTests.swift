@@ -53,6 +53,27 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func rawSampleListIsNewestFirstAndKeepsSourceMetadata() {
+        let samples = [
+            sample(.bodyWaterPercentage, 56.8, daysAgo: 3, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyWaterPercentage, 57.2, daysAgo: 1, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyWaterPercentage, 57.0, daysAgo: 2, sourceType: .manual, sourceName: "수동 입력"),
+            sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+
+        let viewModel = MetricDetailViewModel(
+            metricID: .bodyWaterPercentage,
+            samples: samples,
+            period: .thirtyDays,
+            endDate: referenceDate
+        )
+
+        #expect(viewModel.rawSampleList.map(\.value) == [57.2, 57.0, 56.8])
+        #expect(viewModel.rawSampleList.map(\.sourceType) == [.fitdaysCSV, .manual, .fitdaysCSV])
+        #expect(viewModel.rawSampleList.map(\.sourceName) == ["Fitdays CSV Import", "수동 입력", "Fitdays CSV Import"])
+    }
+
+    @Test
     func emptyDataStatesSeparateMissingMetricSourceAndPeriod() {
         let oldHealthKitSample = sample(.bodyMass, 72.2, daysAgo: 40, sourceType: .healthKit)
 

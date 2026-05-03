@@ -55,6 +55,67 @@ struct PrivacyCopySafetyTests {
   }
 
   @Test
+  func fitdaysFixturesAreSyntheticAndNonIdentifying() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let fixtureRoot = repositoryRoot.appendingPathComponent("Tests/Fixtures/Fitdays")
+    let csvFiles = files(under: fixtureRoot, extensions: ["csv"])
+
+    #expect(csvFiles.map(\.lastPathComponent) == ["sample_fitdays_export.csv"])
+
+    let restrictedFixtureTokens = [
+      "Name",
+      "Email",
+      "Phone",
+      "Address",
+      "Birth",
+      "DOB",
+      "Seoul",
+      "이름",
+      "이메일",
+      "전화",
+      "주소",
+      "생년",
+      "서울",
+      "@",
+    ]
+
+    for fileURL in csvFiles {
+      let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      #expect(contents.contains("Synthetic fixture row"))
+      for token in restrictedFixtureTokens {
+        #expect(!contents.contains(token), "\(fileURL.path) contains identifying fixture token: \(token)")
+      }
+    }
+  }
+
+  @Test
+  func repositoryTextDoesNotContainPersonalLocalPaths() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let scannedRoots = [
+      repositoryRoot.appendingPathComponent("SleepSoundApp"),
+      repositoryRoot.appendingPathComponent("Tests"),
+      repositoryRoot.appendingPathComponent("Docs"),
+      repositoryRoot.appendingPathComponent("README.md"),
+      repositoryRoot.appendingPathComponent("QA_CHECKLIST.md"),
+      repositoryRoot.appendingPathComponent("Package.swift"),
+    ]
+    let forbiddenPathFragments = [
+      "/" + "Users/",
+      "file:///" + "Users/",
+      "C:" + "\\Users\\",
+      "/" + "home/",
+      "Desktop/" + "workspace",
+    ]
+
+    for fileURL in textFiles(in: scannedRoots) {
+      let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      for fragment in forbiddenPathFragments {
+        #expect(!contents.contains(fragment), "\(fileURL.path) contains a personal local path fragment: \(fragment)")
+      }
+    }
+  }
+
+  @Test
   func gitignoreKeepsPersonalAndPublicAudioOutOfTheRepo() throws {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let gitignore = try String(
@@ -289,5 +350,24 @@ struct PrivacyCopySafetyTests {
       }
       return url
     }
+  }
+
+  private func files(under root: URL, extensions: Set<String>) -> [URL] {
+    guard let enumerator = FileManager.default.enumerator(
+      at: root,
+      includingPropertiesForKeys: [.isRegularFileKey],
+      options: [.skipsHiddenFiles]
+    ) else {
+      return []
+    }
+
+    return enumerator.compactMap { item in
+      guard let url = item as? URL,
+            extensions.contains(url.pathExtension.lowercased()) else {
+        return nil
+      }
+      return url
+    }
+    .sorted { $0.path < $1.path }
   }
 }

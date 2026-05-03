@@ -90,6 +90,19 @@ Simulator preset 예시:
 
 DEBUG 빌드의 `SimulatorScenarioView`에서 preset을 적용하고 주요 화면을 확인합니다. QA 후에는 preset을 해제합니다.
 
+EHM screenshot / 화면 상태 scenario:
+
+- `ScreenshotHealthMetricsOverviewScenario`
+- `ScreenshotFitdaysImportScenario`
+- `ScreenshotFitdaysImportResultScenario`
+- `ScreenshotHealthCalendarScenario`
+- `ScreenshotDailyMeasurementDetailScenario`
+- `ScreenshotMetricDetailScenario`
+- `ScreenshotImportErrorScenario`
+- `ScreenshotLocalOnlyMetricScenario`
+
+`SimulatorScenarioView`의 `EHM 화면 상태` section은 DEBUG 전용입니다. 여기에서 HealthKit unavailable, 권한 없음, 일부 권한 허용, 데이터 없음, HealthKit-backed source, Fitdays CSV local-only source, source mixed 상태를 mock/synthetic data로 확인합니다.
+
 ## Dataset Replay / Offline Evaluation
 
 Dataset Replay는 실제 마이크 없이 synthetic audio 또는 로컬 오디오 파일을 `AudioChunk` stream으로 변환해 분석 pipeline에 넣는 개발용 구조입니다.
@@ -194,6 +207,18 @@ Simulator 결과가 좋아도 실제 iPhone의 background audio 정책, 발열, 
 5. HealthKit-backed metric과 Fitdays local-only metric이 badge와 설명으로 구분되는지 확인합니다.
 6. 앱이 HealthKit에 데이터를 쓰지 않는지 코드 scan과 실제 동작으로 확인합니다.
 7. 수면 기능은 HealthKit 권한 거부 후에도 정상 동작해야 합니다.
+
+Simulator-first mock state 확인:
+
+| 상태 | 확인 화면 | 기대 표시 |
+| --- | --- | --- |
+| HealthKit unavailable | `HealthDashboardView(DisabledHealthKitService)` | 건강 데이터 읽기를 사용할 수 없다는 안내, 샘플 없음 |
+| 권한 없음 | `HealthMetricsOverviewView(permissionState: .denied)` | 로컬 import 샘플은 볼 수 있다는 안내 |
+| 일부 권한 허용 | `HealthMetricsOverviewView(permissionState: .readRequestCompleted)` | 허용된 metric 샘플만 표시 |
+| 데이터 없음 | `HealthMetricsOverviewView(samples: [])` | empty state와 연결/import 안내 |
+| 데이터 있음 | mock HealthKit-backed samples | sourceName, 측정 시각, 기간별 통계 표시 |
+| Fitdays CSV local-only | synthetic Fitdays samples | Local-only badge와 Fitdays CSV source 표시 |
+| source mixed | HealthKit-backed + Fitdays CSV + app computed samples | source별 breakdown과 raw sample list 구분 |
 
 기록 시 실제 수치 대신 다음처럼 요약합니다.
 

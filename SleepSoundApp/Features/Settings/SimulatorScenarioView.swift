@@ -10,6 +10,47 @@ struct SimulatorScenarioView: View {
     SimulatorQAScenarioFactory.make(preset: selectedPreset)
   }
 
+  private var ehmReferenceDate: Date {
+    appState.latestReport.generatedAt
+  }
+
+  private var ehmPreviewSamples: [UnifiedHealthMetricSample] {
+    ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: ehmReferenceDate)
+  }
+
+  private var ehmPartialHealthKitSamples: [UnifiedHealthMetricSample] {
+    let allowedMetrics: Set<HealthMetricType> = [
+      .systolicBloodPressure,
+      .diastolicBloodPressure,
+      .stepCount,
+      .activeEnergy,
+    ]
+
+    return MockHealthDataService.makeDefaultSamples(referenceDate: ehmReferenceDate)
+      .filter { allowedMetrics.contains($0.metricType) }
+      .map { $0.unifiedSample(sourceType: .healthKit) }
+  }
+
+  private var ehmFitdaysLocalOnlySamples: [UnifiedHealthMetricSample] {
+    ehmPreviewSamples.filter { $0.sourceType == .fitdaysCSV }
+  }
+
+  private var ehmMixedSourceSamples: [UnifiedHealthMetricSample] {
+    (
+      ehmPartialHealthKitSamples
+        + ehmFitdaysLocalOnlySamples
+        + ehmPreviewSamples.filter { $0.sourceType == .appComputed }
+    )
+    .sortedByMeasuredAtAscending()
+  }
+
+  private var ehmDetailData: DailyMeasurementDetailData {
+    ScreenshotScenarioFactory.makeScreenshotDailyMeasurementDetailData(
+      appState: appState,
+      samples: ehmMixedSourceSamples
+    )
+  }
+
   var body: some View {
     List {
       Section {
@@ -100,6 +141,94 @@ struct SimulatorScenarioView: View {
         }
 
         Text("먼저 preset을 적용한 뒤 선택 화면을 열어 캡처합니다. 모든 상태는 예시 데이터 또는 simulator scenario 기반이며 실제 건강 데이터나 실제 오디오 파일을 사용하지 않습니다.")
+          .font(.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+
+      Section("EHM 화면 상태") {
+        NavigationLink {
+          HealthDashboardView(
+            service: DisabledHealthKitService(),
+            unifiedSampleRepository: InMemoryUnifiedHealthMetricSampleRepository()
+          )
+        } label: {
+          Label("HealthKit unavailable", systemImage: "exclamationmark.triangle")
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: ehmFitdaysLocalOnlySamples,
+            permissionState: .denied,
+            isPreviewData: false
+          )
+        } label: {
+          Label("권한 없음 + Fitdays local-only", systemImage: "lock.slash")
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: ehmPartialHealthKitSamples,
+            permissionState: .readRequestCompleted,
+            isPreviewData: false
+          )
+        } label: {
+          Label("일부 권한 허용", systemImage: "checkmark.seal")
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: [],
+            permissionState: .readRequestCompleted,
+            isPreviewData: false
+          )
+        } label: {
+          Label("데이터 없음", systemImage: "tray")
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: ehmMixedSourceSamples,
+            permissionState: .readRequestCompleted,
+            isPreviewData: false
+          )
+        } label: {
+          Label("source mixed", systemImage: "square.stack.3d.up")
+        }
+
+        NavigationLink {
+          HealthCalendarView(
+            samples: ehmMixedSourceSamples,
+            sleepReports: [appState.latestReport],
+            morningCheckIns: [appState.morningCheckIn],
+            eveningCheckIns: [ScreenshotScenarioFactory.makeScreenshotEveningCheckIn(referenceDate: ehmReferenceDate)],
+            permissionState: .readRequestCompleted,
+            isPreviewData: false,
+            initialMonth: ehmReferenceDate
+          )
+        } label: {
+          Label("HealthCalendar mixed sources", systemImage: "calendar")
+        }
+
+        NavigationLink {
+          DailyMeasurementDetailView(
+            detailData: ehmDetailData,
+            allSamples: ehmMixedSourceSamples
+          )
+        } label: {
+          Label("DailyMeasurementDetail", systemImage: "calendar.badge.clock")
+        }
+
+        NavigationLink {
+          MetricDetailView(
+            metricID: .bodyWaterPercentage,
+            samples: ehmMixedSourceSamples,
+            selectedPeriod: .all
+          )
+        } label: {
+          Label("MetricDetail local-only", systemImage: "chart.xyaxis.line")
+        }
+
+        Text("이 section은 DEBUG 전용이며 mock HealthKit 상태, synthetic Fitdays CSV 결과, 앱 계산 샘플만 사용합니다. Release 사용자에게 노출되지 않습니다.")
           .font(.footnote)
           .foregroundStyle(NBColor.secondaryText)
       }
