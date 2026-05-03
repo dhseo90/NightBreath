@@ -62,6 +62,7 @@ struct PrivacyCopySafetyTests {
 
     #expect(csvFiles.map(\.lastPathComponent).sorted() == [
       "sample_fitdays_export.csv",
+      "sample_fitdays_export_abbrev.csv",
       "sample_fitdays_export_ko.csv",
     ])
 

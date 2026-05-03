@@ -113,8 +113,16 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             "Measurement Date",
             "Measured Date",
             "Record Date",
+            "Recorded At",
+            "Measured At",
+            "Measurement Timestamp",
+            "Timestamp",
+            "Date Time",
+            "Datetime",
             "측정일",
             "측정 날짜",
+            "측정일시",
+            "측정 일시",
             "날짜",
             "기록일",
         ],
@@ -124,26 +132,27 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             "Measurement Time",
             "Measured Time",
             "Record Time",
+            "Recorded Time",
             "측정시간",
             "측정 시간",
             "시간",
             "기록시간",
         ],
         metricColumnAliases: [
-            .bodyMass: ["Weight", "Body Weight", "체중", "몸무게"],
+            .bodyMass: ["Weight", "Body Weight", "Wt", "WT", "Weight kg", "Weight(kg)", "체중", "몸무게"],
             .bodyMassIndex: ["BMI", "Body Mass Index"],
-            .bodyFatPercentage: ["Body Fat", "Body Fat %", "Body Fat Percentage", "체지방률"],
-            .muscleMass: ["Muscle Mass", "근육량", "근육"],
-            .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "골격근량"],
-            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "체수분", "체수분률"],
-            .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "내장지방", "내장지방 레벨"],
+            .bodyFatPercentage: ["Body Fat", "Body Fat %", "Body Fat Percentage", "BF", "BF%", "Fat %", "체지방률"],
+            .muscleMass: ["Muscle Mass", "Muscle", "Muscle kg", "Muscle(kg)", "MM", "근육량", "근육"],
+            .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "SMM", "Skeletal Muscle kg", "Skeletal Muscle(kg)", "골격근량"],
+            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "BW%", "Water", "Water %", "체수분", "체수분률"],
+            .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "Visceral Fat Rating", "Visceral Fat Index", "VF", "VFL", "내장지방", "내장지방 레벨"],
             .visceralFatPercentage: ["Visceral Fat %", "Visceral Fat Percentage", "복부지방률"],
-            .boneMass: ["Bone Mass", "Bone", "골량"],
-            .mineralMass: ["Mineral", "Mineral Mass", "무기질"],
-            .basalMetabolicRate: ["BMR", "Basal Metabolic Rate", "기초대사량"],
-            .proteinPercentage: ["Protein", "Protein %", "Protein Percentage", "단백질률"],
-            .subcutaneousFatPercentage: ["Subcutaneous Fat", "Subcutaneous Fat %", "피하지방률"],
-            .metabolicAge: ["Body Age", "Metabolic Age", "대사 나이"],
+            .boneMass: ["Bone Mass", "Bone", "Bone kg", "Bone(kg)", "골량"],
+            .mineralMass: ["Mineral", "Mineral Mass", "Minerals", "Mineral kg", "Mineral(kg)", "무기질"],
+            .basalMetabolicRate: ["BMR", "BMR kcal", "BMR(kcal)", "Basal Metabolic Rate", "기초대사량"],
+            .proteinPercentage: ["Protein", "Protein %", "Protein Percentage", "Protein%", "Protein Rate", "단백질률"],
+            .subcutaneousFatPercentage: ["Subcutaneous Fat", "Subcutaneous Fat %", "Subcutaneous Fat Percentage", "SubQ Fat", "Subcutaneous Fat Rate", "피하지방률"],
+            .metabolicAge: ["Body Age", "BodyAge", "Metabolic Age", "Age of Body", "대사 나이"],
             .bodyScore: ["Body Score", "Fitdays Body Score", "바디 점수", "몸 점수"],
             .obesityLevel: ["Obesity Level", "Body Type Level", "체형 레벨"],
             .systolicBloodPressure: ["Systolic", "Systolic BP", "SYS", "수축기 혈압"],
@@ -368,7 +377,7 @@ public struct FitdaysImportService: Sendable {
         let trimmedTime = timeText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let combined = trimmedTime.isEmpty ? trimmedDate : "\(trimmedDate) \(trimmedTime)"
 
-        if let date = ISO8601DateFormatter().date(from: combined) {
+        if let date = parseISO8601Date(combined) {
             return date
         }
 
@@ -380,34 +389,68 @@ public struct FitdaysImportService: Sendable {
         let formats = [
             "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd HH:mm",
+            "yyyy-MM-dd h:mm a",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm",
             "yyyy/MM/dd HH:mm:ss",
             "yyyy/MM/dd HH:mm",
+            "yyyy/MM/dd h:mm a",
             "yyyy.MM.dd HH:mm:ss",
             "yyyy.MM.dd HH:mm",
             "MM/dd/yyyy HH:mm:ss",
             "MM/dd/yyyy HH:mm",
             "M/d/yyyy h:mm a",
+            "dd/MM/yyyy HH:mm:ss",
+            "dd/MM/yyyy HH:mm",
+            "d/M/yyyy h:mm a",
+            "dd.MM.yyyy HH:mm:ss",
+            "dd.MM.yyyy HH:mm",
+            "dd-MM-yyyy HH:mm:ss",
+            "dd-MM-yyyy HH:mm",
+            "yyyyMMdd HHmmss",
+            "yyyyMMdd HHmm",
             "yyyy-MM-dd",
             "yyyy/MM/dd",
             "yyyy.MM.dd",
             "MM/dd/yyyy",
+            "dd/MM/yyyy",
+            "dd.MM.yyyy",
+            "dd-MM-yyyy",
+            "yyyyMMdd",
             "yyyy년 M월 d일 HH:mm",
             "yyyy년 M월 d일",
         ]
 
-        for format in formats {
-            formatter.dateFormat = format
-            if let date = formatter.date(from: combined) {
-                return date
+        for locale in [Locale(identifier: "en_US_POSIX"), Locale(identifier: "ko_KR")] {
+            formatter.locale = locale
+            for format in formats {
+                formatter.dateFormat = format
+                if let date = formatter.date(from: combined) {
+                    return date
+                }
             }
         }
 
         return nil
     }
 
+    private func parseISO8601Date(_ text: String) -> Date? {
+        for options in [
+            ISO8601DateFormatter.Options.withInternetDateTime,
+            [.withInternetDateTime, .withFractionalSeconds],
+        ] {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = options
+            formatter.timeZone = timeZone
+            if let date = formatter.date(from: text) {
+                return date
+            }
+        }
+        return nil
+    }
+
     private func parseMetricValue(_ rawValue: String) -> Double? {
         let cleaned = rawValue
-            .replacingOccurrences(of: ",", with: "")
             .replacingOccurrences(of: "%", with: "")
             .replacingOccurrences(of: "kg", with: "", options: .caseInsensitive)
             .replacingOccurrences(of: "kcal/day", with: "", options: .caseInsensitive)
@@ -417,10 +460,40 @@ public struct FitdaysImportService: Sendable {
             .replacingOccurrences(of: "years", with: "", options: .caseInsensitive)
             .replacingOccurrences(of: "year", with: "", options: .caseInsensitive)
             .replacingOccurrences(of: "level", with: "", options: .caseInsensitive)
+            .replacingOccurrences(of: "\u{00a0}", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !cleaned.isEmpty else { return nil }
-        return Double(cleaned)
+        return Double(normalizedDecimalText(cleaned))
+    }
+
+    private func normalizedDecimalText(_ text: String) -> String {
+        let compact = text.filter { !$0.isWhitespace }
+        guard compact.contains(",") else {
+            return compact
+        }
+
+        if compact.contains(".") {
+            if let lastComma = compact.lastIndex(of: ","),
+               let lastDot = compact.lastIndex(of: "."),
+               lastComma > lastDot {
+                return compact
+                    .replacingOccurrences(of: ".", with: "")
+                    .replacingOccurrences(of: ",", with: ".")
+            }
+            return compact.replacingOccurrences(of: ",", with: "")
+        }
+
+        let parts = compact.split(separator: ",", omittingEmptySubsequences: false)
+        guard parts.count == 2 else {
+            return compact.replacingOccurrences(of: ",", with: "")
+        }
+
+        let decimalDigits = parts[1].count
+        if decimalDigits == 3, parts[0].count > 1 {
+            return compact.replacingOccurrences(of: ",", with: "")
+        }
+        return compact.replacingOccurrences(of: ",", with: ".")
     }
 }
 

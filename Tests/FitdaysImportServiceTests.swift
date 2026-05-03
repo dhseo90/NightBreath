@@ -40,6 +40,24 @@ struct FitdaysImportServiceTests {
     }
 
     @Test
+    func deleteImportBatchRemovesOnlySamplesForThatBatch() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let first = try service.importFile(from: fixtureURL(), repository: repository)
+        let second = try service.importFile(from: abbreviationFixtureURL(), repository: repository)
+
+        #expect(repository.fetchBatches().count == 2)
+        #expect(repository.fetchSamples(importBatchId: first.batch.id.uuidString).count == first.samples.count)
+        #expect(repository.fetchSamples(importBatchId: second.batch.id.uuidString).count == second.samples.count)
+
+        try repository.deleteBatch(id: first.batch.id)
+
+        #expect(repository.fetchBatches().map(\.id) == [second.batch.id])
+        #expect(repository.fetchSamples(importBatchId: first.batch.id.uuidString).isEmpty)
+        #expect(repository.fetchSamples(importBatchId: second.batch.id.uuidString).count == second.samples.count)
+        #expect(Set(repository.fetchSamples().compactMap(\.importBatchId)) == [second.batch.id.uuidString])
+    }
+
+    @Test
     func invalidRowsAndUnknownColumnsAreReportedWhileValidSamplesContinue() throws {
         let csv = """
         Date,Time,Weight,Body Water,Device Nickname
@@ -101,5 +119,10 @@ struct FitdaysImportServiceTests {
     private func fixtureURL() -> URL {
         URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export.csv")
+    }
+
+    private func abbreviationFixtureURL() -> URL {
+        URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export_abbrev.csv")
     }
 }

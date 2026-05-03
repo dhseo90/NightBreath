@@ -129,6 +129,49 @@ struct FitdaysCSVParserTests {
         #expect(obesityLevel.unit == "level")
     }
 
+    @Test
+    func abbreviationDelimiterAndDecimalCommaFixtureImportsAsFitdaysSource() throws {
+        let result = try service.parseCSV(
+            abbreviationFixtureContents(),
+            fileName: "sample_fitdays_export_abbrev.csv",
+            importedAt: referenceDate
+        )
+
+        #expect(result.batch.rowCount == 2)
+        #expect(result.batch.sampleCount == 24)
+        #expect(result.samples.count == 24)
+        #expect(result.unknownColumns == ["Unknown Device Column"])
+        #expect(result.rowErrors.isEmpty)
+        #expect(Set(result.samples.map(\.sourceType)) == [.fitdaysCSV])
+
+        let metricIDs = Set(result.samples.map(\.metricID))
+        #expect(metricIDs == [
+            .bodyMass,
+            .bodyFatPercentage,
+            .muscleMass,
+            .skeletalMuscleMass,
+            .bodyWaterPercentage,
+            .visceralFatLevel,
+            .boneMass,
+            .mineralMass,
+            .basalMetabolicRate,
+            .proteinPercentage,
+            .subcutaneousFatPercentage,
+            .metabolicAge,
+        ])
+
+        let firstBodyMass = try #require(result.samples.first { $0.metricID == .bodyMass })
+        let firstBodyFat = try #require(result.samples.first { $0.metricID == .bodyFatPercentage })
+        let firstMuscleMass = try #require(result.samples.first { $0.metricID == .muscleMass })
+        let firstMetabolicRate = try #require(result.samples.first { $0.metricID == .basalMetabolicRate })
+
+        #expect(firstBodyMass.value == 71.8)
+        #expect(firstBodyFat.value == 21.4)
+        #expect(firstMuscleMass.value == 52.3)
+        #expect(firstMetabolicRate.value == 1_520)
+        #expect(result.samples.map(\.measuredAt) == result.samples.map(\.measuredAt).sorted())
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,
@@ -156,6 +199,12 @@ struct FitdaysCSVParserTests {
     private func localizedFixtureContents() throws -> String {
         let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export_ko.csv")
+        return try String(contentsOf: url, encoding: .utf8)
+    }
+
+    private func abbreviationFixtureContents() throws -> String {
+        let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export_abbrev.csv")
         return try String(contentsOf: url, encoding: .utf8)
     }
 }

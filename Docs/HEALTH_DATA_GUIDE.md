@@ -154,13 +154,16 @@ Importer 설계 원칙:
 
 - 입력은 사용자가 명시적으로 선택한 local file URL입니다.
 - CSV-compatible text를 우선 지원하고, 향후 structured export file이 확인되면 같은 privacy boundary 안에서 parser를 추가합니다.
-- column mapping은 영어, 한국어, punctuation/space/case 차이를 유연하게 받아들입니다.
+- column mapping은 영어, 한국어, 축약 column, punctuation/space/case 차이를 유연하게 받아들입니다.
 - unknown column은 전체 실패가 아니라 warning으로 남깁니다.
 - invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
-- CSV delimiter, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
-- 같은 파일을 다시 가져오면 duplicate import handling으로 이전 batch를 교체할 수 있어야 합니다.
+- CSV delimiter, decimal separator, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
+- 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
+- 다른 file에서 같은 metric/source/external record key가 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
 - 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
 - import batch는 삭제 가능해야 하며, 삭제 시 해당 `importBatchId`를 가진 sample도 함께 정리할 수 있어야 합니다.
+
+호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV를 포함합니다.
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 
