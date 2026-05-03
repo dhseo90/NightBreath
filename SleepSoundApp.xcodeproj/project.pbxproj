@@ -77,6 +77,10 @@
 		000000000000000000000257 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000175 /* CalibrationService.swift */; };
 		000000000000000000000258 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000176 /* OnboardingView.swift */; };
 		000000000000000000000259 /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000177 /* CalibrationView.swift */; };
+		00000000000000000000025A /* HealthMetricChartData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017A /* HealthMetricChartData.swift */; };
+		00000000000000000000025B /* MockHealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017B /* MockHealthKitService.swift */; };
+		00000000000000000000025C /* HealthDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017C /* HealthDashboardView.swift */; };
+		00000000000000000000025D /* HealthMetricChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017D /* HealthMetricChartView.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -219,6 +223,11 @@
 		000000000000000000000177 /* CalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationView.swift; sourceTree = "<group>"; };
 		000000000000000000000178 /* CalibrationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationServiceTests.swift; sourceTree = "<group>"; };
 		000000000000000000000179 /* OnboardingCopyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCopyTests.swift; sourceTree = "<group>"; };
+		00000000000000000000017A /* HealthMetricChartData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricChartData.swift; sourceTree = "<group>"; };
+		00000000000000000000017B /* MockHealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHealthKitService.swift; sourceTree = "<group>"; };
+		00000000000000000000017C /* HealthDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardView.swift; sourceTree = "<group>"; };
+		00000000000000000000017D /* HealthMetricChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricChartView.swift; sourceTree = "<group>"; };
+		00000000000000000000017E /* MockHealthKitServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHealthKitServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -324,6 +333,8 @@
 				00000000000000000000011D /* HomeDashboardView.swift */,
 				00000000000000000000011E /* TrendChartView.swift */,
 				000000000000000000000173 /* TrendDashboardView.swift */,
+				00000000000000000000017C /* HealthDashboardView.swift */,
+				00000000000000000000017D /* HealthMetricChartView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -436,6 +447,8 @@
 			children = (
 				000000000000000000000110 /* HealthMetricType.swift */,
 				00000000000000000000010F /* HealthKitServiceProtocol.swift */,
+				00000000000000000000017B /* MockHealthKitService.swift */,
+				00000000000000000000017A /* HealthMetricChartData.swift */,
 				00000000000000000000010E /* HealthDashboardPlaceholder.swift */,
 			);
 			path = FutureHealth;
@@ -488,6 +501,7 @@
 				000000000000000000000174 /* TrendAggregatorTests.swift */,
 				000000000000000000000178 /* CalibrationServiceTests.swift */,
 				000000000000000000000179 /* OnboardingCopyTests.swift */,
+				00000000000000000000017E /* MockHealthKitServiceTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -607,6 +621,8 @@
 				00000000000000000000020E /* HealthDashboardPlaceholder.swift in Sources */,
 				00000000000000000000020F /* HealthKitServiceProtocol.swift in Sources */,
 				000000000000000000000210 /* HealthMetricType.swift in Sources */,
+				00000000000000000000025B /* MockHealthKitService.swift in Sources */,
+				00000000000000000000025A /* HealthMetricChartData.swift in Sources */,
 				000000000000000000000211 /* HealthMetricSample.swift in Sources */,
 				000000000000000000000212 /* MockSleepDataFactory.swift in Sources */,
 				000000000000000000000213 /* MorningCheckIn.swift in Sources */,
@@ -636,6 +652,8 @@
 				00000000000000000000021B /* HomeDashboardView.swift in Sources */,
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
 				000000000000000000000256 /* TrendDashboardView.swift in Sources */,
+				00000000000000000000025C /* HealthDashboardView.swift in Sources */,
+				00000000000000000000025D /* HealthMetricChartView.swift in Sources */,
 				000000000000000000000258 /* OnboardingView.swift in Sources */,
 				000000000000000000000259 /* CalibrationView.swift in Sources */,
 				00000000000000000000021D /* DevicePlacementGuideView.swift in Sources */,

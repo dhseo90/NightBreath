@@ -111,6 +111,13 @@ struct HomeDashboardView: View {
         }
         .buttonStyle(.nbSecondary)
 
+        NavigationLink {
+          HealthDashboardView()
+        } label: {
+          Label("건강 데이터 대시보드 준비 중", systemImage: "heart.text.square")
+        }
+        .buttonStyle(.nbSecondary)
+
         NBReportSection(title: "최근 수면 소리 점수", systemImage: "chart.xyaxis.line") {
           TrendChartView(scores: trendScores)
             .frame(height: 160)
@@ -203,6 +210,9 @@ struct HomeDashboardView: View {
           .font(.callout)
           .foregroundStyle(.secondary)
         Text(placeholder.plannedMetrics.prefix(5).map(\.displayName).joined(separator: " · "))
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+        Text("현재는 mock data로 UI를 검증하며 실제 건강앱 권한 요청은 비활성화되어 있습니다.")
           .font(.footnote)
           .foregroundStyle(.secondary)
       }
@@ -318,6 +328,23 @@ private struct SettingsListView: View {
         } label: {
           Label("30초 캘리브레이션", systemImage: "waveform.badge.magnifyingglass")
         }
+      }
+
+      Section("건강 데이터") {
+        NavigationLink {
+          HealthDashboardView()
+        } label: {
+          Label("건강 데이터 대시보드 준비 중", systemImage: "heart.text.square")
+        }
+
+        Button {} label: {
+          Label("건강앱 권한 요청은 다음 단계", systemImage: "heart.text.square")
+        }
+        .disabled(true)
+
+        Text("혈압, 체중, 체지방률, BMI, 심박수, 수면 데이터는 mock 구조로 먼저 검증합니다.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
       }
 
       #if DEBUG
