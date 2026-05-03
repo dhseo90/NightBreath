@@ -37,9 +37,11 @@ struct CrossMetricAnalysisTests {
         #expect(bloodPressurePoints.count == 1)
         #expect(try #require(bloodPressurePoints.first).healthValue == 123)
         #expect(try #require(bloodPressurePoints.first).matchingStrategy == .nextMorning)
+        #expect(try #require(bloodPressurePoints.first).matchingWindowDescription.contains("다음날 04:00부터 12:00"))
         #expect(bodyMassPoints.count == 1)
         #expect(try #require(bodyMassPoints.first).healthValue == 71.2)
         #expect(try #require(bodyMassPoints.first).matchingStrategy == .sameCalendarDay)
+        #expect(try #require(bodyMassPoints.first).matchingWindowDescription.contains("같은 날짜"))
     }
 
     @Test
@@ -107,6 +109,7 @@ struct CrossMetricAnalysisTests {
         #expect(summary.matchedSampleCount == 2)
         #expect(summary.lowQualityExcludedCount == 1)
         #expect(summary.dataQuality == .limited)
+        #expect(summary.matchingWindowDescription.contains("같은 날짜"))
     }
 
     @Test
@@ -134,6 +137,36 @@ struct CrossMetricAnalysisTests {
 
         #expect(Set(summary.healthSourceNames) == Set(["Fitdays", "Apple Health"]))
         #expect(summary.sourceSummaries.map(\.sampleCount).reduce(0, +) == 3)
+    }
+
+    @Test
+    func sufficientSummaryUsesObservationOnlyWording() {
+        let analyzer = CrossMetricAnalyzer(calendar: calendar, minimumMatchedSampleCount: 3)
+        let reports = [
+            makeReport(generatedAt: date(2026, 5, 1, 7, 0)),
+            makeReport(generatedAt: date(2026, 5, 2, 7, 0)),
+            makeReport(generatedAt: date(2026, 5, 3, 7, 0)),
+        ]
+        let samples = [
+            sample(.systolicBloodPressure, 119, at: date(2026, 5, 2, 8, 0), source: ("Omron Connect", "com.omron")),
+            sample(.systolicBloodPressure, 121, at: date(2026, 5, 3, 8, 0), source: ("Omron Connect", "com.omron")),
+            sample(.systolicBloodPressure, 118, at: date(2026, 5, 4, 8, 0), source: ("Omron Connect", "com.omron")),
+        ]
+
+        let summary = analyzer.summary(
+            reports: reports,
+            samples: samples,
+            sleepMetric: .snoreTotalSeconds,
+            healthMetric: .systolicBloodPressure,
+            period: .sevenDays,
+            endingAt: date(2026, 5, 5, 12, 0)
+        )
+
+        #expect(summary.hasEnoughData)
+        #expect(summary.trendDescription.contains("코골기 시간이 기록된 날"))
+        #expect(summary.trendDescription.contains("날짜 기준으로 함께 표시합니다"))
+        #expect(!summary.trendDescription.contains("때문에"))
+        #expect(!summary.trendDescription.contains("상승"))
     }
 
     @Test

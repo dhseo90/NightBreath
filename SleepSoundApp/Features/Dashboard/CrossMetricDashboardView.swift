@@ -29,6 +29,7 @@ struct CrossMetricDashboardView: View {
 
           if summary.hasEnoughData {
             chartSection
+            matchedPointSection
             summarySection
             HealthSourceSummarySection(sourceSummaries: summary.sourceSummaries)
           } else {
@@ -126,7 +127,7 @@ struct CrossMetricDashboardView: View {
   private var matchingGuideSection: some View {
     NBReportSection(title: "날짜 매칭", systemImage: "calendar.badge.clock") {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text(analyzer.matchingWindowDescription(for: selectedHealthMetric))
+        Text(summary.matchingWindowDescription)
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
         HStack(spacing: NBSpacing.small) {
@@ -136,6 +137,33 @@ struct CrossMetricDashboardView: View {
         Text("오디오 커버리지가 낮은 수면 리포트는 그래프에서 구분하고 요약 계산에서는 제외합니다.")
           .font(NBTypography.footnote)
           .foregroundStyle(NBColor.secondaryText)
+      }
+    }
+  }
+
+  private var matchedPointSection: some View {
+    NBReportSection(title: "날짜별 매칭", systemImage: "calendar.badge.checkmark") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        ForEach(recentMatchedPoints) { point in
+          NBListRow(
+            title: SleepFormatters.shortDate(point.sleepReportDate),
+            value: point.isIncludedInSummary ? "요약 포함" : "구분 표시",
+            subtitle: matchedPointSubtitle(point),
+            systemImage: point.isIncludedInSummary ? "link.circle" : "exclamationmark.triangle",
+            tint: point.isIncludedInSummary ? NBColor.breathBlue : NBColor.warning,
+            accessibilityLabel: matchedPointAccessibilityLabel(point)
+          )
+
+          if point.id != recentMatchedPoints.last?.id {
+            Divider().overlay(NBColor.divider)
+          }
+        }
+
+        if matchedPoints.count > recentMatchedPoints.count {
+          Text("최근 \(recentMatchedPoints.count)개 매칭만 표시합니다.")
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
+        }
       }
     }
   }
@@ -200,7 +228,7 @@ struct CrossMetricDashboardView: View {
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           summaryTile("비교 sample", "\(summary.matchedSampleCount)개", "link", .neutral)
-          summaryTile("데이터 품질", summary.dataQuality.displayName, "checkmark.seal", .good)
+          summaryTile("데이터 품질", summary.dataQuality.displayName, "checkmark.seal", summaryStatusKind)
           summaryTile("구분 표시", "\(summary.lowQualityExcludedCount)개", "exclamationmark.triangle", .caution)
           summaryTile("건강 source", sourceNamesText, "square.stack.3d.up", .privacy)
         }
@@ -224,6 +252,61 @@ struct CrossMetricDashboardView: View {
       return "--"
     }
     return summary.healthSourceNames.prefix(2).joined(separator: ", ")
+  }
+
+  private var summaryStatusKind: NBStatusKind {
+    switch summary.dataQuality {
+    case .sufficient:
+      .good
+    case .limited:
+      .caution
+    case .insufficientData:
+      .neutral
+    }
+  }
+
+  private var recentMatchedPoints: [CrossMetricMatchedPoint] {
+    Array(matchedPoints
+      .sorted { lhs, rhs in
+        if lhs.sleepReportDate == rhs.sleepReportDate {
+          return lhs.id < rhs.id
+        }
+        return lhs.sleepReportDate > rhs.sleepReportDate
+      }
+      .prefix(8)
+      .reversed())
+  }
+
+  private func matchedPointSubtitle(_ point: CrossMetricMatchedPoint) -> String {
+    [
+      "\(selectedSleepMetric.displayName) \(formattedSleepValue(point.sleepValue))",
+      "\(selectedHealthMetric.displayName) \(HealthMetricDashboardFormatting.valueString(point.healthValue, unit: selectedHealthMetric.unitLabel))",
+      "건강 sample \(SleepFormatters.shortDate(point.healthSampleDate)) \(SleepFormatters.shortTime(point.healthSampleDate))",
+      point.healthSourceName,
+      "커버리지 \(percentString(point.audioCoverageRatio))",
+    ].joined(separator: " · ")
+  }
+
+  private func matchedPointAccessibilityLabel(_ point: CrossMetricMatchedPoint) -> String {
+    "\(SleepFormatters.shortDate(point.sleepReportDate)), \(matchedPointSubtitle(point)), \(point.isIncludedInSummary ? "요약 포함" : "측정 품질 낮음으로 구분 표시")"
+  }
+
+  private func formattedSleepValue(_ value: Double) -> String {
+    switch selectedSleepMetric {
+    case .sleepSoundScore:
+      "\(Int(value.rounded()))점"
+    case .audioCoverageRatio:
+      "\(Int(value.rounded()))%"
+    case .snoreTotalSeconds:
+      String(format: "%.1f분", value)
+    case .bruxismLikeCount, .coughLikeCount, .gaspLikeCount,
+         .suspectedBreathingPauseCount, .environmentalNoiseCount, .awakeningSuspectedCount:
+      "\(Int(value.rounded()))회"
+    }
+  }
+
+  private func percentString(_ ratio: Double) -> String {
+    "\(Int((min(max(ratio, 0), 1) * 100).rounded()))%"
   }
 
   private func summaryTile(

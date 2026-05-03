@@ -45,6 +45,7 @@ public struct CrossMetricMatchedPoint: Identifiable, Equatable, Sendable {
     public var healthSourceBundleIdentifier: String
     public var matchingStrategy: CrossMetricMatchingStrategy
     public var isIncludedInSummary: Bool
+    public var matchingWindowDescription: String
 
     public var isLowMeasurementQuality: Bool {
         !isIncludedInSummary
@@ -63,7 +64,8 @@ public struct CrossMetricMatchedPoint: Identifiable, Equatable, Sendable {
         healthSourceName: String,
         healthSourceBundleIdentifier: String,
         matchingStrategy: CrossMetricMatchingStrategy,
-        isIncludedInSummary: Bool
+        isIncludedInSummary: Bool,
+        matchingWindowDescription: String
     ) {
         self.id = id
         self.sleepMetric = sleepMetric
@@ -78,6 +80,7 @@ public struct CrossMetricMatchedPoint: Identifiable, Equatable, Sendable {
         self.healthSourceBundleIdentifier = healthSourceBundleIdentifier
         self.matchingStrategy = matchingStrategy
         self.isIncludedInSummary = isIncludedInSummary
+        self.matchingWindowDescription = matchingWindowDescription
     }
 
     private static func safe(_ value: Double) -> Double {
@@ -98,6 +101,7 @@ public struct CrossMetricSummary: Equatable, Sendable {
     public var matchingStrategy: CrossMetricMatchingStrategy
     public var healthSourceNames: [String]
     public var sourceSummaries: [HealthMetricSourceSummary]
+    public var matchingWindowDescription: String
 
     public init(
         sleepMetric: TrendMetricType,
@@ -110,7 +114,8 @@ public struct CrossMetricSummary: Equatable, Sendable {
         lowQualityExcludedCount: Int,
         matchingStrategy: CrossMetricMatchingStrategy,
         healthSourceNames: [String],
-        sourceSummaries: [HealthMetricSourceSummary]
+        sourceSummaries: [HealthMetricSourceSummary],
+        matchingWindowDescription: String
     ) {
         self.sleepMetric = sleepMetric
         self.healthMetric = healthMetric
@@ -123,6 +128,7 @@ public struct CrossMetricSummary: Equatable, Sendable {
         self.matchingStrategy = matchingStrategy
         self.healthSourceNames = healthSourceNames
         self.sourceSummaries = sourceSummaries
+        self.matchingWindowDescription = matchingWindowDescription
     }
 
     public var hasEnoughData: Bool {
@@ -207,7 +213,8 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
                 healthSourceName: sample.sourceName,
                 healthSourceBundleIdentifier: sample.sourceBundleIdentifier,
                 matchingStrategy: matchWindow.strategy,
-                isIncludedInSummary: included
+                isIncludedInSummary: included,
+                matchingWindowDescription: matchingWindowDescription(for: healthMetric)
             )
         }
     }
@@ -250,7 +257,8 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
             lowQualityExcludedCount: excludedCount,
             matchingStrategy: matchingStrategy(for: healthMetric),
             healthSourceNames: sourceSummaries.map(\.sourceName),
-            sourceSummaries: sourceSummaries
+            sourceSummaries: sourceSummaries,
+            matchingWindowDescription: matchingWindowDescription(for: healthMetric)
         )
     }
 
@@ -293,7 +301,7 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
             return "비교 가능한 데이터가 아직 부족합니다."
         }
 
-        let baseText = "\(sleepMetric.displayName)와 \(healthMetric.displayName) sample \(includedCount)개를 날짜 기준으로 함께 표시합니다."
+        let baseText = "\(sleepMetric.referencePhrase)와 \(healthMetric.displayName) sample \(includedCount)개를 날짜 기준으로 함께 표시합니다."
         guard excludedCount > 0 else {
             return baseText
         }
@@ -379,5 +387,30 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
                 }
                 return lhs.latestMeasuredAt > rhs.latestMeasuredAt
             }
+    }
+}
+
+private extension TrendMetricType {
+    var referencePhrase: String {
+        switch self {
+        case .sleepSoundScore:
+            "수면 소리 점수가 기록된 날"
+        case .audioCoverageRatio:
+            "오디오 커버리지가 기록된 날"
+        case .snoreTotalSeconds:
+            "코골기 시간이 기록된 날"
+        case .bruxismLikeCount:
+            "이갈이 의심 소리가 기록된 날"
+        case .coughLikeCount:
+            "기침 의심 소리가 기록된 날"
+        case .gaspLikeCount:
+            "gasp-like 회복 호흡이 기록된 날"
+        case .suspectedBreathingPauseCount:
+            "호흡정지 의심 구간이 기록된 날"
+        case .environmentalNoiseCount:
+            "환경 소음이 기록된 날"
+        case .awakeningSuspectedCount:
+            "각성 의심 구간이 기록된 날"
+        }
     }
 }
