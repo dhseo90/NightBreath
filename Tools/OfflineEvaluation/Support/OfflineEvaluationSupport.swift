@@ -608,6 +608,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
   public var audioCoverageRatio: Double
   public var rawCandidateCount: Int
   public var averageConfidence: Double?
+  public var confidenceSummary: SummaryStats?
   public var rawCandidateCountByType: [String: Int]
   public var preSmoothingCandidateCount: Int
   public var postSmoothingEventCount: Int
@@ -634,6 +635,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
     audioCoverageRatio: Double = 0,
     rawCandidateCount: Int = 0,
     averageConfidence: Double? = nil,
+    confidenceSummary: SummaryStats? = nil,
     rawCandidateCountByType: [String: Int] = [:],
     preSmoothingCandidateCount: Int = 0,
     postSmoothingEventCount: Int = 0,
@@ -659,6 +661,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
     self.audioCoverageRatio = Self.clampedRatio(audioCoverageRatio)
     self.rawCandidateCount = max(0, rawCandidateCount)
     self.averageConfidence = averageConfidence.map(Self.clampedRatio)
+    self.confidenceSummary = confidenceSummary
     self.rawCandidateCountByType = rawCandidateCountByType
     self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
     self.postSmoothingEventCount = max(0, postSmoothingEventCount)
@@ -740,6 +743,600 @@ public struct OfflineEvaluationRunResult: Equatable, Sendable {
     self.jsonURL = jsonURL
     self.validation = validation
   }
+}
+
+public enum SnoreBaselineEvaluationError: Error, Equatable, Sendable {
+  case missingManifestPath
+  case manifestFileNotFound(String)
+  case failedToWriteOutput(String)
+
+  public var message: String {
+    switch self {
+    case .missingManifestPath:
+      "snore baseline 평가 manifest 경로가 필요합니다."
+    case .manifestFileNotFound(let path):
+      "manifest 파일을 찾을 수 없습니다: \(path)"
+    case .failedToWriteOutput(let reason):
+      "snore baseline output 저장에 실패했습니다. \(reason)"
+    }
+  }
+}
+
+public struct SnoreBaselineRecord: Codable, Equatable, Sendable {
+  public var fileId: String
+  public var segmentStartSeconds: TimeInterval
+  public var segmentDurationSeconds: TimeInterval
+  public var expectedLabels: [String]
+  public var detectorProfile: String
+  public var rawCandidateCount: Int
+  public var preSmoothingCandidateCount: Int
+  public var postSmoothingEventCount: Int
+  public var finalSnoreEventCount: Int
+  public var finalEventCountByType: [String: Int]
+  public var rejectReasonTop: [OfflineEvaluationReasonCount]
+  public var zeroEventReason: String?
+  public var rmsSummary: SummaryStats
+  public var energySummary: SummaryStats
+  public var confidenceSummary: SummaryStats
+  public var possibleFalsePositive: Bool
+  public var possibleFalseNegative: Bool
+  public var errorMessage: String?
+
+  public init(
+    fileId: String,
+    segmentStartSeconds: TimeInterval,
+    segmentDurationSeconds: TimeInterval,
+    expectedLabels: [String],
+    detectorProfile: String,
+    rawCandidateCount: Int,
+    preSmoothingCandidateCount: Int,
+    postSmoothingEventCount: Int,
+    finalSnoreEventCount: Int,
+    finalEventCountByType: [String: Int],
+    rejectReasonTop: [OfflineEvaluationReasonCount],
+    zeroEventReason: String?,
+    rmsSummary: SummaryStats,
+    energySummary: SummaryStats,
+    confidenceSummary: SummaryStats,
+    possibleFalsePositive: Bool,
+    possibleFalseNegative: Bool,
+    errorMessage: String? = nil
+  ) {
+    self.fileId = fileId
+    self.segmentStartSeconds = max(0, segmentStartSeconds)
+    self.segmentDurationSeconds = max(0, segmentDurationSeconds)
+    self.expectedLabels = expectedLabels
+    self.detectorProfile = detectorProfile
+    self.rawCandidateCount = max(0, rawCandidateCount)
+    self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
+    self.postSmoothingEventCount = max(0, postSmoothingEventCount)
+    self.finalSnoreEventCount = max(0, finalSnoreEventCount)
+    self.finalEventCountByType = finalEventCountByType
+    self.rejectReasonTop = rejectReasonTop
+    self.zeroEventReason = zeroEventReason
+    self.rmsSummary = rmsSummary
+    self.energySummary = energySummary
+    self.confidenceSummary = confidenceSummary
+    self.possibleFalsePositive = possibleFalsePositive
+    self.possibleFalseNegative = possibleFalseNegative
+    self.errorMessage = errorMessage
+  }
+
+  public init(evaluationRecord record: OfflineEvaluationRecord) {
+    let finalSnoreEventCount = record.finalEventCountByType[SleepEventType.snore.rawValue] ?? 0
+    let possibleFalsePositive = Self.isPossibleFalsePositiveLike(
+      expectedLabels: record.expectedLabels,
+      finalSnoreEventCount: finalSnoreEventCount,
+      errorMessage: record.errorMessage
+    )
+    let possibleFalseNegative = Self.isPossibleFalseNegativeLike(
+      expectedLabels: record.expectedLabels,
+      finalSnoreEventCount: finalSnoreEventCount,
+      errorMessage: record.errorMessage
+    )
+
+    self.init(
+      fileId: record.fileId,
+      segmentStartSeconds: record.segmentStartSeconds,
+      segmentDurationSeconds: record.segmentDurationSeconds,
+      expectedLabels: record.expectedLabels,
+      detectorProfile: record.tuningProfile,
+      rawCandidateCount: record.rawCandidateCount,
+      preSmoothingCandidateCount: record.preSmoothingCandidateCount,
+      postSmoothingEventCount: record.postSmoothingEventCount,
+      finalSnoreEventCount: finalSnoreEventCount,
+      finalEventCountByType: record.finalEventCountByType,
+      rejectReasonTop: record.rejectReasonTop,
+      zeroEventReason: record.zeroEventReason,
+      rmsSummary: record.rmsSummary,
+      energySummary: record.energySummary,
+      confidenceSummary: record.confidenceSummary ?? SummaryStats(),
+      possibleFalsePositive: possibleFalsePositive,
+      possibleFalseNegative: possibleFalseNegative,
+      errorMessage: record.errorMessage
+    )
+  }
+
+  public static func isPossibleFalsePositiveLike(
+    expectedLabels: [String],
+    finalSnoreEventCount: Int,
+    errorMessage: String? = nil
+  ) -> Bool {
+    guard errorMessage == nil, finalSnoreEventCount > 0 else { return false }
+    let labels = Set(expectedLabels.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+      .filter { !$0.isEmpty }
+    guard !labels.isEmpty else { return false }
+    let quietLabels: Set<String> = [
+      DatasetManifestLabel.silence.rawValue,
+      DatasetManifestLabel.unknown.rawValue,
+      DatasetManifestLabel.environmentalNoise.rawValue,
+    ]
+    return labels.isSubset(of: quietLabels)
+  }
+
+  public static func isPossibleFalseNegativeLike(
+    expectedLabels: [String],
+    finalSnoreEventCount: Int,
+    errorMessage: String? = nil
+  ) -> Bool {
+    guard errorMessage == nil, finalSnoreEventCount == 0 else { return false }
+    return expectedLabels.contains(SleepEventType.snore.rawValue)
+  }
+}
+
+public struct SnoreBaselineProfileSummary: Codable, Equatable, Sendable {
+  public var detectorProfile: String
+  public var evaluatedRecords: Int
+  public var failedRecords: Int
+  public var zeroEventCount: Int
+  public var rawCandidateCount: Int
+  public var preSmoothingCandidateCount: Int
+  public var postSmoothingEventCount: Int
+  public var finalSnoreEventCount: Int
+  public var topRejectReasons: [OfflineEvaluationReasonCount]
+  public var possibleFalsePositiveCount: Int
+  public var possibleFalseNegativeCount: Int
+
+  public init(
+    detectorProfile: String,
+    evaluatedRecords: Int,
+    failedRecords: Int,
+    zeroEventCount: Int,
+    rawCandidateCount: Int,
+    preSmoothingCandidateCount: Int,
+    postSmoothingEventCount: Int,
+    finalSnoreEventCount: Int,
+    topRejectReasons: [OfflineEvaluationReasonCount],
+    possibleFalsePositiveCount: Int,
+    possibleFalseNegativeCount: Int
+  ) {
+    self.detectorProfile = detectorProfile
+    self.evaluatedRecords = max(0, evaluatedRecords)
+    self.failedRecords = max(0, failedRecords)
+    self.zeroEventCount = max(0, zeroEventCount)
+    self.rawCandidateCount = max(0, rawCandidateCount)
+    self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
+    self.postSmoothingEventCount = max(0, postSmoothingEventCount)
+    self.finalSnoreEventCount = max(0, finalSnoreEventCount)
+    self.topRejectReasons = topRejectReasons
+    self.possibleFalsePositiveCount = max(0, possibleFalsePositiveCount)
+    self.possibleFalseNegativeCount = max(0, possibleFalseNegativeCount)
+  }
+}
+
+public struct SnoreBaselineManifestValidationSummary: Codable, Equatable, Sendable {
+  public var totalSegments: Int
+  public var validSegments: Int
+  public var missingFiles: Int
+  public var unsupportedLabels: Int
+  public var licenseWarnings: Int
+  public var missingRequiredFields: Int
+  public var invalidDurations: Int
+  public var fieldWarnings: Int
+
+  public init(validation: OfflineEvaluationManifestValidationResult?) {
+    totalSegments = validation?.totalSegments ?? 0
+    validSegments = validation?.validSegmentCount ?? 0
+    missingFiles = validation?.missingFiles.count ?? 0
+    unsupportedLabels = validation?.unsupportedLabels.count ?? 0
+    licenseWarnings = validation?.licenseWarnings.count ?? 0
+    missingRequiredFields = validation?.missingRequiredFields.count ?? 0
+    invalidDurations = validation?.invalidDurations.count ?? 0
+    fieldWarnings = validation?.fieldWarnings.count ?? 0
+  }
+}
+
+public struct SnoreBaselineSummary: Codable, Equatable, Sendable {
+  public var evaluatedSegments: Int
+  public var evaluatedRecords: Int
+  public var failedRecords: Int
+  public var possibleFalsePositiveCount: Int
+  public var possibleFalseNegativeCount: Int
+  public var profileSummaries: [SnoreBaselineProfileSummary]
+  public var tuningCandidates: [String]
+  public var manifestValidation: SnoreBaselineManifestValidationSummary
+
+  public init(
+    evaluatedSegments: Int,
+    records: [SnoreBaselineRecord],
+    manifestValidation: SnoreBaselineManifestValidationSummary
+  ) {
+    self.evaluatedSegments = max(0, evaluatedSegments)
+    evaluatedRecords = records.count
+    failedRecords = records.filter { $0.errorMessage != nil }.count
+    possibleFalsePositiveCount = records.filter(\.possibleFalsePositive).count
+    possibleFalseNegativeCount = records.filter(\.possibleFalseNegative).count
+    profileSummaries = Self.makeProfileSummaries(records: records)
+    tuningCandidates = Self.makeTuningCandidates(
+      records: records,
+      manifestValidation: manifestValidation
+    )
+    self.manifestValidation = manifestValidation
+  }
+
+  public static func makeProfileSummaries(
+    records: [SnoreBaselineRecord]
+  ) -> [SnoreBaselineProfileSummary] {
+    let grouped = Dictionary(grouping: records, by: \.detectorProfile)
+    return grouped.keys.sorted().map { profile in
+      let profileRecords = grouped[profile] ?? []
+      let rejectCounts = profileRecords.flatMap(\.rejectReasonTop).reduce(into: [String: Int]()) {
+        result, reasonCount in
+        result[reasonCount.reason, default: 0] += reasonCount.count
+      }
+      let topRejectReasons = rejectCounts
+        .sorted { lhs, rhs in lhs.value == rhs.value ? lhs.key < rhs.key : lhs.value > rhs.value }
+        .prefix(5)
+        .map { OfflineEvaluationReasonCount(reason: $0.key, count: $0.value) }
+
+      return SnoreBaselineProfileSummary(
+        detectorProfile: profile,
+        evaluatedRecords: profileRecords.count,
+        failedRecords: profileRecords.filter { $0.errorMessage != nil }.count,
+        zeroEventCount: profileRecords.filter {
+          $0.errorMessage == nil && $0.finalEventCountByType.values.reduce(0, +) == 0
+        }.count,
+        rawCandidateCount: profileRecords.reduce(0) { $0 + $1.rawCandidateCount },
+        preSmoothingCandidateCount: profileRecords.reduce(0) {
+          $0 + $1.preSmoothingCandidateCount
+        },
+        postSmoothingEventCount: profileRecords.reduce(0) {
+          $0 + $1.postSmoothingEventCount
+        },
+        finalSnoreEventCount: profileRecords.reduce(0) { $0 + $1.finalSnoreEventCount },
+        topRejectReasons: topRejectReasons,
+        possibleFalsePositiveCount: profileRecords.filter(\.possibleFalsePositive).count,
+        possibleFalseNegativeCount: profileRecords.filter(\.possibleFalseNegative).count
+      )
+    }
+  }
+
+  public static func makeTuningCandidates(
+    records: [SnoreBaselineRecord],
+    manifestValidation: SnoreBaselineManifestValidationSummary
+  ) -> [String] {
+    var candidates: [String] = []
+    if records.isEmpty {
+      candidates.append("평가 record가 없습니다. synthetic 또는 로컬 manifest segment를 준비한 뒤 baseline을 다시 생성하세요.")
+    }
+    if manifestValidation.missingFiles > 0 {
+      candidates.append("missing file warning이 있습니다. localFilePath를 로컬 오디오 위치에 맞게 확인하세요.")
+    }
+    if records.contains(where: \.possibleFalseNegative) {
+      candidates.append("snore expected segment에서 final snore event가 없는 profile의 snore RMS/energy/confidence threshold를 소폭 완화할지 검토하세요.")
+    }
+    if records.contains(where: \.possibleFalsePositive) {
+      candidates.append("silence/unknown/environmentalNoise 중심 segment에서 snore event가 생긴 profile은 confidence 또는 snore threshold를 보수적으로 조정할지 검토하세요.")
+    }
+    candidates.append("threshold 후보는 자동 적용하지 말고 실제 iPhone 짧은 테스트로 별도 확인하세요.")
+    return candidates
+  }
+}
+
+public struct SnoreBaselineOutput: Codable, Equatable, Sendable {
+  public var generatedAt: Date
+  public var summary: SnoreBaselineSummary
+  public var records: [SnoreBaselineRecord]
+
+  public init(
+    generatedAt: Date,
+    summary: SnoreBaselineSummary,
+    records: [SnoreBaselineRecord]
+  ) {
+    self.generatedAt = generatedAt
+    self.summary = summary
+    self.records = records
+  }
+}
+
+public struct SnoreBaselineRunResult: Equatable, Sendable {
+  public var output: SnoreBaselineOutput
+  public var csvURL: URL
+  public var jsonURL: URL
+  public var markdownURL: URL
+}
+
+public struct SnoreBaselineEvaluationRunner {
+  public var fileManager: FileManager
+  public var evaluationRunner: OfflineEvaluationRunner
+
+  public init(fileManager: FileManager = .default) {
+    self.fileManager = fileManager
+    evaluationRunner = OfflineEvaluationRunner(fileManager: fileManager)
+  }
+
+  public func evaluate(
+    manifestURL: URL,
+    outputDirectory: URL,
+    profiles: [DetectorTuningProfile] = [.conservative, .balanced, .sensitive],
+    evaluatedAt: Date = Date()
+  ) throws -> SnoreBaselineRunResult {
+    guard fileManager.fileExists(atPath: manifestURL.path) else {
+      throw SnoreBaselineEvaluationError.manifestFileNotFound(manifestURL.path)
+    }
+
+    let manifest = try evaluationRunner.loadManifest(from: manifestURL)
+    let validation = evaluationRunner.validateManifest(
+      manifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent()
+    )
+    let validManifest = OfflineEvaluationManifest(
+      datasetName: manifest.datasetName,
+      datasetLicenseNote: manifest.datasetLicenseNote,
+      segments: validation.validSegments
+    )
+    let evaluationRecords = evaluationRunner.evaluateRecords(
+      manifest: validManifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent(),
+      profiles: profiles,
+      evaluatedAt: evaluatedAt
+    )
+    let output = makeOutput(
+      evaluationRecords: evaluationRecords,
+      manifestSegmentCount: validManifest.segments.count,
+      validation: validation,
+      generatedAt: evaluatedAt
+    )
+    return try write(output: output, to: outputDirectory, generatedAt: evaluatedAt)
+  }
+
+  public func makeOutput(
+    evaluationRecords: [OfflineEvaluationRecord],
+    manifestSegmentCount: Int,
+    validation: OfflineEvaluationManifestValidationResult? = nil,
+    generatedAt: Date = Date()
+  ) -> SnoreBaselineOutput {
+    let records = evaluationRecords.map(SnoreBaselineRecord.init(evaluationRecord:))
+    let validationSummary = SnoreBaselineManifestValidationSummary(validation: validation)
+    return SnoreBaselineOutput(
+      generatedAt: generatedAt,
+      summary: SnoreBaselineSummary(
+        evaluatedSegments: manifestSegmentCount,
+        records: records,
+        manifestValidation: validationSummary
+      ),
+      records: records
+    )
+  }
+
+  public func write(
+    output: SnoreBaselineOutput,
+    to outputDirectory: URL,
+    generatedAt: Date
+  ) throws -> SnoreBaselineRunResult {
+    do {
+      try fileManager.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+      let timestamp = Self.fileTimestampFormatter.string(from: generatedAt)
+      let jsonURL = outputDirectory.appendingPathComponent("snore_baseline_\(timestamp).json")
+      let csvURL = outputDirectory.appendingPathComponent("snore_baseline_\(timestamp).csv")
+      let markdownURL = outputDirectory.appendingPathComponent("snore_baseline_report.md")
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      encoder.dateEncodingStrategy = .iso8601
+      try encoder.encode(output).write(to: jsonURL, options: .atomic)
+      try Self.makeCSV(records: output.records).write(
+        to: csvURL,
+        atomically: true,
+        encoding: .utf8
+      )
+      try Self.makeMarkdownReport(output).write(
+        to: markdownURL,
+        atomically: true,
+        encoding: .utf8
+      )
+      return SnoreBaselineRunResult(
+        output: output,
+        csvURL: csvURL,
+        jsonURL: jsonURL,
+        markdownURL: markdownURL
+      )
+    } catch {
+      throw SnoreBaselineEvaluationError.failedToWriteOutput(error.localizedDescription)
+    }
+  }
+
+  public static func makeCSV(records: [SnoreBaselineRecord]) -> String {
+    let header = [
+      "fileId",
+      "segmentStartSeconds",
+      "segmentDurationSeconds",
+      "expectedLabels",
+      "detectorProfile",
+      "rawCandidateCount",
+      "preSmoothingCandidateCount",
+      "postSmoothingEventCount",
+      "finalSnoreEventCount",
+      "finalEventCountByType",
+      "rejectReasonTop",
+      "zeroEventReason",
+      "rmsMean",
+      "rmsP90",
+      "rmsP95",
+      "energyMean",
+      "energyP90",
+      "energyP95",
+      "confidenceMean",
+      "confidenceP90",
+      "confidenceP95",
+      "possibleFalsePositive",
+      "possibleFalseNegative",
+      "errorMessage",
+    ]
+
+    let lines = records.map { record in
+      [
+        record.fileId,
+        format(record.segmentStartSeconds),
+        format(record.segmentDurationSeconds),
+        record.expectedLabels.joined(separator: ";"),
+        record.detectorProfile,
+        "\(record.rawCandidateCount)",
+        "\(record.preSmoothingCandidateCount)",
+        "\(record.postSmoothingEventCount)",
+        "\(record.finalSnoreEventCount)",
+        dictionaryText(record.finalEventCountByType),
+        record.rejectReasonTop.map { "\($0.reason):\($0.count)" }.joined(separator: ";"),
+        record.zeroEventReason ?? "",
+        format(record.rmsSummary.mean),
+        format(record.rmsSummary.p90),
+        format(record.rmsSummary.p95),
+        format(record.energySummary.mean),
+        format(record.energySummary.p90),
+        format(record.energySummary.p95),
+        format(record.confidenceSummary.mean),
+        format(record.confidenceSummary.p90),
+        format(record.confidenceSummary.p95),
+        "\(record.possibleFalsePositive)",
+        "\(record.possibleFalseNegative)",
+        record.errorMessage ?? "",
+      ].map(csvEscape).joined(separator: ",")
+    }
+
+    return ([header.joined(separator: ",")] + lines).joined(separator: "\n") + "\n"
+  }
+
+  public static func makeMarkdownReport(_ output: SnoreBaselineOutput) -> String {
+    var lines: [String] = [
+      "# Snore Baseline Report",
+      "",
+      "이 리포트는 코골기 detector 개발용 baseline입니다. 의료 성능 검증이나 진단 목적의 결과가 아닙니다.",
+      "",
+      "## Summary",
+      "",
+      "- evaluated segments: \(output.summary.evaluatedSegments)",
+      "- evaluated records: \(output.summary.evaluatedRecords)",
+      "- failed records: \(output.summary.failedRecords)",
+      "- possible false-positive-like cases: \(output.summary.possibleFalsePositiveCount)",
+      "- possible false-negative-like cases: \(output.summary.possibleFalseNegativeCount)",
+      "- manifest missing files: \(output.summary.manifestValidation.missingFiles)",
+      "- manifest unsupported labels: \(output.summary.manifestValidation.unsupportedLabels)",
+      "",
+      "## Profile Summary",
+      "",
+      "| Profile | Records | Failed | Zero Event | Raw Candidates | Pre Smoothing | Post Smoothing | Final Snore | FP-like | FN-like |",
+      "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+
+    if output.summary.profileSummaries.isEmpty {
+      lines.append("| none | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |")
+    } else {
+      for summary in output.summary.profileSummaries {
+        lines.append(
+          "| \(summary.detectorProfile) | \(summary.evaluatedRecords) | \(summary.failedRecords) | \(summary.zeroEventCount) | \(summary.rawCandidateCount) | \(summary.preSmoothingCandidateCount) | \(summary.postSmoothingEventCount) | \(summary.finalSnoreEventCount) | \(summary.possibleFalsePositiveCount) | \(summary.possibleFalseNegativeCount) |"
+        )
+      }
+    }
+
+    lines.append(contentsOf: [
+      "",
+      "## Top Reject Reasons",
+      "",
+    ])
+    if output.summary.profileSummaries.allSatisfy({ $0.topRejectReasons.isEmpty }) {
+      lines.append("- none")
+    } else {
+      for summary in output.summary.profileSummaries {
+        let reasons = summary.topRejectReasons
+          .map { "\($0.reason): \($0.count)" }
+          .joined(separator: ", ")
+        lines.append("- \(summary.detectorProfile): \(reasons.isEmpty ? "none" : reasons)")
+      }
+    }
+
+    lines.append(contentsOf: [
+      "",
+      "## Possible False-Positive-Like Cases",
+      "",
+    ])
+    appendCaseLines(
+      to: &lines,
+      records: output.records.filter(\.possibleFalsePositive)
+    )
+
+    lines.append(contentsOf: [
+      "",
+      "## Possible False-Negative-Like Cases",
+      "",
+    ])
+    appendCaseLines(
+      to: &lines,
+      records: output.records.filter(\.possibleFalseNegative)
+    )
+
+    lines.append(contentsOf: [
+      "",
+      "## Next Tuning Candidates",
+      "",
+    ])
+    lines.append(contentsOf: output.summary.tuningCandidates.map { "- \($0)" })
+    lines.append(contentsOf: [
+      "",
+      "## Limits",
+      "",
+      "- 공개/개인 오디오 파일은 repo에 포함하지 않습니다.",
+      "- 공개 데이터셋은 자동 다운로드하지 않습니다.",
+      "- Offline baseline은 실제 iPhone 마이크, 기기 배치, 백그라운드 안정성 검증을 대체하지 않습니다.",
+      "",
+    ])
+    return lines.joined(separator: "\n")
+  }
+
+  private static func appendCaseLines(
+    to lines: inout [String],
+    records: [SnoreBaselineRecord]
+  ) {
+    guard !records.isEmpty else {
+      lines.append("- none")
+      return
+    }
+
+    lines.append(contentsOf: records.prefix(50).map { record in
+      "- \(record.detectorProfile) \(record.fileId) @ \(format(record.segmentStartSeconds))s labels=\(record.expectedLabels.joined(separator: "/")) finalSnore=\(record.finalSnoreEventCount)"
+    })
+  }
+
+  private static func dictionaryText(_ dictionary: [String: Int]) -> String {
+    dictionary.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ";")
+  }
+
+  private static func csvEscape(_ value: String) -> String {
+    if value.contains(",") || value.contains("\"") || value.contains("\n") {
+      return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+    }
+    return value
+  }
+
+  private static func format(_ value: Double) -> String {
+    String(format: "%.6f", value)
+  }
+
+  private static let fileTimestampFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyyMMdd_HHmmss"
+    return formatter
+  }()
 }
 
 public enum OfflineProfileComparisonError: Error, Equatable, Sendable {
@@ -1653,6 +2250,7 @@ public struct OfflineEvaluationRunner {
     record.audioCoverageRatio = metrics.audioCoverageRatio
     record.rawCandidateCount = diagnostics.rawCandidateCount
     record.averageConfidence = Self.averageConfidence(from: rawOutputs)
+    record.confidenceSummary = SummaryStats.make(values: rawOutputs.map(\.confidence))
     record.rawCandidateCountByType = typeDictionary(diagnostics.rawCandidateCountByType)
     record.preSmoothingCandidateCount = diagnostics.preSmoothingCandidateCount
     record.postSmoothingEventCount = diagnostics.postSmoothingEventCount

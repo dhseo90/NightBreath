@@ -12,6 +12,7 @@ let package = Package(
     .library(name: "SleepSoundCore", targets: ["SleepSoundCore"]),
     .executable(name: "OfflineEvaluation", targets: ["OfflineEvaluation"]),
     .executable(name: "OfflineProfileCompare", targets: ["OfflineProfileCompare"]),
+    .executable(name: "OfflineSnoreBaseline", targets: ["OfflineSnoreBaseline"]),
   ],
   targets: [
     .target(
@@ -33,6 +34,7 @@ let package = Package(
         "output",
         "Support",
         "compare_profiles.swift",
+        "evaluate_snore_baseline.swift",
       ],
       sources: ["evaluate_dataset.swift"]
     ),
@@ -46,8 +48,23 @@ let package = Package(
         "output",
         "Support",
         "evaluate_dataset.swift",
+        "evaluate_snore_baseline.swift",
       ],
       sources: ["compare_profiles.swift"]
+    ),
+    .executableTarget(
+      name: "OfflineSnoreBaseline",
+      dependencies: ["OfflineEvaluationSupport"],
+      path: "Tools/OfflineEvaluation",
+      exclude: [
+        "README.md",
+        "sample_manifest.example.json",
+        "output",
+        "Support",
+        "evaluate_dataset.swift",
+        "compare_profiles.swift",
+      ],
+      sources: ["evaluate_snore_baseline.swift"]
     ),
     .testTarget(
       name: "SleepSoundCoreTests",

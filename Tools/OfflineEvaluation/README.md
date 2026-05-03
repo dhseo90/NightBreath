@@ -127,6 +127,26 @@ swift run OfflineProfileCompare \
 
 이 도구는 possible false-positive-like / possible false-negative-like finding과 threshold 수동 검토 후보를 출력합니다. `suggested_changes.json`은 코드에 자동 적용되지 않습니다.
 
+## Snore Baseline
+
+코골기 detector baseline은 manifest segment를 profile별로 평가하고 JSON/CSV/Markdown report를 생성합니다.
+
+```bash
+swift run OfflineSnoreBaseline \
+  --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
+  --output Tools/OfflineEvaluation/output \
+  --profiles conservative,balanced,sensitive
+```
+
+생성 파일:
+- `snore_baseline_YYYYMMDD_HHMMSS.json`
+- `snore_baseline_YYYYMMDD_HHMMSS.csv`
+- `snore_baseline_report.md`
+
+manifest가 없거나 로컬 오디오 파일이 준비되지 않았을 때 도구는 crash하지 않고 사용법 또는 missing file warning/failed record를 남깁니다. 공개 데이터셋은 자동 다운로드하지 않으므로 `sample_manifest.example.json`을 복사한 뒤 `localFilePath`를 직접 준비한 synthetic/local WAV/CAF/M4A 파일로 바꿔 실행하세요.
+
+자세한 해석 방법은 `Docs/SNORE_BASELINE_EVALUATION.md`를 참고하세요.
+
 ## 실제 iPhone 테스트와의 관계
 
 Offline Evaluation은 detector 변경 전후 비교에는 좋지만 실제 iPhone 마이크 입력, 화면 잠금/백그라운드 녹음, 배터리/발열, interruption, overnight 안정성, device placement 검증을 대체하지 못합니다.
