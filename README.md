@@ -93,8 +93,10 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - Simulator QA scenarios
 - NightBreath 전용 디자인 시스템
 - `HealthDataServiceProtocol`과 `MockHealthDataService` 기반 mock 건강 데이터 구조
-- mock 기반 혈압/체중/체성분 건강 데이터 대시보드 방향
-- 수면 소리 지표와 건강 지표 교차 보기 설계
+- `RealHealthKitService` 기반 read-only adapter
+- mock preview와 HealthKit read-only 연결을 함께 지원하는 건강 데이터 대시보드
+- 혈압/체중/체성분 건강 데이터 dashboard
+- 수면 소리 지표와 건강 지표 교차 보기
 - Daily Rhythm 도메인 모델
 - Mock Health Data Service
 - Daily Rhythm Score 계산기
@@ -103,6 +105,7 @@ NightBreath는 Simulator-first 방식으로 개발합니다.
 - Daily Rhythm Report 화면
 - Evening Check-in 화면
 - Daily Health Card 화면과 카드 template/privacy level 구조
+- README 대표 screenshot section과 UI Gallery
 - Daily Rhythm 확장을 위한 문서화와 제품 원칙
 
 ## 주요 화면
@@ -120,7 +123,7 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
-- 건강 대시보드: 현재는 mock/protocol 기반으로 혈압, 체중, 체성분, 컨디션 데이터를 보기 좋게 정리하는 방향을 검증하고, 향후 HealthKit read-only 연결을 준비합니다.
+- 건강 대시보드: mock preview와 HealthKit read-only adapter를 통해 혈압, 체중, 체성분, 컨디션 데이터를 로컬 화면에 정리합니다.
 - Debug / Dataset Replay 화면: DEBUG 빌드에서만 노출되며 detector tuning, dataset replay, simulator scenario, sample capture 검증에 사용합니다.
 
 ## 주요 화면 미리보기
@@ -417,7 +420,6 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - 이벤트 오디오 샘플은 `Application Support/NightBreath/EventAudioSnippets/`에 저장되며, 전체 밤 오디오가 아닙니다.
 - 이벤트 오디오 샘플은 앱에서 재생하거나 개별/전체 삭제할 수 있습니다.
 - 개인정보 화면에서 저장된 이벤트 오디오 샘플 수, 총 시간, 총 용량, 연결되지 않은 샘플 수/용량을 확인하고 정리할 수 있습니다.
-- 현재 방향 전환 단계에서는 HealthKit 실제 권한 요청을 새로 추가하지 않습니다.
 - HealthKit 연동은 건강 데이터 연결 버튼을 선택했을 때만 read-only로 동작합니다.
 - HealthKit에 밤숨의 수면 소리 점수, 이벤트, 리포트, 피드백을 쓰지 않는 원칙을 유지합니다.
 

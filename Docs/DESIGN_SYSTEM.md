@@ -327,6 +327,8 @@ Illustrations image set은 현재 metadata-only placeholder입니다. 앱 화면
 
 Screenshots image set은 실제 App Store Connect 업로드용 screenshot 저장소가 아니라 후보 화면과 future placement를 나타내는 placeholder입니다. 최종 screenshot 이미지는 별도 캡처/review 후 관리 위치를 정합니다.
 
+README와 UI Gallery용 문서 screenshot은 `Docs/Screenshots/`에서 관리합니다. 현재 README 대표 screenshot은 `Docs/Screenshots/README/`에 두고, App Store marketing final screenshot은 별도 검토 후 준비합니다.
+
 이번 작업에서는 고품질 앱 아이콘 이미지를 만들지 않습니다. 실제 아이콘 제작은 별도 디자인 작업으로 남깁니다.
 
 앱 아이콘 제작 가이드는 `Docs/APP_ICON_GUIDE.md`를 기준으로 합니다.
@@ -340,7 +342,7 @@ App Store screenshot 후보와 headline copy는 `Docs/APP_STORE_SCREENSHOT_GUIDE
 - `ScreenshotScenario`: README와 UI Gallery에 사용할 DEBUG 전용 screenshot 후보를 정의합니다.
 - `ScreenshotScenarioFactory`: 기존 mock/simulator QA state를 사용해 screenshot capture에 필요한 demo app state를 만듭니다.
 - screenshot scenario는 `#if DEBUG` 안에 있으므로 Release 사용자 화면에는 노출되지 않습니다.
-- 실제 screenshot PNG를 생성하거나 App Store 제출을 진행하지 않습니다.
+- scenario 코드는 PNG를 직접 만들지 않습니다. 실제 capture는 DEBUG 앱에서 mock state를 확인한 뒤 `Tools/Screenshots/capture_screenshots.sh` 또는 `simctl screenshot`으로 수행합니다.
 - screenshot scenario는 `SimulatorScenarioView`의 `Screenshot Preset` 섹션에서 선택하고, mock data 또는 simulator scenario만 사용합니다.
 - scenario 이름과 suggested path는 `Docs/UI_GALLERY.md`와 `Tools/Screenshots/README.md`에 맞춰 관리합니다.
 - fake screenshot, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플은 사용하지 않습니다.
@@ -353,6 +355,7 @@ Screenshot 문서 구조는 `Docs/UI_GALLERY.md`와 `Docs/Screenshots/`를 기�
 - README에는 대표 화면 screenshot만 추가합니다.
 - 모든 화면, edge state, DEBUG-only 화면의 상세 설명은 `Docs/UI_GALLERY.md`에 둡니다.
 - 실제 screenshot 파일이 없으면 image markdown을 만들지 않고 `screenshot pending`으로 표시합니다.
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에서 관리하고, 상세 화면은 `Docs/UI_GALLERY.md`의 path/pending 상태를 기준으로 추적합니다.
 - screenshot은 mock data 또는 simulator scenario 기반으로만 생성합니다.
 - 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 파일, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
 - 외부 자산, 타사 앱 screenshot, 타사 로고, 타사 앱 아이콘을 추가하지 않습니다.

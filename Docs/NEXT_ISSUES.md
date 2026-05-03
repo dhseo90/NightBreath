@@ -1,41 +1,76 @@
 # Next Issues
 
-이 문서는 NightBreath / 밤숨의 다음 작업 후보를 정리합니다.
+이 문서는 Daily Rhythm 전환과 README/UI Gallery screenshot 반영 이후의 후속 작업 후보를 정리합니다.
 
 ## 우선순위 후보
 
-1. HealthKit read-only 실제 연동 설계와 권한 UX
-2. 혈압/체성분 대시보드 고도화
-3. 수면 지표와 건강 지표 교차 분석 문구 점검
-4. Daily Health Card 이미지 export 설계
-5. mock/simulator screenshot 실제 캡처와 README 대표 이미지 선별
-6. 공개 데이터 manifest 작성
-7. snore detector Offline Evaluation 실행
-8. 실제 iPhone background smoke test
-9. 잠금 30분 테스트
-10. overnight test
+1. 최종 앱 아이콘 고품질 아트워크 제작
+2. App Store screenshot marketing version 준비
+3. Daily Health Card image export/share 설계와 구현
+4. 실제 iPhone smoke test
+5. 실제 HealthKit permission flow manual QA
+6. TestFlight 준비
+7. App Store copy draft 보강
+8. Legal/App Review audit
+9. detector threshold tuning with real data
+10. Core ML model 실제 앱 target 적용
 
-## Daily Rhythm
+## Release / App Store 준비
 
-수면 소리 리포트를 유지하면서 온디바이스 개인 건강 리듬 리포트로 확장하기 위한 다음 작업 후보입니다.
-
-- HealthKit read-only 실제 연동 전 상세 설계
-- 건강 데이터 권한 없음/일부 허용/데이터 없음 상태 문구 정리
-- 혈압/체성분 대시보드의 날짜별 요약과 source 표시 고도화
-- 수면 지표와 건강 지표 교차 분석의 안전한 문구 재점검
-- Daily Health Card 이미지 export UX 설계
-- Daily Health Card export 전 privacy level 확인 흐름
-- App Store screenshot용 mock scenario 정리
-- Morning Brief / Daily Rhythm Report / Daily Health Card screenshot 후보 선별
-- UI Gallery의 `screenshot pending` 항목별 실제 capture 진행
+- 최종 앱 아이콘 제작과 device별 asset 확인
+- App Store screenshot headline copy와 mock scenario 재캡처
+- App Store Connect용 screenshot size/export 절차 정리
+- App Store product page copy 최종 점검
+- `Docs/APP_STORE_COPY_DRAFT.md`와 `Docs/APP_STORE_SCREENSHOT_GUIDE.md` 최신화
+- TestFlight 내부 테스트 체크리스트 정리
+- App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 재검토
 
 주의:
 
-- 실제 HealthKit 권한 요청과 `HKHealthStore` query는 이번 단계에서 추가하지 않습니다.
-- HealthKit 실제 연동 전에는 mock service/protocol 기반으로 설계합니다.
-- 오늘의 리듬 점수는 웰니스/개인 참고용이며 의료 점수가 아닙니다.
-- 수면 소리와 건강 지표 사이의 인과관계를 주장하지 않습니다.
-- Daily Health Card 이미지는 사용자의 명시 액션 없이 export/share하지 않습니다.
+- App Store screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
+- 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 샘플을 사용하지 않습니다.
+- 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하지 않습니다.
+
+## Daily Rhythm / Health Dashboard
+
+- 실제 HealthKit permission flow를 iPhone에서 manual QA
+- 권한 없음/일부 허용/데이터 없음 상태를 실제 기기에서 확인
+- Omron Connect 혈압 source와 Fitdays 체중/체성분 source 표시를 실제 Apple 건강앱 데이터로 장기 검증
+- 혈압/체성분 dashboard의 7일/30일/90일 추세 copy와 empty state 재점검
+- Cross Metric 화면의 matched sample 부족 상태와 낮은 오디오 커버리지 표시 재점검
+- Daily Rhythm Report와 Morning Brief의 data quality 표시를 실제 사용 흐름에서 확인
+
+주의:
+
+- HealthKit은 read-only로 유지합니다.
+- HealthKit에 수면 소리 점수, 오늘의 리듬 점수, 이벤트, 리포트, 피드백을 쓰지 않습니다.
+- HealthKit 데이터는 서버로 전송하지 않습니다.
+
+## Daily Health Card
+
+- SwiftUI view to image rendering 방식 검토
+- `minimal`, `standard`, `detailed` privacy level별 export 전 확인 화면 설계
+- 민감 수치가 포함된 카드의 사용자 명시 액션 흐름 설계
+- 저장/공유 실패 state와 취소 state 설계
+- README용 대표 카드와 App Store용 카드의 표시 데이터 분리
+
+주의:
+
+- 자동 공유, 서버 업로드, 외부 SDK 사용은 제외합니다.
+- 사용자가 명시적으로 선택하기 전에는 민감 데이터가 들어간 이미지를 export/share하지 않습니다.
+
+## 실제 iPhone QA
+
+- foreground 1분 smoke test
+- 화면 잠금 3분 smoke test
+- 앱 백그라운드 3분 smoke test
+- 잠금 30분 테스트
+- 충전 상태 overnight test
+- 이벤트 오디오 샘플 opt-in ON/OFF 각각 확인
+- HealthKit 연결/거부/일부 허용 흐름 확인
+- 배터리/발열 확인
+
+`QA_CHECKLIST.md`는 일상 개발 중 매번 실행하는 체크리스트가 아니라 release/TestFlight 전 실제 iPhone manual QA 문서로 유지합니다.
 
 ## Detector / ML
 
@@ -53,59 +88,17 @@
 - 공개/개인 오디오 파일을 repo에 포함하지 않습니다.
 - threshold 변경은 자동 적용하지 않고 수동 검토합니다.
 
-## Simulator-first QA
+## UI Gallery / Screenshot
 
-- Simulator QA scenario별 수동 화면 확인
-- zero-event scenario 문구 검토
-- low coverage scenario 문구 검토
-- 이벤트 오디오 저장 ON/OFF 상태 확인
-- orphan sample cleanup UI 확인
-- Dynamic Type에서 주요 텍스트가 깨지지 않는지 확인
-
-## 실제 iPhone QA
-
-- foreground 1분 smoke test
-- 화면 잠금 3분 smoke test
-- 앱 백그라운드 3분 smoke test
-- 잠금 30분 테스트
-- 충전 상태 overnight test
-- 이벤트 오디오 샘플 opt-in ON/OFF 각각 확인
-- 배터리/발열 확인
-
-## 개인정보 / 저장소
-
-- 긴 세션 후 이벤트 오디오 저장 용량 확인
-- orphan cleanup 반복 실행 확인
-- 전체 이벤트 오디오 샘플 삭제 확인
-- 전체 로컬 수면 데이터 삭제 확인
-- 앱 재설치/업데이트 후 저장소 migration 필요성 검토
-
-## Health Dashboard / HealthKit
-
-건강 대시보드는 Daily Rhythm 확장의 상세 보기로 다룹니다. 먼저 mock/protocol 기반으로 혈압, 체중, 체성분, 활동, 컨디션 데이터를 표시하고, 실제 HealthKit read-only 연동은 나중 단계의 별도 작업으로 둡니다.
-
-다음 확인 항목:
-
-- 권한 없음/일부 허용/데이터 없음 상태 문구
-- Omron Connect 혈압 source mock 표시
-- Fitdays 체중/체성분 source mock 표시
-- 교차 보기에서 matched sample 부족 안내 확인
-- HealthKit read-only 연동 설계 문서화
-- HealthKit 실제 구현 단계에서 쓰기 API가 없는지 재점검
-
-## App Store / 카드 export
-
-- Daily Health Card 이미지 export는 로컬 렌더링 기반으로 설계합니다.
-- 자동 공유, 서버 업로드, 외부 SDK 사용은 제외합니다.
-- `minimal`, `standard`, `detailed` privacy level별 screenshot 후보를 준비합니다.
-- App Store screenshot은 Daily Rhythm 확장 방향을 보여주되, 건강 상태를 확정하는 표현을 쓰지 않습니다.
-- README 대표 screenshot은 mock data 또는 simulator scenario로만 생성합니다.
-- DEBUG screenshot preset을 적용한 뒤 `Tools/Screenshots/capture_screenshots.sh`로 현재 화면을 저장합니다.
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 반영 완료
+- Privacy, edge state, DEBUG-only 상세 screenshot은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
+- Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
+- README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 
 ## 문서 유지보수
 
-- `README.md` 최신화
-- `Docs/CURRENT_STATUS.md` 업데이트
-- `Docs/DEVELOPMENT_WORKFLOW.md` 업데이트
-- `Docs/REAL_DEVICE_REQUIRED_TESTS.md` 업데이트
-- `QA_CHECKLIST.md` 업데이트
+- `Docs/CURRENT_STATUS.md` 완료/보류 항목 최신화
+- `Docs/UI_SCREEN_MAP.md` screenshot 상태와 navigation 관계 최신화
+- `Docs/DESIGN_SYSTEM.md` screenshot 문서화 원칙 유지
+- `QA_CHECKLIST.md` 실제 iPhone manual QA 역할 유지
+- forbidden wording scan과 민감정보 scan을 release 전 반복

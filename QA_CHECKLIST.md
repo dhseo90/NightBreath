@@ -8,7 +8,11 @@
 
 이 체크리스트는 실제 iPhone smoke test, background recording test, release/TestFlight 전 manual QA를 위한 문서입니다.
 
+일상 개발 중 모든 변경마다 매번 수행하는 체크리스트가 아니라, 실제 기기 동작과 배포 전 위험을 확인할 때 사용하는 문서입니다.
+
 README screenshot과 `Docs/UI_GALLERY.md`는 mock data와 simulator scenario 기반 문서용 화면을 정리합니다. 이 체크리스트는 실제 기기에서 마이크, 권한, 저장소, 장시간 동작, HealthKit read-only 연결 상태를 확인하는 용도로 유지합니다.
+
+README/UI Gallery의 문서용 screenshot은 실제 iPhone QA screenshot, 실제 개인 건강 데이터, 실제 오디오 샘플과 혼동하지 않습니다.
 
 ## 1. 빌드와 테스트
 

@@ -49,7 +49,9 @@
 - HealthKit mock/protocol 기반 건강 데이터 dashboard 방향
 - HealthKit read-only 권한 요청과 quantity sample query adapter
 - mock 기반 혈압/체중/체성분 건강 데이터 dashboard 설계
-- 수면 소리 지표와 건강 지표 교차 보기 설계
+- Health dashboard integration
+- 혈압/체성분 건강 데이터 dashboard
+- 수면 소리 지표와 건강 지표 교차 보기
 - Daily Rhythm 제품 방향 문서화
 - Daily Rhythm 도메인 모델
 - Mock Health Data Service
@@ -68,6 +70,9 @@
 - mock/simulator screenshot 폴더 구조
 - DEBUG 전용 screenshot scenario preset
 - screenshot capture workflow 문서와 simctl helper script
+- README 대표 screenshot section
+- README 대표 mock/simulator screenshot 8개
+- UI Gallery screenshot/pending 연결
 
 ## 현재 개발 전략
 
@@ -96,12 +101,17 @@
 - 전체 밤 원본 오디오 저장
 - 이벤트와 무관한 연속 오디오 보관
 - sleep talk 텍스트 변환
+- App Store 제출
+- 최종 앱 아이콘 고품질 아트워크
+- App Store screenshot marketing final version
+- 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
 - 실제 Daily Health Card image share/export
-- 실제 README 대표 screenshot 파일
-- 실제 UI gallery screenshot 파일
+- UI Gallery 상세/edge/debug screenshot 전체 캡처
 - 실제 `.mlmodel` 앱 bundle 적용
 - detector 성능 확정 검증
+- 실제 iPhone 장시간 overnight 안정성 검증
+- 실제 HealthKit 데이터 기반 장기 검증
 - 임상 지표 산출
 - 건강 상태를 확정하는 기능
 
