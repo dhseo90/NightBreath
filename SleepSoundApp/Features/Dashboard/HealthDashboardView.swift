@@ -3,21 +3,7 @@ import SwiftUI
 struct HealthDashboardView: View {
   private let service: any HealthKitServiceProtocol
   private let mockService = MockHealthKitService()
-  private let chartBuilder = HealthMetricChartDataBuilder()
-  private let displayMetrics: [HealthMetricType] = [
-    .bodyMass,
-    .bodyFatPercentage,
-    .bodyMassIndex,
-    .leanBodyMass,
-    .restingHeartRate,
-    .respiratoryRate,
-  ]
-  private let recentChangeMetrics: [HealthMetricType] = [
-    .bodyMass,
-    .bodyFatPercentage,
-    .bodyMassIndex,
-    .leanBodyMass,
-  ]
+  private let calculator = HealthMetricTrendCalculator()
 
   @State private var permissionState: HealthMetricPermissionState = .notRequested
   @State private var healthSamples: [HealthMetricSample] = []
@@ -33,18 +19,13 @@ struct HealthDashboardView: View {
       VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
         header
         stateNotice
+        dashboardEntrySection
 
         if shouldShowEmptyState {
           emptyState
-        } else {
-          bloodPressureSection
-
-          ForEach(displayMetrics) { metricType in
-            metricSection(metricType, tint: tint(for: metricType))
-          }
-
-          recentChangeSection
-          dataSourceSection
+        } else if !visibleSamples.isEmpty {
+          overviewSection
+          HealthSourceSummarySection(sourceSummaries: calculator.sourceSummaries(samples: visibleSamples))
         }
 
         NBPrivacyNoticeCard(
@@ -60,10 +41,18 @@ struct HealthDashboardView: View {
   }
 
   private var visibleSamples: [HealthMetricSample] {
-    if permissionState == .readRequestCompleted {
-      return healthSamples
+    switch permissionState {
+    case .notRequested, .mockDataOnly:
+      mockService.samples
+    case .readRequestCompleted:
+      healthSamples
+    case .denied, .unavailable:
+      []
     }
-    return mockService.samples
+  }
+
+  private var isPreviewData: Bool {
+    permissionState == .notRequested || permissionState == .mockDataOnly
   }
 
   private var shouldShowEmptyState: Bool {
@@ -132,7 +121,7 @@ struct HealthDashboardView: View {
       }
     case .denied:
       NBStatusBadge(
-        "권한이 허용되지 않았습니다. Apple 건강앱에서 권한을 관리할 수 있습니다.",
+        "건강 데이터 읽기 권한이 필요합니다.",
         systemImage: "lock.slash",
         tint: NBColor.warning
       )
@@ -151,76 +140,62 @@ struct HealthDashboardView: View {
     }
   }
 
-  private var emptyState: some View {
-    NBCard {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label("표시할 건강 데이터가 없습니다", systemImage: "tray")
-          .font(NBTypography.sectionTitle)
-        Text("권한을 허용했더라도 Apple 건강앱에 해당 항목이 없거나 항목별 권한이 제한되어 있으면 값이 비어 있을 수 있습니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-      }
-    }
-  }
-
-  private var bloodPressureSection: some View {
-    NBReportSection(title: "혈압", systemImage: "heart") {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-        latestMetricCard(.systolicBloodPressure, tint: NBColor.danger)
-        latestMetricCard(.diastolicBloodPressure, tint: NBColor.warning)
-      }
-
-      HealthMetricChartView(
-        metricType: .systolicBloodPressure,
-        samples: visibleSamples,
-        tint: NBColor.danger
-      )
-
-      Text(sourceDescription(for: .systolicBloodPressure))
-        .font(.footnote)
-        .foregroundStyle(.secondary)
-    }
-  }
-
-  private func metricSection(_ metricType: HealthMetricType, tint: Color) -> some View {
-    NBReportSection(title: metricType.dashboardSectionName, systemImage: icon(for: metricType)) {
-      latestMetricCard(metricType, tint: tint)
-      HealthMetricChartView(metricType: metricType, samples: visibleSamples, tint: tint)
-      Text(sourceDescription(for: metricType))
-        .font(.footnote)
-        .foregroundStyle(.secondary)
-    }
-  }
-
-  private var recentChangeSection: some View {
-    NBReportSection(title: "최근 변화", systemImage: "arrow.up.arrow.down") {
-      VStack(spacing: NBSpacing.small) {
-        ForEach(recentChangeMetrics) { metricType in
-          HStack {
-            Label(metricType.displayName, systemImage: icon(for: metricType))
-              .font(.callout.weight(.semibold))
-            Spacer()
-            Text(changeText(for: metricType))
-              .font(.callout.weight(.semibold))
-              .foregroundStyle(changeTint(for: metricType))
-          }
-          .padding(.vertical, 2)
-        }
-      }
-    }
-  }
-
-  private var dataSourceSection: some View {
-    NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        ForEach(sourceRows, id: \.bundleIdentifier) { row in
-          NBListRow(
-            title: row.name,
-            subtitle: row.bundleIdentifier,
-            systemImage: "app.connected.to.app.below.fill",
-            tint: NBColor.privacyTint
+  private var dashboardEntrySection: some View {
+    NBReportSection(title: "대시보드", systemImage: "rectangle.grid.1x2") {
+      VStack(spacing: NBSpacing.medium) {
+        NavigationLink {
+          BloodPressureDashboardView(
+            samples: visibleSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "혈압",
+            subtitle: "수축기/이완기 혈압과 측정 시간대 추세",
+            systemImage: "heart",
+            tint: NBColor.danger,
+            sampleCount: categorySampleCount(HealthDashboardMetrics.bloodPressure),
+            latestDate: latestDate(for: HealthDashboardMetrics.bloodPressure)
           )
         }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+          BodyCompositionDashboardView(
+            samples: visibleSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "체중/체성분",
+            subtitle: "체중, 체지방률, BMI, 제지방량 추세",
+            systemImage: "scalemass",
+            tint: NBColor.mistTeal,
+            sampleCount: categorySampleCount(HealthDashboardMetrics.bodyComposition),
+            latestDate: latestDate(for: HealthDashboardMetrics.bodyComposition)
+          )
+        }
+        .buttonStyle(.plain)
+      }
+    }
+  }
+
+  private var emptyState: some View {
+    HealthDataEmptyStateView(
+      title: "Apple 건강앱에 해당 데이터가 없습니다.",
+      message: "Omron Connect 또는 Fitdays 연동 상태를 확인하세요. 특정 앱 설치를 강제하지 않으며, Apple 건강앱에 저장된 source만 읽습니다."
+    )
+  }
+
+  private var overviewSection: some View {
+    NBReportSection(title: "최근 값", systemImage: "clock") {
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+        latestMetricCard(.systolicBloodPressure)
+        latestMetricCard(.diastolicBloodPressure)
+        latestMetricCard(.bodyMass)
+        latestMetricCard(.bodyFatPercentage)
       }
     }
   }
@@ -283,117 +258,77 @@ struct HealthDashboardView: View {
     }
   }
 
-  private func latestMetricCard(_ metricType: HealthMetricType, tint: Color) -> NBMetricCard {
+  private func latestMetricCard(_ metricType: HealthMetricType) -> NBMetricCard {
     let sample = visibleSamples.latestSample(metricType: metricType)
     return NBMetricCard(
       title: metricType.displayName,
-      value: sample.map { valueString($0.value, unit: $0.unit) } ?? "--",
-      systemImage: icon(for: metricType),
-      tint: tint,
+      value: sample.map {
+        HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit)
+      } ?? "--",
+      systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
+      tint: HealthMetricDashboardFormatting.tint(for: metricType),
       footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" }
     )
   }
 
-  private var sourceRows: [(name: String, bundleIdentifier: String)] {
-    let unique = Dictionary(grouping: visibleSamples, by: \.sourceBundleIdentifier)
-      .compactMap { bundleIdentifier, samples -> (name: String, bundleIdentifier: String)? in
-        guard let sample = samples.first else { return nil }
-        return (sample.sourceName, bundleIdentifier)
+  private func categorySampleCount(_ metricTypes: [HealthMetricType]) -> Int {
+    let metricSet = Set(metricTypes)
+    return visibleSamples.filter { metricSet.contains($0.metricType) }.count
+  }
+
+  private func latestDate(for metricTypes: [HealthMetricType]) -> Date? {
+    let metricSet = Set(metricTypes)
+    return visibleSamples
+      .filter { metricSet.contains($0.metricType) }
+      .sortedByMeasuredAtDescending()
+      .first?
+      .measuredAt
+  }
+}
+
+private struct HealthDashboardEntryCard: View {
+  let title: String
+  let subtitle: String
+  let systemImage: String
+  let tint: Color
+  let sampleCount: Int
+  let latestDate: Date?
+
+  var body: some View {
+    NBCard {
+      HStack(spacing: NBSpacing.medium) {
+        Image(systemName: systemImage)
+          .font(.title3.weight(.semibold))
+          .foregroundStyle(tint)
+          .frame(width: 34, height: 34)
+          .background(tint.opacity(0.12))
+          .clipShape(RoundedRectangle(cornerRadius: 8))
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(title)
+            .font(NBTypography.sectionTitle)
+            .foregroundStyle(.primary)
+          Text(subtitle)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+          Text(latestText)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+
+        Spacer()
+
+        Image(systemName: "chevron.right")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.secondary)
       }
-
-    return unique.sorted { $0.name < $1.name }
-  }
-
-  private func changeText(for metricType: HealthMetricType) -> String {
-    guard let change = chartBuilder.latestChange(samples: visibleSamples, metricType: metricType) else {
-      return "--"
-    }
-    let sign = change >= 0 ? "+" : ""
-    return "\(sign)\(valueString(change, unit: metricType.unitLabel))"
-  }
-
-  private func changeTint(for metricType: HealthMetricType) -> Color {
-    guard let change = chartBuilder.latestChange(samples: visibleSamples, metricType: metricType) else {
-      return NBColor.mutedText
-    }
-
-    switch metricType {
-    case .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass:
-      return change <= 0 ? NBColor.success : NBColor.warning
-    default:
-      return NBColor.neutral
     }
   }
 
-  private func sourceDescription(for metricType: HealthMetricType) -> String {
-    let prefix = permissionState == .readRequestCompleted ? "Apple 건강앱에서 읽은" : "연결 전 mock preview"
-
-    switch metricType {
-    case .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass:
-      return "\(prefix) 체중/체성분 데이터입니다. Fitdays 동기화 데이터는 Apple 건강앱 source로 표시될 수 있습니다."
-    case .restingHeartRate, .respiratoryRate:
-      return "\(prefix) 생체 지표입니다."
-    case .systolicBloodPressure, .diastolicBloodPressure:
-      return "\(prefix) 혈압 데이터입니다. Omron Connect 동기화 데이터는 Apple 건강앱 source로 표시될 수 있습니다."
-    case .sleepDuration:
-      return "\(prefix) 수면 시간 데이터입니다."
+  private var latestText: String {
+    guard let latestDate else {
+      return "sample \(sampleCount)개"
     }
-  }
-
-  private func tint(for metricType: HealthMetricType) -> Color {
-    switch metricType {
-    case .bodyMass:
-      NBColor.breathBlue
-    case .bodyFatPercentage:
-      NBColor.mistTeal
-    case .bodyMassIndex:
-      NBColor.lavender
-    case .leanBodyMass:
-      NBColor.quietIndigo
-    case .restingHeartRate:
-      NBColor.danger
-    case .respiratoryRate:
-      NBColor.audioTint
-    case .systolicBloodPressure:
-      NBColor.danger
-    case .diastolicBloodPressure:
-      NBColor.warning
-    case .sleepDuration:
-      NBColor.sleepTint
-    }
-  }
-
-  private func icon(for metricType: HealthMetricType) -> String {
-    switch metricType {
-    case .systolicBloodPressure, .diastolicBloodPressure:
-      "heart"
-    case .bodyMass:
-      "scalemass"
-    case .bodyFatPercentage:
-      "percent"
-    case .bodyMassIndex:
-      "figure"
-    case .leanBodyMass:
-      "figure.strengthtraining.traditional"
-    case .restingHeartRate:
-      "heart.fill"
-    case .sleepDuration:
-      "bed.double"
-    case .respiratoryRate:
-      "lungs"
-    }
-  }
-
-  private func valueString(_ value: Double, unit: String) -> String {
-    switch unit {
-    case "mmHg", "bpm":
-      return "\(Int(value.rounded())) \(unit)"
-    case "BMI":
-      return String(format: "%.1f", value)
-    case "시간":
-      return String(format: "%.1f시간", value)
-    default:
-      return String(format: "%.1f %@", value, unit)
-    }
+    return "sample \(sampleCount)개 · 최근 \(SleepFormatters.shortDate(latestDate))"
   }
 }

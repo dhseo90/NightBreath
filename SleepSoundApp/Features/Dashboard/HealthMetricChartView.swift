@@ -35,7 +35,7 @@ struct HealthMetricChartView: View {
     }
     .chartYScale(domain: yDomain)
     .frame(height: 170)
-    .accessibilityLabel("\(metricType.displayName) mock chart")
+    .accessibilityLabel("\(metricType.displayName) 추세 그래프")
   }
 
   private var points: [HealthMetricChartDataPoint] {

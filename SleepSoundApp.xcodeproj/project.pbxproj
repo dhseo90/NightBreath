@@ -83,6 +83,10 @@
 		00000000000000000000025D /* HealthMetricChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017D /* HealthMetricChartView.swift */; };
 		00000000000000000000025E /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000017F /* HealthKitService.swift */; };
 		00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000180 /* HealthMetricUnitConversion.swift */; };
+		000000000000000000000260 /* HealthMetricTrendCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000184 /* HealthMetricTrendCalculator.swift */; };
+		000000000000000000000261 /* HealthDashboardSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000185 /* HealthDashboardSupport.swift */; };
+		000000000000000000000262 /* BloodPressureDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000186 /* BloodPressureDashboardView.swift */; };
+		000000000000000000000263 /* BodyCompositionDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000187 /* BodyCompositionDashboardView.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -235,6 +239,11 @@
 		000000000000000000000181 /* SleepSoundApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SleepSoundApp.entitlements; sourceTree = "<group>"; };
 		000000000000000000000182 /* HealthMetricUnitConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricUnitConversionTests.swift; sourceTree = "<group>"; };
 		000000000000000000000183 /* HealthKitReadOnlyPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReadOnlyPolicyTests.swift; sourceTree = "<group>"; };
+		000000000000000000000184 /* HealthMetricTrendCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricTrendCalculator.swift; sourceTree = "<group>"; };
+		000000000000000000000185 /* HealthDashboardSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardSupport.swift; sourceTree = "<group>"; };
+		000000000000000000000186 /* BloodPressureDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodPressureDashboardView.swift; sourceTree = "<group>"; };
+		000000000000000000000187 /* BodyCompositionDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyCompositionDashboardView.swift; sourceTree = "<group>"; };
+		000000000000000000000188 /* HealthMetricTrendCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricTrendCalculatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -342,6 +351,9 @@
 				00000000000000000000011E /* TrendChartView.swift */,
 				000000000000000000000173 /* TrendDashboardView.swift */,
 				00000000000000000000017C /* HealthDashboardView.swift */,
+				000000000000000000000185 /* HealthDashboardSupport.swift */,
+				000000000000000000000186 /* BloodPressureDashboardView.swift */,
+				000000000000000000000187 /* BodyCompositionDashboardView.swift */,
 				00000000000000000000017D /* HealthMetricChartView.swift */,
 			);
 			path = Dashboard;
@@ -457,6 +469,7 @@
 				00000000000000000000010F /* HealthKitServiceProtocol.swift */,
 				00000000000000000000017F /* HealthKitService.swift */,
 				000000000000000000000180 /* HealthMetricUnitConversion.swift */,
+				000000000000000000000184 /* HealthMetricTrendCalculator.swift */,
 				00000000000000000000017B /* MockHealthKitService.swift */,
 				00000000000000000000017A /* HealthMetricChartData.swift */,
 				00000000000000000000010E /* HealthDashboardPlaceholder.swift */,
@@ -514,6 +527,7 @@
 				00000000000000000000017E /* MockHealthKitServiceTests.swift */,
 				000000000000000000000182 /* HealthMetricUnitConversionTests.swift */,
 				000000000000000000000183 /* HealthKitReadOnlyPolicyTests.swift */,
+				000000000000000000000188 /* HealthMetricTrendCalculatorTests.swift */,
 				000000000000000000000128 /* SleepScoreCalculatorTests.swift */,
 				000000000000000000000129 /* SleepEventAggregatorTests.swift */,
 			);
@@ -639,6 +653,7 @@
 				00000000000000000000020F /* HealthKitServiceProtocol.swift in Sources */,
 				00000000000000000000025E /* HealthKitService.swift in Sources */,
 				00000000000000000000025F /* HealthMetricUnitConversion.swift in Sources */,
+				000000000000000000000260 /* HealthMetricTrendCalculator.swift in Sources */,
 				000000000000000000000210 /* HealthMetricType.swift in Sources */,
 				00000000000000000000025B /* MockHealthKitService.swift in Sources */,
 				00000000000000000000025A /* HealthMetricChartData.swift in Sources */,
@@ -672,6 +687,9 @@
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
 				000000000000000000000256 /* TrendDashboardView.swift in Sources */,
 				00000000000000000000025C /* HealthDashboardView.swift in Sources */,
+				000000000000000000000261 /* HealthDashboardSupport.swift in Sources */,
+				000000000000000000000262 /* BloodPressureDashboardView.swift in Sources */,
+				000000000000000000000263 /* BodyCompositionDashboardView.swift in Sources */,
 				00000000000000000000025D /* HealthMetricChartView.swift in Sources */,
 				000000000000000000000258 /* OnboardingView.swift in Sources */,
 				000000000000000000000259 /* CalibrationView.swift in Sources */,
