@@ -69,7 +69,11 @@ private extension HealthMetricType {
       0.5
     case .bodyFatPercentage, .bodyMassIndex:
       0.4
-    case .restingHeartRate:
+    case .stepCount:
+      500
+    case .activeEnergy:
+      40
+    case .heartRate, .restingHeartRate:
       3
     case .sleepDuration:
       0.4

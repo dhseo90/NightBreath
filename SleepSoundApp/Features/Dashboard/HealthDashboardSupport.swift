@@ -17,7 +17,7 @@ enum HealthDashboardMetrics {
 enum HealthMetricDashboardFormatting {
   static func valueString(_ value: Double, unit: String) -> String {
     switch unit {
-    case "mmHg", "bpm":
+    case "mmHg", "bpm", "걸음", "kcal":
       "\(Int(value.rounded())) \(unit)"
     case "BMI":
       String(format: "%.1f", value)
@@ -45,6 +45,12 @@ enum HealthMetricDashboardFormatting {
       "figure"
     case .leanBodyMass:
       "figure.strengthtraining.traditional"
+    case .stepCount:
+      "figure.walk"
+    case .activeEnergy:
+      "flame"
+    case .heartRate:
+      "heart"
     case .restingHeartRate:
       "heart.fill"
     case .sleepDuration:
@@ -64,6 +70,12 @@ enum HealthMetricDashboardFormatting {
       NBColor.lavender
     case .leanBodyMass:
       NBColor.quietIndigo
+    case .stepCount:
+      NBColor.mistTeal
+    case .activeEnergy:
+      NBColor.warning
+    case .heartRate:
+      NBColor.danger
     case .restingHeartRate:
       NBColor.danger
     case .respiratoryRate:

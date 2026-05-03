@@ -7,6 +7,9 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
     case bodyFatPercentage
     case bodyMassIndex
     case leanBodyMass
+    case stepCount
+    case activeEnergy
+    case heartRate
     case restingHeartRate
     case sleepDuration
     case respiratoryRate
@@ -27,6 +30,12 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             "BMI"
         case .leanBodyMass:
             "제지방량"
+        case .stepCount:
+            "걸음 수"
+        case .activeEnergy:
+            "활동량"
+        case .heartRate:
+            "심박수"
         case .restingHeartRate:
             "안정시 심박수"
         case .sleepDuration:
@@ -46,7 +55,11 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             "%"
         case .bodyMassIndex:
             "BMI"
-        case .restingHeartRate:
+        case .stepCount:
+            "걸음"
+        case .activeEnergy:
+            "kcal"
+        case .heartRate, .restingHeartRate:
             "bpm"
         case .sleepDuration:
             "시간"
@@ -67,8 +80,10 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             "BMI"
         case .leanBodyMass:
             "제지방량"
-        case .restingHeartRate:
-            "안정시 심박수"
+        case .stepCount, .activeEnergy:
+            "활동"
+        case .heartRate, .restingHeartRate:
+            "심박수"
         case .sleepDuration:
             "수면 시간"
         case .respiratoryRate:
@@ -85,6 +100,23 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
             .bodyMassIndex,
             .leanBodyMass,
             .restingHeartRate,
+            .respiratoryRate,
+        ]
+    }
+
+    public static var dailyRhythmMockMetrics: [HealthMetricType] {
+        [
+            .systolicBloodPressure,
+            .diastolicBloodPressure,
+            .bodyMass,
+            .bodyFatPercentage,
+            .bodyMassIndex,
+            .leanBodyMass,
+            .stepCount,
+            .activeEnergy,
+            .heartRate,
+            .restingHeartRate,
+            .sleepDuration,
             .respiratoryRate,
         ]
     }

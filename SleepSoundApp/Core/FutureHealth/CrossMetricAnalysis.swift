@@ -268,7 +268,8 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
         case .systolicBloodPressure, .diastolicBloodPressure:
             .nextMorning
         case .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass,
-             .restingHeartRate, .sleepDuration, .respiratoryRate:
+             .stepCount, .activeEnergy, .heartRate, .restingHeartRate,
+             .sleepDuration, .respiratoryRate:
             .sameCalendarDay
         }
     }

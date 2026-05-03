@@ -152,7 +152,7 @@ private extension HealthKitService {
             .restingHeartRate
         case .respiratoryRate:
             .respiratoryRate
-        case .sleepDuration:
+        case .stepCount, .activeEnergy, .heartRate, .sleepDuration:
             nil
         }
     }
@@ -169,7 +169,7 @@ private extension HealthKitService {
             .count()
         case .restingHeartRate, .respiratoryRate:
             .count().unitDivided(by: .minute())
-        case .sleepDuration:
+        case .stepCount, .activeEnergy, .heartRate, .sleepDuration:
             nil
         }
     }
