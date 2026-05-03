@@ -30,6 +30,19 @@ public struct NightReport: Identifiable, Codable, Equatable {
     public var mainDisturbanceReason: String
     public var detectorDiagnostics: DetectorDiagnostics?
 
+    public var suspectedBreathingPauseCount: Int {
+        max(0, suspectedPauseCount)
+    }
+
+    public var longestSuspectedBreathingPauseSeconds: TimeInterval {
+        max(0, longestSuspectedPause)
+    }
+
+    public var suspectedBreathingPauseRatePerRecordingHour: Double {
+        guard measurementDuration > 0 else { return 0 }
+        return Double(suspectedBreathingPauseCount) / (measurementDuration / 3_600)
+    }
+
     public init(
         sessionId: UUID,
         generatedAt: Date = Date(),

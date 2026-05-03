@@ -73,6 +73,7 @@ final class AppState: ObservableObject {
     private let detectorDiagnosticsCollector = DetectorDiagnosticsCollector()
     private var recentAudioBuffer = AudioRingBuffer(maxChunkCount: 180, maxDuration: 180)
     private var currentDetectorOutputs: [DetectorOutput] = []
+    private var currentAudioFeatures: [AudioFeatures] = []
     private var eventAudioSnippetTasks: [Task<Void, Never>] = []
     private var savedAudioSnippets: [EventAudioSnippet] = []
     private var scheduledSnippetKeys = Set<String>()
@@ -196,6 +197,7 @@ final class AppState: ObservableObject {
         cancelPendingEventAudioSnippetTasks()
         recentAudioBuffer.removeAll()
         currentDetectorOutputs.removeAll(keepingCapacity: true)
+        currentAudioFeatures.removeAll(keepingCapacity: true)
         savedAudioSnippets.removeAll(keepingCapacity: true)
         scheduledSnippetKeys.removeAll(keepingCapacity: true)
         latestSnippetStartedAtByType.removeAll(keepingCapacity: true)
@@ -275,6 +277,7 @@ final class AppState: ObservableObject {
         audioCaptureMetrics = AudioCaptureMetrics()
         latestDetectorDiagnostics = nil
         currentDetectorOutputs.removeAll(keepingCapacity: true)
+        currentAudioFeatures.removeAll(keepingCapacity: true)
         eventAudioSnippetTasks.forEach { $0.cancel() }
         eventAudioSnippetTasks.removeAll(keepingCapacity: true)
         savedAudioSnippets.removeAll(keepingCapacity: true)
@@ -297,6 +300,12 @@ final class AppState: ObservableObject {
         let endedAt = Date()
         audioCaptureMetrics.stop(at: endedAt)
         let completedSession = makeCompletedSession(from: session, endedAt: endedAt)
+        let sequenceResult = sleepAnalyzer.detectSuspectedBreathingPauseSequence(
+            features: currentAudioFeatures,
+            contextOutputs: currentDetectorOutputs
+        )
+        currentDetectorOutputs.append(contentsOf: sequenceResult.outputs)
+        detectorDiagnosticsCollector.record(sequenceResult: sequenceResult)
         let smoothingResult = sleepAnalyzer.smoothWithDiagnostics(outputs: currentDetectorOutputs)
         let smoothedOutputs = smoothingResult.outputs
         saveMissingEventAudioSnippets(sessionId: completedSession.id, outputs: smoothedOutputs)
@@ -544,6 +553,7 @@ final class AppState: ObservableObject {
             modelInstalled: sleepAnalyzer.isModelInstalled
         )
         detectorDiagnosticsCollector.record(features: detection.features, outputs: outputs)
+        currentAudioFeatures.append(detection.features)
         currentDetectorOutputs.append(contentsOf: outputs)
         for output in outputs {
             scheduleEventAudioSnippetCapture(sessionId: activeSession?.id, output: output)

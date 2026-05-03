@@ -2740,6 +2740,7 @@ public struct OfflineEvaluationRunner {
     metrics.start(at: evaluatedAt)
     let collector = DetectorDiagnosticsCollector()
     var rawOutputs: [DetectorOutput] = []
+    var audioFeatures: [AudioFeatures] = []
 
     collector.reset(
       sessionId: UUID(),
@@ -2763,8 +2764,16 @@ public struct OfflineEvaluationRunner {
         modelInstalled: analyzer.isModelInstalled
       )
       collector.record(features: features, outputs: outputs)
+      audioFeatures.append(features)
       rawOutputs.append(contentsOf: outputs)
     }
+
+    let sequenceResult = analyzer.detectSuspectedBreathingPauseSequence(
+      features: audioFeatures,
+      contextOutputs: rawOutputs
+    )
+    collector.record(sequenceResult: sequenceResult)
+    rawOutputs.append(contentsOf: sequenceResult.outputs)
 
     let smoothingResult = analyzer.smoothWithDiagnostics(outputs: rawOutputs)
     collector.record(smoothingDiagnostics: smoothingResult.diagnostics)

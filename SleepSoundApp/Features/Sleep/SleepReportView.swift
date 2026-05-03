@@ -220,6 +220,18 @@ struct SleepReportView: View {
               systemImage: "bolt",
               color: .orange
             )
+            ReportMetricCard(
+              title: "저활동 후보",
+              value: "\(diagnostics.lowActivityCandidateCount ?? 0)개",
+              systemImage: "lungs",
+              color: .cyan
+            )
+            ReportMetricCard(
+              title: "회복 패턴",
+              value: "\(diagnostics.recoveryPatternCount ?? 0)개",
+              systemImage: "arrow.uturn.forward.circle",
+              color: .mint
+            )
           }
 
           VStack(alignment: .leading, spacing: 6) {
@@ -232,6 +244,17 @@ struct SleepReportView: View {
             Text("주요 탈락 이유: \(topRejectReasonText(diagnostics))")
               .font(.caption)
               .foregroundStyle(.secondary)
+            Text("호흡 활동 score: \(shortNumber(diagnostics.latestBreathingActivityScore ?? 0)), 최근 저활동 지속: \(SleepFormatters.compactDurationString(diagnostics.latestLowActivityDurationSeconds ?? 0))")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+            Text("최근 회복 패턴: \((diagnostics.latestRecoveryPatternDetected ?? false) ? "감지" : "없음"), 후보 confidence: \(percentString(diagnostics.latestPauseCandidateConfidence ?? 0))")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+            if let rejectedReason = diagnostics.latestPauseCandidateRejectedReason {
+              Text("최근 sequence 제외 이유: \(rejectedReason)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
           }
 
           if let zeroEventText = diagnostics.summaryTextForZeroEvents {
@@ -309,7 +332,7 @@ struct SleepReportView: View {
         )
         ReportMetricCard(
           title: "호흡정지 의심 구간",
-          value: "\(report.suspectedPauseCount)회",
+          value: "\(report.suspectedBreathingPauseCount)회",
           systemImage: SleepEventType.breathingPauseSuspected.symbolName,
           color: SleepEventType.breathingPauseSuspected.tintColor
         )
@@ -339,9 +362,15 @@ struct SleepReportView: View {
         )
         ReportMetricCard(
           title: "가장 긴 의심 구간",
-          value: SleepFormatters.compactDurationString(report.longestSuspectedPause),
+          value: SleepFormatters.compactDurationString(report.longestSuspectedBreathingPauseSeconds),
           systemImage: "timer",
           color: .red
+        )
+        ReportMetricCard(
+          title: "녹음 시간당 의심 구간",
+          value: String(format: "%.1f회/시간", report.suspectedBreathingPauseRatePerRecordingHour),
+          systemImage: "clock.arrow.circlepath",
+          color: .pink
         )
       }
 
@@ -409,13 +438,17 @@ struct SleepReportView: View {
         SectionHeader(title: "주의 문구", systemImage: "info.circle")
 
         if shouldShowRepeatedPauseNote {
-          Text("호흡정지 의심 구간이나 gasp-like 회복 호흡이 반복적으로 높게 나타나면 전문가 상담을 고려해보세요.")
+          Text("호흡정지 의심 구간은 오디오 기반 의심 패턴입니다.")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+
+          Text("반복적으로 높게 나타나면 전문가 상담을 고려해보세요.")
             .font(.callout)
             .foregroundStyle(.secondary)
         }
 
         if report.bruxismLikeCount > 0 {
-          Text("이갈이 의심 소리는 사용자 확인 필요 항목입니다. 침구 마찰음이나 주변 소음과 구분이 어려울 수 있으며, 정확한 진단은 전문가 상담이 필요합니다.")
+          Text("이갈이 의심 소리는 사용자 확인 필요 항목입니다. 침구 마찰음이나 주변 소음과 구분이 어려울 수 있어 참고 정보로만 확인해 주세요.")
             .font(.callout)
             .foregroundStyle(.secondary)
         }
@@ -499,7 +532,7 @@ struct SleepReportView: View {
   }
 
   private var shouldShowRepeatedPauseNote: Bool {
-    report.suspectedPauseCount >= 5 || report.gaspLikeCount >= 2
+    report.suspectedBreathingPauseCount >= 5 || report.gaspLikeCount >= 2
   }
 
   private var shouldShowLowMeasurementQualityNote: Bool {

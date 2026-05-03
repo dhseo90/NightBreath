@@ -25,15 +25,18 @@ public protocol SleepAnalyzing {
 public struct SleepAnalyzer: SleepAnalyzing {
   public var extractor: any AudioFeatureExtracting
   public var detector: any SleepEventDetector
+  public var suspectedBreathingPauseSequenceDetector: SuspectedBreathingPauseSequenceDetector
   public var smoothingPolicy: DetectionSmoothingPolicy
 
   public init(
     extractor: any AudioFeatureExtracting = AudioFeatureExtractor(),
     detector: any SleepEventDetector = CompositeSleepEventDetector.ruleBasedDefault,
+    suspectedBreathingPauseSequenceDetector: SuspectedBreathingPauseSequenceDetector = SuspectedBreathingPauseSequenceDetector(),
     smoothingPolicy: DetectionSmoothingPolicy = DetectionSmoothingPolicy()
   ) {
     self.extractor = extractor
     self.detector = detector
+    self.suspectedBreathingPauseSequenceDetector = suspectedBreathingPauseSequenceDetector
     self.smoothingPolicy = smoothingPolicy
   }
 
@@ -46,9 +49,21 @@ public struct SleepAnalyzer: SleepAnalyzing {
   }
 
   public func detectOutputs(from chunks: [AudioChunk]) -> [DetectorOutput] {
-    chunks.flatMap { chunk in
-      detectOutputs(from: chunk)
+    var features: [AudioFeatures] = []
+    var outputs: [DetectorOutput] = []
+
+    for chunk in chunks {
+      let extractedFeatures = extractor.extractFeatures(from: chunk)
+      features.append(extractedFeatures)
+      outputs.append(contentsOf: detector.detect(features: extractedFeatures))
     }
+
+    let sequenceResult = detectSuspectedBreathingPauseSequence(
+      features: features,
+      contextOutputs: outputs
+    )
+    outputs.append(contentsOf: sequenceResult.outputs)
+    return outputs
   }
 
   public func detectOutputs(from chunk: AudioChunk) -> [DetectorOutput] {
@@ -81,6 +96,16 @@ public struct SleepAnalyzer: SleepAnalyzing {
     smoothingPolicy.applyWithDiagnostics(to: outputs)
   }
 
+  public func detectSuspectedBreathingPauseSequence(
+    features: [AudioFeatures],
+    contextOutputs: [DetectorOutput]
+  ) -> SuspectedBreathingPauseSequenceResult {
+    suspectedBreathingPauseSequenceDetector.detect(
+      features: features,
+      contextOutputs: contextOutputs
+    )
+  }
+
   public func makeEvents(session: SleepSession, outputs: [DetectorOutput]) -> [SleepEvent] {
     DetectorOutputMapper.makeEvents(from: outputs, sessionId: session.id)
   }
@@ -89,12 +114,18 @@ public struct SleepAnalyzer: SleepAnalyzing {
     -> [SleepEvent]
   {
     var rawOutputs: [DetectorOutput] = []
+    var features: [AudioFeatures] = []
 
     for await chunk in chunkStream {
-      let features = extractor.extractFeatures(from: chunk)
-      rawOutputs.append(contentsOf: detector.detect(features: features))
+      let extractedFeatures = extractor.extractFeatures(from: chunk)
+      features.append(extractedFeatures)
+      rawOutputs.append(contentsOf: detector.detect(features: extractedFeatures))
     }
 
+    rawOutputs.append(contentsOf: detectSuspectedBreathingPauseSequence(
+      features: features,
+      contextOutputs: rawOutputs
+    ).outputs)
     return makeEvents(session: session, outputs: smooth(outputs: rawOutputs))
   }
 
@@ -103,12 +134,18 @@ public struct SleepAnalyzer: SleepAnalyzing {
     async throws -> [SleepEvent]
   {
     var rawOutputs: [DetectorOutput] = []
+    var features: [AudioFeatures] = []
 
     for try await chunk in chunkStream {
-      let features = extractor.extractFeatures(from: chunk)
-      rawOutputs.append(contentsOf: detector.detect(features: features))
+      let extractedFeatures = extractor.extractFeatures(from: chunk)
+      features.append(extractedFeatures)
+      rawOutputs.append(contentsOf: detector.detect(features: extractedFeatures))
     }
 
+    rawOutputs.append(contentsOf: detectSuspectedBreathingPauseSequence(
+      features: features,
+      contextOutputs: rawOutputs
+    ).outputs)
     return makeEvents(session: session, outputs: smooth(outputs: rawOutputs))
   }
 
@@ -187,6 +224,9 @@ public struct SleepAnalyzer: SleepAnalyzing {
       "smoothing.bruxismLikeMinimumEventDuration": smoothingPolicy.bruxismLikeMinimumEventDuration,
       "smoothing.bruxismLikeMaximumMergeGap": smoothingPolicy.bruxismLikeMaximumMergeGap,
       "smoothing.bruxismLikeConfidenceThreshold": smoothingPolicy.bruxismLikeConfidenceThreshold,
+      "sequence.suspectedPauseMinimumLowActivityDuration": suspectedBreathingPauseSequenceDetector.minimumLowActivityDuration,
+      "sequence.recoveryWindowSeconds": suspectedBreathingPauseSequenceDetector.recoveryWindowSeconds,
+      "sequence.minimumOutputConfidence": suspectedBreathingPauseSequenceDetector.minimumOutputConfidence,
     ]
   }
 

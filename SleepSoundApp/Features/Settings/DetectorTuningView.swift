@@ -75,6 +75,26 @@
           DetectorTuningRow(
             title: "오디오 커버리지", value: percentString(diagnostics.audioCoverageRatio),
             systemImage: "waveform.badge.checkmark")
+          DetectorTuningRow(
+            title: "호흡 활동 score",
+            value: shortNumber(diagnostics.latestBreathingActivityScore ?? 0),
+            systemImage: "lungs")
+          DetectorTuningRow(
+            title: "저활동 지속",
+            value: durationString(diagnostics.latestLowActivityDurationSeconds ?? 0),
+            systemImage: "timer")
+          DetectorTuningRow(
+            title: "회복 패턴",
+            value: (diagnostics.latestRecoveryPatternDetected ?? false) ? "감지" : "없음",
+            systemImage: "arrow.clockwise.circle")
+          DetectorTuningRow(
+            title: "후보 confidence",
+            value: percentString(diagnostics.latestPauseCandidateConfidence ?? 0),
+            systemImage: "gauge.with.dots.needle.67percent")
+          DetectorTuningRow(
+            title: "최근 제외 이유",
+            value: diagnostics.latestPauseCandidateRejectedReason ?? "없음",
+            systemImage: "xmark.circle")
 
           VStack(alignment: .leading, spacing: 8) {
             Text("Reject reason TOP 5")
@@ -143,6 +163,26 @@
           DetectorFeatureStatsRow(title: "Low Band", stats: diagnostics.lowBandEnergySummary)
           DetectorFeatureStatsRow(title: "Mid Band", stats: diagnostics.midBandEnergySummary)
           DetectorFeatureStatsRow(title: "High Band", stats: diagnostics.highBandEnergySummary)
+          DetectorTuningRow(
+            title: "저활동 후보",
+            value: "\(diagnostics.lowActivityCandidateCount ?? 0)개",
+            systemImage: "waveform.path.ecg")
+          DetectorTuningRow(
+            title: "소음 영향 저활동",
+            value: "\(diagnostics.noiseContaminatedLowActivityCount ?? 0)개",
+            systemImage: "speaker.wave.3")
+          DetectorTuningRow(
+            title: "gasp-like 승격",
+            value: "\(diagnostics.pauseCandidatesPromotedByGasp ?? 0)개",
+            systemImage: "arrow.up.circle")
+          DetectorTuningRow(
+            title: "duration 제외",
+            value: "\(diagnostics.pauseCandidatesRejectedByDuration ?? 0)개",
+            systemImage: "timer")
+          DetectorTuningRow(
+            title: "noise 제외",
+            value: "\(diagnostics.pauseCandidatesRejectedByNoise ?? 0)개",
+            systemImage: "speaker.slash")
         } else {
           Text("최근 세션 feature summary가 없습니다.")
             .font(.footnote)
@@ -204,6 +244,10 @@
 
     private func percentString(_ ratio: Double) -> String {
       String(format: "%.1f%%", min(max(ratio, 0), 1) * 100)
+    }
+
+    private func durationString(_ seconds: TimeInterval) -> String {
+      SleepFormatters.compactDurationString(seconds)
     }
 
     private func topRejectReasonText(_ diagnostics: DetectorDiagnostics, limit: Int) -> String {

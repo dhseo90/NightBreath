@@ -178,6 +178,16 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
 
     public func makeSleepAnalyzer(backend: SleepDetectionBackend = .hybrid) -> SleepAnalyzer {
         let ruleDetector = RuleBasedSleepEventDetector(thresholds: ruleBasedThresholds)
+        let breathingActivityEstimator = BreathingActivityEstimator(
+            silenceRMS: silenceRmsThreshold,
+            snoreRMS: snoreRmsThreshold,
+            noiseRMS: environmentalNoiseThreshold
+        )
+        let sequenceDetector = SuspectedBreathingPauseSequenceDetector(
+            estimator: breathingActivityEstimator,
+            minimumLowActivityDuration: suspectedPauseMinimumDuration,
+            minimumOutputConfidence: max(0.30, minimumConfidence - 0.05)
+        )
         let detector = CompositeSleepEventDetector(
             backend: backend,
             ruleBasedDetector: ruleDetector,
@@ -186,6 +196,7 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
 
         return SleepAnalyzer(
             detector: detector,
+            suspectedBreathingPauseSequenceDetector: sequenceDetector,
             smoothingPolicy: smoothingPolicy
         )
     }

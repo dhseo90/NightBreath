@@ -229,14 +229,23 @@ struct RegressionTestSuiteTests {
     )
 
     var rawOutputs: [DetectorOutput] = []
+    var audioFeatures: [AudioFeatures] = []
     for chunk in chunks {
       metrics.recordReceived(chunk: chunk, at: chunk.startedAt)
       let features = analyzer.extractor.extractFeatures(from: chunk)
       let outputs = analyzer.detector.detect(features: features)
       metrics.recordAnalyzed(chunk: chunk, at: chunk.startedAt)
       collector.record(features: features, outputs: outputs)
+      audioFeatures.append(features)
       rawOutputs.append(contentsOf: outputs)
     }
+
+    let sequenceResult = analyzer.detectSuspectedBreathingPauseSequence(
+      features: audioFeatures,
+      contextOutputs: rawOutputs
+    )
+    collector.record(sequenceResult: sequenceResult)
+    rawOutputs.append(contentsOf: sequenceResult.outputs)
 
     let smoothing = analyzer.smoothWithDiagnostics(outputs: rawOutputs)
     collector.record(smoothingDiagnostics: smoothing.diagnostics)

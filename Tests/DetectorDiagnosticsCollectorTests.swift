@@ -112,6 +112,51 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(diagnostics.rejectedCountByReason[.modelUnavailable] == 1)
     }
 
+    @Test
+    func collectorRecordsBreathingPauseSequenceSummary() throws {
+        let collector = makeCollector()
+        let start = Date(timeIntervalSince1970: 70)
+        let output = DetectorOutput(
+            eventType: .breathingPauseSuspected,
+            startedAt: start,
+            endedAt: start.addingTimeInterval(12),
+            confidence: 0.62,
+            intensity: 0.20,
+            debugReason: "sequence test"
+        )
+        let summary = SuspectedBreathingPauseSequenceSummary(
+            lowActivityCandidateCount: 2,
+            noiseContaminatedLowActivityCount: 1,
+            recoveryPatternCount: 1,
+            pauseCandidatesRejectedByNoise: 1,
+            pauseCandidatesRejectedByDuration: 3,
+            pauseCandidatesPromotedByGasp: 1,
+            latestBreathingActivityScore: 0.10,
+            latestLowActivityDurationSeconds: 12,
+            latestRecoveryPatternDetected: true,
+            latestPauseCandidateConfidence: 0.62,
+            latestPauseCandidateRejectedReason: nil
+        )
+
+        collector.record(sequenceResult: SuspectedBreathingPauseSequenceResult(
+            outputs: [output],
+            summary: summary
+        ))
+        let diagnostics = try finalized(collector)
+
+        #expect(diagnostics.rawCandidateCountByType[.breathingPauseSuspected] == 1)
+        #expect(diagnostics.lowActivityCandidateCount == 2)
+        #expect(diagnostics.noiseContaminatedLowActivityCount == 1)
+        #expect(diagnostics.recoveryPatternCount == 1)
+        #expect(diagnostics.pauseCandidatesRejectedByNoise == 1)
+        #expect(diagnostics.pauseCandidatesRejectedByDuration == 3)
+        #expect(diagnostics.pauseCandidatesPromotedByGasp == 1)
+        #expect(diagnostics.latestRecoveryPatternDetected == true)
+        #expect(diagnostics.latestPauseCandidateConfidence == 0.62)
+        #expect(diagnostics.rejectedCountByReason[.tooShort] == 3)
+        #expect(diagnostics.rejectedCountByReason[.likelyEnvironmentalNoise] == 1)
+    }
+
     private func makeCollector(
         backend: SleepDetectionBackend = .ruleBased,
         modelInstalled: Bool = false

@@ -159,6 +159,17 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var highBandEnergySummary: SummaryStats
     public var thresholdsSnapshot: [String: Double]
     public var eventAudioSampleStorageEnabled: Bool
+    public var lowActivityCandidateCount: Int?
+    public var noiseContaminatedLowActivityCount: Int?
+    public var recoveryPatternCount: Int?
+    public var pauseCandidatesRejectedByNoise: Int?
+    public var pauseCandidatesRejectedByDuration: Int?
+    public var pauseCandidatesPromotedByGasp: Int?
+    public var latestBreathingActivityScore: Double?
+    public var latestLowActivityDurationSeconds: TimeInterval?
+    public var latestRecoveryPatternDetected: Bool?
+    public var latestPauseCandidateConfidence: Double?
+    public var latestPauseCandidateRejectedReason: String?
     public var notes: [String]
 
     public init(
@@ -188,6 +199,17 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         highBandEnergySummary: SummaryStats = SummaryStats(),
         thresholdsSnapshot: [String: Double] = [:],
         eventAudioSampleStorageEnabled: Bool,
+        lowActivityCandidateCount: Int = 0,
+        noiseContaminatedLowActivityCount: Int = 0,
+        recoveryPatternCount: Int = 0,
+        pauseCandidatesRejectedByNoise: Int = 0,
+        pauseCandidatesRejectedByDuration: Int = 0,
+        pauseCandidatesPromotedByGasp: Int = 0,
+        latestBreathingActivityScore: Double = 0,
+        latestLowActivityDurationSeconds: TimeInterval = 0,
+        latestRecoveryPatternDetected: Bool = false,
+        latestPauseCandidateConfidence: Double = 0,
+        latestPauseCandidateRejectedReason: String? = nil,
         notes: [String] = []
     ) {
         self.sessionId = sessionId
@@ -216,6 +238,17 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.highBandEnergySummary = highBandEnergySummary
         self.thresholdsSnapshot = thresholdsSnapshot.filter { $0.value.isFinite }
         self.eventAudioSampleStorageEnabled = eventAudioSampleStorageEnabled
+        self.lowActivityCandidateCount = max(0, lowActivityCandidateCount)
+        self.noiseContaminatedLowActivityCount = max(0, noiseContaminatedLowActivityCount)
+        self.recoveryPatternCount = max(0, recoveryPatternCount)
+        self.pauseCandidatesRejectedByNoise = max(0, pauseCandidatesRejectedByNoise)
+        self.pauseCandidatesRejectedByDuration = max(0, pauseCandidatesRejectedByDuration)
+        self.pauseCandidatesPromotedByGasp = max(0, pauseCandidatesPromotedByGasp)
+        self.latestBreathingActivityScore = Self.clampedRatio(latestBreathingActivityScore)
+        self.latestLowActivityDurationSeconds = max(0, latestLowActivityDurationSeconds)
+        self.latestRecoveryPatternDetected = latestRecoveryPatternDetected
+        self.latestPauseCandidateConfidence = Self.clampedRatio(latestPauseCandidateConfidence)
+        self.latestPauseCandidateRejectedReason = latestPauseCandidateRejectedReason
         self.notes = notes
     }
 
@@ -267,6 +300,7 @@ public final class DetectorDiagnosticsCollector {
     private var preSmoothingCandidateCount = 0
     private var postSmoothingEventCount = 0
     private var finalEventCountByType: [SleepEventType: Int] = [:]
+    private var sequenceSummary = SuspectedBreathingPauseSequenceSummary()
     private var notes: [String] = []
 
     public init() {}
@@ -300,6 +334,7 @@ public final class DetectorDiagnosticsCollector {
         preSmoothingCandidateCount = 0
         postSmoothingEventCount = 0
         finalEventCountByType.removeAll(keepingCapacity: true)
+        sequenceSummary = SuspectedBreathingPauseSequenceSummary()
         notes.removeAll(keepingCapacity: true)
     }
 
@@ -340,6 +375,22 @@ public final class DetectorDiagnosticsCollector {
         postSmoothingEventCount = smoothingDiagnostics.postSmoothingEventCount
         for (reason, count) in smoothingDiagnostics.rejectedCountByReason {
             rejectedCountByReason[reason, default: 0] += count
+        }
+    }
+
+    public func record(sequenceResult: SuspectedBreathingPauseSequenceResult) {
+        sequenceSummary = sequenceResult.summary
+
+        for output in sequenceResult.outputs {
+            rawCandidateCountByType[output.eventType, default: 0] += 1
+            confidenceHistogram[Self.confidenceBucket(for: output.confidence), default: 0] += 1
+        }
+
+        if sequenceResult.summary.pauseCandidatesRejectedByDuration > 0 {
+            rejectedCountByReason[.tooShort, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByDuration
+        }
+        if sequenceResult.summary.pauseCandidatesRejectedByNoise > 0 {
+            rejectedCountByReason[.likelyEnvironmentalNoise, default: 0] += sequenceResult.summary.pauseCandidatesRejectedByNoise
         }
     }
 
@@ -388,6 +439,17 @@ public final class DetectorDiagnosticsCollector {
             highBandEnergySummary: SummaryStats.make(values: highBandEnergyValues),
             thresholdsSnapshot: thresholdsSnapshot,
             eventAudioSampleStorageEnabled: eventAudioSampleStorageEnabled,
+            lowActivityCandidateCount: sequenceSummary.lowActivityCandidateCount,
+            noiseContaminatedLowActivityCount: sequenceSummary.noiseContaminatedLowActivityCount,
+            recoveryPatternCount: sequenceSummary.recoveryPatternCount,
+            pauseCandidatesRejectedByNoise: sequenceSummary.pauseCandidatesRejectedByNoise,
+            pauseCandidatesRejectedByDuration: sequenceSummary.pauseCandidatesRejectedByDuration,
+            pauseCandidatesPromotedByGasp: sequenceSummary.pauseCandidatesPromotedByGasp,
+            latestBreathingActivityScore: sequenceSummary.latestBreathingActivityScore,
+            latestLowActivityDurationSeconds: sequenceSummary.latestLowActivityDurationSeconds,
+            latestRecoveryPatternDetected: sequenceSummary.latestRecoveryPatternDetected,
+            latestPauseCandidateConfidence: sequenceSummary.latestPauseCandidateConfidence,
+            latestPauseCandidateRejectedReason: sequenceSummary.latestPauseCandidateRejectedReason,
             notes: notes
         )
     }

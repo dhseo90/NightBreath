@@ -249,6 +249,7 @@
       let analyzer = configuration.makeSleepAnalyzer()
       let collector = DetectorDiagnosticsCollector()
       var rawOutputs: [DetectorOutput] = []
+      var audioFeatures: [AudioFeatures] = []
       let stream = source.makeChunkStream()
 
       collector.reset(
@@ -271,10 +272,17 @@
           let result = analyzer.detectOutputsWithFeatures(from: chunk, updating: &workingMetrics)
           metrics = workingMetrics
           collector.record(features: result.features, outputs: result.outputs)
+          audioFeatures.append(result.features)
           rawOutputs.append(contentsOf: result.outputs)
         }
 
         let endedAt = Date()
+        let sequenceResult = analyzer.detectSuspectedBreathingPauseSequence(
+          features: audioFeatures,
+          contextOutputs: rawOutputs
+        )
+        collector.record(sequenceResult: sequenceResult)
+        rawOutputs.append(contentsOf: sequenceResult.outputs)
         let smoothingResult = analyzer.smoothWithDiagnostics(outputs: rawOutputs)
         collector.record(smoothingDiagnostics: smoothingResult.diagnostics)
         session.endedAt = endedAt
