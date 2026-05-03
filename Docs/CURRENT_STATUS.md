@@ -52,6 +52,25 @@
 - Health dashboard integration
 - 혈압/체성분 건강 데이터 dashboard
 - 수면 소리 지표와 건강 지표 교차 보기
+- Extended Health Metrics
+- `UnifiedHealthMetricID`
+- `UnifiedHealthMetricSample`
+- `HealthMetricSourceType`
+- `MetricCatalog`
+- Fitdays CSV/import flow
+- `ImportBatch`
+- synthetic Fitdays CSV fixture
+- HealthKit-backed metric과 Fitdays local-only metric source 구분
+- 전체 건강 지표 overview
+- MetricChartView
+- 건강 지표 통계/그래프
+- HealthMetricsOverviewView
+- 월 건강 캘린더
+- HealthCalendarView
+- DailyMeasurementDetailView
+- MetricDetailView
+- EHM 관련 unit test
+- EHM 관련 문서
 - Daily Rhythm 제품 방향 문서화
 - Daily Rhythm 도메인 모델
 - Mock Health Data Service
@@ -72,6 +91,7 @@
 - screenshot capture workflow 문서와 simctl helper script
 - README 대표 screenshot section
 - README 대표 mock/simulator screenshot 8개
+- README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
 
 ## 현재 개발 전략
@@ -108,6 +128,9 @@
 - 실제 App Store screenshot export
 - 실제 Daily Health Card image share/export
 - UI Gallery 상세/edge/debug screenshot 전체 캡처
+- Health Calendar / Metric Detail 상세 screenshot 전체 캡처
+- 실제 개인 Fitdays CSV 장기 검증
+- 실제 Fitdays CSV import manual QA
 - 실제 `.mlmodel` 앱 bundle 적용
 - detector 성능 확정 검증
 - 실제 iPhone 장시간 overnight 안정성 검증
@@ -125,6 +148,9 @@
 - 공개/개인 오디오 파일은 git에 포함하지 않습니다.
 - HealthKit 권한 요청은 건강 데이터 연결 버튼을 선택한 경우에만 수행합니다.
 - HealthKit은 read-only로만 사용합니다.
+- Fitdays import는 사용자가 직접 선택한 로컬 CSV/export file만 처리합니다.
+- Fitdays 서버/API 연결과 비공식 연결 방식은 없습니다.
+- 실제 개인 CSV 파일은 git에 포함하지 않습니다.
 - 서버 전송, HealthKit 쓰기, 외부 SDK는 없습니다.
 
 ## 실기기 확인이 남은 항목

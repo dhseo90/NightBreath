@@ -1,19 +1,21 @@
 # Next Issues
 
-이 문서는 Daily Rhythm 전환과 README/UI Gallery screenshot 반영 이후의 후속 작업 후보를 정리합니다.
+이 문서는 Daily Rhythm 전환, Extended Health Metrics, Fitdays CSV import, README/UI Gallery screenshot 반영 이후의 후속 작업 후보를 정리합니다.
 
 ## 우선순위 후보
 
 1. 최종 앱 아이콘 고품질 아트워크 제작
 2. App Store screenshot marketing version 준비
-3. Daily Health Card image export/share 설계와 구현
-4. 실제 iPhone smoke test
-5. 실제 HealthKit permission flow manual QA
-6. TestFlight 준비
-7. App Store copy draft 보강
-8. Legal/App Review audit
-9. detector threshold tuning with real data
-10. Core ML model 실제 앱 target 적용
+3. 실제 Fitdays CSV 수동 import QA
+4. EHM regression test 강화
+5. Health Calendar / Metric Detail screenshot 추가
+6. 실제 HealthKit permission flow manual QA
+7. Daily Health Card image export/share 설계
+8. 실제 iPhone smoke test
+9. TestFlight 준비
+10. Legal/App Review audit
+11. detector threshold tuning with real data
+12. Core ML model 실제 앱 target 적용
 
 ## Release / App Store 준비
 
@@ -45,6 +47,24 @@
 - HealthKit은 read-only로 유지합니다.
 - HealthKit에 수면 소리 점수, 오늘의 리듬 점수, 이벤트, 리포트, 피드백을 쓰지 않습니다.
 - HealthKit 데이터는 서버로 전송하지 않습니다.
+
+## Extended Health Metrics / Fitdays Import
+
+- 실제 Fitdays CSV/export file을 사용한 수동 import QA
+- invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
+- import result, batch 삭제, extended metric sample 삭제 흐름 확인
+- HealthKit-backed metric과 Fitdays local-only metric badge/source 표시 재점검
+- HealthMetricsOverviewView category grouping 회귀 테스트 보강
+- MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
+- HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강
+- Fitdays CSV import 문서의 실제 앱 버전별 export 차이 추적
+
+주의:
+
+- Fitdays 서버/API에 직접 연결하지 않습니다.
+- 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
+- HealthKit에 Fitdays import 값을 쓰지 않습니다.
+- 실제 개인 CSV 파일을 repository에 포함하지 않습니다.
 
 ## Daily Health Card
 
@@ -90,7 +110,9 @@
 
 ## UI Gallery / Screenshot
 
-- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 반영 완료
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 README용 crop으로 반영 완료
+- README screenshot crop/재캡처는 앱 UI나 simulator device가 바뀔 때 유지보수 항목으로 관리
+- Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 상세 screenshot은 추가 캡처 후보
 - Privacy, edge state, DEBUG-only 상세 screenshot은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리

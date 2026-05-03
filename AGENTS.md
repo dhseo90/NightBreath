@@ -82,6 +82,8 @@
 - 오디오 캡처 서비스 skeleton
 - HealthKit read-only 건강 데이터 dashboard 연결
 - MockHealthDataService와 RealHealthKitService의 protocol 기반 교체 구조
+- HealthKit-backed 지표와 Fitdays local-only 확장 지표를 함께 표현하는 Extended Health Metrics catalog
+- 사용자가 직접 선택한 Fitdays CSV/export file의 로컬 import flow
 - Daily Rhythm 확장을 위한 제품 문서와 설계 기준
 
 현재 구현하지 않을 것:
@@ -89,12 +91,15 @@
 - 원격 API
 - 클라우드 동기화
 - 의료 진단
+- Fitdays 서버/API 직접 연결
+- 비공식 API reverse engineering
 - 전체 ML 학습 파이프라인
 - 임상 지표로서의 AHI 계산
 - HealthKit 데이터 쓰기
 - HealthKit에 수면 소리 점수나 오늘의 리듬 점수 쓰기
 - 앱 첫 실행 시점의 HealthKit 권한 요청
 - 건강 데이터를 서버로 전송하는 기능
+- 실제 개인 CSV 파일을 repository에 포함하는 것
 
 ## 향후 건강 데이터 방향
 
@@ -136,6 +141,32 @@ read-only로 읽을 수 있는 데이터 예시:
 - 서버나 외부 앱에 건강 데이터를 전송하지 않습니다.
 - 건강 데이터에 대해 진단, 질병 판정, 치료 권고를 하지 않습니다.
 
+Extended Health Metrics 방향:
+- `UnifiedHealthMetricID`는 HealthKit 표준 지표, Fitdays extended local-only 지표, 앱 계산 지표를 하나의 catalog에서 표현합니다.
+- `UnifiedHealthMetricSample`은 값, 단위, 측정 시각, source type, source name, import batch 정보를 함께 보관합니다.
+- `HealthMetricSourceType`은 `healthKit`, `fitdaysCSV`, `manual`, `appComputed`, `mock` 출처를 구분합니다.
+- `MetricCatalog`는 표시 이름, 단위, category, HealthKit-backed 여부, local-only 여부를 제공합니다.
+- HealthKit-backed metric은 Apple 건강앱에서 read-only로 읽은 표준 지표입니다.
+- Fitdays extended local-only metric은 HealthKit에 없는 지표이며 HealthKit으로 읽으려 하지 않습니다.
+- Fitdays CSV/import 값은 HealthKit 표준 지표가 포함되어 있어도 `sourceType == fitdaysCSV`로 유지합니다.
+- Fitdays import는 사용자가 직접 선택한 로컬 CSV/export file만 처리합니다.
+- Fitdays 서버/API 연결, 비공식 연결 방식, reverse engineering은 하지 않습니다.
+- HealthKit에 custom type을 만들거나 Fitdays import 값을 쓰지 않습니다.
+- 실제 개인 CSV 파일은 repository에 포함하지 않습니다.
+
+Fitdays local-only metric 예시:
+- 체수분률
+- 내장지방 레벨
+- 복부지방률
+- 골격근량
+- 근육량
+- 무기질
+- 골량
+- 기초대사량
+- 단백질률
+- 피하지방률
+- 대사 나이
+
 ## 아키텍처
 
 권장 구조:
@@ -152,6 +183,7 @@ read-only로 읽을 수 있는 데이터 예시:
 - Core/Storage
 - Core/Privacy
 - Core/FutureHealth
+- Core/HealthImport
 - Core/DailyRhythm
 - Tests
 
@@ -257,6 +289,40 @@ HealthMetricSample:
 - sourceName
 - sourceBundleIdentifier
 
+UnifiedHealthMetricSample:
+- id
+- metricID
+  - HealthKit-backed standard metric
+  - Fitdays extended local-only metric
+  - app-specific computed metric
+- value
+- unit
+- measuredAt
+- sourceType
+  - healthKit
+  - fitdaysCSV
+  - manual
+  - appComputed
+  - mock
+- sourceName
+- sourceBundleIdentifier
+- externalRecordId
+- importBatchId
+- notes
+- createdAt
+
+ImportBatch:
+- id
+- sourceName
+- sourceType
+- importedAt
+- fileName
+- rowCount
+- sampleCount
+- skippedRowCount
+- errorCount
+- notes
+
 ## UI 언어
 
 UI 문구는 한국어를 우선 사용합니다.
@@ -328,11 +394,16 @@ UI 문구는 한국어를 우선 사용합니다.
 - 외부 분석 SDK
 - 광고 SDK
 - 계정/로그인 시스템
+- Fitdays 서버/API 직접 연결
+- 비공식 API reverse engineering
 - 명시적으로 요청되지 않은 HealthKit 권한 요청
 - 앱 첫 실행 시점의 HealthKit 권한 요청
 - HealthKit 데이터 쓰기
 - HealthKit에 앱 자체 점수 쓰기
+- HealthKit custom type 생성
+- Fitdays import 값을 HealthKit에 쓰는 기능
 - HealthKit 데이터를 서버로 보내는 기능
+- 실제 개인 CSV 파일을 repository에 추가하는 것
 - 의료 진단 문구
 - 밤새 원본 오디오 전체 저장
 
