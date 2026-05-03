@@ -14,6 +14,8 @@
 - Daily Rhythm 확장은 mock/protocol 기반 preview와 HealthKit read-only adapter를 함께 사용합니다.
 - HealthKit 권한 요청은 건강 데이터 연결 버튼에서만 시작합니다.
 - HealthKit 쓰기, save/delete, 수면 소리 점수 기록은 없습니다.
+- Fitdays import는 사용자가 직접 선택한 로컬 export 파일만 처리합니다.
+- Fitdays 원격 서비스 연결, 비공식 연결 방식, 자동 동기화는 없습니다.
 - 잠꼬대/말소리 내용을 텍스트로 변환하지 않습니다.
 - 공개/개인 오디오 파일은 git에 포함하지 않도록 `.gitignore`에 포함되어 있습니다.
 
@@ -177,6 +179,34 @@ HealthKit 관련 adapter 경계는 read-only 방향으로 제한합니다. 권�
 - HealthKit save/delete API를 사용하지 않습니다.
 - 수면 소리 점수, 이벤트, 리포트, feedback을 HealthKit에 쓰지 않습니다.
 - HealthKit 권한 요청은 건강 데이터 대시보드의 연결 버튼에서만 시작해야 합니다.
+
+## Fitdays import 점검
+
+Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사용자가 직접 선택한 CSV/export 파일에서 로컬 `UnifiedHealthMetricSample`로 변환합니다.
+
+허용되는 항목:
+
+- `FitdaysImportView`의 사용자 명시 파일 선택
+- `FitdaysImportService`의 로컬 CSV parsing, column mapping, row validation
+- `ImportBatch`와 `UnifiedHealthMetricSample` 저장
+- HealthKit 표준 지표가 CSV에 포함된 경우에도 `sourceType == fitdaysCSV`로 저장
+- synthetic fixture와 mock scenario를 이용한 테스트와 screenshot
+
+제한 사항:
+
+- Fitdays 계정 로그인이나 원격 서비스 직접 연결을 만들지 않습니다.
+- 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
+- HealthKit에 Fitdays import 값을 쓰지 않습니다.
+- CSV 원본 파일을 앱 repository에 포함하지 않습니다.
+- screenshot에는 synthetic/mock import data만 사용합니다.
+
+현재 저장 원칙:
+
+- 선택된 CSV/export 파일은 import 입력으로만 사용하고, 원본 파일 자체를 앱 repository나 screenshot asset으로 보관하지 않습니다.
+- import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.
+- batch 단위 삭제가 필요한 경우 `importBatchId`로 관련 sample을 함께 삭제할 수 있게 설계합니다.
+- extended metric sample은 sourceType/sourceName/importBatchId를 함께 저장해 HealthKit read-only sample과 구분합니다.
+- 실제 개인 CSV, 실제 개인 건강 데이터, 실제 HealthKit source device 식별 정보는 문서용 screenshot에 사용하지 않습니다.
 
 ## git 제외 규칙
 

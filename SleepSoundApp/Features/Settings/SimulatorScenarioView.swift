@@ -256,6 +256,45 @@ extension SimulatorScenarioView {
       )
     case .healthDashboard:
       HealthDashboardView()
+    case .fitdaysImport, .importError:
+      FitdaysImportView(repository: InMemoryUnifiedHealthMetricSampleRepository())
+    case .healthMetricsOverview:
+      HealthMetricsOverviewView(
+        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        permissionState: .mockDataOnly,
+        isPreviewData: true
+      )
+    case .healthCalendar:
+      HealthCalendarView(
+        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        sleepReports: [appState.latestReport],
+        morningCheckIns: [appState.morningCheckIn],
+        eveningCheckIns: [ScreenshotScenarioFactory.makeScreenshotEveningCheckIn(referenceDate: appState.latestReport.generatedAt)],
+        permissionState: .mockDataOnly,
+        isPreviewData: true,
+        initialMonth: appState.latestReport.generatedAt
+      )
+    case .dailyMeasurementDetail:
+      let samples = ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt)
+      DailyMeasurementDetailView(
+        detailData: ScreenshotScenarioFactory.makeScreenshotDailyMeasurementDetailData(
+          appState: appState,
+          samples: samples
+        ),
+        allSamples: samples
+      )
+    case .metricDetail:
+      MetricDetailView(
+        metricID: .bodyWaterPercentage,
+        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        selectedPeriod: .all
+      )
+    case .localOnlyMetric:
+      MetricDetailView(
+        metricID: .basalMetabolicRate,
+        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        selectedPeriod: .all
+      )
     case .privacySettings, .eventAudioStorageOff:
       PrivacySettingsView()
     case .debugTools:

@@ -87,6 +87,34 @@ HealthKit은 read-only로만 사용합니다.
 
 현재 실제 adapter는 `RealHealthKitService`로 분리하고, `HealthDataServiceProtocol`과 mock service로 화면, 점수 계산, empty state, 권한 제한 안내를 계속 검증합니다.
 
+## Fitdays 확장 지표 방향
+
+Fitdays에는 Apple 건강앱/HealthKit 표준 지표로 직접 표현되지 않는 체성분 항목이 있을 수 있습니다. 밤숨은 이런 항목을 HealthKit custom type으로 만들거나 HealthKit에 쓰지 않고, 앱 안의 local-only extended metric으로 관리합니다.
+
+local-only extended metric 예시는 다음과 같습니다.
+
+- 체수분률
+- 복부지방률 또는 복부지방 level
+- 골격근량
+- 근육량
+- 무기질
+- 골량
+- 기초대사량
+- 단백질률
+- 피하지방률
+- 신체 나이 또는 Fitdays score 성격의 값
+
+사용자는 Fitdays 앱에서 직접 export/share한 CSV 또는 structured file을 선택해 가져옵니다. 앱은 선택된 로컬 파일을 기기 안에서 parsing하고, 결과를 `UnifiedHealthMetricSample`과 `ImportBatch`로 저장합니다.
+
+Fitdays 확장 지표 원칙:
+
+- Fitdays 원격 서비스에 직접 연결하지 않습니다.
+- 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
+- CSV 원본 파일은 사용자가 선택한 import 입력이며, repository에는 실제 개인 CSV를 포함하지 않습니다.
+- HealthKit 표준 지표가 CSV에 포함되어 있어도 sourceType은 `fitdaysCSV`로 유지해 Apple 건강앱 read-only sample과 구분합니다.
+- HealthKit-backed 지표와 local-only 지표는 UI에서 badge, 설명, sourceName으로 구분합니다.
+- 확장 지표도 개인 참고용으로만 표시하고 건강 상태를 단정하지 않습니다.
+
 ## 개인정보와 오디오 저장
 
 수면 소리 분석은 온디바이스 원칙을 유지합니다.

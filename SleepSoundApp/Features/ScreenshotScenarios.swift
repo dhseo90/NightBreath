@@ -12,6 +12,13 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case dailyHealthCard
   case privacySettings
   case healthDashboard
+  case fitdaysImport
+  case healthMetricsOverview
+  case healthCalendar
+  case dailyMeasurementDetail
+  case metricDetail
+  case importError
+  case localOnlyMetric
   case zeroEventReport
   case lowCoverageReport
   case eventAudioStorageOff
@@ -28,7 +35,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .sleepRecording:
       "ScreenshotRecordingScenario"
     case .sleepReport:
-      "ScreenshotReportScenario"
+      "ScreenshotSleepReportScenario"
     case .eventTimeline:
       "ScreenshotTimelineScenario"
     case .morningBrief:
@@ -41,6 +48,20 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotPrivacyScenario"
     case .healthDashboard:
       "ScreenshotHealthDashboardScenario"
+    case .fitdaysImport:
+      "ScreenshotFitdaysImportScenario"
+    case .healthMetricsOverview:
+      "ScreenshotHealthMetricsOverviewScenario"
+    case .healthCalendar:
+      "ScreenshotHealthCalendarScenario"
+    case .dailyMeasurementDetail:
+      "ScreenshotDailyMeasurementDetailScenario"
+    case .metricDetail:
+      "ScreenshotMetricDetailScenario"
+    case .importError:
+      "ScreenshotImportErrorScenario"
+    case .localOnlyMetric:
+      "ScreenshotLocalOnlyMetricScenario"
     case .zeroEventReport:
       "ScreenshotZeroEventScenario"
     case .lowCoverageReport:
@@ -74,6 +95,20 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "전체 밤 오디오는 저장하지 않습니다"
     case .healthDashboard:
       "혈압/체성분 대시보드 준비"
+    case .fitdaysImport:
+      "Fitdays CSV를 로컬에서 가져오기"
+    case .healthMetricsOverview:
+      "모든 건강 지표를 source와 함께"
+    case .healthCalendar:
+      "월별로 보는 수면과 건강 기록"
+    case .dailyMeasurementDetail:
+      "하루의 기록을 category별로"
+    case .metricDetail:
+      "지표 하나의 흐름을 자세히"
+    case .importError:
+      "가져오기 오류도 차분하게 안내"
+    case .localOnlyMetric:
+      "Fitdays local-only 지표 구분"
     case .zeroEventReport:
       "이벤트가 적은 밤도 측정 맥락과 함께"
     case .lowCoverageReport:
@@ -107,6 +142,20 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 샘플 opt-in, 저장 용량, 삭제 가능성, 서버 전송 없음 안내가 보이게 캡처합니다."
     case .healthDashboard:
       "HealthKit read-only 방향과 혈압/체성분/CrossMetric 진입이 보이게 캡처합니다."
+    case .fitdaysImport:
+      "파일 선택 CTA, 로컬 import 원칙, HealthKit write 없음 안내가 보이게 캡처합니다."
+    case .healthMetricsOverview:
+      "HealthKit-backed 지표와 Fitdays local-only 지표, 기간 선택, category row가 보이게 캡처합니다."
+    case .healthCalendar:
+      "월 이동, 데이터 있는 날짜 dot, source/data quality 안내가 보이게 캡처합니다."
+    case .dailyMeasurementDetail:
+      "선택 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표 section이 보이게 캡처합니다."
+    case .metricDetail:
+      "체수분률 상세 화면의 기간 선택, source filter, 그래프, sample list가 보이게 캡처합니다."
+    case .importError:
+      "invalid CSV와 unknown column을 안내하는 import edge state를 캡처합니다."
+    case .localOnlyMetric:
+      "기초대사량 같은 Fitdays local-only 지표 설명과 sample list가 보이게 캡처합니다."
     case .zeroEventReport:
       "이벤트 0개 상태, zero-event 분석, 측정 품질 안내가 보이게 캡처합니다."
     case .lowCoverageReport:
@@ -120,11 +169,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
 
   var simulatorPreset: SimulatorQAScenarioPreset {
     switch self {
-    case .homeDashboard, .sleepStart, .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard:
+    case .homeDashboard, .sleepStart, .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard,
+         .healthMetricsOverview, .healthCalendar, .dailyMeasurementDetail, .metricDetail, .localOnlyMetric:
       .snoreHeavyNight
     case .sleepRecording, .privacySettings:
       .eventAudioStorageOnWithSamples
-    case .healthDashboard:
+    case .healthDashboard, .fitdaysImport, .importError:
       .quietNight
     case .zeroEventReport:
       .zeroEventButGoodAudioCoverage
@@ -140,33 +190,47 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   var suggestedScreenshotPath: String {
     switch self {
     case .homeDashboard:
-      "Docs/Screenshots/README/home-dashboard.png"
+      "Docs/Screenshots/README/home_dashboard_light.png"
     case .sleepStart:
-      "Docs/Screenshots/Sleep/sleep-start.png"
+      "Docs/Screenshots/README/sleep_start_light.png"
     case .sleepRecording:
-      "Docs/Screenshots/README/recording.png"
+      "Docs/Screenshots/README/sleep_recording_dark.png"
     case .sleepReport:
-      "Docs/Screenshots/README/sleep-report.png"
+      "Docs/Screenshots/README/sleep_report_light.png"
     case .eventTimeline:
-      "Docs/Screenshots/Sleep/timeline.png"
+      "Docs/Screenshots/README/sleep_timeline_light.png"
     case .morningBrief:
-      "Docs/Screenshots/DailyRhythm/morning-brief.png"
+      "Docs/Screenshots/README/morning_brief_light.png"
     case .dailyRhythmReport:
-      "Docs/Screenshots/README/daily-rhythm-report.png"
+      "Docs/Screenshots/README/daily_rhythm_report_light.png"
     case .dailyHealthCard:
-      "Docs/Screenshots/README/daily-health-card.png"
+      "Docs/Screenshots/README/daily_health_card_light.png"
     case .privacySettings:
-      "Docs/Screenshots/Privacy/privacy-settings.png"
+      "Docs/Screenshots/README/privacy_settings_light.png"
     case .healthDashboard:
-      "Docs/Screenshots/README/health-dashboard.png"
+      "Docs/Screenshots/README/health_dashboard_light.png"
+    case .fitdaysImport:
+      "Docs/Screenshots/Health/fitdays_import_light.png"
+    case .healthMetricsOverview:
+      "Docs/Screenshots/Health/health_metrics_overview_light.png"
+    case .healthCalendar:
+      "Docs/Screenshots/Health/health_calendar_light.png"
+    case .dailyMeasurementDetail:
+      "Docs/Screenshots/Health/daily_measurement_detail_light.png"
+    case .metricDetail:
+      "Docs/Screenshots/Health/metric_detail_body_water_light.png"
+    case .importError:
+      "Docs/Screenshots/Health/fitdays_import_error_light.png"
+    case .localOnlyMetric:
+      "Docs/Screenshots/Health/metric_detail_basal_metabolic_rate_light.png"
     case .zeroEventReport:
-      "Docs/Screenshots/EdgeStates/zero-event-report.png"
+      "Docs/Screenshots/EdgeStates/zero_event_report_light.png"
     case .lowCoverageReport:
-      "Docs/Screenshots/EdgeStates/low-coverage-report.png"
+      "Docs/Screenshots/EdgeStates/low_coverage_report_light.png"
     case .eventAudioStorageOff:
-      "Docs/Screenshots/EdgeStates/event-audio-storage-off.png"
+      "Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
     case .debugTools:
-      "Docs/Screenshots/Debug/detector-tuning.png"
+      "Docs/Screenshots/Debug/detector_tuning_light.png"
     }
   }
 }
@@ -206,6 +270,125 @@ enum ScreenshotScenarioFactory {
       soreThroat: false,
       rememberedAwakenings: 1,
       memo: "Simulator mock 기록"
+    )
+  }
+
+  static func makeScreenshotEveningCheckIn(referenceDate: Date = Date()) -> EveningCheckIn {
+    EveningCheckIn(
+      date: referenceDate,
+      fatigueScore: 3,
+      stressScore: 2,
+      moodScore: 4,
+      caffeine: true,
+      lateMeal: false,
+      exercise: true,
+      nap: false,
+      memo: "Simulator mock 기록"
+    )
+  }
+
+  static func makeScreenshotHealthSamples(referenceDate: Date = Date()) -> [UnifiedHealthMetricSample] {
+    let calendar = Calendar.current
+    let dayStart = calendar.startOfDay(for: referenceDate)
+    let mockHealthSamples = MockHealthDataService.makeDefaultSamples(referenceDate: dayStart)
+      .map { $0.unifiedSample(sourceType: .mock) }
+    let batchId = "screenshot-fitdays-batch"
+
+    let fitdaysSamples: [UnifiedHealthMetricSample] = [
+      UnifiedHealthMetricSample(
+        metricID: .bodyWaterPercentage,
+        value: 56.8,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId,
+        notes: "Synthetic screenshot sample"
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .visceralFatPercentage,
+        value: 9.2,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .skeletalMuscleMass,
+        value: 31.2,
+        unit: "kg",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .mineralMass,
+        value: 3.1,
+        unit: "kg",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .basalMetabolicRate,
+        value: 1_520,
+        unit: "kcal/day",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .proteinPercentage,
+        value: 18.4,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV Import",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .sleepSoundScore,
+        value: 82,
+        unit: "점",
+        measuredAt: dayStart.addingTimeInterval(8 * 60 * 60),
+        sourceType: .appComputed,
+        sourceName: "밤숨 앱"
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .dailyRhythmScore,
+        value: 78,
+        unit: "점",
+        measuredAt: dayStart.addingTimeInterval(20 * 60 * 60),
+        sourceType: .appComputed,
+        sourceName: "밤숨 앱"
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .audioCoverageRatio,
+        value: 96,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(8 * 60 * 60),
+        sourceType: .appComputed,
+        sourceName: "밤숨 앱"
+      ),
+    ]
+
+    return mockHealthSamples + fitdaysSamples
+  }
+
+  static func makeScreenshotDailyMeasurementDetailData(
+    appState: AppState,
+    samples: [UnifiedHealthMetricSample]
+  ) -> DailyMeasurementDetailData {
+    HealthCalendarBuilder().detailData(
+      for: appState.latestReport.generatedAt,
+      samples: samples,
+      sleepReports: [appState.latestReport],
+      morningCheckIns: [appState.morningCheckIn],
+      eveningCheckIns: [makeScreenshotEveningCheckIn(referenceDate: appState.latestReport.generatedAt)]
     )
   }
 

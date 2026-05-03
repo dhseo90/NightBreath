@@ -18,7 +18,7 @@
 - `Home/`: 홈과 대시보드 계열
 - `Sleep/`: 수면 시작, 녹음 중, 리포트, 타임라인
 - `DailyRhythm/`: 아침 리포트, 오늘의 리듬 리포트, 하루 리듬 카드
-- `Health/`: 건강 대시보드, 혈압, 체성분, 교차 보기
+- `Health/`: 건강 대시보드, 전체 건강 지표, Fitdays import, 월 건강 캘린더, 날짜별 상세, metric detail, 혈압, 체성분, 교차 보기
 - `Privacy/`: 개인정보 설정, 배치 가이드, 온보딩
 - `EdgeStates/`: empty, 권한 없음, 데이터 부족, 낮은 측정 품질
 - `Debug/`: DEBUG 전용 검증 화면
@@ -35,6 +35,18 @@
 - `README/daily_rhythm_report_light.png`
 - `README/daily_health_card_light.png`
 - `README/health_dashboard_light.png`
+
+## EHM 상세 screenshot 후보
+
+다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 후보입니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
+
+- `Health/health_metrics_overview_light.png`
+- `Health/fitdays_import_light.png`
+- `Health/health_calendar_light.png`
+- `Health/daily_measurement_detail_light.png`
+- `Health/metric_detail_body_water_light.png`
+- `Health/metric_detail_basal_metabolic_rate_light.png`
+- `Health/fitdays_import_error_light.png`
 
 ## 주의
 

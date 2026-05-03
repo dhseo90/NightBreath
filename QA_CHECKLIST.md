@@ -194,7 +194,29 @@ rg -n "URLSession|http://|https://|NWConnection|Alamofire|Firebase|Analytics|AdM
 rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery|save\\(|delete\\(" SleepSoundApp Tests Package.swift
 ```
 
-## 13. 의료 표현 확인
+## 13. Extended Health Metrics / Fitdays import 확인
+
+- [ ] `HealthDashboardView`에서 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
+- [ ] `FitdaysImportView`에서 사용자가 명시적으로 CSV/export 파일을 선택할 때만 import 흐름이 시작된다.
+- [ ] valid synthetic CSV로 import preview와 import result가 표시된다.
+- [ ] invalid CSV row는 앱을 멈추지 않고 skipped row로 표시된다.
+- [ ] 알 수 없는 column은 unknown column으로 표시되고 전체 import를 막지 않는다.
+- [ ] import result에서 생성 sample 수, skipped row, error count, sourceName이 명확히 보인다.
+- [ ] import batch 삭제가 가능한 경우 해당 batch의 sample도 함께 삭제되는지 확인한다.
+- [ ] extended metric sample 삭제가 가능한 경우 삭제 후 overview, calendar, metric detail에서 사라지는지 확인한다.
+- [ ] `HealthMetricsOverviewView`에서 HealthKit-backed metric과 Fitdays local-only metric이 category와 source badge로 구분된다.
+- [ ] `HealthCalendarView`에서 이전/다음 월 이동과 오늘 이동이 동작한다.
+- [ ] 데이터가 있는 날짜 cell에 수면, 혈압, 체성분, 활동, check-in indicator가 표시된다.
+- [ ] 날짜를 누르면 `DailyMeasurementDetailView`에서 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표가 category별로 보인다.
+- [ ] `DailyMeasurementDetailView`의 metric row에서 `MetricDetailView`로 이동할 수 있다.
+- [ ] `MetricDetailView`에서 7일, 30일, 90일, 1년, 전체 기간 선택이 동작한다.
+- [ ] `MetricDetailView`에서 전체, HealthKit, Fitdays CSV, Manual, App Computed source filter가 동작한다.
+- [ ] `MetricDetailView`에서 최근 값, 평균, 최소, 최대, 최근 변화, 측정 횟수, sample list가 표시된다.
+- [ ] Fitdays local-only 지표 설명이 HealthKit-backed 지표 설명과 구분된다.
+- [ ] 모든 EHM 화면에서 서버 전송 없음, HealthKit write 없음, 개인 참고용 원칙이 유지된다.
+- [ ] 의료 진단이나 인과관계처럼 읽히는 문구가 없다.
+
+## 14. 의료 표현 확인
 
 - [ ] 질환명을 확정하는 표현을 사용하지 않는다.
 - [ ] 특정 수면 소리를 확정 상태로 단정하지 않는다.
@@ -211,7 +233,7 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 rg -n "확진|질병|치료|AHI|확정" SleepSoundApp README.md QA_CHECKLIST.md
 ```
 
-## 14. 아직 남은 수동 위험 요소
+## 15. 아직 남은 수동 위험 요소
 
 - [ ] 실제 iPhone 장시간 측정 중 배터리 사용량을 확인해야 한다.
 - [ ] 잠금 화면 상태에서 캡처 지속 여부를 확인해야 한다.

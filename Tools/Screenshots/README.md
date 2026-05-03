@@ -24,6 +24,13 @@ Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
 - `ScreenshotDailyRhythmScenario`
 - `ScreenshotDailyHealthCardScenario`
 - `ScreenshotHealthDashboardScenario`
+- `ScreenshotFitdaysImportScenario`
+- `ScreenshotHealthMetricsOverviewScenario`
+- `ScreenshotHealthCalendarScenario`
+- `ScreenshotDailyMeasurementDetailScenario`
+- `ScreenshotMetricDetailScenario`
+- `ScreenshotImportErrorScenario`
+- `ScreenshotLocalOnlyMetricScenario`
 - `ScreenshotPrivacyScenario`
 - `ScreenshotZeroEventScenario`
 - `ScreenshotLowCoverageScenario`
@@ -89,6 +96,18 @@ Tools/Screenshots/capture_screenshots.sh Docs/Screenshots/README/home_dashboard_
 - `Docs/Screenshots/README/daily_rhythm_report_light.png`
 - `Docs/Screenshots/README/daily_health_card_light.png`
 - `Docs/Screenshots/README/health_dashboard_light.png`
+
+EHM 상세 screenshot 후보는 README에 모두 넣지 않고 UI Gallery 중심으로 관리합니다.
+
+- `Docs/Screenshots/Health/health_metrics_overview_light.png`
+- `Docs/Screenshots/Health/fitdays_import_light.png`
+- `Docs/Screenshots/Health/health_calendar_light.png`
+- `Docs/Screenshots/Health/daily_measurement_detail_light.png`
+- `Docs/Screenshots/Health/metric_detail_body_water_light.png`
+- `Docs/Screenshots/Health/metric_detail_basal_metabolic_rate_light.png`
+- `Docs/Screenshots/Health/fitdays_import_error_light.png`
+
+위 파일이 실제 capture 전이면 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
 
 ## 금지
 
