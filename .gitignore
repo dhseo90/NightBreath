@@ -4,6 +4,7 @@ DerivedData/
 .derivedData/
 *.xcuserdata/
 *.xcuserstate
+.DS_Store
 __pycache__/
 *.pyc
 Tools/Training/.venv/
@@ -11,8 +12,11 @@ Tools/Training/.venv/
 # Audio samples are local-only. Do not commit personal recordings or downloaded datasets.
 Samples/Personal/
 Samples/Public/
+Datasets/
 Tools/FeatureLab/output/
 Tools/Training/output/
+Tools/DatasetReplay/output/
+Tools/OfflineEvaluation/output/
 .device-data/
 *.wav
 *.caf
