@@ -34,6 +34,28 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func dayGroupingDoesNotLeakAdjacentDaySamples() {
+        let targetStart = date(2026, 5, 3, hour: 0)
+        let samples = [
+            sample(.bodyWaterPercentage, 56.6, targetStart.addingTimeInterval(-1), sourceType: .fitdaysCSV, sourceName: "Previous Synthetic CSV"),
+            sample(.bodyWaterPercentage, 56.8, targetStart.addingTimeInterval(23 * 60 * 60 + 59 * 60), sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyMass, 71.6, targetStart.addingTimeInterval(24 * 60 * 60), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+
+        let summary = builder.summary(
+            for: targetStart,
+            samples: samples,
+            sleepReports: [],
+            calendar: calendar
+        )
+
+        #expect(summary.sampleCount == 1)
+        #expect(summary.hasBodyComposition)
+        #expect(!summary.hasBloodPressure)
+        #expect(summary.sourceTypes == [.fitdaysCSV])
+    }
+
+    @Test
     func emptyMonthCellsRemainExplicitlyEmpty() throws {
         let targetDate = date(2026, 5, 11)
         let summaries = builder.summaries(

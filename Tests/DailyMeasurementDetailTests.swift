@@ -33,6 +33,28 @@ struct DailyMeasurementDetailTests {
     }
 
     @Test
+    func standardMetricsImportedFromFitdaysStayStandardWhileLocalOnlyMetricsStayExtended() {
+        let targetDate = date(2026, 5, 3)
+        let detail = builder.detailData(
+            for: targetDate,
+            samples: [
+                sample(.bodyMass, 71.8, targetDate.addingTimeInterval(60), sourceType: .fitdaysCSV),
+                sample(.bodyFatPercentage, 21.4, targetDate.addingTimeInterval(120), sourceType: .fitdaysCSV),
+                sample(.bodyWaterPercentage, 56.8, targetDate.addingTimeInterval(180), sourceType: .fitdaysCSV),
+                sample(.skeletalMuscleMass, 31.2, targetDate.addingTimeInterval(240), sourceType: .fitdaysCSV),
+            ],
+            sleepReports: [],
+            calendar: calendar
+        )
+
+        #expect(detail.bodyCompositionSamples.map(\.metricID) == [.bodyMass, .bodyFatPercentage])
+        #expect(detail.bodyCompositionSamples.allSatisfy { $0.sourceType == .fitdaysCSV })
+        #expect(detail.fitdaysExtendedSamples.map(\.metricID) == [.bodyWaterPercentage, .skeletalMuscleMass])
+        #expect(detail.fitdaysExtendedSamples.allSatisfy { MetricCatalog.default.isExtendedLocalOnly($0.metricID) })
+        #expect(detail.summary.sourceTypes == [.fitdaysCSV])
+    }
+
+    @Test
     func rawSampleLookupKeepsOnlyRequestedMetricsAndAscendingTimeOrder() {
         let targetDate = date(2026, 5, 3)
         let detail = builder.detailData(

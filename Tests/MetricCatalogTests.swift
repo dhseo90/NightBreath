@@ -58,6 +58,25 @@ struct MetricCatalogTests {
     }
 
     @Test
+    func fitdaysOverviewMetricsStayLocalOnlyAndOutsideHealthKitBackedScope() throws {
+        let catalog = MetricCatalog.default
+        let fitdaysMetricIDs = UnifiedHealthMetricOverviewGrouping.fitdaysExtendedMetricIDs
+
+        #expect(!fitdaysMetricIDs.isEmpty)
+        for metricID in fitdaysMetricIDs {
+            let metadata = try #require(catalog.metadata(for: metricID))
+            #expect(metadata.isExtendedLocalOnly, "\(metricID.rawValue) should stay local-only")
+            #expect(!metadata.isHealthKitBacked, "\(metricID.rawValue) must not become HealthKit-backed")
+            #expect(metricID.healthMetricType == nil, "\(metricID.rawValue) should not map to a HealthKit standard type")
+        }
+
+        #expect(!fitdaysMetricIDs.contains(.bodyMass))
+        #expect(!fitdaysMetricIDs.contains(.bodyFatPercentage))
+        #expect(!fitdaysMetricIDs.contains(.dailyRhythmScore))
+        #expect(!fitdaysMetricIDs.contains(.sleepSoundScore))
+    }
+
+    @Test
     func categoryLookupKeepsBloodPressureActivityAndAppMetricsSeparated() {
         let catalog = MetricCatalog.default
 

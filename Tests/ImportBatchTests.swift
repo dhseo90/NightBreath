@@ -51,6 +51,50 @@ struct ImportBatchTests {
         #expect(Set(repository.fetchSamples().compactMap(\.importBatchId)) == [secondResult.batch.id.uuidString])
     }
 
+    @Test
+    func duplicateSampleKeysFromDifferentFilesKeepNewestSampleWhilePreservingBatchRecords() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let firstBatch = ImportBatch(
+            sourceName: "Fitdays CSV",
+            sourceType: .fitdaysCSV,
+            importedAt: referenceDate,
+            fileName: "synthetic_fitdays_a.csv",
+            rowCount: 1,
+            sampleCount: 1,
+            skippedRowCount: 0,
+            errorCount: 0
+        )
+        let secondBatch = ImportBatch(
+            sourceName: "Fitdays CSV",
+            sourceType: .fitdaysCSV,
+            importedAt: referenceDate.addingTimeInterval(60),
+            fileName: "synthetic_fitdays_b.csv",
+            rowCount: 1,
+            sampleCount: 1,
+            skippedRowCount: 0,
+            errorCount: 0
+        )
+        let duplicateRecordId = "device-record-2026-05-01-bodyMass"
+        let firstSample = importedSample(
+            value: 71.8,
+            batchID: firstBatch.id,
+            externalRecordId: duplicateRecordId
+        )
+        let secondSample = importedSample(
+            value: 71.6,
+            batchID: secondBatch.id,
+            externalRecordId: duplicateRecordId
+        )
+
+        try repository.save(batch: firstBatch, samples: [firstSample])
+        try repository.save(batch: secondBatch, samples: [secondSample])
+
+        #expect(repository.fetchBatches().map(\.id) == [secondBatch.id, firstBatch.id])
+        #expect(repository.fetchSamples().map(\.value) == [71.6])
+        #expect(repository.fetchSamples().map(\.importBatchId) == [secondBatch.id.uuidString])
+        #expect(repository.fetchSamples(importBatchId: firstBatch.id.uuidString).isEmpty)
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,
@@ -75,5 +119,23 @@ struct ImportBatchTests {
         2026-05-01,07:12,71.8,21.4,31.2,56.8,8,1520
         2026-05-02,07:09,71.6,21.2,31.3,57.0,8,1525
         """
+    }
+
+    private func importedSample(
+        value: Double,
+        batchID: UUID,
+        externalRecordId: String
+    ) -> UnifiedHealthMetricSample {
+        UnifiedHealthMetricSample(
+            metricID: .bodyMass,
+            value: value,
+            unit: "kg",
+            measuredAt: referenceDate,
+            sourceType: .fitdaysCSV,
+            sourceName: "Fitdays CSV",
+            externalRecordId: externalRecordId,
+            importBatchId: batchID.uuidString,
+            createdAt: referenceDate
+        )
     }
 }

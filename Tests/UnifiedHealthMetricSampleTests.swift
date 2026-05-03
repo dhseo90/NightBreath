@@ -65,6 +65,56 @@ struct UnifiedHealthMetricSampleTests {
     }
 
     @Test
+    func healthKitStandardMetricImportedFromFitdaysKeepsFitdaysSourceMetadata() throws {
+        let sample = UnifiedHealthMetricSample(
+            id: UUID(uuidString: "41000000-0000-0000-0000-000000000003")!,
+            metricID: .bodyMass,
+            value: 71.8,
+            unit: "kg",
+            measuredAt: referenceDate,
+            sourceType: .fitdaysCSV,
+            sourceName: "Fitdays CSV Import",
+            sourceBundleIdentifier: nil,
+            externalRecordId: "synthetic-file#row2#bodyMass",
+            importBatchId: "synthetic-batch",
+            createdAt: referenceDate
+        )
+
+        let displayModel = try #require(sample.displayModel())
+
+        #expect(MetricCatalog.default.isHealthKitBacked(sample.metricID))
+        #expect(sample.sourceType == .fitdaysCSV)
+        #expect(displayModel.metadata.isHealthKitBacked)
+        #expect(displayModel.sourceText.contains("Fitdays CSV"))
+        #expect(!displayModel.sourceText.contains("Apple 건강앱"))
+    }
+
+    @Test
+    func healthMetricSampleMapperDefaultsToHealthKitButCanPreserveExplicitImportSource() {
+        let healthSample = HealthMetricSample(
+            metricType: .bodyFatPercentage,
+            value: 21.4,
+            unit: "%",
+            measuredAt: referenceDate,
+            sourceName: "Fitdays CSV Import",
+            sourceBundleIdentifier: "synthetic.fitdays.export"
+        )
+
+        let defaultMapped = healthSample.unifiedSample(createdAt: referenceDate)
+        let importMapped = healthSample.unifiedSample(
+            sourceType: .fitdaysCSV,
+            externalRecordId: "synthetic-row",
+            importBatchId: "synthetic-batch",
+            createdAt: referenceDate
+        )
+
+        #expect(defaultMapped.sourceType == .healthKit)
+        #expect(importMapped.metricID == .bodyFatPercentage)
+        #expect(importMapped.sourceType == .fitdaysCSV)
+        #expect(importMapped.importBatchId == "synthetic-batch")
+    }
+
+    @Test
     func sourceTypesExposeExpectedCases() {
         #expect(Set(HealthMetricSourceType.allCases) == [
             .healthKit,

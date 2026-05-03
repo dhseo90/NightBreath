@@ -66,6 +66,30 @@ struct MetricStatisticsCalculatorTests {
     }
 
     @Test
+    func dateRangeFilteringIncludesBoundarySamplesAndExcludesAdjacentMetrics() {
+        let range = HealthMetricDateRange(
+            start: referenceDate.addingTimeInterval(-7 * day),
+            end: referenceDate
+        )
+        let samples = [
+            sample(.bodyWaterPercentage, 56.4, measuredAt: range.start.addingTimeInterval(-1)),
+            sample(.bodyWaterPercentage, 56.8, measuredAt: range.start),
+            sample(.bodyWaterPercentage, 57.0, measuredAt: range.end),
+            sample(.bodyWaterPercentage, 57.2, measuredAt: range.end.addingTimeInterval(1)),
+            sample(.bodyMass, 71.8, measuredAt: range.end),
+        ]
+
+        let scoped = calculator.samples(
+            samples,
+            metricID: .bodyWaterPercentage,
+            dateRange: range
+        )
+
+        #expect(scoped.map(\.value) == [56.8, 57.0])
+        #expect(scoped.allSatisfy { $0.metricID == .bodyWaterPercentage })
+    }
+
+    @Test
     func deltaFromPreviousPeriodUsesAverageDifference() throws {
         let samples = [
             sample(.bodyMass, 71.0, daysAgo: 2),
@@ -125,6 +149,25 @@ struct MetricStatisticsCalculatorTests {
         #expect(sources.filter { $0.sourceType == .fitdaysCSV }.count == 2)
     }
 
+    @Test
+    func trendPointsPreserveSourceMetadataForFitdaysLocalOnlyMetrics() {
+        let samples = [
+            sample(.bodyWaterPercentage, 56.8, daysAgo: 2, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyWaterPercentage, 57.0, daysAgo: 1, sourceType: .manual, sourceName: "수동 입력"),
+            sample(.bodyMass, 71.8, daysAgo: 1, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+        ]
+
+        let points = calculator.points(
+            samples: samples,
+            metricID: .bodyWaterPercentage,
+            dateRange: .days(7, endingAt: referenceDate)
+        )
+
+        #expect(points.map(\.value) == [56.8, 57.0])
+        #expect(points.map(\.sourceType) == [.fitdaysCSV, .manual])
+        #expect(points.map(\.sourceName) == ["Fitdays CSV Import", "수동 입력"])
+    }
+
     private var referenceDate: Date {
         Date(timeIntervalSince1970: 1_777_680_000)
     }
@@ -145,6 +188,24 @@ struct MetricStatisticsCalculatorTests {
             value: value,
             unit: MetricCatalog.default.metadata(for: metricID)?.unit ?? "",
             measuredAt: referenceDate.addingTimeInterval(-Double(daysAgo) * day),
+            sourceType: sourceType,
+            sourceName: sourceName,
+            createdAt: referenceDate
+        )
+    }
+
+    private func sample(
+        _ metricID: UnifiedHealthMetricID,
+        _ value: Double,
+        measuredAt: Date,
+        sourceType: HealthMetricSourceType = .fitdaysCSV,
+        sourceName: String = "Fitdays CSV Import"
+    ) -> UnifiedHealthMetricSample {
+        UnifiedHealthMetricSample(
+            metricID: metricID,
+            value: value,
+            unit: MetricCatalog.default.metadata(for: metricID)?.unit ?? "",
+            measuredAt: measuredAt,
             sourceType: sourceType,
             sourceName: sourceName,
             createdAt: referenceDate

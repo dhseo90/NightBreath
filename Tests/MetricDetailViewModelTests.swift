@@ -53,6 +53,30 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func allPeriodDateRangeUsesOnlySelectedSourceSamples() {
+        let samples = [
+            sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyMass, 71.8, daysAgo: 90, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyMass, 71.7, daysAgo: 80, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyWaterPercentage, 56.8, daysAgo: 1, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+        ]
+
+        let viewModel = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: samples,
+            period: .all,
+            sourceFilter: .fitdaysCSV,
+            endDate: referenceDate
+        )
+
+        #expect(viewModel.filteredSamples.map(\.value) == [71.8, 71.7])
+        #expect(viewModel.rawSampleList.map(\.value) == [71.7, 71.8])
+        #expect(viewModel.latestSample?.sourceType == .fitdaysCSV)
+        #expect(viewModel.summary.sampleCount == 2)
+        #expect(viewModel.emptyStateReason == nil)
+    }
+
+    @Test
     func rawSampleListIsNewestFirstAndKeepsSourceMetadata() {
         let samples = [
             sample(.bodyWaterPercentage, 56.8, daysAgo: 3, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),

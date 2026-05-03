@@ -26,6 +26,37 @@ struct SourceFilterTests {
     }
 
     @Test
+    func standardHealthKitBackedMetricImportedFromFitdaysIsNotIncludedInHealthKitFilter() {
+        let importedBodyMass = sample(
+            .bodyMass,
+            71.8,
+            sourceType: .fitdaysCSV,
+            sourceName: "Fitdays CSV Import"
+        )
+
+        #expect(MetricCatalog.default.isHealthKitBacked(importedBodyMass.metricID))
+        #expect(!MetricDetailSourceFilter.healthKit.includes(importedBodyMass))
+        #expect(MetricDetailSourceFilter.fitdaysCSV.includes(importedBodyMass))
+    }
+
+    @Test
+    func sourceFilterCasesMapOneToOneWithSourceTypes() {
+        let expected: [MetricDetailSourceFilter: HealthMetricSourceType?] = [
+            .all: nil,
+            .healthKit: .healthKit,
+            .fitdaysCSV: .fitdaysCSV,
+            .manual: .manual,
+            .appComputed: .appComputed,
+            .mock: .mock,
+        ]
+
+        #expect(Set(MetricDetailSourceFilter.allCases) == Set(expected.keys))
+        for (filter, sourceType) in expected {
+            #expect(filter.sourceType == sourceType)
+        }
+    }
+
+    @Test
     func viewModelSourceFilterKeepsSummaryRawListAndBreakdownScoped() {
         let samples = [
             sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
