@@ -200,11 +200,14 @@ Step UI-1 적용 범위:
 - `SleepRecordingView`: `NBRecordingPulseIcon`, `NBMetricCard`, `NBStatusBadge`, `NBDangerButton`, `NBPrivacyNoticeCard`로 녹음/분석 중 상태, 실제 오디오 수신/분석 시간, 커버리지, 오디오 중단 정보를 보여줍니다.
 - `SleepReportView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBDiagnosticCard`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 리포트 요약, detector diagnostics, zero-event analysis, 진단 목적 아님 안내를 정돈합니다.
 - `SleepTimelineView`: `NBTimelineRow`, `NBStatusBadge`, `NBEmptyStateView`로 이벤트 타입, 시간, duration, confidence, 오디오 샘플 재생/삭제 상태를 표시합니다.
+- `MorningCheckInView`: `NBCard`, `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 개운함, 피로감, 기억나는 각성, 메모 저장 흐름을 주관적 컨디션 기록 톤으로 정리합니다.
 - `PrivacySettingsView`: `NBPrivacyNoticeCard`, `NBMetricCard`, `NBSecondaryButton`, `NBDangerButton`, `NBDiagnosticCard`로 이벤트 오디오 샘플 opt-in, 저장량, orphan cleanup, 전체 삭제, feedback 삭제 UI를 유지합니다.
+- `DevicePlacementGuideView`: `NBIllustration`, `NBCard`, `NBReportSection`, `NBListRow`, `NBStatusBadge`, `NBPrivacyNoticeCard`로 iPhone 배치, 마이크 가림 방지, 충전 연결, 저전력 모드 확인, 30초 캘리브레이션 진입을 정리합니다.
 - `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 HealthKit read-only 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
 - `BloodPressureDashboardView`: 최근 수축기/이완기 혈압, 측정 시각, 데이터 출처, 추세와 데이터 없음 상태를 `NBMetricCard`, `NBListRow`, `NBEmptyStateView` 중심으로 표시합니다.
 - `BodyCompositionDashboardView`: 체중, 체지방률, BMI, 제지방량과 추세를 `NBMetricCard`와 `NBReportSection`으로 정리합니다.
 - `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, matched sample count, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.
+- `TrendDashboardView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 7일/30일/90일 수면 소리 지표 추세, 낮은 측정 품질 구분, 리포트 없음 상태를 표시합니다.
 - DEBUG 화면: `DatasetReplayView`, `DetectorTuningView`, `SimulatorScenarioView`, `AudioDebugView`, `SampleCaptureView`는 `NBDiagnosticCard`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`를 사용하고 `#if DEBUG` 경계를 유지합니다.
 
 ## 컴포넌트 사용 예
@@ -305,6 +308,13 @@ Illustrations image set은 현재 metadata-only placeholder입니다. 앱 화면
 - 수치 카드에는 의미 있는 `accessibilityLabel`을 제공합니다.
 - Dynamic Type에서 긴 한국어 문구가 줄바꿈될 수 있게 `fixedSize(horizontal: false, vertical: true)`를 사용합니다.
 - 아이콘 전용 버튼은 VoiceOver label을 반드시 가집니다.
+
+## Empty / Error State
+
+- `NBEmptyStateView`는 리포트 없음, 이벤트 없음, 저장된 오디오 샘플 없음, HealthKit 권한 없음, HealthKit 데이터 없음, Dataset Replay 파일 없음, detector model 없음, 낮은 오디오 커버리지, zero-event session 상태에 사용합니다.
+- empty state 문구는 원인을 단정하지 않고 현재 상태와 다음에 기대할 수 있는 정보를 짧게 설명합니다.
+- zero-event session은 “이벤트가 없었다”가 아니라 “detector 기준을 통과한 이벤트가 없었습니다”처럼 감지 기준과 측정 맥락을 함께 표현합니다.
+- 낮은 측정 품질은 색상만으로 표시하지 않고 `NBStatusBadge`와 안내 문구를 함께 사용합니다.
 
 ## 문구 원칙
 

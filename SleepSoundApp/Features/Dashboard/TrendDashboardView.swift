@@ -19,7 +19,7 @@ struct TrendDashboardView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         periodPicker
         overviewSection
 
@@ -46,11 +46,16 @@ struct TrendDashboardView: View {
 
         NBPrivacyNoticeCard(
           title: "앱 내부 리포트 기반",
-          message: "트렌드는 밤숨에 저장된 NightReport만 사용합니다. HealthKit 연동이나 서버 전송 없이 웰니스 참고용으로 계산됩니다.",
+          messages: [
+            "트렌드는 밤숨에 저장된 NightReport만 사용합니다.",
+            "개인 패턴을 살펴보기 위한 참고용 보기입니다.",
+            "서버로 전송하지 않습니다.",
+          ],
           systemImage: "chart.line.uptrend.xyaxis"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
     }
     .background(NBColor.pageBackground)
     .navigationTitle("수면 트렌드")
@@ -86,21 +91,30 @@ struct TrendDashboardView: View {
         )
       }
 
+      HStack(spacing: NBSpacing.xs) {
+        NBStatusBadge(selectedPeriod.title, kind: .neutral, systemImage: "calendar")
+        NBStatusBadge(
+          lowQualityReportCount > 0 ? "낮은 측정 품질 \(lowQualityReportCount)개" : "측정 품질 낮음 없음",
+          kind: lowQualityReportCount > 0 ? .caution : .good,
+          systemImage: lowQualityReportCount > 0 ? "exclamationmark.triangle" : "checkmark.circle"
+        )
+      }
+
       Text("측정 품질 낮음으로 표시된 리포트는 차트에는 남기고 평균, 최솟값, 최댓값 계산에서는 제외합니다.")
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(NBColor.secondaryText)
+        .fixedSize(horizontal: false, vertical: true)
     }
   }
 
   private var emptyState: some View {
     NBCard {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label("아직 표시할 트렌드가 없습니다", systemImage: "chart.xyaxis.line")
-          .font(NBTypography.sectionTitle)
-        Text("수면 기록이 쌓이면 최근 7일, 30일, 90일의 수면 소리 지표가 이 화면에 표시됩니다.")
-          .font(.callout)
-          .foregroundStyle(.secondary)
-      }
+      NBEmptyStateView(
+        title: "아직 표시할 트렌드가 없습니다",
+        message: "수면 기록이 쌓이면 최근 7일, 30일, 90일의 수면 소리 지표가 이 화면에 표시됩니다.",
+        systemImage: "chart.xyaxis.line",
+        illustration: .emptyReport
+      )
     }
   }
 
@@ -173,13 +187,23 @@ private struct TrendMetricSection: View {
     NBReportSection(title: "\(metricType.displayName) 추세", systemImage: systemImage) {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         summaryGrid
-        chart
+
+        if points.isEmpty {
+          NBEmptyStateView(
+            title: "표시할 데이터가 부족합니다",
+            message: "\(metricType.displayName) 지표가 포함된 리포트가 더 쌓이면 추세를 표시합니다.",
+            systemImage: systemImage,
+            illustration: .emptyReport
+          )
+        } else {
+          chart
+        }
 
         if summary.lowQualityDataCount > 0 {
           NBStatusBadge(
             "측정 품질 낮음 \(summary.lowQualityDataCount)개: 평균 계산에서 제외",
-            systemImage: "exclamationmark.triangle",
-            tint: NBColor.warning
+            kind: .caution,
+            systemImage: "exclamationmark.triangle"
           )
         }
 
@@ -194,10 +218,10 @@ private struct TrendMetricSection: View {
 
   private var summaryGrid: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-      TrendSummaryItem(title: "평균", value: valueString(summary.average))
-      TrendSummaryItem(title: "최근", value: valueString(summary.latest))
-      TrendSummaryItem(title: "최소", value: valueString(summary.min))
-      TrendSummaryItem(title: "최대", value: valueString(summary.max))
+      TrendSummaryItem(title: "평균", value: valueString(summary.average), systemImage: "chart.bar", tint: tint)
+      TrendSummaryItem(title: "최근", value: valueString(summary.latest), systemImage: "clock", tint: tint)
+      TrendSummaryItem(title: "최소", value: valueString(summary.min), systemImage: "arrow.down.to.line", tint: NBColor.neutral)
+      TrendSummaryItem(title: "최대", value: valueString(summary.max), systemImage: "arrow.up.to.line", tint: NBColor.neutral)
     }
   }
 
@@ -313,21 +337,16 @@ private struct TrendMetricSection: View {
 private struct TrendSummaryItem: View {
   let title: String
   let value: String
+  let systemImage: String
+  let tint: Color
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title)
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(.secondary)
-      Text(value)
-        .font(.headline)
-        .foregroundStyle(NBColor.nightInk)
-        .lineLimit(1)
-        .minimumScaleFactor(0.75)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(NBSpacing.small)
-    .background(NBColor.elevatedSurface)
-    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    NBMetricCard(
+      title: title,
+      value: value,
+      systemImage: systemImage,
+      tint: tint,
+      accessibilityLabel: "\(title) \(value)"
+    )
   }
 }

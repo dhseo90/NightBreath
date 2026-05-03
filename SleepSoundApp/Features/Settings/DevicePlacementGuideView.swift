@@ -3,10 +3,8 @@ import SwiftUI
 struct DevicePlacementGuideView: View {
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
-        NBIllustration(kind: .devicePlacement)
-          .frame(height: 170)
-          .accessibilityLabel("침대 옆 iPhone 배치 안내 일러스트")
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        headerCard
 
         NBReportSection(title: "권장 배치", systemImage: "iphone") {
           VStack(spacing: NBSpacing.medium) {
@@ -24,6 +22,11 @@ struct DevicePlacementGuideView: View {
               systemImage: "battery.100",
               title: "충전 연결 권장",
               description: "밤새 측정이 끊기지 않도록 충전기에 연결해 둡니다."
+            )
+            PlacementRow(
+              systemImage: "battery.25",
+              title: "저전력 모드 확인",
+              description: "측정 전 배터리와 저전력 모드 상태를 확인하면 백그라운드 측정 흐름을 더 안정적으로 유지하는 데 도움이 됩니다."
             )
             PlacementRow(
               systemImage: "shippingbox",
@@ -46,15 +49,50 @@ struct DevicePlacementGuideView: View {
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.audioTint))
 
         NBPrivacyNoticeCard(
-          title: "리포트 해석",
-          message: "리포트는 감지된 소리 기반 지표를 보여주는 웰니스 참고 정보입니다.",
+          title: "배치와 개인정보",
+          messages: [
+            "정확한 측정을 위해 권장 배치를 안내합니다.",
+            "분석은 iPhone 안에서 수행됩니다.",
+            "원본 전체 오디오는 저장하지 않습니다.",
+            "서버로 전송하지 않습니다.",
+          ],
           systemImage: "info.circle"
         )
       }
-      .padding(NBSpacing.large)
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
     }
     .navigationTitle("배치 가이드")
     .background(NBColor.pageBackground)
+  }
+
+  private var headerCard: some View {
+    NBCard(background: NBColor.sleep.opacity(0.08), stroke: NBColor.sleep.opacity(0.18)) {
+      HStack(alignment: .center, spacing: NBSpacing.lg) {
+        NBIllustration(kind: .devicePlacement)
+          .frame(width: 132, height: 86)
+          .accessibilityHidden(true)
+
+        VStack(alignment: .leading, spacing: NBSpacing.sm) {
+          HStack(spacing: NBSpacing.xs) {
+            NBStatusBadge("권장 배치", kind: .neutral, systemImage: "iphone")
+            NBStatusBadge("충전 권장", kind: .privacy, systemImage: "battery.100")
+          }
+
+          Text("iPhone을 머리맡 가까이에 두세요")
+            .font(NBTypography.title)
+            .foregroundStyle(NBColor.primaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Text("수면 중 소리 기반 지표를 안정적으로 기록하기 위한 배치 안내입니다.")
+            .font(NBTypography.body)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("배치 가이드, iPhone을 머리맡 가까이에 두기")
   }
 }
 

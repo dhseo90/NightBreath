@@ -11,14 +11,15 @@ struct SleepRecordingView: View {
 
   var body: some View {
     ScrollView {
-      VStack(spacing: NBSpacing.xLarge) {
+      VStack(spacing: NBSpacing.sectionVertical) {
         if let session = appState.activeSession {
           recordingCard(session: session)
         } else {
           completedCard
         }
       }
-      .padding(NBSpacing.large)
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
     }
     .background(NBColor.pageBackground)
     .onChange(of: scenePhase) { _, newPhase in
@@ -133,7 +134,8 @@ struct SleepRecordingView: View {
           MeasurementStatusRow(
             title: "마이크 권한", value: appState.microphonePermissionState.displayText)
           MeasurementStatusRow(title: "Background audio mode", value: backgroundAudioModeText)
-          MeasurementStatusRow(title: "Detector backend", value: "Rule-based")
+          MeasurementStatusRow(title: "Detector backend", value: appState.currentDetectorBackend.displayName)
+          MeasurementStatusRow(title: "Tuning profile", value: appState.detectorTuningProfile.displayName)
           MeasurementStatusRow(title: "Debug mode", value: debugModeText)
           MeasurementStatusRow(title: "원본 전체 오디오 저장", value: "꺼짐")
           MeasurementStatusRow(
@@ -164,7 +166,7 @@ struct SleepRecordingView: View {
     NBCard(background: NBColor.audioTint.opacity(0.08)) {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
         HStack {
-        Label(appState.audioCaptureState.displayText, systemImage: "mic")
+          Label(appState.audioCaptureState.displayText, systemImage: "mic")
             .font(.subheadline.weight(.semibold))
           Spacer()
           Text("\(Int(displayAudioLevel * 100))%")
