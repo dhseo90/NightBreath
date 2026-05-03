@@ -26,6 +26,49 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func infoPlistDeclaresSafeFitdaysOpenInDocumentTypes() throws {
+        let plist = try infoPlist()
+        let documentTypes = try #require(plist["CFBundleDocumentTypes"] as? [NSDictionary])
+        let fitdaysDocumentType = try #require(
+            documentTypes.first { ($0["CFBundleTypeName"] as? String) == "Fitdays CSV Export" }
+        )
+        let itemContentTypes = try #require(fitdaysDocumentType["LSItemContentTypes"] as? [String])
+
+        #expect(fitdaysDocumentType["CFBundleTypeRole"] as? String == "Viewer")
+        #expect(fitdaysDocumentType["LSHandlerRank"] as? String == "Alternate")
+        #expect(itemContentTypes.contains("public.comma-separated-values-text"))
+        #expect(itemContentTypes.contains("public.plain-text"))
+        #expect(!itemContentTypes.contains("public.data"))
+        #expect(plist["LSSupportsOpeningDocumentsInPlace"] as? Bool == false)
+    }
+
+    @Test
+    func appRoutesOpenInURLsToFitdaysImportPreview() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let appEntry = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/App/SleepSoundApp.swift"),
+            encoding: .utf8
+        )
+        let appState = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/App/AppState.swift"),
+            encoding: .utf8
+        )
+        let importView = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Dashboard/FitdaysImportView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(appEntry.contains(".onOpenURL"))
+        #expect(appEntry.contains("appState.handleOpenURL"))
+        #expect(appEntry.contains("FitdaysImportView("))
+        #expect(appEntry.contains("initialFileURL"))
+        #expect(appState.contains("pendingFitdaysImportFile"))
+        #expect(appState.contains("FitdaysImportFilePolicy.isSupportedFileName"))
+        #expect(importView.contains("previewInitialFileIfNeeded"))
+        #expect(importView.contains("service.previewImport(from: fileURL)"))
+    }
+
+    @Test
     func appStoreDocumentsExistAndUseSafeCopy() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let documentPaths = [

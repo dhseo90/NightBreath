@@ -27,6 +27,34 @@ struct SleepSoundApp: App {
                 #endif
             }
             .environmentObject(appState)
+            .onOpenURL { url in
+                appState.handleOpenURL(url)
+            }
+            .sheet(item: $appState.pendingFitdaysImportFile) { pendingFile in
+                NavigationStack {
+                    FitdaysImportView(
+                        initialFileURL: pendingFile.url,
+                        initialStatusMessage: pendingFile.statusMessage
+                    )
+                }
+            }
+            .alert(
+                "Fitdays 가져오기",
+                isPresented: Binding(
+                    get: { appState.fitdaysOpenInMessage != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            appState.fitdaysOpenInMessage = nil
+                        }
+                    }
+                )
+            ) {
+                Button("확인", role: .cancel) {
+                    appState.fitdaysOpenInMessage = nil
+                }
+            } message: {
+                Text(appState.fitdaysOpenInMessage ?? "")
+            }
         }
     }
 }

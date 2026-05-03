@@ -51,6 +51,8 @@
 ## Extended Health Metrics / Fitdays Import
 
 - 실제 Fitdays CSV/export file을 사용한 수동 import QA
+- 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
+- Share Extension 필요 여부 결정
 - invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름 확인
 - HealthKit-backed metric과 Fitdays local-only metric badge/source 표시 재점검
@@ -63,6 +65,7 @@
 
 - Fitdays 서버/API에 직접 연결하지 않습니다.
 - 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
+- Fitdays 계정 로그인, 앱 내부 데이터 접근, UI automation, 자동 scraping을 만들지 않습니다.
 - HealthKit에 Fitdays import 값을 쓰지 않습니다.
 - 실제 개인 CSV 파일을 repository에 포함하지 않습니다.
 

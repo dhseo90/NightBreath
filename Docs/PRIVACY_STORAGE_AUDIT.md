@@ -191,16 +191,19 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 허용되는 항목:
 
 - `FitdaysImportView`의 사용자 명시 파일 선택
+- iOS document type/open-in으로 전달된 CSV 또는 plain text export file preview
 - `FitdaysImportService`의 로컬 CSV parsing, flexible column mapping, row validation
 - `ImportBatch`와 `UnifiedHealthMetricSample` 저장
 - HealthKit 표준 지표가 CSV에 포함된 경우에도 `sourceType == fitdaysCSV`로 저장
 - synthetic fixture와 mock scenario를 이용한 테스트와 screenshot
-- unknown column warning, invalid row skip, missing date 실패, duplicate import replacement
+- unknown column warning, invalid row skip, unsupported extension 실패, missing date 실패, duplicate import replacement
 
 제한 사항:
 
 - Fitdays 계정 로그인이나 원격 서비스 직접 연결을 만들지 않습니다.
 - 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
+- Fitdays 앱 내부 데이터에 접근하지 않습니다.
+- Fitdays 화면 scraping이나 UI automation을 만들지 않습니다.
 - 자동 동기화를 만들지 않습니다.
 - HealthKit에 Fitdays import 값을 쓰지 않습니다.
 - CSV 원본 파일을 앱 repository에 포함하지 않습니다.
@@ -210,11 +213,15 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 현재 저장 원칙:
 
 - 선택된 CSV 또는 structured export 파일은 import 입력으로만 사용하고, 원본 파일 자체를 앱 repository나 screenshot asset으로 보관하지 않습니다.
+- file picker와 open-in document URL은 같은 preview validation을 통과해야 저장할 수 있습니다.
+- 앱은 `.csv`, `.txt` 외의 파일을 Fitdays import 입력으로 처리하지 않습니다.
+- CSV 구조가 맞지 않는 plain text file은 저장 전에 실패합니다.
 - import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.
 - batch 단위 삭제가 필요한 경우 `importBatchId`로 관련 sample을 함께 삭제할 수 있게 설계합니다.
 - extended metric sample은 sourceType/sourceName/importBatchId를 함께 저장해 HealthKit read-only sample과 구분합니다.
 - HealthKit-backed sample, Fitdays CSV sample, manual/appComputed/mock sample은 source type과 UI badge로 구분합니다.
 - 실제 개인 CSV, 실제 개인 건강 데이터, 실제 HealthKit source device 식별 정보는 문서용 screenshot에 사용하지 않습니다.
+- Share Extension은 아직 구현하지 않고, 실제 Fitdays share UX를 확인한 뒤 별도 이슈로 판단합니다.
 
 ## Daily Health Card export/share 점검
 

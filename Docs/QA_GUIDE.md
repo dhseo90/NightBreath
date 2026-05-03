@@ -247,13 +247,17 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 11. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
 12. Fitdays 확장 지표는 HealthKit-backed가 아니라 local-only로 설명되는지 확인합니다.
 13. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
-14. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
+14. Files 앱에서 `.csv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
+15. unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
+16. Open in flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
+17. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
 
 ```text
 Export type: private Fitdays CSV or structured export / synthetic fixture
 App path checked: Reports / Data Reports / Chart / History Records / More Data / Customer Service Center
+NightBreath entry point: file picker / Open in NightBreath / Apple Health read-only fallback
 Fallback used: CSV export / data request / Apple Health read-only / manual follow-up
 Rows parsed:
 Samples created:
@@ -262,6 +266,7 @@ Unknown columns:
 Local-only metric visible: yes / no
 Actual file name recorded in repo: no
 Actual path recorded in screenshot: no
+Share Extension used: no
 ```
 
 ## Event Audio Sample QA

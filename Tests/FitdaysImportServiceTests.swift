@@ -5,6 +5,17 @@ import Testing
 @Suite("Fitdays Import Service")
 struct FitdaysImportServiceTests {
     @Test
+    func filePolicyAllowsCSVAndTextExportFilesOnly() {
+        #expect(FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.csv"))
+        #expect(FitdaysImportFilePolicy.isSupportedFileName("Fitdays Export.TXT"))
+        #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.comma-separated-values-text"))
+        #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.plain-text"))
+        #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.pdf"))
+        #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.json"))
+        #expect(!FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("com.adobe.pdf"))
+    }
+
+    @Test
     func previewImportDryRunUsesSyntheticFixtureWithoutSaving() throws {
         let repository = InMemoryUnifiedHealthMetricSampleRepository()
         let result = try service.previewImport(from: fixtureURL())
@@ -98,6 +109,30 @@ struct FitdaysImportServiceTests {
         #expect(repository.fetchSamples().isEmpty)
     }
 
+    @Test
+    func unsupportedFileExtensionIsRejectedBeforePreviewParsing() throws {
+        let csv = """
+        Date,Time,Weight
+        2026-05-04,07:00,71.8
+        """
+        let url = temporaryFileURL(fileName: "synthetic_fitdays_export.json")
+        try csv.write(to: url, atomically: true, encoding: .utf8)
+
+        #expect(throws: FitdaysImportError.unsupportedFileType) {
+            try service.previewImport(from: url)
+        }
+    }
+
+    @Test
+    func unsupportedTextStructureIsRejectedByPreviewValidation() throws {
+        let url = temporaryFileURL(fileName: "synthetic_fitdays_notes.txt")
+        try "This is not a Fitdays structured export file.".write(to: url, atomically: true, encoding: .utf8)
+
+        #expect(throws: FitdaysImportError.missingDateColumn) {
+            try service.previewImport(from: url)
+        }
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,
@@ -124,5 +159,10 @@ struct FitdaysImportServiceTests {
     private func abbreviationFixtureURL() -> URL {
         URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export_abbrev.csv")
+    }
+
+    private func temporaryFileURL(fileName: String) -> URL {
+        URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("\(UUID().uuidString)-\(fileName)")
     }
 }

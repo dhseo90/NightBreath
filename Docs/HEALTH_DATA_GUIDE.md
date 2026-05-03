@@ -110,6 +110,35 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 - Fitdays+ privacy 문서에는 사용자가 personal data를 CSV 형식으로 export 요청할 권리가 있다고 설명되어 있습니다. 참고: [Fitdays+ Privacy Policy](https://plus.fitdays.cn/app/privacy?language=en&source=0)
 - 실제 메뉴명과 export 위치는 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태, 연결된 scale 모델에 따라 다를 수 있습니다. NightBreath 문서는 특정 메뉴명을 단정하지 않고 사용자가 직접 확보한 로컬 export 파일만 다룹니다.
 
+### Fitdays 데이터 유입 경로
+
+NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세 가지입니다.
+
+1. Apple Health -> HealthKit read-only
+   - Fitdays가 Apple 건강앱에 동기화한 target data 중 HealthKit 표준 지표만 읽습니다.
+   - NightBreath는 HealthKit write를 하지 않고, HealthKit custom type을 만들지 않습니다.
+   - HealthKit에 없는 Fitdays 고유 지표는 이 경로로 읽으려 하지 않습니다.
+2. Fitdays CSV/export -> 앱 내부 file import
+   - 사용자가 Files, iCloud Drive, AirDrop, Mail 등으로 확보한 CSV 또는 structured export file을 `FitdaysImportView`에서 직접 선택합니다.
+   - `fileImporter`는 CSV/text 기반 type을 열 수 있지만, preview validation을 통과한 structured export만 저장할 수 있습니다.
+   - unknown column은 warning, invalid row는 skipped row로 처리합니다.
+3. Fitdays share/export -> Open in NightBreath
+   - iOS document type/open-in 등록으로 CSV 또는 plain text export 파일을 NightBreath로 열 수 있게 합니다.
+   - 받은 file URL은 read-only 입력으로만 사용하고, 같은 preview/import validation을 통과해야 저장합니다.
+   - 실제 개인 파일명이나 local path는 screenshot과 public 문서에 노출하지 않습니다.
+
+명시적으로 제외하는 경로:
+
+- Fitdays 서버/API 직접 호출
+- Fitdays 계정 로그인 구현
+- Fitdays 앱 내부 데이터 접근
+- Fitdays 화면 UI automation
+- 자동 scraping
+- 비공식 API reverse engineering
+- 자동 동기화 구현
+
+자동 동기화가 필요한 경우에도 NightBreath가 허용하는 범위는 Apple 건강앱에 이미 들어온 표준 지표를 HealthKit read-only로 읽는 것뿐입니다.
+
 구성:
 
 - `FitdaysImportView`
@@ -153,15 +182,37 @@ CSV가 보이지 않을 때 fallback:
 Importer 설계 원칙:
 
 - 입력은 사용자가 명시적으로 선택한 local file URL입니다.
+- 앱 내부 파일 선택과 iOS open-in document URL은 같은 preview/import pipeline을 사용합니다.
+- document type은 CSV와 plain text 기반 export 파일을 대상으로 하며, 모든 text 파일을 무조건 import하지 않습니다.
+- `.csv`, `.txt` 외의 파일은 preview parsing 전에 unsupported file type으로 거부합니다.
 - CSV-compatible text를 우선 지원하고, 향후 structured export file이 확인되면 같은 privacy boundary 안에서 parser를 추가합니다.
 - column mapping은 영어, 한국어, 축약 column, punctuation/space/case 차이를 유연하게 받아들입니다.
 - unknown column은 전체 실패가 아니라 warning으로 남깁니다.
 - invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
+- date column이 없거나 structured export로 해석할 수 없는 text 파일은 저장 전에 실패합니다.
 - CSV delimiter, decimal separator, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
 - 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
 - 다른 file에서 같은 metric/source/external record key가 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
 - 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
 - import batch는 삭제 가능해야 하며, 삭제 시 해당 `importBatchId`를 가진 sample도 함께 정리할 수 있어야 합니다.
+- UI에는 실제 local path를 표시하지 않고, screenshot에는 실제 개인 파일명도 사용하지 않습니다.
+
+### Open in NightBreath / Share Extension 방침
+
+V1에서는 Share Extension을 바로 추가하지 않고 document type/open-in을 먼저 지원합니다.
+
+현재 구현 범위:
+
+- `Info.plist`에 CSV/plain text document type을 등록합니다.
+- 앱 root에서 `onOpenURL`로 file URL을 받아 `FitdaysImportView` preview sheet로 연결합니다.
+- 같은 `FitdaysImportService` validation을 사용해 unsupported extension, missing date column, invalid row, unknown column을 처리합니다.
+- 원본 파일은 읽기 입력으로만 사용하고, import 결과만 로컬 `ImportBatch`와 `UnifiedHealthMetricSample`로 저장합니다.
+
+Share Extension 후보:
+
+- 장점: Fitdays share sheet에서 NightBreath Import가 더 명확하게 보일 수 있습니다.
+- 단점: App Group, extension target, extension UI, QA matrix가 늘어납니다.
+- 결정 기준: 실제 Fitdays share/export UX를 iPhone에서 확인한 뒤, document type/open-in만으로 충분한지 판단합니다.
 
 호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV를 포함합니다.
 

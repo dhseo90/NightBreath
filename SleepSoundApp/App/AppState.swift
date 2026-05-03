@@ -33,6 +33,12 @@ enum SleepReportSource: Equatable {
     }
 }
 
+struct PendingFitdaysImportFile: Identifiable {
+    let id = UUID()
+    var url: URL
+    var statusMessage: String
+}
+
 @MainActor
 final class AppState: ObservableObject {
     @Published var activeSession: SleepSession?
@@ -60,6 +66,8 @@ final class AppState: ObservableObject {
     @Published var eventFeedbackMessage: String?
     @Published var latestDetectorDiagnostics: DetectorDiagnostics?
     @Published private(set) var detectorTuningProfile: DetectorTuningProfile
+    @Published var pendingFitdaysImportFile: PendingFitdaysImportFile?
+    @Published var fitdaysOpenInMessage: String?
     #if DEBUG
     @Published var activeSimulatorQAScenario: SimulatorQAScenarioPreset?
     @Published var activeScreenshotScenario: ScreenshotScenario?
@@ -249,6 +257,18 @@ final class AppState: ObservableObject {
         detectorTuningProfile = profile
         sleepAnalyzer = profile.configuration.makeSleepAnalyzer()
         audioCaptureMessage = "다음 측정부터 \(profile.displayName) profile을 사용합니다."
+    }
+
+    func handleOpenURL(_ url: URL) {
+        guard FitdaysImportFilePolicy.isSupportedFileName(url.lastPathComponent) else {
+            fitdaysOpenInMessage = "CSV 또는 text 기반 Fitdays export 파일만 가져올 수 있습니다."
+            return
+        }
+
+        pendingFitdaysImportFile = PendingFitdaysImportFile(
+            url: url,
+            statusMessage: "Fitdays export 파일 미리보기를 만들었습니다."
+        )
     }
 
     #if DEBUG

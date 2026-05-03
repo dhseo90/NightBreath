@@ -34,7 +34,7 @@ NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 �
 - 예시 건강 데이터 architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health 예시 source를 분리합니다.
 - HealthKit read-only 연동: 사용자가 건강 데이터 대시보드에서 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다.
 - Extended Health Metrics: HealthKit 표준 지표와 Fitdays CSV/local-only 확장 지표를 `UnifiedHealthMetricSample`로 함께 표현합니다.
-- Fitdays CSV/import: 사용자가 직접 선택한 CSV 또는 structured export 파일만 로컬에서 읽고, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다.
+- Fitdays CSV/import: 사용자가 직접 선택한 CSV 또는 structured export 파일만 로컬에서 읽고, Files/Open in NightBreath 진입을 지원하며, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다.
 - 건강 지표 통계/그래프: 7일/30일/90일/1년/전체 기간의 metric별 흐름, source, raw 샘플 목록을 확인합니다.
 - 월 건강 캘린더: 데이터가 있는 날짜를 표시하고, 날짜별 수면/건강/check-in/앱 계산 지표를 category별로 봅니다.
 - 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.

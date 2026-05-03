@@ -72,12 +72,15 @@ public struct FitdaysImportResult: Codable, Equatable, Sendable {
 }
 
 public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
+    case unsupportedFileType
     case unreadableFile
     case emptyFile
     case missingDateColumn
 
     public var errorDescription: String? {
         switch self {
+        case .unsupportedFileType:
+            "CSV 또는 text 기반 export 파일만 가져올 수 있습니다."
         case .unreadableFile:
             "선택한 파일을 읽을 수 없습니다."
         case .emptyFile:
@@ -85,6 +88,28 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
         case .missingDateColumn:
             "측정일 column을 찾을 수 없습니다."
         }
+    }
+}
+
+public enum FitdaysImportFilePolicy {
+    public static let supportedFileExtensions = ["csv", "txt"]
+    public static let supportedContentTypeIdentifiers = [
+        "public.comma-separated-values-text",
+        "public.plain-text",
+        "public.utf8-plain-text",
+        "public.text",
+    ]
+
+    public static func isSupportedFileName(_ fileName: String) -> Bool {
+        let pathExtension = URL(fileURLWithPath: fileName)
+            .pathExtension
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return supportedFileExtensions.contains(pathExtension)
+    }
+
+    public static func isSupportedContentTypeIdentifier(_ identifier: String) -> Bool {
+        supportedContentTypeIdentifiers.contains(identifier)
     }
 }
 
@@ -241,6 +266,9 @@ public struct FitdaysImportService: Sendable {
     }
 
     public func previewImport(from fileURL: URL) throws -> FitdaysImportResult {
+        guard FitdaysImportFilePolicy.isSupportedFileName(fileURL.lastPathComponent) else {
+            throw FitdaysImportError.unsupportedFileType
+        }
         guard let csv = try? String(contentsOf: fileURL, encoding: .utf8) else {
             throw FitdaysImportError.unreadableFile
         }

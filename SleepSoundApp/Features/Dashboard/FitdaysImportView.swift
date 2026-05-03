@@ -4,21 +4,27 @@ import UniformTypeIdentifiers
 struct FitdaysImportView: View {
   private let service: FitdaysImportService
   private let repository: any UnifiedHealthMetricSampleRepositoryProtocol
+  private let initialFileURL: URL?
+  private let initialFileStatusMessage: String?
 
   @State private var isFileImporterPresented = false
   @State private var importResult: FitdaysImportResult?
   @State private var statusMessage: String?
   @State private var errorMessage: String?
+  @State private var didPreviewInitialFile = false
 
   init(
     service: FitdaysImportService = FitdaysImportService(),
     repository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository(),
+    initialFileURL: URL? = nil,
     initialImportResult: FitdaysImportResult? = nil,
     initialStatusMessage: String? = nil,
     initialErrorMessage: String? = nil
   ) {
     self.service = service
     self.repository = repository
+    self.initialFileURL = initialFileURL
+    self.initialFileStatusMessage = initialStatusMessage
     _importResult = State(initialValue: initialImportResult)
     _statusMessage = State(initialValue: initialStatusMessage)
     _errorMessage = State(initialValue: initialErrorMessage)
@@ -48,19 +54,20 @@ struct FitdaysImportView: View {
       allowsMultipleSelection: false,
       onCompletion: handleFileImporterResult
     )
+    .onAppear(perform: previewInitialFileIfNeeded)
   }
 
   private var headerSection: some View {
     NBReportSection(title: "Fitdays CSV 가져오기", systemImage: "square.and.arrow.down") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("사용자가 직접 선택한 Fitdays export 파일을 로컬에서 읽어 체성분 지표를 정리합니다.")
+        Text("사용자가 직접 선택한 Fitdays CSV 또는 structured export 파일을 로컬에서 읽어 체성분 지표를 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
         Button {
           isFileImporterPresented = true
         } label: {
-          Label("CSV 파일 선택", systemImage: "doc.badge.plus")
+          Label("파일 선택", systemImage: "doc.badge.plus")
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
 
@@ -91,7 +98,7 @@ struct FitdaysImportView: View {
   private var emptyState: some View {
     NBEmptyStateView(
       title: "가져온 파일이 없습니다",
-      message: "Fitdays에서 export/share한 CSV 파일을 선택하면 저장 전 미리보기를 확인할 수 있습니다.",
+      message: "Fitdays에서 export/share한 CSV 또는 text 기반 structured export 파일을 선택하면 저장 전 미리보기를 확인할 수 있습니다.",
       systemImage: "doc.text.magnifyingglass",
       actionTitle: "파일 선택"
     ) {
@@ -108,7 +115,7 @@ struct FitdaysImportView: View {
             value: "\(result.importedSampleCount)",
             systemImage: "number",
             tint: NBColor.mistTeal,
-            footnote: result.batch.fileName
+            footnote: "저장 전 미리보기"
           )
 
           NBMetricCard(
@@ -190,15 +197,36 @@ struct FitdaysImportView: View {
       guard let url = try result.get().first else {
         return
       }
-      let didStartAccessing = url.startAccessingSecurityScopedResource()
+      preview(fileURL: url, successMessage: "저장 전 미리보기를 만들었습니다.")
+    } catch {
+      importResult = nil
+      errorMessage = error.localizedDescription
+    }
+  }
+
+  private func previewInitialFileIfNeeded() {
+    guard !didPreviewInitialFile, let initialFileURL else { return }
+    didPreviewInitialFile = true
+    preview(
+      fileURL: initialFileURL,
+      successMessage: initialFileStatusMessage ?? "공유/export 파일 미리보기를 만들었습니다."
+    )
+  }
+
+  private func preview(fileURL: URL, successMessage: String) {
+    errorMessage = nil
+    statusMessage = nil
+
+    do {
+      let didStartAccessing = fileURL.startAccessingSecurityScopedResource()
       defer {
         if didStartAccessing {
-          url.stopAccessingSecurityScopedResource()
+          fileURL.stopAccessingSecurityScopedResource()
         }
       }
 
-      importResult = try service.previewImport(from: url)
-      statusMessage = "저장 전 미리보기를 만들었습니다."
+      importResult = try service.previewImport(from: fileURL)
+      statusMessage = successMessage
     } catch {
       importResult = nil
       errorMessage = error.localizedDescription
