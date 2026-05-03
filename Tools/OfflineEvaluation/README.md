@@ -56,7 +56,8 @@ Segment 필드:
 swift run OfflineEvaluation \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles conservative,balanced,sensitive \
+  --backends hybrid
 ```
 
 프로필은 쉼표로 나열합니다.
@@ -64,6 +65,14 @@ swift run OfflineEvaluation \
 - `conservative`
 - `balanced`
 - `sensitive`
+
+backend도 쉼표로 나열할 수 있습니다.
+
+- `ruleBased`
+- `coreML`
+- `hybrid`
+
+예를 들어 같은 segment를 세 backend로 평가하려면 `--backends ruleBased,coreML,hybrid`를 사용합니다.
 
 ## Output
 
@@ -146,6 +155,26 @@ swift run OfflineSnoreBaseline \
 manifest가 없거나 로컬 오디오 파일이 준비되지 않았을 때 도구는 crash하지 않고 사용법 또는 missing file warning/failed record를 남깁니다. 공개 데이터셋은 자동 다운로드하지 않으므로 `sample_manifest.example.json`을 복사한 뒤 `localFilePath`를 직접 준비한 synthetic/local WAV/CAF/M4A 파일로 바꿔 실행하세요.
 
 자세한 해석 방법은 `Docs/SNORE_BASELINE_EVALUATION.md`를 참고하세요.
+
+## Backend 비교
+
+rule-based, Core ML, hybrid backend를 같은 manifest segment에서 비교하려면 다음 도구를 사용합니다.
+
+```bash
+swift run OfflineBackendCompare \
+  --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
+  --output Tools/OfflineEvaluation/output \
+  --profile balanced
+```
+
+생성 파일:
+- `backend_comparison_YYYYMMDD_HHMMSS.json`
+- `backend_comparison_YYYYMMDD_HHMMSS.csv`
+- `backend_comparison_report.md`
+
+이 리포트는 `ruleOnlySnore`, `mlOnlySnore`, `bothNoEvent`, `confidenceGapLarge` 같은 disagreement를 개발용으로 정리합니다. Core ML 모델이 없으면 crash하지 않고 ML zero-event/fallback 후보로 남기며, hybrid는 rule-based fallback 안정성을 유지합니다.
+
+자세한 해석 방법은 `Docs/RULE_BASED_VS_ML_COMPARISON.md`를 참고하세요.
 
 ## 실제 iPhone 테스트와의 관계
 

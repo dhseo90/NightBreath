@@ -12,7 +12,8 @@ struct OfflineEvaluationCLI {
       let result = try runner.evaluate(
         manifestURL: options.manifestURL,
         outputDirectory: options.outputDirectory,
-        profiles: options.profiles
+        profiles: options.profiles,
+        backends: options.backends
       )
 
       print("Offline Evaluation complete")
@@ -28,6 +29,7 @@ struct OfflineEvaluationCLI {
       }
       print("evaluated segments: \(result.output.summary.evaluatedSegments)")
       print("evaluated records: \(result.output.summary.evaluatedRecords)")
+      print("backends: \(options.backends.map(\.rawValue).joined(separator: ","))")
       print("zero-event records: \(result.output.summary.zeroEventRecords)")
       print("failed records: \(result.output.summary.failedRecords)")
       print("snore candidates: \(result.output.summary.snoreCandidates)")
@@ -47,7 +49,7 @@ struct OfflineEvaluationCLI {
 
   private static let usage = """
     Usage:
-      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles conservative,balanced,sensitive
+      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles conservative,balanced,sensitive --backends ruleBased,coreML,hybrid
 
     Notes:
       - 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
@@ -60,11 +62,13 @@ private struct OfflineEvaluationOptions {
   var manifestURL: URL
   var outputDirectory: URL
   var profiles: [DetectorTuningProfile]
+  var backends: [SleepDetectionBackend]
 
   init(arguments: [String]) throws {
     var manifestPath: String?
     var outputPath = "Tools/OfflineEvaluation/output"
     var profileText = "conservative,balanced,sensitive"
+    var backendText = "hybrid"
     var index = 0
 
     while index < arguments.count {
@@ -79,6 +83,9 @@ private struct OfflineEvaluationOptions {
       case "--profiles":
         index += 1
         profileText = index < arguments.count ? arguments[index] : profileText
+      case "--backends":
+        index += 1
+        backendText = index < arguments.count ? arguments[index] : backendText
       case "--help", "-h":
         throw OfflineEvaluationError.missingManifestPath
       default:
@@ -94,6 +101,7 @@ private struct OfflineEvaluationOptions {
     manifestURL = Self.url(from: manifestPath)
     outputDirectory = Self.url(from: outputPath)
     profiles = try OfflineEvaluationRunner.parseProfiles(profileText)
+    backends = try OfflineEvaluationRunner.parseBackends(backendText)
   }
 
   private static func url(from path: String) -> URL {

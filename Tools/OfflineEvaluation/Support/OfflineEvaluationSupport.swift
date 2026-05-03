@@ -6,6 +6,7 @@ public enum OfflineEvaluationError: Error, Equatable, Sendable {
   case emptyManifest
   case failedToWriteOutput(String)
   case invalidProfile(String)
+  case invalidBackend(String)
 
   public var message: String {
     switch self {
@@ -17,6 +18,8 @@ public enum OfflineEvaluationError: Error, Equatable, Sendable {
       "evaluation output 저장에 실패했습니다. \(reason)"
     case .invalidProfile(let profile):
       "알 수 없는 detector profile입니다. \(profile)"
+    case .invalidBackend(let backend):
+      "알 수 없는 detector backend입니다. \(backend)"
     }
   }
 }
@@ -1964,6 +1967,526 @@ public struct OfflineProfileComparisonRunner {
   }
 }
 
+public enum BackendDisagreementType: String, Codable, CaseIterable, Equatable, Sendable {
+  case bothNoEvent
+  case bothDetectedSnore
+  case ruleOnlySnore
+  case mlOnlySnore
+  case differentEventType
+  case confidenceGapLarge
+}
+
+public enum BackendComparisonError: Error, Equatable, Sendable {
+  case missingManifestPath
+  case manifestFileNotFound(String)
+  case emptyInput
+  case failedToWriteOutput(String)
+
+  public var message: String {
+    switch self {
+    case .missingManifestPath:
+      "backend 비교 manifest 경로가 필요합니다."
+    case .manifestFileNotFound(let path):
+      "manifest 파일을 찾을 수 없습니다: \(path)"
+    case .emptyInput:
+      "비교할 backend evaluation record가 없습니다."
+    case .failedToWriteOutput(let reason):
+      "backend 비교 output 저장에 실패했습니다. \(reason)"
+    }
+  }
+}
+
+public struct BackendComparisonRecord: Codable, Equatable, Sendable {
+  public var fileId: String
+  public var segmentStartSeconds: TimeInterval
+  public var segmentDurationSeconds: TimeInterval
+  public var expectedLabels: [String]
+  public var ruleBasedEventCountByType: [String: Int]
+  public var mlEventCountByType: [String: Int]
+  public var hybridEventCountByType: [String: Int]
+  public var ruleBasedConfidenceSummary: SummaryStats
+  public var mlConfidenceSummary: SummaryStats
+  public var hybridConfidenceSummary: SummaryStats
+  public var disagreementType: BackendDisagreementType
+  public var possibleFalsePositiveBackend: [String]
+  public var possibleFalseNegativeBackend: [String]
+  public var zeroEventReasonByBackend: [String: String]
+
+  public init(
+    fileId: String,
+    segmentStartSeconds: TimeInterval,
+    segmentDurationSeconds: TimeInterval,
+    expectedLabels: [String],
+    ruleBasedEventCountByType: [String: Int],
+    mlEventCountByType: [String: Int],
+    hybridEventCountByType: [String: Int],
+    ruleBasedConfidenceSummary: SummaryStats,
+    mlConfidenceSummary: SummaryStats,
+    hybridConfidenceSummary: SummaryStats,
+    disagreementType: BackendDisagreementType,
+    possibleFalsePositiveBackend: [String],
+    possibleFalseNegativeBackend: [String],
+    zeroEventReasonByBackend: [String: String]
+  ) {
+    self.fileId = fileId
+    self.segmentStartSeconds = max(0, segmentStartSeconds)
+    self.segmentDurationSeconds = max(0, segmentDurationSeconds)
+    self.expectedLabels = expectedLabels
+    self.ruleBasedEventCountByType = ruleBasedEventCountByType
+    self.mlEventCountByType = mlEventCountByType
+    self.hybridEventCountByType = hybridEventCountByType
+    self.ruleBasedConfidenceSummary = ruleBasedConfidenceSummary
+    self.mlConfidenceSummary = mlConfidenceSummary
+    self.hybridConfidenceSummary = hybridConfidenceSummary
+    self.disagreementType = disagreementType
+    self.possibleFalsePositiveBackend = possibleFalsePositiveBackend
+    self.possibleFalseNegativeBackend = possibleFalseNegativeBackend
+    self.zeroEventReasonByBackend = zeroEventReasonByBackend
+  }
+}
+
+public struct BackendComparisonSummary: Codable, Equatable, Sendable {
+  public var evaluatedSegments: Int
+  public var backendZeroEventCount: [String: Int]
+  public var backendSnoreEventCount: [String: Int]
+  public var ruleOnlyCases: Int
+  public var mlOnlyCases: Int
+  public var disagreementCountByType: [String: Int]
+  public var disagreementTopCases: [BackendComparisonRecord]
+  public var recommendedBackendForNextIteration: String
+
+  public init(records: [BackendComparisonRecord]) {
+    evaluatedSegments = records.count
+    backendZeroEventCount = [
+      "ruleBased": records.filter { $0.ruleBasedEventCountByType.values.reduce(0, +) == 0 }.count,
+      "coreML": records.filter { $0.mlEventCountByType.values.reduce(0, +) == 0 }.count,
+      "hybrid": records.filter { $0.hybridEventCountByType.values.reduce(0, +) == 0 }.count,
+    ]
+    backendSnoreEventCount = [
+      "ruleBased": records.reduce(0) { $0 + ($1.ruleBasedEventCountByType[SleepEventType.snore.rawValue] ?? 0) },
+      "coreML": records.reduce(0) { $0 + ($1.mlEventCountByType[SleepEventType.snore.rawValue] ?? 0) },
+      "hybrid": records.reduce(0) { $0 + ($1.hybridEventCountByType[SleepEventType.snore.rawValue] ?? 0) },
+    ]
+    ruleOnlyCases = records.filter { $0.disagreementType == .ruleOnlySnore }.count
+    mlOnlyCases = records.filter { $0.disagreementType == .mlOnlySnore }.count
+    disagreementCountByType = records.reduce(into: [String: Int]()) { result, record in
+      result[record.disagreementType.rawValue, default: 0] += 1
+    }
+    disagreementTopCases = records.filter {
+      $0.disagreementType != .bothNoEvent && $0.disagreementType != .bothDetectedSnore
+    }.prefix(25).map { $0 }
+    recommendedBackendForNextIteration = Self.makeRecommendation(records: records)
+  }
+
+  private static func makeRecommendation(records: [BackendComparisonRecord]) -> String {
+    guard !records.isEmpty else {
+      return "비교할 segment가 없습니다. manifest와 로컬 오디오 파일을 먼저 준비하세요."
+    }
+
+    let mlFalsePositive = records.filter {
+      $0.possibleFalsePositiveBackend.contains("coreML")
+    }.count
+    let mlFalseNegative = records.filter {
+      $0.possibleFalseNegativeBackend.contains("coreML")
+    }.count
+    let ruleFalseNegative = records.filter {
+      $0.possibleFalseNegativeBackend.contains("ruleBased")
+    }.count
+
+    if mlFalsePositive > ruleFalseNegative {
+      return "hybrid 유지 권장: ML이 quiet/noise label에서 더 민감하게 반응하는지 먼저 검토하세요."
+    }
+    if ruleFalseNegative > mlFalseNegative,
+       records.contains(where: { $0.disagreementType == .mlOnlySnore }) {
+      return "hybrid 유지 후 ML 후보를 검토: rule-based 누락 가능 segment에서 ML이 snore를 잡는지 확인하세요."
+    }
+    return "hybrid 유지 권장: 모델 부재/낮은 confidence/환경 차이를 흡수하면서 rule-based fallback을 보존합니다."
+  }
+}
+
+public struct BackendComparisonOutput: Codable, Equatable, Sendable {
+  public var generatedAt: Date
+  public var detectorProfile: String
+  public var summary: BackendComparisonSummary
+  public var records: [BackendComparisonRecord]
+
+  public init(
+    generatedAt: Date,
+    detectorProfile: String,
+    summary: BackendComparisonSummary,
+    records: [BackendComparisonRecord]
+  ) {
+    self.generatedAt = generatedAt
+    self.detectorProfile = detectorProfile
+    self.summary = summary
+    self.records = records
+  }
+}
+
+public struct BackendComparisonRunResult: Equatable, Sendable {
+  public var output: BackendComparisonOutput
+  public var csvURL: URL
+  public var jsonURL: URL
+  public var markdownURL: URL
+}
+
+public struct BackendComparisonRunner {
+  public var fileManager: FileManager
+  public var evaluationRunner: OfflineEvaluationRunner
+
+  public init(fileManager: FileManager = .default) {
+    self.fileManager = fileManager
+    evaluationRunner = OfflineEvaluationRunner(fileManager: fileManager)
+  }
+
+  public func compare(
+    manifestURL: URL,
+    outputDirectory: URL,
+    profile: DetectorTuningProfile = .balanced,
+    evaluatedAt: Date = Date()
+  ) throws -> BackendComparisonRunResult {
+    guard fileManager.fileExists(atPath: manifestURL.path) else {
+      throw BackendComparisonError.manifestFileNotFound(manifestURL.path)
+    }
+
+    let manifest = try evaluationRunner.loadManifest(from: manifestURL)
+    let validation = evaluationRunner.validateManifest(
+      manifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent()
+    )
+    let validManifest = OfflineEvaluationManifest(
+      datasetName: manifest.datasetName,
+      datasetLicenseNote: manifest.datasetLicenseNote,
+      segments: validation.validSegments
+    )
+    let evaluationRecords = evaluationRunner.evaluateRecords(
+      manifest: validManifest,
+      manifestDirectory: manifestURL.deletingLastPathComponent(),
+      profiles: [profile],
+      backends: [.ruleBased, .coreML, .hybrid],
+      evaluatedAt: evaluatedAt
+    )
+    let output = makeOutput(
+      evaluationRecords: evaluationRecords,
+      profile: profile,
+      generatedAt: evaluatedAt
+    )
+    return try write(output: output, to: outputDirectory, generatedAt: evaluatedAt)
+  }
+
+  public func makeOutput(
+    evaluationRecords: [OfflineEvaluationRecord],
+    profile: DetectorTuningProfile = .balanced,
+    generatedAt: Date = Date()
+  ) -> BackendComparisonOutput {
+    let grouped = Dictionary(grouping: evaluationRecords, by: Self.segmentKey)
+    let records = grouped.keys.sorted().compactMap { key in
+      Self.makeRecord(records: grouped[key] ?? [])
+    }
+    return BackendComparisonOutput(
+      generatedAt: generatedAt,
+      detectorProfile: profile.rawValue,
+      summary: BackendComparisonSummary(records: records),
+      records: records
+    )
+  }
+
+  public func write(
+    output: BackendComparisonOutput,
+    to outputDirectory: URL,
+    generatedAt: Date
+  ) throws -> BackendComparisonRunResult {
+    do {
+      guard !output.records.isEmpty else {
+        throw BackendComparisonError.emptyInput
+      }
+
+      try fileManager.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+      let timestamp = Self.fileTimestampFormatter.string(from: generatedAt)
+      let jsonURL = outputDirectory.appendingPathComponent("backend_comparison_\(timestamp).json")
+      let csvURL = outputDirectory.appendingPathComponent("backend_comparison_\(timestamp).csv")
+      let markdownURL = outputDirectory.appendingPathComponent("backend_comparison_report.md")
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      encoder.dateEncodingStrategy = .iso8601
+      try encoder.encode(output).write(to: jsonURL, options: .atomic)
+      try Self.makeCSV(records: output.records).write(to: csvURL, atomically: true, encoding: .utf8)
+      try Self.makeMarkdownReport(output).write(
+        to: markdownURL,
+        atomically: true,
+        encoding: .utf8
+      )
+      return BackendComparisonRunResult(
+        output: output,
+        csvURL: csvURL,
+        jsonURL: jsonURL,
+        markdownURL: markdownURL
+      )
+    } catch let error as BackendComparisonError {
+      throw error
+    } catch {
+      throw BackendComparisonError.failedToWriteOutput(error.localizedDescription)
+    }
+  }
+
+  public static func makeRecord(records: [OfflineEvaluationRecord]) -> BackendComparisonRecord? {
+    guard let first = records.first else { return nil }
+    let byBackend = records.reduce(into: [String: OfflineEvaluationRecord]()) { result, record in
+      result[backendKey(record.detectorBackend)] = result[backendKey(record.detectorBackend)] ?? record
+    }
+    let rule = byBackend["ruleBased"]
+    let ml = byBackend["coreML"]
+    let hybrid = byBackend["hybrid"]
+    let ruleCounts = rule?.finalEventCountByType ?? [:]
+    let mlCounts = ml?.finalEventCountByType ?? [:]
+    let hybridCounts = hybrid?.finalEventCountByType ?? [:]
+    let expectedLabels = first.expectedLabels
+
+    return BackendComparisonRecord(
+      fileId: first.fileId,
+      segmentStartSeconds: first.segmentStartSeconds,
+      segmentDurationSeconds: first.segmentDurationSeconds,
+      expectedLabels: expectedLabels,
+      ruleBasedEventCountByType: ruleCounts,
+      mlEventCountByType: mlCounts,
+      hybridEventCountByType: hybridCounts,
+      ruleBasedConfidenceSummary: rule?.confidenceSummary ?? SummaryStats(),
+      mlConfidenceSummary: ml?.confidenceSummary ?? SummaryStats(),
+      hybridConfidenceSummary: hybrid?.confidenceSummary ?? SummaryStats(),
+      disagreementType: disagreementType(rule: rule, ml: ml),
+      possibleFalsePositiveBackend: possibleFalsePositiveBackends(
+        expectedLabels: expectedLabels,
+        countsByBackend: [
+          "ruleBased": ruleCounts,
+          "coreML": mlCounts,
+          "hybrid": hybridCounts,
+        ]
+      ),
+      possibleFalseNegativeBackend: possibleFalseNegativeBackends(
+        expectedLabels: expectedLabels,
+        countsByBackend: [
+          "ruleBased": ruleCounts,
+          "coreML": mlCounts,
+          "hybrid": hybridCounts,
+        ]
+      ),
+      zeroEventReasonByBackend: zeroEventReasons(
+        recordsByBackend: [
+          "ruleBased": rule,
+          "coreML": ml,
+          "hybrid": hybrid,
+        ]
+      )
+    )
+  }
+
+  public static func makeCSV(records: [BackendComparisonRecord]) -> String {
+    let header = [
+      "fileId",
+      "segmentStartSeconds",
+      "expectedLabels",
+      "ruleBasedEventCountByType",
+      "mlEventCountByType",
+      "hybridEventCountByType",
+      "ruleBasedConfidenceMean",
+      "mlConfidenceMean",
+      "hybridConfidenceMean",
+      "disagreementType",
+      "possibleFalsePositiveBackend",
+      "possibleFalseNegativeBackend",
+      "zeroEventReasonByBackend",
+    ]
+    let lines = records.map { record in
+      [
+        record.fileId,
+        format(record.segmentStartSeconds),
+        record.expectedLabels.joined(separator: ";"),
+        dictionaryText(record.ruleBasedEventCountByType),
+        dictionaryText(record.mlEventCountByType),
+        dictionaryText(record.hybridEventCountByType),
+        format(record.ruleBasedConfidenceSummary.mean),
+        format(record.mlConfidenceSummary.mean),
+        format(record.hybridConfidenceSummary.mean),
+        record.disagreementType.rawValue,
+        record.possibleFalsePositiveBackend.joined(separator: ";"),
+        record.possibleFalseNegativeBackend.joined(separator: ";"),
+        dictionaryText(record.zeroEventReasonByBackend),
+      ].map(csvEscape).joined(separator: ",")
+    }
+    return ([header.joined(separator: ",")] + lines).joined(separator: "\n") + "\n"
+  }
+
+  public static func makeMarkdownReport(_ output: BackendComparisonOutput) -> String {
+    var lines: [String] = [
+      "# Rule-based vs ML Backend Comparison",
+      "",
+      "이 리포트는 같은 manifest segment에서 rule-based, Core ML, hybrid detector 결과를 비교하는 개발용 자료입니다. 의료 성능 검증이나 진단 목적의 결과가 아닙니다.",
+      "",
+      "## Summary",
+      "",
+      "- detector profile: \(output.detectorProfile)",
+      "- evaluated segments: \(output.summary.evaluatedSegments)",
+      "- backend zero-event count: \(dictionaryText(output.summary.backendZeroEventCount))",
+      "- backend snore event count: \(dictionaryText(output.summary.backendSnoreEventCount))",
+      "- ruleOnly cases: \(output.summary.ruleOnlyCases)",
+      "- mlOnly cases: \(output.summary.mlOnlyCases)",
+      "- recommended backend for next iteration: \(output.summary.recommendedBackendForNextIteration)",
+      "",
+      "## Disagreement Counts",
+      "",
+    ]
+    lines.append(contentsOf: output.summary.disagreementCountByType.sorted { $0.key < $1.key }.map {
+      "- \($0.key): \($0.value)"
+    })
+
+    lines.append(contentsOf: [
+      "",
+      "## Top Disagreement Cases",
+      "",
+    ])
+    if output.summary.disagreementTopCases.isEmpty {
+      lines.append("- 큰 disagreement 후보 없음.")
+    } else {
+      lines.append(contentsOf: output.summary.disagreementTopCases.map {
+        "- \($0.fileId) @ \(format($0.segmentStartSeconds))s: \($0.disagreementType.rawValue), labels=\($0.expectedLabels.joined(separator: "/")), rule=\(dictionaryText($0.ruleBasedEventCountByType)), ml=\(dictionaryText($0.mlEventCountByType)), hybrid=\(dictionaryText($0.hybridEventCountByType))"
+      })
+    }
+
+    lines.append(contentsOf: [
+      "",
+      "## Interpretation Notes",
+      "",
+      "- ML이 quiet/unknown/environmentalNoise segment에서 snore를 많이 만들면 false-positive-like 증가 가능성을 먼저 봅니다.",
+      "- rule-based가 snore expected segment에서 자주 0 event이면 보수적인 threshold 또는 smoothing 영향을 봅니다.",
+      "- hybrid fallback은 모델 미설치, 낮은 confidence, non-snore label에서 안정성을 유지하기 위한 기본 비교 후보입니다.",
+      "- 실제 iPhone 마이크/기기 배치/백그라운드 조건은 이 리포트와 별도로 확인해야 합니다.",
+      "",
+    ])
+
+    return lines.joined(separator: "\n")
+  }
+
+  private static func disagreementType(
+    rule: OfflineEvaluationRecord?,
+    ml: OfflineEvaluationRecord?
+  ) -> BackendDisagreementType {
+    let ruleCounts = rule?.finalEventCountByType ?? [:]
+    let mlCounts = ml?.finalEventCountByType ?? [:]
+    let ruleFinal = ruleCounts.values.reduce(0, +)
+    let mlFinal = mlCounts.values.reduce(0, +)
+    let ruleSnore = ruleCounts[SleepEventType.snore.rawValue] ?? 0
+    let mlSnore = mlCounts[SleepEventType.snore.rawValue] ?? 0
+
+    if ruleFinal == 0 && mlFinal == 0 {
+      return .bothNoEvent
+    }
+    if ruleSnore > 0 && mlSnore == 0 {
+      return .ruleOnlySnore
+    }
+    if ruleSnore == 0 && mlSnore > 0 {
+      return .mlOnlySnore
+    }
+    if ruleSnore > 0 && mlSnore > 0 {
+      return confidenceGap(rule: rule, ml: ml) >= 0.25 ? .confidenceGapLarge : .bothDetectedSnore
+    }
+    if Set(ruleCounts.keys) != Set(mlCounts.keys) {
+      return .differentEventType
+    }
+    if confidenceGap(rule: rule, ml: ml) >= 0.25 {
+      return .confidenceGapLarge
+    }
+    return .differentEventType
+  }
+
+  private static func possibleFalsePositiveBackends(
+    expectedLabels: [String],
+    countsByBackend: [String: [String: Int]]
+  ) -> [String] {
+    let labels = Set(expectedLabels.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+    let quietLabels: Set<String> = [
+      DatasetManifestLabel.silence.rawValue,
+      DatasetManifestLabel.unknown.rawValue,
+      DatasetManifestLabel.environmentalNoise.rawValue,
+    ]
+    guard !labels.isEmpty, labels.isSubset(of: quietLabels) else { return [] }
+    return countsByBackend.keys.sorted().filter {
+      (countsByBackend[$0]?[SleepEventType.snore.rawValue] ?? 0) > 0
+    }
+  }
+
+  private static func possibleFalseNegativeBackends(
+    expectedLabels: [String],
+    countsByBackend: [String: [String: Int]]
+  ) -> [String] {
+    guard expectedLabels.contains(SleepEventType.snore.rawValue) else { return [] }
+    return countsByBackend.keys.sorted().filter {
+      (countsByBackend[$0]?[SleepEventType.snore.rawValue] ?? 0) == 0
+    }
+  }
+
+  private static func zeroEventReasons(
+    recordsByBackend: [String: OfflineEvaluationRecord?]
+  ) -> [String: String] {
+    recordsByBackend.reduce(into: [String: String]()) { result, item in
+      guard let record = item.value,
+            record.errorMessage == nil,
+            record.finalEventCount == 0 else { return }
+      result[item.key] = record.zeroEventReason ?? "unknown"
+    }
+  }
+
+  private static func confidenceGap(
+    rule: OfflineEvaluationRecord?,
+    ml: OfflineEvaluationRecord?
+  ) -> Double {
+    abs((rule?.confidenceSummary?.mean ?? 0) - (ml?.confidenceSummary?.mean ?? 0))
+  }
+
+  private static func backendKey(_ displayName: String) -> String {
+    switch displayName {
+    case SleepDetectionBackend.ruleBased.displayName, SleepDetectionBackend.ruleBased.rawValue:
+      return "ruleBased"
+    case SleepDetectionBackend.coreML.displayName, SleepDetectionBackend.coreML.rawValue:
+      return "coreML"
+    case SleepDetectionBackend.hybrid.displayName, SleepDetectionBackend.hybrid.rawValue:
+      return "hybrid"
+    default:
+      return displayName
+    }
+  }
+
+  private static func segmentKey(_ record: OfflineEvaluationRecord) -> String {
+    "\(record.datasetName)|\(record.fileId)|\(record.segmentStartSeconds)|\(record.segmentDurationSeconds)"
+  }
+
+  private static func dictionaryText(_ dictionary: [String: Int]) -> String {
+    dictionary.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ";")
+  }
+
+  private static func dictionaryText(_ dictionary: [String: String]) -> String {
+    dictionary.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ";")
+  }
+
+  private static func csvEscape(_ value: String) -> String {
+    if value.contains(",") || value.contains("\"") || value.contains("\n") {
+      return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+    }
+    return value
+  }
+
+  private static func format(_ value: Double) -> String {
+    String(format: "%.6f", value)
+  }
+
+  private static let fileTimestampFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyyMMdd_HHmmss"
+    return formatter
+  }()
+}
+
 public struct OfflineEvaluationRunner {
   public var fileManager: FileManager
 
@@ -1990,6 +2513,7 @@ public struct OfflineEvaluationRunner {
     manifestURL: URL,
     outputDirectory: URL,
     profiles: [DetectorTuningProfile] = [.conservative, .balanced, .sensitive],
+    backends: [SleepDetectionBackend] = [.hybrid],
     evaluatedAt: Date = Date()
   ) throws -> OfflineEvaluationRunResult {
     let manifest = try loadManifest(from: manifestURL)
@@ -2006,6 +2530,7 @@ public struct OfflineEvaluationRunner {
       manifest: validManifest,
       manifestDirectory: manifestURL.deletingLastPathComponent(),
       profiles: profiles,
+      backends: backends,
       evaluatedAt: evaluatedAt
     )
     let output = OfflineEvaluationOutput(
@@ -2024,15 +2549,22 @@ public struct OfflineEvaluationRunner {
     manifest: OfflineEvaluationManifest,
     manifestDirectory: URL,
     profiles: [DetectorTuningProfile],
+    backends: [SleepDetectionBackend] = [.hybrid],
     evaluatedAt: Date = Date()
   ) -> [OfflineEvaluationRecord] {
     guard !manifest.segments.isEmpty else { return [] }
 
     return manifest.segments.flatMap { segment in
-      profiles.map { profile in
-        evaluate(
-          segment: segment, manifestDirectory: manifestDirectory, profile: profile,
-          evaluatedAt: evaluatedAt)
+      profiles.flatMap { profile in
+        backends.map { backend in
+          evaluate(
+            segment: segment,
+            manifestDirectory: manifestDirectory,
+            profile: profile,
+            backend: backend,
+            evaluatedAt: evaluatedAt
+          )
+        }
       }
     }
   }
@@ -2062,10 +2594,11 @@ public struct OfflineEvaluationRunner {
     segment: OfflineEvaluationManifestSegment,
     manifestDirectory: URL,
     profile: DetectorTuningProfile,
+    backend: SleepDetectionBackend = .hybrid,
     evaluatedAt: Date
   ) -> OfflineEvaluationRecord {
     let configuration = profile.configuration
-    let analyzer = configuration.makeSleepAnalyzer()
+    let analyzer = configuration.makeSleepAnalyzer(backend: backend)
     let fileURL = resolvedFileURL(segment.localFilePath, relativeTo: manifestDirectory)
     let baseRecord = baseRecord(
       segment: segment,
@@ -2179,6 +2712,20 @@ public struct OfflineEvaluationRunner {
     }
   }
 
+  public static func parseBackends(_ rawValue: String) throws -> [SleepDetectionBackend] {
+    let backends = rawValue.split(separator: ",").map {
+      String($0).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    guard !backends.isEmpty else { return [.hybrid] }
+
+    return try backends.map { backend in
+      guard let parsed = SleepDetectionBackend(rawValue: backend) else {
+        throw OfflineEvaluationError.invalidBackend(backend)
+      }
+      return parsed
+    }
+  }
+
   private func makeRecord(
     baseRecord: OfflineEvaluationRecord,
     chunks: [AudioChunk],
@@ -2209,6 +2756,10 @@ public struct OfflineEvaluationRunner {
       let features = analyzer.extractor.extractFeatures(from: chunk)
       let outputs = analyzer.detector.detect(features: features)
       metrics.recordAnalyzed(chunk: chunk, at: chunk.startedAt)
+      collector.recordModelFallbackIfNeeded(
+        backend: analyzer.detectorBackend,
+        modelInstalled: analyzer.isModelInstalled
+      )
       collector.record(features: features, outputs: outputs)
       rawOutputs.append(contentsOf: outputs)
     }

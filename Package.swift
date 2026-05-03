@@ -13,6 +13,7 @@ let package = Package(
     .executable(name: "OfflineEvaluation", targets: ["OfflineEvaluation"]),
     .executable(name: "OfflineProfileCompare", targets: ["OfflineProfileCompare"]),
     .executable(name: "OfflineSnoreBaseline", targets: ["OfflineSnoreBaseline"]),
+    .executable(name: "OfflineBackendCompare", targets: ["OfflineBackendCompare"]),
   ],
   targets: [
     .target(
@@ -35,6 +36,7 @@ let package = Package(
         "Support",
         "compare_profiles.swift",
         "evaluate_snore_baseline.swift",
+        "compare_backends.swift",
       ],
       sources: ["evaluate_dataset.swift"]
     ),
@@ -49,6 +51,7 @@ let package = Package(
         "Support",
         "evaluate_dataset.swift",
         "evaluate_snore_baseline.swift",
+        "compare_backends.swift",
       ],
       sources: ["compare_profiles.swift"]
     ),
@@ -63,8 +66,24 @@ let package = Package(
         "Support",
         "evaluate_dataset.swift",
         "compare_profiles.swift",
+        "compare_backends.swift",
       ],
       sources: ["evaluate_snore_baseline.swift"]
+    ),
+    .executableTarget(
+      name: "OfflineBackendCompare",
+      dependencies: ["OfflineEvaluationSupport"],
+      path: "Tools/OfflineEvaluation",
+      exclude: [
+        "README.md",
+        "sample_manifest.example.json",
+        "output",
+        "Support",
+        "evaluate_dataset.swift",
+        "compare_profiles.swift",
+        "evaluate_snore_baseline.swift",
+      ],
+      sources: ["compare_backends.swift"]
     ),
     .testTarget(
       name: "SleepSoundCoreTests",
