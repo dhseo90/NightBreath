@@ -64,6 +64,31 @@
 		000000000000000000000237 /* AudioCaptureMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000147 /* AudioCaptureMetrics.swift */; };
 		000000000000000000000238 /* DebugSampleStoragePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000149 /* DebugSampleStoragePolicy.swift */; };
 		000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000014C /* EventAudioSnippetStore.swift */; };
+		00000000000000000000023A /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000014E /* UserSettings.swift */; };
+		00000000000000000000023B /* EventAudioStorageStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000150 /* EventAudioStorageStats.swift */; };
+		00000000000000000000023C /* DetectorDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000151 /* DetectorDiagnostics.swift */; };
+		00000000000000000000023D /* DetectorThresholdConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000153 /* DetectorThresholdConfiguration.swift */; };
+		00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000154 /* ZeroEventAnalysis.swift */; };
+		00000000000000000000023F /* DetectorTuningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000155 /* DetectorTuningView.swift */; };
+		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
+		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
+		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
+		000000000000000000000243 /* NBCornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015C /* NBCornerRadius.swift */; };
+		000000000000000000000244 /* NBShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015D /* NBShadow.swift */; };
+		000000000000000000000245 /* NBCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015E /* NBCard.swift */; };
+		000000000000000000000246 /* NBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015F /* NBButton.swift */; };
+		000000000000000000000247 /* NBBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000160 /* NBBadge.swift */; };
+		000000000000000000000248 /* NBListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000161 /* NBListRow.swift */; };
+		000000000000000000000249 /* NBMetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000162 /* NBMetricCard.swift */; };
+		00000000000000000000024A /* NBTimelineRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000163 /* NBTimelineRow.swift */; };
+		00000000000000000000024B /* AudioSourceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000164 /* AudioSourceProtocol.swift */; };
+		00000000000000000000024C /* RealMicrophoneAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000165 /* RealMicrophoneAudioSource.swift */; };
+		00000000000000000000024D /* SyntheticAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000166 /* SyntheticAudioSource.swift */; };
+		00000000000000000000024E /* DatasetReplayAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000167 /* DatasetReplayAudioSource.swift */; };
+		00000000000000000000024F /* PublicDatasetManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000168 /* PublicDatasetManifest.swift */; };
+		000000000000000000000250 /* DatasetReplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000169 /* DatasetReplayView.swift */; };
+		000000000000000000000251 /* SimulatorQAScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000016D /* SimulatorQAScenario.swift */; };
+		000000000000000000000252 /* SimulatorScenarioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000016E /* SimulatorScenarioView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -143,6 +168,40 @@
 		00000000000000000000014B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00000000000000000000014C /* EventAudioSnippetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioSnippetStore.swift; sourceTree = "<group>"; };
 		00000000000000000000014D /* EventAudioSnippetStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioSnippetStoreTests.swift; sourceTree = "<group>"; };
+		00000000000000000000014E /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		00000000000000000000014F /* UserSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsTests.swift; sourceTree = "<group>"; };
+		000000000000000000000150 /* EventAudioStorageStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioStorageStats.swift; sourceTree = "<group>"; };
+		000000000000000000000151 /* DetectorDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorDiagnostics.swift; sourceTree = "<group>"; };
+		000000000000000000000152 /* DetectorDiagnosticsCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorDiagnosticsCollectorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000153 /* DetectorThresholdConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorThresholdConfiguration.swift; sourceTree = "<group>"; };
+		000000000000000000000154 /* ZeroEventAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroEventAnalysis.swift; sourceTree = "<group>"; };
+		000000000000000000000155 /* DetectorTuningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorTuningView.swift; sourceTree = "<group>"; };
+		000000000000000000000156 /* DetectorTuningProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorTuningProfileTests.swift; sourceTree = "<group>"; };
+		000000000000000000000157 /* DetectorThresholdConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorThresholdConfigurationTests.swift; sourceTree = "<group>"; };
+		000000000000000000000158 /* ZeroEventAnalysisTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroEventAnalysisTests.swift; sourceTree = "<group>"; };
+		000000000000000000000159 /* NBColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBColor.swift; sourceTree = "<group>"; };
+		00000000000000000000015A /* NBSpacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBSpacing.swift; sourceTree = "<group>"; };
+		00000000000000000000015B /* NBTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBTypography.swift; sourceTree = "<group>"; };
+		00000000000000000000015C /* NBCornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBCornerRadius.swift; sourceTree = "<group>"; };
+		00000000000000000000015D /* NBShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBShadow.swift; sourceTree = "<group>"; };
+		00000000000000000000015E /* NBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBCard.swift; sourceTree = "<group>"; };
+		00000000000000000000015F /* NBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBButton.swift; sourceTree = "<group>"; };
+		000000000000000000000160 /* NBBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBBadge.swift; sourceTree = "<group>"; };
+		000000000000000000000161 /* NBListRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBListRow.swift; sourceTree = "<group>"; };
+		000000000000000000000162 /* NBMetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBMetricCard.swift; sourceTree = "<group>"; };
+		000000000000000000000163 /* NBTimelineRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NBTimelineRow.swift; sourceTree = "<group>"; };
+		000000000000000000000164 /* AudioSourceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSourceProtocol.swift; sourceTree = "<group>"; };
+		000000000000000000000165 /* RealMicrophoneAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealMicrophoneAudioSource.swift; sourceTree = "<group>"; };
+		000000000000000000000166 /* SyntheticAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticAudioSource.swift; sourceTree = "<group>"; };
+		000000000000000000000167 /* DatasetReplayAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetReplayAudioSource.swift; sourceTree = "<group>"; };
+		000000000000000000000168 /* PublicDatasetManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublicDatasetManifest.swift; sourceTree = "<group>"; };
+		000000000000000000000169 /* DatasetReplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetReplayView.swift; sourceTree = "<group>"; };
+		00000000000000000000016A /* SyntheticAudioSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntheticAudioSourceTests.swift; sourceTree = "<group>"; };
+		00000000000000000000016B /* DatasetReplayAudioSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatasetReplayAudioSourceTests.swift; sourceTree = "<group>"; };
+		00000000000000000000016C /* AudioSourceProtocolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSourceProtocolTests.swift; sourceTree = "<group>"; };
+		00000000000000000000016D /* SimulatorQAScenario.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorQAScenario.swift; sourceTree = "<group>"; };
+		00000000000000000000016E /* SimulatorScenarioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorScenarioView.swift; sourceTree = "<group>"; };
+		00000000000000000000016F /* SimulatorQAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorQAScenarioTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,6 +273,7 @@
 				000000000000000000000019 /* Storage */,
 				00000000000000000000001A /* Privacy */,
 				00000000000000000000001B /* FutureHealth */,
+				00000000000000000000001D /* Design */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -247,6 +307,9 @@
 				00000000000000000000011F /* DevicePlacementGuideView.swift */,
 				000000000000000000000135 /* AudioDebugView.swift */,
 				000000000000000000000145 /* SampleCaptureView.swift */,
+				000000000000000000000155 /* DetectorTuningView.swift */,
+				000000000000000000000169 /* DatasetReplayView.swift */,
+				00000000000000000000016E /* SimulatorScenarioView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -257,6 +320,9 @@
 				000000000000000000000107 /* SleepAnalyzer.swift */,
 				00000000000000000000012D /* SleepEventDetector.swift */,
 				000000000000000000000138 /* SleepDetectionBackend.swift */,
+				000000000000000000000151 /* DetectorDiagnostics.swift */,
+				000000000000000000000153 /* DetectorThresholdConfiguration.swift */,
+				000000000000000000000154 /* ZeroEventAnalysis.swift */,
 				00000000000000000000012F /* DetectionSmoothingPolicy.swift */,
 				00000000000000000000012E /* AudioFeatures.swift */,
 				000000000000000000000104 /* AudioFeatureExtractor.swift */,
@@ -286,6 +352,10 @@
 				00000000000000000000012B /* AudioCaptureServiceProtocol.swift */,
 				00000000000000000000012A /* AudioCaptureState.swift */,
 				000000000000000000000147 /* AudioCaptureMetrics.swift */,
+				000000000000000000000164 /* AudioSourceProtocol.swift */,
+				000000000000000000000165 /* RealMicrophoneAudioSource.swift */,
+				000000000000000000000166 /* SyntheticAudioSource.swift */,
+				000000000000000000000167 /* DatasetReplayAudioSource.swift */,
 				00000000000000000000010D /* AudioSessionManager.swift */,
 				00000000000000000000010C /* AudioRingBuffer.swift */,
 				00000000000000000000010B /* AudioChunk.swift */,
@@ -301,6 +371,8 @@
 				000000000000000000000114 /* NightReport.swift */,
 				000000000000000000000113 /* MorningCheckIn.swift */,
 				000000000000000000000111 /* HealthMetricSample.swift */,
+				000000000000000000000168 /* PublicDatasetManifest.swift */,
+				00000000000000000000016D /* SimulatorQAScenario.swift */,
 				000000000000000000000112 /* MockSleepDataFactory.swift */,
 			);
 			path = Models;
@@ -311,6 +383,7 @@
 			children = (
 				00000000000000000000011B /* LocalDataStore.swift */,
 				00000000000000000000011C /* SleepRepository.swift */,
+				000000000000000000000150 /* EventAudioStorageStats.swift */,
 				00000000000000000000014C /* EventAudioSnippetStore.swift */,
 			);
 			path = Storage;
@@ -321,6 +394,7 @@
 			children = (
 				00000000000000000000011A /* PrivacyPolicyModel.swift */,
 				000000000000000000000119 /* AudioRetentionPolicy.swift */,
+				00000000000000000000014E /* UserSettings.swift */,
 			);
 			path = Privacy;
 			sourceTree = "<group>";
@@ -335,6 +409,24 @@
 			path = FutureHealth;
 			sourceTree = "<group>";
 		};
+		00000000000000000000001D /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000159 /* NBColor.swift */,
+				00000000000000000000015A /* NBSpacing.swift */,
+				00000000000000000000015B /* NBTypography.swift */,
+				00000000000000000000015C /* NBCornerRadius.swift */,
+				00000000000000000000015D /* NBShadow.swift */,
+				00000000000000000000015E /* NBCard.swift */,
+				00000000000000000000015F /* NBButton.swift */,
+				000000000000000000000160 /* NBBadge.swift */,
+				000000000000000000000161 /* NBListRow.swift */,
+				000000000000000000000162 /* NBMetricCard.swift */,
+				000000000000000000000163 /* NBTimelineRow.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
 		00000000000000000000001C /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -342,6 +434,10 @@
 				000000000000000000000130 /* AudioFeatureExtractorTests.swift */,
 				000000000000000000000131 /* RuleBasedSleepEventDetectorTests.swift */,
 				000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */,
+				000000000000000000000152 /* DetectorDiagnosticsCollectorTests.swift */,
+				000000000000000000000156 /* DetectorTuningProfileTests.swift */,
+				000000000000000000000157 /* DetectorThresholdConfigurationTests.swift */,
+				000000000000000000000158 /* ZeroEventAnalysisTests.swift */,
 				00000000000000000000013F /* ModelOutputMapperTests.swift */,
 				000000000000000000000140 /* CoreMLSleepEventDetectorTests.swift */,
 				000000000000000000000141 /* CompositeSleepEventDetectorTests.swift */,
@@ -349,6 +445,11 @@
 				000000000000000000000148 /* AudioCaptureMetricsTests.swift */,
 				00000000000000000000014A /* DebugSampleStoragePolicyTests.swift */,
 				00000000000000000000014D /* EventAudioSnippetStoreTests.swift */,
+				00000000000000000000014F /* UserSettingsTests.swift */,
+				00000000000000000000016A /* SyntheticAudioSourceTests.swift */,
+				00000000000000000000016B /* DatasetReplayAudioSourceTests.swift */,
+				00000000000000000000016C /* AudioSourceProtocolTests.swift */,
+				00000000000000000000016F /* SimulatorQAScenarioTests.swift */,
 				000000000000000000000132 /* DetectionSmoothingPolicyTests.swift */,
 				000000000000000000000133 /* SleepAnalysisPipelineTests.swift */,
 				000000000000000000000134 /* SleepRepositoryTests.swift */,
@@ -433,6 +534,9 @@
 				000000000000000000000228 /* AudioFeatures.swift in Sources */,
 				000000000000000000000205 /* DetectorOutput.swift in Sources */,
 				000000000000000000000227 /* SleepEventDetector.swift in Sources */,
+				00000000000000000000023C /* DetectorDiagnostics.swift in Sources */,
+				00000000000000000000023D /* DetectorThresholdConfiguration.swift in Sources */,
+				00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */,
 				000000000000000000000206 /* RuleBasedSleepEventDetector.swift in Sources */,
 				000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */,
 				00000000000000000000022B /* FeatureCSVExporter.swift in Sources */,
@@ -454,6 +558,10 @@
 				000000000000000000000226 /* AudioCaptureServiceProtocol.swift in Sources */,
 				000000000000000000000225 /* AudioCaptureState.swift in Sources */,
 				000000000000000000000237 /* AudioCaptureMetrics.swift in Sources */,
+				00000000000000000000024B /* AudioSourceProtocol.swift in Sources */,
+				00000000000000000000024C /* RealMicrophoneAudioSource.swift in Sources */,
+				00000000000000000000024D /* SyntheticAudioSource.swift in Sources */,
+				00000000000000000000024E /* DatasetReplayAudioSource.swift in Sources */,
 				00000000000000000000020B /* AudioChunk.swift in Sources */,
 				00000000000000000000020C /* AudioRingBuffer.swift in Sources */,
 				00000000000000000000020D /* AudioSessionManager.swift in Sources */,
@@ -466,10 +574,25 @@
 				000000000000000000000214 /* NightReport.swift in Sources */,
 				000000000000000000000215 /* SleepEvent.swift in Sources */,
 				000000000000000000000216 /* SleepSession.swift in Sources */,
+				00000000000000000000024F /* PublicDatasetManifest.swift in Sources */,
+				000000000000000000000251 /* SimulatorQAScenario.swift in Sources */,
 				000000000000000000000217 /* AudioRetentionPolicy.swift in Sources */,
 				000000000000000000000218 /* PrivacyPolicyModel.swift in Sources */,
+				00000000000000000000023A /* UserSettings.swift in Sources */,
+				000000000000000000000240 /* NBColor.swift in Sources */,
+				000000000000000000000241 /* NBSpacing.swift in Sources */,
+				000000000000000000000242 /* NBTypography.swift in Sources */,
+				000000000000000000000243 /* NBCornerRadius.swift in Sources */,
+				000000000000000000000244 /* NBShadow.swift in Sources */,
+				000000000000000000000245 /* NBCard.swift in Sources */,
+				000000000000000000000246 /* NBButton.swift in Sources */,
+				000000000000000000000247 /* NBBadge.swift in Sources */,
+				000000000000000000000248 /* NBListRow.swift in Sources */,
+				000000000000000000000249 /* NBMetricCard.swift in Sources */,
+				00000000000000000000024A /* NBTimelineRow.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
+				00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,
 				000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */,
 				00000000000000000000021B /* HomeDashboardView.swift in Sources */,
 				00000000000000000000021C /* TrendChartView.swift in Sources */,
@@ -477,6 +600,9 @@
 				00000000000000000000021E /* PrivacySettingsView.swift in Sources */,
 				00000000000000000000022A /* AudioDebugView.swift in Sources */,
 				000000000000000000000236 /* SampleCaptureView.swift in Sources */,
+				00000000000000000000023F /* DetectorTuningView.swift in Sources */,
+				000000000000000000000250 /* DatasetReplayView.swift in Sources */,
+				000000000000000000000252 /* SimulatorScenarioView.swift in Sources */,
 				00000000000000000000021F /* MorningCheckInView.swift in Sources */,
 				000000000000000000000220 /* SleepEventStyle.swift in Sources */,
 				000000000000000000000221 /* SleepRecordingView.swift in Sources */,

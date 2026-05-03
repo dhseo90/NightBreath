@@ -28,6 +28,7 @@ public struct NightReport: Identifiable, Codable, Equatable {
     public var longestSuspectedPause: TimeInterval
     public var mostDisturbedHourRange: String?
     public var mainDisturbanceReason: String
+    public var detectorDiagnostics: DetectorDiagnostics?
 
     public init(
         sessionId: UUID,
@@ -54,7 +55,8 @@ public struct NightReport: Identifiable, Codable, Equatable {
         awakeningSuspectedCount: Int,
         longestSuspectedPause: TimeInterval,
         mostDisturbedHourRange: String?,
-        mainDisturbanceReason: String
+        mainDisturbanceReason: String,
+        detectorDiagnostics: DetectorDiagnostics? = nil
     ) {
         self.sessionId = sessionId
         self.generatedAt = generatedAt
@@ -85,6 +87,7 @@ public struct NightReport: Identifiable, Codable, Equatable {
         self.longestSuspectedPause = longestSuspectedPause
         self.mostDisturbedHourRange = mostDisturbedHourRange
         self.mainDisturbanceReason = mainDisturbanceReason
+        self.detectorDiagnostics = detectorDiagnostics
     }
 
     public init(from decoder: Decoder) throws {
@@ -101,6 +104,7 @@ public struct NightReport: Identifiable, Codable, Equatable {
         let interruptionCount = try container.decodeIfPresent(Int.self, forKey: .interruptionCount) ?? 0
         let longestAudioGapSeconds = try container.decodeIfPresent(TimeInterval.self, forKey: .longestAudioGapSeconds) ?? 0
         let measurementQuality = try container.decodeIfPresent(MeasurementQuality.self, forKey: .measurementQuality)
+        let detectorDiagnostics = try container.decodeIfPresent(DetectorDiagnostics.self, forKey: .detectorDiagnostics)
 
         self.init(
             sessionId: sessionId,
@@ -127,7 +131,8 @@ public struct NightReport: Identifiable, Codable, Equatable {
             awakeningSuspectedCount: try container.decode(Int.self, forKey: .awakeningSuspectedCount),
             longestSuspectedPause: try container.decode(TimeInterval.self, forKey: .longestSuspectedPause),
             mostDisturbedHourRange: try container.decodeIfPresent(String.self, forKey: .mostDisturbedHourRange),
-            mainDisturbanceReason: try container.decode(String.self, forKey: .mainDisturbanceReason)
+            mainDisturbanceReason: try container.decode(String.self, forKey: .mainDisturbanceReason),
+            detectorDiagnostics: detectorDiagnostics
         )
     }
 
@@ -157,6 +162,7 @@ public struct NightReport: Identifiable, Codable, Equatable {
         case longestSuspectedPause
         case mostDisturbedHourRange
         case mainDisturbanceReason
+        case detectorDiagnostics
     }
 
     private static func coverageRatio(

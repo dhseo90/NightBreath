@@ -127,7 +127,6 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
             throw EventAudioSnippetStoreError.snippetLimitReached
         }
 
-        try pruneExpiredSnippets()
         guard folderSizeBytes() < policy.maxFolderSizeBytes else {
             throw EventAudioSnippetStoreError.folderSizeLimitExceeded
         }
@@ -186,6 +185,50 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         try fileManager.createDirectory(at: snippetsDirectory, withIntermediateDirectories: true)
     }
 
+    public func storageStats(linkedFileNames: Set<String>) -> EventAudioStorageStats {
+        let records = snippetFileRecords()
+        var stats = EventAudioStorageStats(sampleCount: records.count)
+
+        for record in records {
+            let isLinked = linkedFileNames.contains(record.fileName)
+            stats.totalBytes += record.sizeBytes
+            stats.totalDurationSeconds += record.duration
+
+            if isLinked {
+                stats.linkedSampleCount += 1
+                stats.linkedBytes += record.sizeBytes
+                stats.linkedDurationSeconds += record.duration
+            } else {
+                stats.orphanSampleCount += 1
+                stats.orphanBytes += record.sizeBytes
+                stats.orphanDurationSeconds += record.duration
+            }
+
+            if let createdAt = record.createdAt,
+               stats.latestSampleCreatedAt == nil || createdAt > stats.latestSampleCreatedAt! {
+                stats.latestSampleCreatedAt = createdAt
+            }
+        }
+
+        return stats
+    }
+
+    public func cleanupOrphanSnippets(linkedFileNames: Set<String>) -> EventAudioCleanupResult {
+        var result = EventAudioCleanupResult()
+
+        for record in snippetFileRecords() where !linkedFileNames.contains(record.fileName) {
+            do {
+                try fileManager.removeItem(at: record.url)
+                result.deletedFileCount += 1
+                result.deletedBytes += record.sizeBytes
+            } catch {
+                result.failedFileCount += 1
+            }
+        }
+
+        return result
+    }
+
     public func folderSizeBytes() -> Int64 {
         guard let enumerator = fileManager.enumerator(
             at: snippetsDirectory,
@@ -222,6 +265,39 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
             includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]
         )
         .filter { $0.pathExtension.lowercased() == "caf" }
+    }
+
+    private func snippetFileRecords() -> [SnippetFileRecord] {
+        let files = (try? snippetFiles()) ?? []
+        return files.compactMap { fileURL in
+            let values = try? fileURL.resourceValues(forKeys: [
+                .fileSizeKey,
+                .creationDateKey,
+                .contentModificationDateKey
+            ])
+            let sizeBytes = Int64(values?.fileSize ?? 0)
+            let createdAt = values?.creationDate ?? values?.contentModificationDate
+            return SnippetFileRecord(
+                url: fileURL,
+                fileName: fileURL.lastPathComponent,
+                sizeBytes: max(0, sizeBytes),
+                duration: audioDuration(at: fileURL),
+                createdAt: createdAt
+            )
+        }
+    }
+
+    private func audioDuration(at url: URL) -> TimeInterval {
+        guard let audioFile = try? AVAudioFile(forReading: url) else {
+            return 0
+        }
+
+        let sampleRate = audioFile.fileFormat.sampleRate
+        guard sampleRate.isFinite, sampleRate > 0 else {
+            return 0
+        }
+
+        return max(0, Double(audioFile.length) / sampleRate)
     }
 
     private func extractSamples(
@@ -305,4 +381,12 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
     private func minDate(_ lhs: Date, _ rhs: Date) -> Date {
         lhs <= rhs ? lhs : rhs
     }
+}
+
+private struct SnippetFileRecord {
+    var url: URL
+    var fileName: String
+    var sizeBytes: Int64
+    var duration: TimeInterval
+    var createdAt: Date?
 }

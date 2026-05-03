@@ -31,15 +31,30 @@ public struct DetectionSmoothingPolicy: Equatable, Sendable {
     }
 
     public func apply(to outputs: [DetectorOutput]) -> [DetectorOutput] {
+        applyWithDiagnostics(to: outputs).outputs
+    }
+
+    public func applyWithDiagnostics(to outputs: [DetectorOutput]) -> DetectionSmoothingResult {
+        var rejectedCountByReason: [RejectReason: Int] = [:]
         let environmentalNoiseOutputs = outputs.filter { $0.eventType == .environmentalNoise }
         let eligibleOutputs = outputs
             .compactMap { output in
-                adjustedOutput(output, environmentalNoiseOutputs: environmentalNoiseOutputs)
+                let adjusted = adjustedOutput(output, environmentalNoiseOutputs: environmentalNoiseOutputs)
+                if adjusted == nil {
+                    rejectedCountByReason[.likelyEnvironmentalNoise, default: 0] += 1
+                }
+                return adjusted
             }
             .filter { output in
-                output.confidence >= confidenceThreshold(for: output.eventType) &&
-                    output.duration.isFinite &&
-                    output.duration > 0
+                guard output.duration.isFinite, output.duration > 0 else {
+                    rejectedCountByReason[.tooShort, default: 0] += 1
+                    return false
+                }
+                guard output.confidence >= confidenceThreshold(for: output.eventType) else {
+                    rejectedCountByReason[.belowConfidenceThreshold, default: 0] += 1
+                    return false
+                }
+                return true
             }
             .sorted { lhs, rhs in
                 if lhs.startedAt == rhs.startedAt {
@@ -58,15 +73,29 @@ public struct DetectionSmoothingPolicy: Equatable, Sendable {
                     return
                 }
 
+                rejectedCountByReason[.mergedIntoNearbyEvent, default: 0] += 1
                 partialResult[partialResult.count - 1] = merge(lastOutput, output)
             }
         } else {
             mergedOutputs = eligibleOutputs
         }
 
-        return mergedOutputs.filter { output in
-            output.duration >= minimumEventDuration(for: output.eventType)
+        let finalOutputs = mergedOutputs.filter { output in
+            guard output.duration >= minimumEventDuration(for: output.eventType) else {
+                rejectedCountByReason[.tooShort, default: 0] += 1
+                return false
+            }
+            return true
         }
+
+        return DetectionSmoothingResult(
+            outputs: finalOutputs,
+            diagnostics: DetectionSmoothingDiagnostics(
+                preSmoothingCandidateCount: outputs.count,
+                postSmoothingEventCount: finalOutputs.count,
+                rejectedCountByReason: rejectedCountByReason
+            )
+        )
     }
 
     private func adjustedOutput(

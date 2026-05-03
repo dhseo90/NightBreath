@@ -1,0 +1,24 @@
+{
+  "segments": [
+    {
+      "datasetName": "local-example",
+      "filePath": "../../Datasets/example/snore_segment.wav",
+      "fileId": "example-snore-001",
+      "segmentStartSeconds": 0,
+      "segmentDurationSeconds": 10,
+      "expectedLabels": ["snore"],
+      "notes": "사용자가 직접 준비한 로컬 파일 예시입니다. 실제 오디오 파일은 커밋하지 않습니다.",
+      "licenseNote": "사용 전 데이터셋 라이선스를 직접 확인하세요."
+    },
+    {
+      "datasetName": "local-example",
+      "filePath": "../../Datasets/example/quiet_segment.wav",
+      "fileId": "example-quiet-001",
+      "segmentStartSeconds": 30,
+      "segmentDurationSeconds": 10,
+      "expectedLabels": ["unknown"],
+      "notes": "조용한 구간 예시입니다. 실제 오디오 파일은 커밋하지 않습니다.",
+      "licenseNote": "사용 전 데이터셋 라이선스를 직접 확인하세요."
+    }
+  ]
+}
