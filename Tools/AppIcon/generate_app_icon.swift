@@ -1,6 +1,7 @@
-import AppKit
 import CoreGraphics
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 struct IconSlot {
     let idiom: String
@@ -63,28 +64,33 @@ func strokePath(_ context: CGContext, path: CGPath, color: CGColor, lineWidth: C
     context.strokePath()
 }
 
-func renderIcon(pixels: Int) -> NSImage {
+func renderIcon(pixels: Int) throws -> CGImage {
     let side = CGFloat(pixels)
     let scale = side / 1024
-    let image = NSImage(size: NSSize(width: side, height: side))
-    image.lockFocus()
-    defer { image.unlockFocus() }
-
-    guard let context = NSGraphicsContext.current?.cgContext else {
-        return image
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    guard let context = CGContext(
+        data: nil,
+        width: pixels,
+        height: pixels,
+        bitsPerComponent: 8,
+        bytesPerRow: pixels * 4,
+        space: colorSpace,
+        bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+    ) else {
+        throw NSError(domain: "NightBreathAppIcon", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to create bitmap context"])
     }
 
     context.setShouldAntialias(true)
     context.setAllowsAntialiasing(true)
-    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    context.interpolationQuality = .high
 
     let background = CGGradient(
         colorsSpace: colorSpace,
         colors: [
-            rgba(8, 15, 37),
-            rgba(20, 45, 78),
-            rgba(31, 90, 96),
-            rgba(12, 23, 52),
+            rgba(18, 51, 98),
+            rgba(26, 106, 140),
+            rgba(48, 167, 160),
+            rgba(17, 68, 118),
         ] as CFArray,
         locations: [0.0, 0.42, 0.72, 1.0]
     )!
@@ -98,7 +104,7 @@ func renderIcon(pixels: Int) -> NSImage {
     let tealGlow = CGGradient(
         colorsSpace: colorSpace,
         colors: [
-            rgba(68, 211, 205, 0.55),
+            rgba(130, 255, 237, 0.68),
             rgba(68, 211, 205, 0.0),
         ] as CFArray,
         locations: [0.0, 1.0]
@@ -115,7 +121,7 @@ func renderIcon(pixels: Int) -> NSImage {
     let moonGlow = CGGradient(
         colorsSpace: colorSpace,
         colors: [
-            rgba(255, 231, 174, 0.35),
+            rgba(255, 244, 197, 0.45),
             rgba(255, 231, 174, 0.0),
         ] as CFArray,
         locations: [0.0, 1.0]
@@ -154,18 +160,18 @@ func renderIcon(pixels: Int) -> NSImage {
     )
     shield.closeSubpath()
     context.addPath(shield)
-    context.setFillColor(rgba(12, 29, 58, 0.32))
+    context.setFillColor(rgba(12, 41, 86, 0.24))
     context.fillPath()
-    strokePath(context, path: shield, color: rgba(111, 224, 215, 0.22), lineWidth: 14 * scale)
+    strokePath(context, path: shield, color: rgba(177, 255, 243, 0.34), lineWidth: 18 * scale)
 
     // Crescent moon.
-    drawEllipse(context, rect(236, 610, 214, 214, scale: scale), color: rgba(255, 238, 188))
-    drawEllipse(context, rect(316, 646, 205, 205, scale: scale), color: rgba(15, 34, 69))
-    drawEllipse(context, rect(260, 650, 27, 27, scale: scale), color: rgba(255, 247, 210, 0.82))
-    drawEllipse(context, rect(214, 556, 11, 11, scale: scale), color: rgba(191, 238, 231, 0.8))
-    drawEllipse(context, rect(681, 740, 13, 13, scale: scale), color: rgba(255, 232, 176, 0.85))
-    drawEllipse(context, rect(760, 612, 8, 8, scale: scale), color: rgba(191, 238, 231, 0.7))
-    drawEllipse(context, rect(622, 824, 7, 7, scale: scale), color: rgba(255, 255, 255, 0.6))
+    drawEllipse(context, rect(206, 575, 286, 286, scale: scale), color: rgba(255, 245, 202))
+    drawEllipse(context, rect(314, 615, 275, 275, scale: scale), color: rgba(23, 83, 136))
+    drawEllipse(context, rect(238, 625, 34, 34, scale: scale), color: rgba(255, 252, 224, 0.9))
+    drawEllipse(context, rect(200, 526, 16, 16, scale: scale), color: rgba(210, 255, 248, 0.9))
+    drawEllipse(context, rect(686, 740, 18, 18, scale: scale), color: rgba(255, 239, 191, 0.92))
+    drawEllipse(context, rect(764, 612, 12, 12, scale: scale), color: rgba(212, 255, 248, 0.8))
+    drawEllipse(context, rect(614, 830, 10, 10, scale: scale), color: rgba(255, 255, 255, 0.72))
 
     // Breathing rhythm: two calm sound waves, no clinical ECG sharpness.
     let shadowWave = CGMutablePath()
@@ -185,7 +191,7 @@ func renderIcon(pixels: Int) -> NSImage {
         control1: point(689, 520, scale: scale),
         control2: point(740, 327, scale: scale)
     )
-    strokePath(context, path: shadowWave, color: rgba(11, 20, 41, 0.42), lineWidth: 54 * scale)
+    strokePath(context, path: shadowWave, color: rgba(8, 29, 66, 0.42), lineWidth: 72 * scale)
 
     let mainWave = CGMutablePath()
     mainWave.move(to: point(204, 434, scale: scale))
@@ -204,7 +210,7 @@ func renderIcon(pixels: Int) -> NSImage {
         control1: point(689, 526, scale: scale),
         control2: point(740, 342, scale: scale)
     )
-    strokePath(context, path: mainWave, color: rgba(107, 229, 218), lineWidth: 38 * scale)
+    strokePath(context, path: mainWave, color: rgba(217, 255, 247), lineWidth: 52 * scale)
 
     let highlightWave = CGMutablePath()
     highlightWave.move(to: point(238, 479, scale: scale))
@@ -218,18 +224,18 @@ func renderIcon(pixels: Int) -> NSImage {
         control1: point(450, 538, scale: scale),
         control2: point(488, 421, scale: scale)
     )
-    strokePath(context, path: highlightWave, color: rgba(255, 220, 166, 0.72), lineWidth: 13 * scale)
+    strokePath(context, path: highlightWave, color: rgba(255, 226, 170, 0.86), lineWidth: 18 * scale)
 
     // Warm dawn dot: a small "morning report" cue.
-    drawEllipse(context, rect(705, 294, 86, 86, scale: scale), color: rgba(255, 166, 127))
-    drawEllipse(context, rect(725, 314, 46, 46, scale: scale), color: rgba(255, 222, 177, 0.78))
+    drawEllipse(context, rect(694, 280, 112, 112, scale: scale), color: rgba(255, 169, 119))
+    drawEllipse(context, rect(722, 308, 56, 56, scale: scale), color: rgba(255, 232, 185, 0.9))
 
     // Fine vignette improves home-screen contrast after iOS corner masking.
     let vignette = CGGradient(
         colorsSpace: colorSpace,
         colors: [
             rgba(0, 0, 0, 0.0),
-            rgba(0, 0, 0, 0.28),
+            rgba(0, 0, 0, 0.16),
         ] as CFArray,
         locations: [0.62, 1.0]
     )!
@@ -242,40 +248,30 @@ func renderIcon(pixels: Int) -> NSImage {
         options: [.drawsAfterEndLocation]
     )
 
+    guard let image = context.makeImage() else {
+        throw NSError(domain: "NightBreathAppIcon", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to create CGImage"])
+    }
     return image
 }
 
-func writePNG(_ image: NSImage, to url: URL) throws {
-    let pixelWidth = Int(image.size.width)
-    let pixelHeight = Int(image.size.height)
-    guard let bitmap = NSBitmapImageRep(
-        bitmapDataPlanes: nil,
-        pixelsWide: pixelWidth,
-        pixelsHigh: pixelHeight,
-        bitsPerSample: 8,
-        samplesPerPixel: 3,
-        hasAlpha: false,
-        isPlanar: false,
-        colorSpaceName: .deviceRGB,
-        bytesPerRow: 0,
-        bitsPerPixel: 24
+func writePNG(_ image: CGImage, to url: URL) throws {
+    guard let destination = CGImageDestinationCreateWithURL(
+        url as CFURL,
+        UTType.png.identifier as CFString,
+        1,
+        nil
     ) else {
-        throw NSError(domain: "NightBreathAppIcon", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unable to encode PNG"])
+        throw NSError(domain: "NightBreathAppIcon", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unable to create PNG destination"])
     }
 
-    NSGraphicsContext.saveGraphicsState()
-    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
-    image.draw(in: NSRect(x: 0, y: 0, width: pixelWidth, height: pixelHeight), from: .zero, operation: .copy, fraction: 1)
-    NSGraphicsContext.restoreGraphicsState()
-
-    guard let data = bitmap.representation(using: .png, properties: [:]) else {
-        throw NSError(domain: "NightBreathAppIcon", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to encode PNG"])
+    CGImageDestinationAddImage(destination, image, nil)
+    guard CGImageDestinationFinalize(destination) else {
+        throw NSError(domain: "NightBreathAppIcon", code: 4, userInfo: [NSLocalizedDescriptionKey: "Unable to encode PNG"])
     }
-    try data.write(to: url, options: [.atomic])
 }
 
 for slot in slots {
-    let image = renderIcon(pixels: slot.pixels)
+    let image = try renderIcon(pixels: slot.pixels)
     try writePNG(image, to: iconSetURL.appendingPathComponent(slot.filename))
 }
 

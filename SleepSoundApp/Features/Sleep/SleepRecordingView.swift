@@ -3,11 +3,6 @@ import SwiftUI
 struct SleepRecordingView: View {
   @EnvironmentObject private var appState: AppState
   @Environment(\.scenePhase) private var scenePhase
-  let onStopComplete: () -> Void
-
-  init(onStopComplete: @escaping () -> Void = {}) {
-    self.onStopComplete = onStopComplete
-  }
 
   var body: some View {
     ScrollView {
@@ -35,7 +30,7 @@ struct SleepRecordingView: View {
           .frame(width: 64, height: 64)
           .accessibilityHidden(true)
 
-        Text("수면 기록 중")
+        Text(appState.isFinalizingSleepSession ? "수면 리포트 정리 중" : "수면 기록 중")
           .font(.title.bold())
           .foregroundStyle(NBColor.primaryText)
 
@@ -47,10 +42,15 @@ struct SleepRecordingView: View {
           .monospacedDigit()
         }
 
-        Text("감지 결과는 로컬 리포트 생성을 위한 이벤트 형태로 정리됩니다.")
+        Text(appState.isFinalizingSleepSession ? "캡처는 멈췄고, iPhone 안에서 리포트를 정리하고 있습니다." : "감지 결과는 로컬 리포트 생성을 위한 이벤트 형태로 정리됩니다.")
           .font(.callout)
           .foregroundStyle(NBColor.secondaryText)
           .multilineTextAlignment(.center)
+
+        if appState.isFinalizingSleepSession {
+          ProgressView("잠시만 기다려 주세요")
+            .font(.callout)
+        }
 
         audioCaptureStatus
         measurementStatus(session: session)
@@ -61,9 +61,12 @@ struct SleepRecordingView: View {
           systemImage: "lock.shield"
         )
 
-        NBDangerButton(title: "수면 종료", systemImage: "stop.fill") {
+        NBDangerButton(
+          title: appState.isFinalizingSleepSession ? "리포트 정리 중" : "수면 종료",
+          systemImage: appState.isFinalizingSleepSession ? "hourglass" : "stop.fill",
+          isDisabled: appState.isFinalizingSleepSession
+        ) {
           appState.endSleepSession()
-          onStopComplete()
         }
       }
     }

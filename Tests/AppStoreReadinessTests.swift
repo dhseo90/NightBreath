@@ -88,6 +88,8 @@ struct AppStoreReadinessTests {
         #expect(filenames.contains("AppIcon-60@3x.png"))
         #expect(filenames.contains("AppIcon-60@2x.png"))
         #expect(project.contains("ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;"))
+        #expect(try Data(contentsOf: appIconRoot.appendingPathComponent("AppIcon-1024.png")).count > 100_000)
+        #expect(try Data(contentsOf: appIconRoot.appendingPathComponent("AppIcon-60@3x.png")).count > 10_000)
 
         for filename in filenames {
             let url = appIconRoot.appendingPathComponent(filename)

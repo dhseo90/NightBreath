@@ -1,6 +1,6 @@
 import Foundation
 
-public struct NightReport: Identifiable, Codable, Equatable {
+public struct NightReport: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID { sessionId }
 
     public var sessionId: UUID

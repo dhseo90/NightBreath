@@ -7,15 +7,18 @@ struct SleepStartView: View {
   var body: some View {
     Group {
       if appState.isRecording {
-        SleepRecordingView {
-          showLatestReport = true
-        }
+        SleepRecordingView()
       } else {
         startContent
       }
     }
     .navigationDestination(isPresented: $showLatestReport) {
       SleepReportView(report: appState.latestReport, events: appState.latestEvents)
+    }
+    .onChange(of: appState.isFinalizingSleepSession) { wasFinalizing, isFinalizing in
+      if wasFinalizing, !isFinalizing, !appState.isRecording, appState.latestReportSource == .deviceAnalysis {
+        showLatestReport = true
+      }
     }
     .onAppear {
       appState.refreshMicrophonePermissionState()

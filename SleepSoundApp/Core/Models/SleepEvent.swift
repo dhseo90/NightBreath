@@ -40,7 +40,7 @@ public enum SleepEventType: String, Codable, CaseIterable, Identifiable, Sendabl
     }
 }
 
-public struct SleepEvent: Identifiable, Codable, Equatable {
+public struct SleepEvent: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
     public var sessionId: UUID
     public var type: SleepEventType

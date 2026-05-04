@@ -1,8 +1,14 @@
 import Charts
 import SwiftUI
+#if DEBUG
+  import AVFoundation
+#endif
 
 struct SleepReportView: View {
   @EnvironmentObject private var appState: AppState
+  #if DEBUG
+    @StateObject private var debugAudioPreviewViewModel = DebugAudioPreviewViewModel()
+  #endif
 
   let report: NightReport
   let events: [SleepEvent]
@@ -14,6 +20,9 @@ struct SleepReportView: View {
         measurementQualitySection
         detectorDiagnosticsSection
         zeroEventStateSection
+        #if DEBUG
+          debugAudioPreviewSection
+        #endif
         scoreCard
         trendLinkCard
         keyEventsSection
@@ -29,6 +38,11 @@ struct SleepReportView: View {
     .toolbar(.hidden, for: .tabBar)
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    #if DEBUG
+      .onAppear {
+        debugAudioPreviewViewModel.refresh(sessionId: report.sessionId)
+      }
+    #endif
   }
 
   private var summaryCard: some View {
@@ -333,6 +347,58 @@ struct SleepReportView: View {
       }
     }
   }
+
+  #if DEBUG
+    @ViewBuilder
+    private var debugAudioPreviewSection: some View {
+      if !debugAudioPreviewViewModel.records.isEmpty || events.isEmpty {
+        NBDiagnosticCard(title: "DEBUG 오디오 미리듣기") {
+          VStack(alignment: .leading, spacing: NBSpacing.medium) {
+            NBPrivacyNoticeCard(
+              title: "DEBUG 전용 샘플",
+              messages: [
+                "이 영역은 DEBUG 빌드에서만 보입니다.",
+                "이벤트가 없어도 마지막 몇 초의 로컬 샘플만 확인합니다.",
+                "전체 밤 오디오는 저장하지 않습니다.",
+              ],
+              systemImage: "wrench.and.screwdriver"
+            )
+
+            if debugAudioPreviewViewModel.records.isEmpty {
+              Text(debugPreviewEmptyMessage)
+                .font(.caption)
+                .foregroundStyle(NBColor.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            } else {
+              ForEach(debugAudioPreviewViewModel.records) { record in
+                DebugAudioPreviewRow(
+                  record: record,
+                  isPlaying: debugAudioPreviewViewModel.playingFileName == record.fileName
+                ) {
+                  debugAudioPreviewViewModel.play(record)
+                } onDelete: {
+                  debugAudioPreviewViewModel.delete(record)
+                }
+              }
+            }
+
+            if let message = debugAudioPreviewViewModel.message {
+              Text(message)
+                .font(.caption)
+                .foregroundStyle(debugAudioPreviewViewModel.messageIsError ? NBColor.danger : NBColor.secondaryText)
+            }
+          }
+        }
+      }
+    }
+
+    private var debugPreviewEmptyMessage: String {
+      if report.detectorDiagnostics?.eventAudioSampleStorageEnabled == true {
+        return "이 세션에는 DEBUG 미리듣기 샘플이 없습니다. 다음 측정 종료 시 최근 오디오 입력이 있으면 짧은 샘플을 저장합니다."
+      }
+      return "DEBUG 미리듣기 샘플은 이벤트 오디오 샘플 저장을 켠 경우에만 생성됩니다."
+    }
+  #endif
 
   private var trendLinkCard: some View {
     NavigationLink {
@@ -644,6 +710,127 @@ struct SleepReportView: View {
     return Array(uniqueReports.suffix(7))
   }
 }
+
+#if DEBUG
+  private struct DebugAudioPreviewRow: View {
+    let record: EventAudioSnippetFileRecord
+    let isPlaying: Bool
+    let onPlay: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        HStack(alignment: .top, spacing: NBSpacing.small) {
+          Image(systemName: "waveform.circle")
+            .foregroundStyle(NBColor.audioTint)
+            .frame(width: 24)
+
+          VStack(alignment: .leading, spacing: 4) {
+            Text("최근 오디오 미리듣기")
+              .font(.subheadline.weight(.semibold))
+            Text(detailText)
+              .font(.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .lineLimit(2)
+          }
+
+          Spacer()
+        }
+
+        HStack(spacing: NBSpacing.sm) {
+          Button {
+            onPlay()
+          } label: {
+            Label(isPlaying ? "다시 재생" : "재생", systemImage: "play.circle")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(.nbSecondary)
+
+          Button(role: .destructive) {
+            onDelete()
+          } label: {
+            Label("삭제", systemImage: "trash")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.danger))
+        }
+      }
+      .padding(12)
+      .background(NBColor.elevatedSurface)
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var detailText: String {
+      let duration = SleepFormatters.compactDurationString(record.duration)
+      let size = ByteCountFormatter.string(fromByteCount: record.sizeBytes, countStyle: .file)
+      return "\(duration) · \(size)"
+    }
+  }
+
+  @MainActor
+  private final class DebugAudioPreviewViewModel: ObservableObject {
+    @Published var records: [EventAudioSnippetFileRecord] = []
+    @Published var playingFileName: String?
+    @Published var message: String?
+    @Published var messageIsError = false
+
+    private let snippetStore: EventAudioSnippetStore
+    private var audioPlayer: AVAudioPlayer?
+    private var currentSessionId: UUID?
+
+    init(snippetStore: EventAudioSnippetStore = EventAudioSnippetStore()) {
+      self.snippetStore = snippetStore
+    }
+
+    func refresh(sessionId: UUID) {
+      currentSessionId = sessionId
+      records = snippetStore.debugPlayableRecords(sessionId: sessionId)
+    }
+
+    func play(_ record: EventAudioSnippetFileRecord) {
+      do {
+        #if os(iOS)
+          try? AVAudioSession.sharedInstance().setCategory(
+            .playback,
+            mode: .default,
+            options: [.duckOthers]
+          )
+          try? AVAudioSession.sharedInstance().setActive(true)
+        #endif
+        let player = try AVAudioPlayer(contentsOf: record.url)
+        player.prepareToPlay()
+        player.play()
+        audioPlayer = player
+        playingFileName = record.fileName
+        message = "DEBUG 미리듣기 샘플을 재생합니다."
+        messageIsError = false
+      } catch {
+        audioPlayer = nil
+        playingFileName = nil
+        message = "오디오 샘플을 재생하지 못했습니다."
+        messageIsError = true
+      }
+    }
+
+    func delete(_ record: EventAudioSnippetFileRecord) {
+      audioPlayer?.stop()
+      do {
+        try snippetStore.deleteSnippet(fileName: record.fileName)
+        if let currentSessionId {
+          refresh(sessionId: currentSessionId)
+        } else {
+          records.removeAll { $0.fileName == record.fileName }
+        }
+        playingFileName = nil
+        message = "DEBUG 미리듣기 샘플을 삭제했습니다."
+        messageIsError = false
+      } catch {
+        message = "오디오 샘플을 삭제하지 못했습니다."
+        messageIsError = true
+      }
+    }
+  }
+#endif
 
 private struct SummaryPill: View {
   let title: String

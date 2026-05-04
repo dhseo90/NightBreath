@@ -219,6 +219,62 @@ struct EventAudioSnippetStoreTests {
         try? FileManager.default.removeItem(at: root)
     }
 
+    #if DEBUG
+    @Test
+    func debugPreviewStoresShortSessionSampleWithoutEvent() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(maxSnippetDuration: 1.0, maxFolderSizeBytes: 2_000_000)
+        )
+        let sessionId = UUID()
+
+        let preview = try store.saveDebugPreview(
+            sessionId: sessionId,
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 700)),
+            createdAt: Date(timeIntervalSince1970: 710)
+        )
+        let records = store.debugPreviewRecords(sessionId: sessionId)
+        let playableRecords = store.debugPlayableRecords(sessionId: sessionId)
+
+        #expect(preview.eventType == .unknown)
+        #expect(preview.duration > 0)
+        #expect(preview.duration <= 1.0)
+        #expect(preview.fileName.hasPrefix("debug-preview_"))
+        #expect(store.snippetExists(fileName: preview.fileName))
+        #expect(records.count == 1)
+        #expect(records[0].fileName == preview.fileName)
+        #expect(records[0].belongsToSession(id: sessionId))
+        #expect(playableRecords.map(\.fileName).contains(preview.fileName))
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func debugPreviewRespectsSnippetLimit() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(maxSnippetsPerSession: 1, maxFolderSizeBytes: 2_000_000)
+        )
+        let sessionId = UUID()
+
+        _ = try store.saveDebugPreview(
+            sessionId: sessionId,
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 720))
+        )
+
+        #expect(throws: EventAudioSnippetStoreError.snippetLimitReached) {
+            try store.saveDebugPreview(
+                sessionId: sessionId,
+                chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 730))
+            )
+        }
+
+        try? FileManager.default.removeItem(at: root)
+    }
+    #endif
+
     @Test
     func formatsStorageByteCountsForDisplay() {
         #expect(EventAudioStorageStats.formatBytes(0) == "0B")

@@ -71,6 +71,40 @@ public struct EventAudioSnippet: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+public struct EventAudioSnippetFileRecord: Identifiable, Equatable, Sendable {
+    public var id: String { fileName }
+
+    public var url: URL
+    public var fileName: String
+    public var sizeBytes: Int64
+    public var duration: TimeInterval
+    public var createdAt: Date?
+
+    public init(
+        url: URL,
+        fileName: String,
+        sizeBytes: Int64,
+        duration: TimeInterval,
+        createdAt: Date?
+    ) {
+        self.url = url
+        self.fileName = fileName
+        self.sizeBytes = max(0, sizeBytes)
+        self.duration = max(0, duration)
+        self.createdAt = createdAt
+    }
+
+    public var isDebugPreview: Bool {
+        fileName.hasPrefix("debug-preview_")
+    }
+
+    public func belongsToSession(id sessionId: UUID) -> Bool {
+        let fullID = sessionId.uuidString
+        let shortID = String(fullID.prefix(8))
+        return fileName.contains(fullID) || fileName.contains(shortID)
+    }
+}
+
 public enum EventAudioSnippetStoreError: LocalizedError, Equatable {
     case noAudioSamples
     case snippetLimitReached
@@ -163,6 +197,80 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
             sampleRate: extracted.sampleRate
         )
     }
+
+    #if DEBUG
+    public func saveDebugPreview(
+        sessionId: UUID,
+        chunks: [AudioChunk],
+        createdAt: Date = Date()
+    ) throws -> EventAudioSnippet {
+        let existingCount = try snippetFiles().count
+        guard existingCount < policy.maxSnippetsPerSession else {
+            throw EventAudioSnippetStoreError.snippetLimitReached
+        }
+
+        let sortedChunks = chunks.sorted { $0.startedAt < $1.startedAt }
+        guard let latestChunk = sortedChunks.last else {
+            throw EventAudioSnippetStoreError.noAudioSamples
+        }
+
+        guard folderSizeBytes() < policy.maxFolderSizeBytes else {
+            throw EventAudioSnippetStoreError.folderSizeLimitExceeded
+        }
+
+        let targetEnd = latestChunk.startedAt.addingTimeInterval(latestChunk.duration)
+        let targetStart = targetEnd.addingTimeInterval(-policy.maxSnippetDuration)
+        let extracted = extractSamples(from: sortedChunks, targetStart: targetStart, targetEnd: targetEnd)
+
+        guard !extracted.samples.isEmpty, extracted.sampleRate > 0 else {
+            throw EventAudioSnippetStoreError.noAudioSamples
+        }
+
+        let maxSampleCount = Int(policy.maxSnippetDuration * extracted.sampleRate)
+        let samples = Array(extracted.samples.suffix(max(1, maxSampleCount)))
+        let duration = Double(samples.count) / extracted.sampleRate
+        let fileName = makeDebugPreviewFileName(sessionId: sessionId, createdAt: createdAt)
+        let url = snippetsDirectory.appendingPathComponent(fileName)
+
+        try writeCAF(samples: samples, sampleRate: extracted.sampleRate, to: url)
+
+        let snippetStart = maxDate(targetStart, extracted.firstSampleAt)
+        return EventAudioSnippet(
+            sessionId: sessionId,
+            eventType: .unknown,
+            eventStartedAt: snippetStart,
+            eventEndedAt: snippetStart.addingTimeInterval(duration),
+            snippetStartedAt: snippetStart,
+            snippetEndedAt: snippetStart.addingTimeInterval(duration),
+            duration: duration,
+            fileName: fileName,
+            createdAt: createdAt,
+            sampleRate: extracted.sampleRate
+        )
+    }
+
+    public func debugPreviewRecords(sessionId: UUID? = nil) -> [EventAudioSnippetFileRecord] {
+        snippetFileRecords()
+            .filter { record in
+                guard record.isDebugPreview else { return false }
+                guard let sessionId else { return true }
+                return record.belongsToSession(id: sessionId)
+            }
+            .sorted { lhs, rhs in
+                (lhs.createdAt ?? .distantPast) > (rhs.createdAt ?? .distantPast)
+            }
+            .map(EventAudioSnippetFileRecord.init)
+    }
+
+    public func debugPlayableRecords(sessionId: UUID) -> [EventAudioSnippetFileRecord] {
+        snippetFileRecords()
+            .filter { $0.belongsToSession(id: sessionId) }
+            .sorted { lhs, rhs in
+                (lhs.createdAt ?? .distantPast) > (rhs.createdAt ?? .distantPast)
+            }
+            .map(EventAudioSnippetFileRecord.init)
+    }
+    #endif
 
     public func url(for fileName: String) -> URL {
         snippetsDirectory.appendingPathComponent(fileName)
@@ -374,6 +482,17 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         return "\(timestamp)_\(sessionId.uuidString.prefix(8))_\(eventType.rawValue).caf"
     }
 
+    #if DEBUG
+    private func makeDebugPreviewFileName(sessionId: UUID, createdAt: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let timestamp = formatter.string(from: createdAt)
+            .replacingOccurrences(of: ":", with: "")
+            .replacingOccurrences(of: ".", with: "-")
+        return "debug-preview_\(timestamp)_\(sessionId.uuidString).caf"
+    }
+    #endif
+
     private func maxDate(_ lhs: Date, _ rhs: Date) -> Date {
         lhs >= rhs ? lhs : rhs
     }
@@ -389,4 +508,26 @@ private struct SnippetFileRecord {
     var sizeBytes: Int64
     var duration: TimeInterval
     var createdAt: Date?
+
+    var isDebugPreview: Bool {
+        fileName.hasPrefix("debug-preview_")
+    }
+
+    func belongsToSession(id sessionId: UUID) -> Bool {
+        let fullID = sessionId.uuidString
+        let shortID = String(fullID.prefix(8))
+        return fileName.contains(fullID) || fileName.contains(shortID)
+    }
+}
+
+private extension EventAudioSnippetFileRecord {
+    init(_ record: SnippetFileRecord) {
+        self.init(
+            url: record.url,
+            fileName: record.fileName,
+            sizeBytes: record.sizeBytes,
+            duration: record.duration,
+            createdAt: record.createdAt
+        )
+    }
 }

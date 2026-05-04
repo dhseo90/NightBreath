@@ -1,6 +1,6 @@
 import Foundation
 
-public enum DevicePlacement: String, Codable, CaseIterable, Identifiable {
+public enum DevicePlacement: String, Codable, CaseIterable, Identifiable, Sendable {
     case bedside
     case mattressSide
     case unknown
@@ -19,7 +19,7 @@ public enum DevicePlacement: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-public struct SleepSession: Identifiable, Codable, Equatable {
+public struct SleepSession: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
     public var startedAt: Date
     public var endedAt: Date?

@@ -52,6 +52,7 @@ final class AppState: ObservableObject {
     @Published var microphonePermissionState: MicrophonePermissionState = .notDetermined
     @Published var latestAudioLevel: Double = 0
     @Published var audioCaptureMessage: String?
+    @Published var isFinalizingSleepSession = false
     @Published var detectedEventCandidateCount: Int = 0
     @Published var capturedAudioChunkCount: Int = 0
     @Published var latestDetectedEventText: String = "아직 없음"
@@ -85,6 +86,7 @@ final class AppState: ObservableObject {
     private var currentDetectorOutputs: [DetectorOutput] = []
     private var currentAudioFeatures: [AudioFeatures] = []
     private var eventAudioSnippetTasks: [Task<Void, Never>] = []
+    private var sleepFinalizationTask: Task<Void, Never>?
     private var savedAudioSnippets: [EventAudioSnippet] = []
     private var scheduledSnippetKeys = Set<String>()
     private var latestSnippetStartedAtByType: [SleepEventType: Date] = [:]
@@ -154,7 +156,7 @@ final class AppState: ObservableObject {
     }
 
     var isPreparingCapture: Bool {
-        audioCaptureState.isPreparing
+        audioCaptureState.isPreparing || isFinalizingSleepSession
     }
 
     var detectorThresholdConfiguration: DetectorThresholdConfiguration {
@@ -360,7 +362,7 @@ final class AppState: ObservableObject {
     #endif
 
     func startSleepSession() {
-        guard activeSession == nil, !audioCaptureState.isPreparing else { return }
+        guard activeSession == nil, !audioCaptureState.isPreparing, !isFinalizingSleepSession else { return }
 
         #if DEBUG
         activeSimulatorQAScenario = nil
@@ -370,6 +372,7 @@ final class AppState: ObservableObject {
         #endif
 
         audioCaptureMessage = nil
+        isFinalizingSleepSession = false
         latestAudioLevel = 0
         detectedEventCandidateCount = 0
         capturedAudioChunkCount = 0
@@ -392,8 +395,10 @@ final class AppState: ObservableObject {
     }
 
     func endSleepSession() {
-        guard let session = activeSession else { return }
+        guard let session = activeSession, !isFinalizingSleepSession else { return }
 
+        isFinalizingSleepSession = true
+        audioCaptureMessage = "수면 기록을 종료하고 리포트를 정리하는 중입니다."
         audioCaptureService.stopCapture()
         recordDebugLifecycleEvent("audio capture stopped")
         audioCaptureState = audioCaptureService.state
@@ -401,30 +406,69 @@ final class AppState: ObservableObject {
         let endedAt = Date()
         audioCaptureMetrics.stop(at: endedAt)
         let completedSession = makeCompletedSession(from: session, endedAt: endedAt)
-        let sequenceResult = sleepAnalyzer.detectSuspectedBreathingPauseSequence(
+        let metricsSnapshot = audioCaptureMetrics
+        let finalizationInput = SleepSessionFinalizationInput(
             features: currentAudioFeatures,
-            contextOutputs: currentDetectorOutputs
+            contextOutputs: currentDetectorOutputs,
+            sequenceDetector: sleepAnalyzer.suspectedBreathingPauseSequenceDetector,
+            smoothingPolicy: sleepAnalyzer.smoothingPolicy
         )
-        currentDetectorOutputs.append(contentsOf: sequenceResult.outputs)
-        detectorDiagnosticsCollector.record(sequenceResult: sequenceResult)
-        let smoothingResult = sleepAnalyzer.smoothWithDiagnostics(outputs: currentDetectorOutputs)
-        let smoothedOutputs = smoothingResult.outputs
-        saveMissingEventAudioSnippets(sessionId: completedSession.id, outputs: smoothedOutputs)
-        eventAudioSnippetTasks.forEach { $0.cancel() }
-        eventAudioSnippetTasks.removeAll(keepingCapacity: true)
+
+        cancelPendingEventAudioSnippetTasks()
+
+        #if DEBUG
+        let debugPreview = saveDebugAudioPreviewIfAllowed(sessionId: completedSession.id)
+        #else
+        let debugPreview: EventAudioSnippet? = nil
+        #endif
+
+        sleepFinalizationTask?.cancel()
+        sleepFinalizationTask = Task { [weak self] in
+            let result = await Task.detached(priority: .userInitiated) {
+                finalizationInput.finalize()
+            }.value
+
+            await MainActor.run { [weak self] in
+                self?.completeSleepSessionFinalization(
+                    completedSession: completedSession,
+                    metrics: metricsSnapshot,
+                    finalizationResult: result,
+                    debugPreview: debugPreview
+                )
+            }
+        }
+    }
+
+    private func completeSleepSessionFinalization(
+        completedSession: SleepSession,
+        metrics: AudioCaptureMetrics,
+        finalizationResult: SleepSessionFinalizationResult,
+        debugPreview: EventAudioSnippet?
+    ) {
+        guard activeSession?.id == completedSession.id else {
+            isFinalizingSleepSession = false
+            return
+        }
+
+        currentDetectorOutputs = finalizationResult.allOutputs
+        detectorDiagnosticsCollector.record(sequenceResult: finalizationResult.sequenceResult)
+        saveMissingEventAudioSnippets(sessionId: completedSession.id, outputs: finalizationResult.smoothedOutputs)
         let events = attachAudioSnippets(
-            to: sleepAnalyzer.makeEvents(session: completedSession, outputs: smoothedOutputs)
+            to: DetectorOutputMapper.makeEvents(
+                from: finalizationResult.smoothedOutputs,
+                sessionId: completedSession.id
+            )
         )
-        detectorDiagnosticsCollector.record(smoothingDiagnostics: smoothingResult.diagnostics)
+        detectorDiagnosticsCollector.record(smoothingDiagnostics: finalizationResult.smoothingDiagnostics)
         detectorDiagnosticsCollector.record(finalEvents: events)
         if events.isEmpty {
             detectorDiagnosticsCollector.addNote("오디오 입력은 수신되었지만 최종 이벤트 기준을 통과한 이벤트가 없었습니다.")
         }
-        let diagnostics = detectorDiagnosticsCollector.finalize(endedAt: endedAt, metrics: audioCaptureMetrics)
+        let diagnostics = detectorDiagnosticsCollector.finalize(endedAt: completedSession.endedAt ?? Date(), metrics: metrics)
         var report = SleepScoreCalculator().makeReport(
             session: completedSession,
             events: events,
-            captureMetrics: audioCaptureMetrics
+            captureMetrics: metrics
         )
         report.detectorDiagnostics = diagnostics
 
@@ -435,15 +479,20 @@ final class AppState: ObservableObject {
         latestReportSource = .deviceAnalysis
         morningCheckIn = MorningCheckIn(sessionId: completedSession.id)
         activeSession = nil
+        isFinalizingSleepSession = false
 
         let chunkMessage = capturedAudioChunkCount == 0
             ? "캡처된 오디오 청크가 없어 이벤트 없는 분석 리포트를 만들었습니다."
             : "\(capturedAudioChunkCount)개 오디오 청크에서 \(events.count)개 이벤트 후보와 \(events.filter { $0.audioSnippetFileName != nil }.count)개 짧은 오디오 샘플을 정리했습니다."
-        audioCaptureMessage = chunkMessage
+        let debugPreviewMessage = debugPreview.map {
+            " DEBUG 미리듣기 샘플 \(SleepFormatters.compactDurationString($0.duration))을 저장했습니다."
+        } ?? ""
+        audioCaptureMessage = chunkMessage + debugPreviewMessage
 
         repository.save(session: completedSession, events: events, report: report)
         refreshRecentReports()
         refreshEventAudioStorageStats()
+        recordDebugLifecycleEvent("sleep report finalized")
     }
 
     func saveMorningCheckIn(_ checkIn: MorningCheckIn) {
@@ -926,6 +975,27 @@ final class AppState: ObservableObject {
         }
     }
 
+    #if DEBUG
+    private func saveDebugAudioPreviewIfAllowed(sessionId: UUID) -> EventAudioSnippet? {
+        guard isEventAudioSampleStorageEnabled else {
+            recordDebugLifecycleEvent("debug audio preview skipped: sample storage disabled")
+            return nil
+        }
+
+        do {
+            let preview = try eventAudioSnippetStore.saveDebugPreview(
+                sessionId: sessionId,
+                chunks: recentAudioBuffer.snapshot()
+            )
+            recordDebugLifecycleEvent("debug audio preview saved: \(preview.fileName)")
+            return preview
+        } catch {
+            recordDebugLifecycleEvent("debug audio preview skipped: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    #endif
+
     private func attachAudioSnippets(to events: [SleepEvent]) -> [SleepEvent] {
         var unmatchedSnippets = savedAudioSnippets.sorted { $0.eventStartedAt < $1.eventStartedAt }
         var matchedFileNames = Set<String>()
@@ -969,4 +1039,34 @@ final class AppState: ObservableObject {
         let timeBucket = Int(output.startedAt.timeIntervalSinceReferenceDate)
         return "\(output.eventType.rawValue)-\(timeBucket)"
     }
+}
+
+private struct SleepSessionFinalizationInput: Sendable {
+    var features: [AudioFeatures]
+    var contextOutputs: [DetectorOutput]
+    var sequenceDetector: SuspectedBreathingPauseSequenceDetector
+    var smoothingPolicy: DetectionSmoothingPolicy
+
+    func finalize() -> SleepSessionFinalizationResult {
+        let sequenceResult = sequenceDetector.detect(
+            features: features,
+            contextOutputs: contextOutputs
+        )
+        let allOutputs = contextOutputs + sequenceResult.outputs
+        let smoothingResult = smoothingPolicy.applyWithDiagnostics(to: allOutputs)
+
+        return SleepSessionFinalizationResult(
+            sequenceResult: sequenceResult,
+            allOutputs: allOutputs,
+            smoothedOutputs: smoothingResult.outputs,
+            smoothingDiagnostics: smoothingResult.diagnostics
+        )
+    }
+}
+
+private struct SleepSessionFinalizationResult: Sendable {
+    var sequenceResult: SuspectedBreathingPauseSequenceResult
+    var allOutputs: [DetectorOutput]
+    var smoothedOutputs: [DetectorOutput]
+    var smoothingDiagnostics: DetectionSmoothingDiagnostics
 }
