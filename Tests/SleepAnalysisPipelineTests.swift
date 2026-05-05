@@ -40,6 +40,94 @@ struct SleepAnalysisPipelineTests {
     }
 
     @Test
+    func lowAmplitudeSnoreLikeCandidateSurvivesSmoothingAndReportAggregation() {
+        let startedAt = Date(timeIntervalSince1970: 1_772_010_000)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: startedAt.addingTimeInterval(300),
+            measurementDuration: 300,
+            estimatedSleepDuration: 300
+        )
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer(backend: .ruleBased)
+        let chunks = (0..<3).map { index in
+            snoreLikeSineChunk(
+                startedAt: startedAt.addingTimeInterval(TimeInterval(index)),
+                duration: 1,
+                amplitude: 0.065
+            )
+        }
+
+        let rawOutputs = analyzer.detectOutputs(from: chunks)
+        let smoothedOutputs = analyzer.smooth(outputs: rawOutputs)
+        let events = analyzer.makeEvents(session: session, outputs: smoothedOutputs)
+        let report = SleepScoreCalculator().makeReport(session: session, events: events)
+
+        #expect(rawOutputs.contains { $0.eventType == .snore })
+        #expect(smoothedOutputs.contains { $0.eventType == .snore })
+        #expect(events.contains { $0.type == .snore })
+        #expect(report.snoreTotalSeconds > 0)
+    }
+
+    @Test
+    func quietAndNoiseNegativesDoNotBecomeSnoreEvents() {
+        let startedAt = Date(timeIntervalSince1970: 1_772_020_000)
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer(backend: .ruleBased)
+        let negativeChunks = SyntheticAudioSource.makeChunks(
+            pattern: .silence,
+            duration: 3,
+            sampleRate: 16_000,
+            chunkDuration: 1,
+            startedAt: startedAt
+        ) + SyntheticAudioSource.makeChunks(
+            pattern: .lowEnergyNoise,
+            duration: 3,
+            sampleRate: 16_000,
+            chunkDuration: 1,
+            startedAt: startedAt.addingTimeInterval(3)
+        ) + [
+            highFrequencySineChunk(
+                startedAt: startedAt.addingTimeInterval(6),
+                duration: 1,
+                amplitude: 0.065
+            )
+        ]
+
+        let outputs = analyzer.analyze(chunks: negativeChunks)
+
+        #expect(!outputs.contains { $0.eventType == .snore })
+    }
+
+    @Test
+    func lowAudioCoverageDoesNotInventSnoreInReport() {
+        let startedAt = Date(timeIntervalSince1970: 1_772_030_000)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: startedAt.addingTimeInterval(300),
+            measurementDuration: 300,
+            estimatedSleepDuration: 300
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: startedAt.addingTimeInterval(300),
+            receivedAudioSeconds: 3,
+            analyzedAudioSeconds: 3,
+            receivedChunkCount: 3,
+            analyzedChunkCount: 3,
+            audioCoverageRatio: 0.01
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementQuality == .poor)
+        #expect(report.snoreTotalSeconds == 0)
+        #expect(report.snoreRatio == 0)
+    }
+
+    @Test
     func detectorOutputMapperPreservesEventFields() {
         let sessionId = UUID()
         let startedAt = Date(timeIntervalSince1970: 100)
@@ -66,6 +154,53 @@ struct SleepAnalysisPipelineTests {
         AudioChunk(
             samples: Array(repeating: 0.08, count: 256),
             sampleRate: 16_000,
+            startedAt: startedAt,
+            duration: duration
+        )
+    }
+
+    private func snoreLikeSineChunk(
+        startedAt: Date,
+        duration: TimeInterval,
+        amplitude: Double
+    ) -> AudioChunk {
+        sineChunk(
+            frequency: 120,
+            amplitude: amplitude,
+            startedAt: startedAt,
+            duration: duration
+        )
+    }
+
+    private func highFrequencySineChunk(
+        startedAt: Date,
+        duration: TimeInterval,
+        amplitude: Double
+    ) -> AudioChunk {
+        sineChunk(
+            frequency: 3_200,
+            amplitude: amplitude,
+            startedAt: startedAt,
+            duration: duration
+        )
+    }
+
+    private func sineChunk(
+        frequency: Double,
+        amplitude: Double,
+        startedAt: Date,
+        duration: TimeInterval
+    ) -> AudioChunk {
+        let sampleRate = 16_000.0
+        let frameCount = max(1, Int((duration * sampleRate).rounded()))
+        let samples = (0..<frameCount).map { frame -> Float in
+            let t = Double(frame) / sampleRate
+            return Float(sin(2 * Double.pi * frequency * t) * amplitude)
+        }
+
+        return AudioChunk(
+            samples: samples,
+            sampleRate: sampleRate,
             startedAt: startedAt,
             duration: duration
         )

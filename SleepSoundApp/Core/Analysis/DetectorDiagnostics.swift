@@ -90,6 +90,18 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
            features.lowFrequencyEnergyRatio < 0.45 {
             reasons.append(.belowLowBandRatio)
         }
+        if features.rms >= snoreRMS,
+           features.rms < 0.05 {
+            if features.lowFrequencyEnergyRatio >= 0.45,
+               features.lowFrequencyEnergyRatio < 0.58 {
+                reasons.append(.belowLowBandRatio)
+            }
+            if features.zeroCrossingRate > 0.28 ||
+                features.highBandEnergy > 0.22 ||
+                features.spectralCentroid > 1_200 {
+                reasons.append(.likelyEnvironmentalNoise)
+            }
+        }
         if reasons.isEmpty {
             reasons.append(.unknown)
         }
@@ -837,6 +849,18 @@ public final class DetectorDiagnosticsCollector {
         }
         if features.lowFrequencyEnergyRatio < 0.45 {
             reasons.append(.belowLowBandRatio)
+        }
+        if features.rms >= snoreRMS,
+           features.rms < 0.05 {
+            if features.lowFrequencyEnergyRatio >= 0.45,
+               features.lowFrequencyEnergyRatio < 0.58 {
+                reasons.append(.belowLowBandRatio)
+            }
+            if features.zeroCrossingRate > 0.28 ||
+                features.highBandEnergy > 0.22 ||
+                features.spectralCentroid > 1_200 {
+                reasons.append(.likelyEnvironmentalNoise)
+            }
         }
         if features.zeroCrossingRate > 0.45 ||
             features.spectralCentroid >= 2_200 ||

@@ -20,6 +20,69 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func detectsRealisticLowAmplitudeSnoreLikeCandidateWithBalancedThreshold() {
+        let detector = RuleBasedSleepEventDetector(
+            thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
+        )
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.046,
+                peak: 0.11,
+                zeroCrossingRate: 0.08,
+                lowFrequencyEnergyRatio: 0.72,
+                midBandEnergy: 0.20,
+                highBandEnergy: 0.08,
+                spectralCentroid: 260
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func quietLowAmplitudeNoiseDoesNotBecomeSnore() {
+        let detector = RuleBasedSleepEventDetector(
+            thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
+        )
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.046,
+                peak: 0.08,
+                zeroCrossingRate: 0.36,
+                lowFrequencyEnergyRatio: 0.40,
+                midBandEnergy: 0.42,
+                highBandEnergy: 0.18,
+                spectralCentroid: 1_100
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func lowAmplitudeBroadbandNoiseDoesNotBecomeSnore() {
+        let detector = RuleBasedSleepEventDetector(
+            thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
+        )
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.046,
+                peak: 0.12,
+                zeroCrossingRate: 0.38,
+                lowFrequencyEnergyRatio: 0.62,
+                midBandEnergy: 0.10,
+                highBandEnergy: 0.28,
+                spectralCentroid: 2_000
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func longSilenceDoesNotBecomeSuspectedBreathingPauseCandidate() {
         let output = RuleBasedSleepEventDetector().detect(
             features: makeFeatures(

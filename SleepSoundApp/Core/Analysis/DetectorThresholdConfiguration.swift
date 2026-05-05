@@ -122,8 +122,8 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
             return DetectorThresholdConfiguration(
                 profile: .balanced,
                 silenceRmsThreshold: 0.010,
-                snoreRmsThreshold: 0.050,
-                snoreEnergyThreshold: 0.0025,
+                snoreRmsThreshold: 0.045,
+                snoreEnergyThreshold: 0.0020,
                 coughEnergyThreshold: 0.0032,
                 gaspEnergyThreshold: 0.0018,
                 bruxismHighBandThreshold: 0.24,

@@ -187,6 +187,14 @@ Replay 연결:
 - 같은 파일을 `Tools/OfflineEvaluation/sample_manifest.example.json`을 복사한 manifest의 `localFilePath`로 지정할 수 있습니다.
 - `snore` expected segment만 보지 말고 `silence`, `unknown`, `environmentalNoise` 같은 negative segment도 함께 넣어 false-positive-like 위험을 같이 봅니다.
 
+2026-05-05 detector smoke 항목:
+
+- `balanced` profile에서 threshold snapshot의 `tuning.snoreRmsThreshold`가 0.045인지 확인합니다.
+- 실제 코골이처럼 들린 짧은 DEBUG 샘플에서 `snoreLikeFeatureCandidateCount`, `snoreRawCandidateCount`, `postSmoothingEventCountByType.snore`, `finalEventCountByType.snore`가 어느 단계에서 0이 되는지 기록합니다.
+- 같은 기기 배치에서 조용한 구간 또는 주변 소음 negative sample도 함께 replay해 snore raw/final count가 증가하지 않는지 확인합니다.
+- RMS 0.050 미만인데 snore 후보가 된 경우 low-band p90, zero-crossing p50, high-band p50, spectral centroid p50가 low-amplitude guard에 맞는지 확인합니다.
+- 리포트에는 final snore event가 있으면 `코골기 시간`과 timeline에 표시되고, final event가 0이면 zero-event explanation과 diagnostics만 표시되어야 합니다.
+
 ## 실제 iPhone QA가 필요한 경우
 
 다음 변경 또는 확인 시점에는 실제 iPhone QA가 필요합니다.

@@ -48,6 +48,20 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 
 샘플 파일은 `Samples/Personal/` 또는 repo 밖 경로에 두고, manifest에는 파일명과 local path만 기록합니다. sleep talk 내용은 기록하지 않으며, 이 baseline은 detector 개발용 참고 자료입니다.
 
+## 2026-05-05 synthetic recall guard
+
+실제 개인 샘플이 없는 상태에서는 synthetic/local-only baseline으로 detector 단계별 동작만 확인합니다.
+
+- low-amplitude snore-like synthetic CAF를 temp directory에 생성해 `OfflineEvaluationRunner`로 balanced/rule-based 경로를 통과시킵니다.
+- high-frequency negative synthetic CAF를 같은 manifest에 넣어 snore raw/final count가 0인지 확인합니다.
+- 이 검증은 실제 iPhone input scale을 대체하지 않으며, 다음 실제 iPhone smoke test에서 `rmsP90`, `energyP90`, `lowBandEnergyP90`, `snoreLikeFeatureCandidateCount`, `snoreRawCandidateCount`, `snoreRejectReasonTop`을 함께 기록해야 합니다.
+
+현재 balanced guard:
+
+- RMS threshold: 0.045
+- RMS 0.050 미만 snore 후보의 추가 조건: low-band 0.58 이상, zero-crossing 0.28 이하, high-band 0.22 이하, spectral centroid 1200Hz 이하
+- Release 기본 profile은 `balanced`이며 `sensitive`는 DEBUG 비교용입니다.
+
 ## Output
 
 출력 위치는 기본적으로 `Tools/OfflineEvaluation/output/`입니다.

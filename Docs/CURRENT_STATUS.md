@@ -34,6 +34,7 @@
 - feature distribution diagnostics for RMS/energy/band/zero-crossing/centroid
 - latest feature/raw candidate debug summary in diagnostics
 - zero-event analysis
+- low-amplitude snore-like recall guard for balanced rule-based profile
 - 이벤트 오디오 샘플 저장/재생/삭제
 - 이벤트별 사용자 feedback 저장/삭제/export 구조
 - 이벤트 오디오 샘플 opt-in 설정

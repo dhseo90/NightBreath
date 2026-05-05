@@ -107,6 +107,8 @@
 - 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집
 - 수집된 diagnostics로 feature 후보 없음, raw 후보 전 제외, smoothing drop, confidence drop, feature scale mismatch를 분류
 - `snoreLikeFeatureRejectReasonCounts`와 p50/p90 feature 분포를 실제 iPhone 배치별로 비교
+- balanced low-amplitude snore guard 이후 실제 코골이 짧은 DEBUG 샘플과 quiet/noise negative 샘플을 같은 배치에서 replay
+- RMS 0.050 미만 snore 후보는 low-band/ZCR/high-band/centroid guard 통과 여부를 QA 기록에 남김
 - Offline Evaluation으로 conservative / balanced / sensitive profile 비교
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리

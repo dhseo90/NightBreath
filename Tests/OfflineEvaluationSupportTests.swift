@@ -176,6 +176,64 @@ struct OfflineEvaluationSupportTests {
   }
 
   @Test
+  func balancedOfflineEvaluationDetectsLowAmplitudeSnoreAndGuardsNegativeSamples() throws {
+    let root = FileManager.default.temporaryDirectory
+      .appendingPathComponent("NightBreathSnoreRecallGuard-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+
+    let snoreURL = root.appendingPathComponent("synthetic-low-amplitude-snore.caf")
+    let noiseURL = root.appendingPathComponent("synthetic-high-frequency-negative.caf")
+    try writeCAF(
+      samples: lowAmplitudeSnoreLikeSamples(duration: 2, sampleRate: 16_000),
+      sampleRate: 16_000,
+      targetURL: snoreURL
+    )
+    try writeCAF(
+      samples: highFrequencyNegativeSamples(duration: 2, sampleRate: 16_000),
+      sampleRate: 16_000,
+      targetURL: noiseURL
+    )
+
+    let manifest = OfflineEvaluationManifest(
+      datasetName: "local-synthetic-recall-guard",
+      datasetLicenseNote: "local synthetic fixture only",
+      segments: [
+        makeSegment(
+          filePath: "synthetic-low-amplitude-snore.caf",
+          fileId: "low-amplitude-snore",
+          duration: 2,
+          expectedLabels: [.snore]
+        ),
+        makeSegment(
+          filePath: "synthetic-high-frequency-negative.caf",
+          fileId: "high-frequency-negative",
+          duration: 2,
+          expectedLabels: [.environmentalNoise]
+        )
+      ]
+    )
+
+    let records = OfflineEvaluationRunner().evaluateRecords(
+      manifest: manifest,
+      manifestDirectory: root,
+      profiles: [.balanced],
+      backends: [.ruleBased],
+      evaluatedAt: Date(timeIntervalSince1970: 1_800_000_001)
+    )
+    let byFileId = Dictionary(uniqueKeysWithValues: records.map { ($0.fileId, $0) })
+    let snoreRecord = try #require(byFileId["low-amplitude-snore"])
+    let noiseRecord = try #require(byFileId["high-frequency-negative"])
+
+    #expect(snoreRecord.errorMessage == nil)
+    #expect(snoreRecord.rawCandidateCountByType[SleepEventType.snore.rawValue, default: 0] > 0)
+    #expect(snoreRecord.finalEventCountByType[SleepEventType.snore.rawValue, default: 0] > 0)
+    #expect(noiseRecord.errorMessage == nil)
+    #expect(noiseRecord.rawCandidateCountByType[SleepEventType.snore.rawValue, default: 0] == 0)
+    #expect(noiseRecord.finalEventCountByType[SleepEventType.snore.rawValue, default: 0] == 0)
+  }
+
+  @Test
   func missingFileCreatesFailedRecordWithoutThrowing() {
     let manifest = OfflineEvaluationManifest(
       segments: [
@@ -307,7 +365,8 @@ struct OfflineEvaluationSupportTests {
   private func makeSegment(
     filePath: String,
     fileId: String,
-    duration: TimeInterval = 1
+    duration: TimeInterval = 1,
+    expectedLabels: [SleepEventType] = [.snore]
   ) -> OfflineEvaluationManifestSegment {
     OfflineEvaluationManifestSegment(
       datasetName: "unit-test",
@@ -315,7 +374,7 @@ struct OfflineEvaluationSupportTests {
       fileId: fileId,
       segmentStartSeconds: 0,
       segmentDurationSeconds: duration,
-      expectedLabels: [.snore],
+      expectedLabels: expectedLabels,
       notes: "synthetic fixture",
       licenseNote: "local synthetic test fixture"
     )
@@ -371,6 +430,23 @@ struct OfflineEvaluationSupportTests {
     return (0..<frameCount).map { frame in
       let t = Double(frame) / sampleRate
       return Float(sin(2 * Double.pi * 120 * t) * 0.13)
+    }
+  }
+
+  private func lowAmplitudeSnoreLikeSamples(duration: TimeInterval, sampleRate: Double) -> [Float] {
+    let frameCount = Int(duration * sampleRate)
+    return (0..<frameCount).map { frame in
+      let t = Double(frame) / sampleRate
+      let envelope = 0.72 + 0.28 * sin(2 * Double.pi * 3 * t)
+      return Float(sin(2 * Double.pi * 120 * t) * 0.09 * envelope)
+    }
+  }
+
+  private func highFrequencyNegativeSamples(duration: TimeInterval, sampleRate: Double) -> [Float] {
+    let frameCount = Int(duration * sampleRate)
+    return (0..<frameCount).map { frame in
+      let t = Double(frame) / sampleRate
+      return Float(sin(2 * Double.pi * 3_200 * t) * 0.065)
     }
   }
 }

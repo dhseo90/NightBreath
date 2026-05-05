@@ -21,10 +21,10 @@
 | Profile | 용도 | snore RMS | snore energy | minimum confidence | minimum duration | merge gap |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | conservative | 더 신중한 후보 확인용 | 0.060 | 0.0036 | 0.42 | 0.30s | 0.80s |
-| balanced | Release 기본값 | 0.050 | 0.0025 | 0.35 | 0.20s | 1.00s |
+| balanced | Release 기본값 | 0.045 | 0.0020 | 0.35 | 0.20s | 1.00s |
 | sensitive | DEBUG 누락 비교용 | 0.040 | 0.0016 | 0.32 | 0.16s | 1.20s |
 
-현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*` key로 저장됩니다.
+현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*` key로 저장됩니다. `balanced`의 낮은 RMS 구간은 별도 texture guard를 통과해야 합니다. RMS 0.050 미만 코골기 후보는 low-band 0.58 이상, zero-crossing 0.28 이하, high-band 0.22 이하, spectral centroid 1200Hz 이하 조건을 함께 만족해야 raw snore 후보가 됩니다.
 
 ## 실제 iPhone zero-event triage
 
@@ -51,7 +51,35 @@ zero-event 해석 문구는 다음 범위를 넘지 않습니다.
 
 threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregation 중 어느 단계에서 누락이 발생했는지 분리한 뒤에만 검토합니다. 이 문서의 triage만으로 Release 기본 threshold를 바로 낮추지 않습니다.
 
-## 최신 로컬 Report 판독
+## 2026-05-05 로컬 zero-event recall 검토
+
+이번 로컬 검토에서는 실제 개인 오디오 파일이나 실제 iPhone 샘플을 repository에 넣지 않았습니다. 현재 workspace에서 확인 가능한 자료는 detector diagnostics 경로, 짧은 local sample/replay 경로, synthetic regression뿐이므로 실제 세션의 최종 원인은 다음 실제 iPhone DEBUG 샘플 또는 diagnostics snapshot으로 확정해야 합니다.
+
+현재 분류:
+
+| 단계 | 로컬 확인 결과 |
+| --- | --- |
+| capture | stop lifecycle와 실제 오디오 수신 시간 diagnostics는 준비되어 있습니다. 이번 작업에는 실제 iPhone 원본 세션 snapshot이 없었습니다. |
+| feature | RMS/energy/low-band/ZCR/centroid 분포를 남기는 collector와 DEBUG/Replay 표시가 준비되어 있습니다. |
+| raw candidate | synthetic low-amplitude snore-like sample은 기존 balanced RMS 0.050 경계에서 raw 후보 0개가 될 수 있는 병목을 재현했습니다. |
+| smoothing | 1초 이상 snore-like 후보는 balanced smoothing을 통과하도록 regression test를 추가했습니다. |
+| final/report | 최종 snore 이벤트가 `NightReport.snoreTotalSeconds`와 `SleepReportView`에 연결되는 contract를 테스트했습니다. |
+| UI | zero-event 문구는 detector 기준을 통과한 이벤트가 없었다는 설명과 diagnostics 분리 표시를 유지합니다. |
+| backend | Release 기본 profile은 계속 `balanced`이며, `sensitive`는 DEBUG 비교용으로 유지합니다. |
+
+적용한 보정:
+
+- `balanced` snore RMS를 0.050에서 0.045로 작게 완화했습니다.
+- `balanced` snore energy snapshot을 0.0025에서 0.0020으로 맞췄습니다.
+- RMS 0.050 미만 구간에는 low-band/ZCR/high-band/centroid guard를 추가해 pure silence, quiet/high-frequency negative, broadband-like noise가 snore로 올라오지 않게 했습니다.
+- smoothing threshold와 Release 기본 profile 선택은 바꾸지 않았습니다.
+
+False-positive-like guard:
+
+- `silence`, `lowEnergyNoise`, high-frequency synthetic negative는 최종 snore 이벤트를 만들지 않아야 합니다.
+- Offline Evaluation support test는 balanced profile에서 low-amplitude snore-like segment는 final snore로 남기고 high-frequency negative segment는 snore raw/final count 0을 유지하는지 확인합니다.
+
+## 2026-05-03 이전 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.
 
@@ -182,7 +210,7 @@ manifest에 `expectedLabels`가 있으면 도구가 간단한 mismatch 후보를
 
 ## 5-1. 적용 판단 기록
 
-이번 판독에서는 threshold 변경을 적용하지 않았습니다.
+당시 판독에서는 threshold 변경을 적용하지 않았습니다.
 
 | 항목 | 판단 |
 | --- | --- |

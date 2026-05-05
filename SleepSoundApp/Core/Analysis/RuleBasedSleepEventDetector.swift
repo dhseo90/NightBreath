@@ -10,7 +10,7 @@ public struct RuleBasedDetectionThresholds: Equatable, Sendable {
 
     public init(
         silenceRMS: Double = 0.01,
-        snoreRMS: Double = 0.05,
+        snoreRMS: Double = 0.045,
         noiseRMS: Double = 0.24,
         suspectedPauseMinimumDuration: TimeInterval = 10
     ) {
@@ -119,21 +119,32 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         }
 
+        let hasEnvironmentalNoise = outputs.contains { $0.eventType == .environmentalNoise }
+        let isLowLevelSnoreCandidate = features.rms < 0.05
+        let passesLowLevelSnoreGuard =
+            !isLowLevelSnoreCandidate ||
+            (
+                features.lowFrequencyEnergyRatio >= 0.58 &&
+                features.zeroCrossingRate <= 0.28 &&
+                features.highBandEnergy <= 0.22 &&
+                features.spectralCentroid <= 1_200
+            )
+
         if features.rms >= snoreRMS,
+           !hasEnvironmentalNoise,
            features.lowFrequencyEnergyRatio >= 0.45,
-           features.zeroCrossingRate <= 0.45 {
+           features.zeroCrossingRate <= 0.45,
+           passesLowLevelSnoreGuard {
             outputs.append(
                 makeOutput(
                     .snore,
                     features: features,
                     confidence: 0.50 + min(features.lowFrequencyEnergyRatio * 0.25, 0.25),
                     intensity: min(features.rms * 2.5, 1),
-                    debugReason: "저주파 에너지와 RMS 기반 코골기 후보 placeholder"
+                    debugReason: "저주파 에너지, RMS, 저진폭 texture guard 기반 코골기 후보 placeholder"
                 )
             )
         }
-
-        let hasEnvironmentalNoise = outputs.contains { $0.eventType == .environmentalNoise }
 
         // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
         // 기침 의심 소리는 짧고 강한 burst, 높은 peak 대비 RMS, mid/high band 활동을 함께 봅니다.

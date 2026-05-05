@@ -71,6 +71,17 @@ rule-based가 `snore` expected segment에서 자주 0 event이면 threshold가 �
 
 `mlOnlySnore`가 많고 quiet/noise segment의 false-positive-like가 적다면 ML 후보를 다음 iteration에서 더 자세히 볼 가치가 있습니다. 그래도 바로 기본값으로 바꾸지 않고 실제 iPhone 짧은 테스트와 함께 확인합니다.
 
+## 2026-05-05 rule-based recall safeguard
+
+실제 코골이 zero-event를 재현할 개인 샘플은 repository에 넣지 않았습니다. 대신 local-only synthetic/replay 경로에서 rule-based 병목을 확인했습니다.
+
+- 기존 balanced RMS 0.050 경계에서는 낮은 진폭의 코골기 유사 sample이 feature 단계에서는 near-threshold로 보이지만 raw snore 후보가 0개가 될 수 있습니다.
+- balanced RMS를 0.045로 작게 완화하되, RMS 0.050 미만 구간에는 low-band/ZCR/high-band/spectral centroid guard를 적용했습니다.
+- rule-based smoothing과 report aggregation은 final snore event를 유지하는 regression test로 묶었습니다.
+- quiet, low-energy noise, high-frequency negative는 snore로 승격되지 않아야 합니다.
+
+ML backend를 비교할 때도 이 guard를 기준으로 `ruleOnlySnore`, `mlOnlySnore`, `bothNoEvent`를 해석합니다. ML이 low-amplitude snore-like segment만 보완하고 negative segment를 과하게 snore로 만들지 않는지 먼저 확인합니다.
+
 ## Hybrid를 유지해야 하는 경우
 
 - Core ML 모델이 아직 앱 target에 없거나 optional 상태인 경우
