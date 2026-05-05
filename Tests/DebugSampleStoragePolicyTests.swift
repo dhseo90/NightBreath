@@ -25,6 +25,17 @@ struct DebugSampleStoragePolicyTests {
     }
 
     @Test
+    func clampsManualSampleDurationsToShortDebugLimit() {
+        let policy = DebugSampleStoragePolicy(maxSampleDuration: 5)
+
+        #expect(policy.clampedSampleDuration(2) == 2)
+        #expect(policy.clampedSampleDuration(3) == 3)
+        #expect(policy.clampedSampleDuration(5) == 5)
+        #expect(policy.clampedSampleDuration(30) == 5)
+        #expect(policy.clampedSampleDuration(-1) == 1)
+    }
+
+    @Test
     func rejectsWhenSessionSampleLimitIsReached() throws {
         let root = makeTemporaryDirectory()
         let policy = DebugSampleStoragePolicy(

@@ -37,6 +37,17 @@ swift run OfflineSnoreBaseline \
 
 manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도구는 사용법을 출력하거나 missing file warning/failed record를 남기고 종료합니다. `sample_manifest.example.json`을 복사한 뒤 `localFilePath`를 직접 만든 짧은 WAV/CAF/M4A 파일로 바꿔 synthetic 또는 local debug baseline을 시작하세요.
 
+## 실제 코골이 DEBUG 샘플 구성
+
+실제 iPhone에서 이벤트가 0개였던 코골이 상황을 볼 때는 다음처럼 짧은 local-only segment를 구성합니다.
+
+- `snore` expected segment: 사용자가 직접 들은 2초/3초/5초 DEBUG 샘플
+- negative segment: 같은 기기 배치의 `silence`, `unknown`, `environmentalNoise` 짧은 샘플
+- profile: `conservative`, `balanced`, `sensitive` 모두 비교
+- 확인 값: `rawCandidateCount`, `preSmoothingCandidateCount`, `postSmoothingEventCount`, `finalSnoreEventCount`, `rejectReasonTop`, `rmsSummary`, `energySummary`, `confidenceSummary`
+
+샘플 파일은 `Samples/Personal/` 또는 repo 밖 경로에 두고, manifest에는 파일명과 local path만 기록합니다. sleep talk 내용은 기록하지 않으며, 이 baseline은 detector 개발용 참고 자료입니다.
+
 ## Output
 
 출력 위치는 기본적으로 `Tools/OfflineEvaluation/output/`입니다.

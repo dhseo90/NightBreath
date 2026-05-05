@@ -55,6 +55,12 @@ struct SampleMetadataStoreTests {
         let csv = try String(contentsOf: saved.featureCSVURL, encoding: .utf8)
         #expect(csv.contains("timestamp,label,rms,energy"))
         #expect(csv.contains("snore"))
+        #expect(!csv.contains("sample0"))
+        #expect(!csv.contains("pcm"))
+        #expect(decoded.duration == 2)
+        #expect(decoded.sampleRate == features.sampleRate)
+        #expect(decoded.featureCSVFileName.hasSuffix(".features.csv"))
+        #expect(decoded.metadataFileName.hasSuffix(".metadata.json"))
 
         try? FileManager.default.removeItem(at: root)
     }

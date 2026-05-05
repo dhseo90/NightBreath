@@ -34,6 +34,8 @@ Samples/Personal/
 
 `localFilePath`는 manifest 파일 위치 기준 상대 경로 또는 절대 경로를 사용할 수 있습니다.
 
+실제 iPhone DEBUG 샘플은 앱 sandbox에서 꺼낸 뒤 `Samples/Personal/` 또는 repo 밖 로컬 폴더에 둡니다. 이때 `.caf`, `.metadata.json`, `.features.csv`를 함께 보관하면 `Dataset Replay`와 feature 분포 확인을 같은 샘플 기준으로 맞출 수 있습니다.
+
 ## Schema
 
 Top-level 필드:
@@ -105,6 +107,43 @@ Snore ML v0 training에 manifest를 직접 입력할 때 권장하는 `features`
       "negativeLabels": ["coughLike", "gaspLike"],
       "confidenceNote": "짧은 구간을 직접 확인한 detector 개발용 참고 label입니다.",
       "notes": "오디오 파일은 repo에 포함하지 않습니다."
+    }
+  ]
+}
+```
+
+실제 코골이 zero-event 원인 분석용 manifest는 짧은 positive segment와 negative segment를 함께 둡니다.
+
+```json
+{
+  "datasetName": "local-snore-debug-short-samples",
+  "datasetLicenseNote": "개인 DEBUG 샘플은 본인 기기 로컬에서만 사용하고 repository에 포함하지 않습니다.",
+  "segments": [
+    {
+      "fileId": "debug-snore-short-001",
+      "localFilePath": "../../Samples/Personal/debug-snore-short-001.caf",
+      "subjectId": "self-debug-local",
+      "recordingType": "personalDebugSample",
+      "microphoneType": "iPhone",
+      "segmentStartSeconds": 0,
+      "segmentDurationSeconds": 3,
+      "expectedLabels": ["snore"],
+      "negativeLabels": ["coughLike", "environmentalNoise"],
+      "confidenceNote": "사용자가 직접 들은 짧은 구간을 detector 개발용 참고 label로 표시합니다.",
+      "notes": "파일명과 메모에 개인 정보나 sleep talk 내용을 넣지 않습니다."
+    },
+    {
+      "fileId": "debug-quiet-short-001",
+      "localFilePath": "../../Samples/Personal/debug-quiet-short-001.caf",
+      "subjectId": "self-debug-local",
+      "recordingType": "personalDebugSample",
+      "microphoneType": "iPhone",
+      "segmentStartSeconds": 0,
+      "segmentDurationSeconds": 3,
+      "expectedLabels": ["silence"],
+      "negativeLabels": ["snore"],
+      "confidenceNote": "같은 기기 배치에서 조용한 짧은 구간을 함께 비교합니다.",
+      "notes": "false-positive-like 비교용 local-only segment입니다."
     }
   ]
 }

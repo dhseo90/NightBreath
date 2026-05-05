@@ -40,11 +40,15 @@ rg -n "AVAudioFile|AVAudioRecorder|\\bwrite\\b|Documents|Caches|FileManager|\\.w
 - `SampleCaptureView`
   - DEBUG 빌드 전용 개발자 수동 샘플 수집 화면입니다.
   - 사용자가 명시적으로 2초/3초/5초 샘플 캡처를 누를 때만 저장합니다.
+  - 앱 sandbox의 `Documents/Samples/Personal/` 아래에 `.caf`, `.metadata.json`, `.features.csv`를 함께 저장합니다.
+  - `DebugSampleStoragePolicy`로 샘플 1개 최대 길이, 앱 실행당 샘플 수, 폴더 용량, 오래된 샘플 정리를 제한합니다.
   - Release 사용자 UI에 노출하지 않습니다.
 
 `AVAudioRecorder` 사용은 없습니다.
 
 `DatasetReplayAudioSource`의 `AVAudioFile` 사용은 로컬 오디오 파일을 읽어 개발/검증용 replay chunk로 변환하는 용도입니다. 파일을 저장하지 않습니다.
+
+실제 코골이 원인 분석은 전체 밤 오디오가 아니라 사용자가 직접 수집한 짧은 DEBUG 샘플 또는 repo 밖 로컬 샘플로 수행합니다. 개인 오디오 파일은 `Samples/Personal/`, `Datasets/`, 또는 repo 밖 경로에만 두고, repository에는 metadata/문서/테스트용 synthetic 값만 남깁니다.
 
 ## 전체 밤 원본 오디오 저장 여부
 
@@ -141,6 +145,7 @@ orphan cleanup:
 - sleep talk 내용 텍스트
 - 서버 전송용 payload
 - HealthKit 쓰기용 payload
+- 개인 DEBUG 오디오 파일의 git-tracked fixture
 
 ## 네트워크 / 서버 / 외부 SDK 점검
 

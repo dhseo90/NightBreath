@@ -37,11 +37,27 @@ DEBUG 빌드에서 `설정 > 개발 > Dataset Replay`로 들어가 synthetic pat
 
 오디오 파일은 replay 입력으로만 사용하며 앱이 전체 밤 원본 오디오를 저장하는 기능으로 확장하지 않습니다.
 
+## 실제 코골이 짧은 샘플 Replay
+
+실제 iPhone에서 코골이처럼 들린 상황을 detector 관점에서 확인할 때는 `SampleCaptureView` 또는 사용자가 직접 준비한 짧은 로컬 파일을 사용합니다.
+
+권장 흐름:
+
+1. DEBUG 빌드의 `개발자용 샘플 수집` 화면에서 `코골기` 라벨을 선택합니다.
+2. 소리가 들리는 순간 사용자가 직접 2초/3초/5초 버튼 중 하나를 누릅니다.
+3. 생성된 `.caf`, `.metadata.json`, `.features.csv`를 앱 sandbox에서 꺼낼 경우 `Samples/Personal/` 또는 repo 밖 로컬 폴더에만 둡니다.
+4. 파일명에는 개인 정보나 대화 내용을 넣지 않습니다.
+5. `Dataset Replay`에서 `.caf` 파일을 선택해 raw 후보, smoothing 전/후 count, reject reason, RMS/energy p90을 확인합니다.
+
+이 경로는 이벤트가 0개라 event audio snippet이 생성되지 않는 상황을 보완하기 위한 DEBUG 경로입니다. 전체 밤 원본 오디오 저장이나 자동 수집 기능으로 확장하지 않습니다.
+
 ## Manifest
 
 `PublicDatasetManifest`는 로컬 파일 경로와 expected/negative label을 기록하기 위한 모델입니다. 실제 오디오 파일은 포함하지 않고, 라이선스 메모와 segment 정보를 별도로 남기는 용도입니다.
 
 manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
+
+짧은 personal debug sample은 `recordingType: "personalDebugSample"`, `microphoneType: "iPhone"`, `segmentDurationSeconds: 2`, `3`, 또는 `5`처럼 기록합니다. `localFilePath`는 manifest 위치 기준 상대 경로나 repo 밖 절대 경로를 사용할 수 있지만, 실제 파일은 commit하지 않습니다.
 
 ## Git 보호
 

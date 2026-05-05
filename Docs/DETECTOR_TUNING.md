@@ -75,6 +75,8 @@ threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregati
 - missing file/failed record가 아닌 정상 analyzed record
 - false positive-like 증가 여부를 볼 수 있는 quiet/noise negative segment
 
+실제 iPhone에서 들린 코골이 상황은 전체 밤 오디오 저장 대신 2초/3초/5초 DEBUG 샘플로 분리합니다. 같은 배치에서 `snore` expected segment와 `silence`/`unknown`/`environmentalNoise` negative segment를 함께 준비해야 threshold 완화 후보의 부작용을 볼 수 있습니다. 샘플과 manifest는 local-only이며, threshold 변경은 이 결과만으로 자동 적용하지 않습니다.
+
 ## 1. Offline Evaluation 실행
 
 먼저 manifest에 정의된 로컬 오디오 segment를 profile별로 평가합니다.

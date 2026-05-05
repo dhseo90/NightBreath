@@ -161,6 +161,32 @@ zero-event 판독:
 - `snore` raw 후보가 있었지만 최종 이벤트가 0이면 confidence histogram과 `snoreRejectReasonTop`을 우선 확인합니다.
 - user-facing 문구는 “감지 기준을 통과한 이벤트가 없었습니다”, “감지 기준이 보수적으로 동작했을 수 있습니다” 수준으로 유지합니다.
 
+## 실제 코골이 짧은 샘플 디버깅
+
+실제 코골이 소리가 있었지만 리포트 이벤트가 0개인 경우, 전체 밤 원본 오디오 저장을 만들지 않고 짧은 local debug sample로만 원인을 좁힙니다.
+
+수집 원칙:
+
+- DEBUG 빌드의 `SampleCaptureView`에서 사용자가 직접 누른 2초/3초/5초 샘플만 저장합니다.
+- 저장 위치는 앱 sandbox의 `Documents/Samples/Personal/`이며, repo에 복사할 때도 `Samples/Personal/` 또는 repo 밖 gitignore 경로만 사용합니다.
+- 파일명에는 이름, 장소, 날짜의 민감한 맥락 같은 개인 정보를 넣지 않습니다.
+- sleep talk 내용은 메모나 파일명에 기록하지 않고 텍스트로 변환하지 않습니다.
+- 샘플은 detector 개발용 참고 자료이며 의료 검증 자료가 아닙니다.
+
+DEBUG 수집 후 확인:
+
+- 저장 결과에 `.caf`, `.metadata.json`, `.features.csv`가 함께 생성되는지 봅니다.
+- `feature summary`에서 RMS/energy, low/mid/high band, zero crossing, spectral centroid를 확인합니다.
+- 앱 실행당 샘플 수, 샘플 1개 최대 길이, 폴더 용량, 오래된 샘플 정리 상태를 확인합니다.
+- 저장 실패 메시지가 표시되더라도 앱이 crash하지 않아야 합니다.
+
+Replay 연결:
+
+- Mac 또는 simulator에서 `Dataset Replay` 화면의 `파일 선택`으로 짧은 WAV/CAF/M4A 샘플을 선택합니다.
+- 화면의 raw 후보 수, 코골기 feature/raw/제외 수, smoothing 전/후 수, RMS/energy p90, 탈락 이유를 기록합니다.
+- 같은 파일을 `Tools/OfflineEvaluation/sample_manifest.example.json`을 복사한 manifest의 `localFilePath`로 지정할 수 있습니다.
+- `snore` expected segment만 보지 말고 `silence`, `unknown`, `environmentalNoise` 같은 negative segment도 함께 넣어 false-positive-like 위험을 같이 봅니다.
+
 ## 실제 iPhone QA가 필요한 경우
 
 다음 변경 또는 확인 시점에는 실제 iPhone QA가 필요합니다.

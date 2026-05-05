@@ -135,6 +135,9 @@ DEBUG 빌드에서는 설정 탭의 “개발자용 샘플 수집” 화면에�
 - 오디오 파일은 `.caf`, metadata는 `.metadata.json`, feature summary는 `.features.csv`로 저장합니다.
 - Release 빌드에서는 이 화면이 노출되지 않습니다.
 - 이 기능은 서버 전송, 클라우드 동기화, STT 변환을 하지 않습니다.
+- 앱 실행당 샘플 수, 샘플 1개 최대 길이, 폴더 용량, 오래된 샘플 정리 정책을 `DebugSampleStoragePolicy`로 제한합니다.
+- 이벤트가 0개인 세션에서도 사용자가 직접 누른 짧은 샘플은 feature scale 확인에 사용할 수 있습니다.
+- 생성된 `.features.csv`는 원본 PCM이 아니라 feature summary이며, Dataset Replay와 Offline Evaluation 결과의 RMS/energy p90과 비교합니다.
 
 ## 공개 샘플을 다루는 방법
 

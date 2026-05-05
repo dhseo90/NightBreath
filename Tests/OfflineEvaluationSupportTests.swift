@@ -125,6 +125,57 @@ struct OfflineEvaluationSupportTests {
   }
 
   @Test
+  func evaluatesLocalShortSampleManifestAndWritesDiagnostics() throws {
+    let root = FileManager.default.temporaryDirectory
+      .appendingPathComponent("NightBreathOfflineLocalSample-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+
+    let sampleURL = root.appendingPathComponent("debug-snore-short.caf")
+    try writeCAF(
+      samples: snoreLikeSamples(duration: 2, sampleRate: 16_000),
+      sampleRate: 16_000,
+      targetURL: sampleURL
+    )
+    let manifestURL = root.appendingPathComponent("manifest.json")
+    let outputDirectory = root.appendingPathComponent("output", isDirectory: true)
+    let manifest = OfflineEvaluationManifest(
+      datasetName: "local-debug-short-samples",
+      datasetLicenseNote: "local synthetic fixture only",
+      segments: [
+        makeSegment(filePath: "debug-snore-short.caf", fileId: "debug-snore-short", duration: 2)
+      ]
+    )
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    try encoder.encode(manifest).write(to: manifestURL)
+
+    let result = try OfflineEvaluationRunner().evaluate(
+      manifestURL: manifestURL,
+      outputDirectory: outputDirectory,
+      profiles: [.balanced],
+      backends: [.ruleBased],
+      evaluatedAt: Date(timeIntervalSince1970: 1_800_000_000)
+    )
+
+    let record = try #require(result.output.records.first)
+    #expect(record.errorMessage == nil)
+    #expect(record.filePath == "debug-snore-short.caf")
+    #expect(record.receivedAudioSeconds == 2)
+    #expect(record.rmsSummary.p90 > 0)
+    #expect(record.energySummary.p90 > 0)
+    #expect(record.rawCandidateCountByType[SleepEventType.snore.rawValue, default: 0] > 0)
+    #expect(FileManager.default.fileExists(atPath: result.csvURL.path))
+    #expect(FileManager.default.fileExists(atPath: result.jsonURL.path))
+
+    let csv = try String(contentsOf: result.csvURL, encoding: .utf8)
+    #expect(csv.contains("rawCandidateCount"))
+    #expect(csv.contains("rejectReasonTop"))
+    #expect(csv.contains("rmsP90"))
+    #expect(csv.contains("energyP90"))
+  }
+
+  @Test
   func missingFileCreatesFailedRecordWithoutThrowing() {
     let manifest = OfflineEvaluationManifest(
       segments: [
@@ -140,7 +191,7 @@ struct OfflineEvaluationSupportTests {
     )
 
     #expect(records.count == 1)
-    #expect(records.first?.errorMessage != nil)
+    #expect(records.first?.errorMessage?.contains("오디오 파일을 찾을 수 없습니다") == true)
     #expect(records.first?.rawCandidateCount == 0)
   }
 
@@ -289,17 +340,19 @@ struct OfflineEvaluationSupportTests {
     return url
   }
 
-  private func writeCAF(samples: [Float], sampleRate: Double) throws -> URL {
-    let url = FileManager.default.temporaryDirectory
+  @discardableResult
+  private func writeCAF(samples: [Float], sampleRate: Double, targetURL: URL? = nil) throws -> URL {
+    let generatedURL = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString)
       .appendingPathExtension("caf")
+    let resolvedURL = targetURL ?? generatedURL
     let format = AVAudioFormat(
       commonFormat: .pcmFormatFloat32,
       sampleRate: sampleRate,
       channels: 1,
       interleaved: false
     )!
-    let file = try AVAudioFile(forWriting: url, settings: format.settings)
+    let file = try AVAudioFile(forWriting: resolvedURL, settings: format.settings)
     let buffer = AVAudioPCMBuffer(
       pcmFormat: format,
       frameCapacity: AVAudioFrameCount(samples.count)
@@ -310,7 +363,7 @@ struct OfflineEvaluationSupportTests {
       channel[index] = samples[index]
     }
     try file.write(from: buffer)
-    return url
+    return resolvedURL
   }
 
   private func snoreLikeSamples(duration: TimeInterval, sampleRate: Double) -> [Float] {

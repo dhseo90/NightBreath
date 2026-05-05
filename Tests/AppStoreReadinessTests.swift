@@ -155,6 +155,29 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func sampleCaptureViewStaysDebugOnlyAndShortManualCaptureOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let contents = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Settings/SampleCaptureView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(contents.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("#if DEBUG"))
+        #expect(contents.contains("sampleButton(seconds: 2)"))
+        #expect(contents.contains("sampleButton(seconds: 3)"))
+        #expect(contents.contains("sampleButton(seconds: 5)"))
+        #expect(!contents.contains("sampleButton(seconds: 10)"))
+        #expect(!contents.contains("sampleButton(seconds: 30)"))
+        #expect(contents.contains("storagePolicy.clampedSampleDuration(duration)"))
+        #expect(contents.contains("maxSampleCount"))
+        #expect(contents.contains("metadataFileName"))
+        #expect(contents.contains("featureCSVFileName"))
+        #expect(contents.contains("AVAudioFile(forWriting"))
+        #expect(contents.contains("전체 밤 오디오는 저장하지 않습니다"))
+        #expect(contents.contains("사용자가 누른 2초/3초/5초 구간만 DEBUG 빌드에서 저장합니다"))
+    }
+
+    @Test
     func privacySettingsCopyCoversStorageAndHealthKitPolicy() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let contents = try String(
