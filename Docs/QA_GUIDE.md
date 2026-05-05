@@ -232,6 +232,160 @@ xcrun xctrace list devices
 
 `devicectl`에서는 보이지만 `xctrace`에서 offline으로 표시되면 iPhone 잠금 해제, 신뢰 설정, Developer Mode, 케이블/네트워크 연결 상태를 먼저 확인합니다.
 
+## P0 Fix 이후 실제 iPhone 짧은 재테스트
+
+이 절차는 P0 stop capture fix와 코골기 zero-event diagnostics/recall 보정 이후 overnight 전에 수행하는 짧은 실제 iPhone smoke test입니다. 실제 개인 오디오 파일, 실제 오디오 파일명, local path, 개인 정보는 repository에 기록하지 않습니다. 테스트는 수동으로 실행하며 자동화하지 않습니다.
+
+사전 조건:
+
+- 테스트 대상 commit hash를 기록합니다.
+- Debug 빌드를 실제 iPhone에 설치합니다.
+- 이벤트 오디오 샘플 저장은 필요한 경우에만 사용자가 명시적으로 켭니다.
+- 전체 밤 원본 오디오 저장, 서버 전송, HealthKit write가 없는 상태를 유지합니다.
+- 결과 문구는 detector 동작과 측정 품질 설명으로만 기록합니다.
+
+### Test 1. Foreground stop smoke
+
+목적: 수면 종료 tap 이후 실제 오디오 캡처가 먼저 멈추는지 확인합니다.
+
+1. 앱을 foreground에 둡니다.
+2. `수면 시작`을 탭합니다.
+3. 30초 동안 대기하며 실제 오디오 수신 시간이 증가하는지 봅니다.
+4. `수면 종료`를 탭합니다.
+5. 1~2초 안에 audio chunk 수신이 멈추는지 확인합니다.
+6. `chunksReceivedAfterStopRequest`가 0 또는 매우 작은 값인지 기록합니다.
+7. 종료 이후 `actual audio received time` 또는 `receivedAudioDuration`이 계속 증가하지 않는지 확인합니다.
+8. 리포트 생성은 capture stop 이후 계속 진행될 수 있음을 확인합니다.
+
+통과 기준:
+
+- `captureStopStartedAt`, `audioEngineStoppedAt`, `lastAudioChunkReceivedAt`가 stop tap 직후 순서상 가깝게 남습니다.
+- 종료 후 실제 오디오 수신 시간이 계속 증가하지 않습니다.
+- 리포트 생성이 늦어져도 캡처 상태는 먼저 종료됩니다.
+
+### Test 2. Double stop tap
+
+목적: stop flow idempotency를 실제 UI에서 확인합니다.
+
+1. `수면 시작`을 탭합니다.
+2. 10~30초 뒤 `수면 종료` 버튼을 빠르게 여러 번 탭합니다.
+3. 앱 crash가 없는지 확인합니다.
+4. 중복 리포트가 생성되지 않는지 확인합니다.
+5. stop diagnostics가 한 세션에 일관되게 남는지 확인합니다.
+
+통과 기준:
+
+- duplicate report가 없습니다.
+- capture stop은 한 번만 실제 teardown을 완료합니다.
+- 추가 tap은 무시되거나 이미 종료 중인 상태로 안전하게 처리됩니다.
+
+### Test 3. Lock/background short stop
+
+목적: 화면 잠금 또는 짧은 background 이후에도 stop tap이 캡처를 즉시 멈추는지 확인합니다.
+
+1. `수면 시작`을 탭합니다.
+2. iPhone 화면을 잠그고 3분 대기합니다.
+3. 잠금 해제 후 앱으로 복귀합니다.
+4. `수면 종료`를 탭합니다.
+5. stop 이후 `receivedAudioDuration`이 증가하지 않는지 확인합니다.
+6. interruption count, longest audio gap, audio coverage를 함께 기록합니다.
+
+통과 기준:
+
+- 앱 복귀 후 stop tap이 정상 동작합니다.
+- stop 이후 실제 오디오 수신 시간 증가가 없습니다.
+- force stop path가 발생했다면 reason이 diagnostics에 남고 crash가 없습니다.
+
+### Test 4. Snore signal smoke
+
+목적: 실제 코골기 또는 명확한 코골기 유사 소리에서 detector 경로가 어디까지 진행되는지 확인합니다.
+
+1. 실제 코골기처럼 들리는 짧은 상황 또는 명확한 코골기 유사 소리를 준비합니다.
+2. `수면 시작` 후 해당 소리가 들어가는 위치에 iPhone을 둡니다.
+3. 30~60초 정도 foreground에서 측정합니다.
+4. `수면 종료` 후 detector diagnostics를 확인합니다.
+5. `rawCandidateCountByType`, `snoreRawCandidateCount`, `snoreRejectReasonTop`, `postSmoothingEventCountByType`, `finalEventCountByType`를 기록합니다.
+6. `rmsP90`, `energyP90`, low-band p90, zero-crossing p50, spectral centroid p50를 threshold snapshot과 비교합니다.
+
+통과 기준:
+
+- final event가 0개여도 raw/reject diagnostics가 남습니다.
+- `snore` raw 후보가 있으면 smoothing과 final count를 이어서 확인할 수 있습니다.
+- raw 후보가 0개이면 feature scale, low-band, ZCR, threshold snapshot으로 다음 tuning 가설을 세울 수 있습니다.
+
+### Test 5. Zero-event explanation
+
+목적: 이벤트 0개 리포트가 원인을 분해해 설명하는지 확인합니다.
+
+1. 조용한 foreground 짧은 측정 또는 Test 4 결과 중 이벤트 0개 케이스를 엽니다.
+2. zero-event 분석이 다음 중 하나로 분류되는지 확인합니다.
+   - no audio 또는 audio coverage 부족
+   - audio received but no raw candidates
+   - snore-like feature 후보가 raw 전 단계에서 제외
+   - raw candidates dropped by smoothing
+   - conservative threshold 또는 feature scale mismatch 가능성
+   - backend fallback 또는 disabled 상태
+3. 사용자-facing 문구가 “detector 기준을 통과한 이벤트가 없었습니다”, “감지 기준이 보수적으로 동작했을 수 있습니다”, “측정 환경이나 iPhone 배치 영향을 받을 수 있습니다” 수준을 유지하는지 확인합니다.
+
+통과 기준:
+
+- 이벤트 0개여도 raw/reject/feature diagnostics가 비어 있지 않거나, 입력 부족 사유가 명확합니다.
+- 특정 건강 상태를 단정하는 문구가 없습니다.
+
+### Evidence Template
+
+아래 template은 issue, QA note, local memo에 붙여 사용합니다. 실제 개인 오디오 파일명, local path, 실제 대화 내용은 기록하지 않습니다.
+
+```text
+commit hash:
+device model:
+iOS version:
+build configuration:
+test start time:
+test end time:
+
+Test result:
+- Foreground stop smoke:
+- Double stop tap:
+- Lock/background short stop:
+- Snore signal smoke:
+- Zero-event explanation:
+
+Stop diagnostics:
+- stopButtonTappedAt:
+- captureStopStartedAt:
+- audioEngineStoppedAt:
+- lastAudioChunkReceivedAt:
+- chunksReceivedAfterStopRequest:
+- receivedAudioDurationBeforeStop:
+- receivedAudioDurationAfterStop:
+
+Detector diagnostics:
+- rawCandidateCountByType:
+- postSmoothingEventCountByType:
+- finalEventCountByType:
+- topRejectReason:
+- rmsP90:
+- energyP90:
+
+Notes:
+- report generation after stop:
+- force stop reason, if any:
+- detector backend / tuning profile:
+- sensitive data included in repo: No
+```
+
+### Overnight Gate
+
+Overnight test는 아래 gate를 모두 통과한 뒤에만 수행합니다.
+
+- Foreground stop smoke가 실패하면 overnight 금지.
+- Lock/background short stop에서 stop 이후 audio received time이 증가하면 overnight 금지.
+- Double stop tap에서 duplicate report 또는 crash가 있으면 overnight 금지.
+- Snore signal smoke에서 raw diagnostics가 전혀 없으면 detector 판단용 overnight 금지.
+- Detector가 final event를 만들지 못하더라도 raw/reject diagnostics가 남아야 다음 tuning으로 진행합니다.
+- Evidence template에 `sensitive data included in repo: No`가 명시되어야 합니다.
+
 ## 실제 iPhone Smoke Test
 
 1. 앱 첫 실행

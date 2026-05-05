@@ -88,8 +88,12 @@
 ## 실제 iPhone QA
 
 - foreground 1분 smoke test
+- P0 fix 이후 `Docs/QA_GUIDE.md`의 Foreground stop smoke / Double stop tap / Lock/background short stop 통과
+- stop 이후 actual audio received time이 증가하지 않는 evidence template 기록
 - 화면 잠금 3분 smoke test
 - 앱 백그라운드 3분 smoke test
+- 실제 코골이 또는 코골기 유사 smoke에서 raw/reject/final diagnostics 기록
+- zero-event인 경우 no audio / no raw / smoothing dropped / conservative threshold 가능성 중 하나로 분류되는지 확인
 - 잠금 30분 테스트
 - 충전 상태 overnight test
 - 이벤트 오디오 샘플 opt-in ON/OFF 각각 확인
