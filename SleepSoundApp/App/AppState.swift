@@ -750,6 +750,7 @@ final class AppState: ObservableObject {
                 detectorBackend: sleepAnalyzer.detectorBackend.displayName,
                 modelInstalled: sleepAnalyzer.isModelInstalled,
                 thresholdsSnapshot: currentDetectorThresholdSnapshot,
+                tuningProfile: detectorTuningProfile.displayName,
                 eventAudioSampleStorageEnabled: isEventAudioSampleStorageEnabled
             )
             detectorDiagnosticsCollector.addNote("Detector tuning profile: \(detectorTuningProfile.displayName)")

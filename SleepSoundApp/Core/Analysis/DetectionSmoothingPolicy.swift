@@ -36,6 +36,7 @@ public struct DetectionSmoothingPolicy: Equatable, Sendable {
 
     public func applyWithDiagnostics(to outputs: [DetectorOutput]) -> DetectionSmoothingResult {
         var rejectedCountByReason: [RejectReason: Int] = [:]
+        let preSmoothingCandidateCountByType = countByType(outputs)
         let environmentalNoiseOutputs = outputs.filter { $0.eventType == .environmentalNoise }
         let eligibleOutputs = outputs
             .compactMap { output in
@@ -93,9 +94,17 @@ public struct DetectionSmoothingPolicy: Equatable, Sendable {
             diagnostics: DetectionSmoothingDiagnostics(
                 preSmoothingCandidateCount: outputs.count,
                 postSmoothingEventCount: finalOutputs.count,
+                preSmoothingCandidateCountByType: preSmoothingCandidateCountByType,
+                postSmoothingEventCountByType: countByType(finalOutputs),
                 rejectedCountByReason: rejectedCountByReason
             )
         )
+    }
+
+    private func countByType(_ outputs: [DetectorOutput]) -> [SleepEventType: Int] {
+        outputs.reduce(into: [SleepEventType: Int]()) { result, output in
+            result[output.eventType, default: 0] += 1
+        }
     }
 
     private func adjustedOutput(

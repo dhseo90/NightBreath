@@ -41,6 +41,46 @@ Feature Validation은 실제 Core ML 모델을 붙이기 전에 현재 `AudioFea
 
 이 값들은 rule-based detector 튜닝과 이후 모델 입력 설계를 돕기 위한 개발용 feature입니다.
 
+## Detector diagnostics에서 확인할 feature 분포
+
+실제 iPhone 세션의 이벤트가 0개일 때는 feature CSV를 만들기 전에 리포트에 저장된 `DetectorDiagnostics`를 먼저 확인합니다.
+
+주요 분포 필드:
+
+- `rmsMin`, `rmsP50`, `rmsP90`, `rmsMax`
+- `energyMin`, `energyP50`, `energyP90`, `energyMax`
+- `lowBandEnergyP50`, `lowBandEnergyP90`
+- `midBandEnergyP50`
+- `highBandEnergyP50`
+- `zeroCrossingRateP50`
+- `spectralCentroidP50`
+
+pipeline count 필드:
+
+- `audioChunkCount`
+- `analyzedChunkCount`
+- `rawCandidateCountByType`
+- `preSmoothingCandidateCountByType`
+- `postSmoothingEventCountByType`
+- `finalEventCountByType`
+- `rejectReasonCounts`
+- `snoreRawCandidateCount`
+- `snoreRejectedCount`
+- `snoreRejectReasonTop`
+- `thresholdSnapshot`
+- `activeDetectorBackend`
+- `tuningProfile`
+- `modelInstalled`
+- `fallbackUsed`
+
+판독 기준:
+
+- audio chunk가 거의 없으면 먼저 capture/background 상태를 확인합니다.
+- raw 후보가 0개이면 RMS/energy/low-band 분포가 threshold 근처까지 올라왔는지 확인합니다.
+- raw 후보는 있는데 post-smoothing이 0이면 confidence, duration, merge/drop reason을 봅니다.
+- `snore` raw 후보는 있는데 최종 이벤트가 0이면 `snoreRejectReasonTop`과 confidence histogram을 우선 확인합니다.
+- feature 분포가 threshold보다 낮으면 iPhone 위치, 마이크 방향, 케이스, 주변 소리 영향을 짧은 foreground 테스트로 비교합니다.
+
 ## rule-based detector의 한계
 
 현재 detector는 정확한 판정을 목표로 하지 않습니다.

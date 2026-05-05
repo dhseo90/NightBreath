@@ -26,10 +26,13 @@ struct DetectorDiagnosticsCollectorTests {
         collector.record(features: quietFeatures, outputs: [])
         let diagnostics = try finalized(collector)
 
+        #expect(diagnostics.audioChunkCount == 60)
         #expect(diagnostics.analyzedChunkCount == 1)
         #expect(diagnostics.rawCandidateCount == 0)
         #expect(diagnostics.rmsSummary.p90 == 0.001)
         #expect(diagnostics.energySummary.p90 == 0.000001)
+        #expect(diagnostics.rmsMin == 0.001)
+        #expect(diagnostics.energyMax == 0.000001)
         #expect(diagnostics.rejectedCountByReason[.likelySilence] == 1)
         #expect(diagnostics.rejectedCountByReason[.belowRmsThreshold] == 1)
         #expect(diagnostics.rejectedCountByReason[.belowEnergyThreshold] == 1)
@@ -53,6 +56,7 @@ struct DetectorDiagnosticsCollectorTests {
 
         #expect(diagnostics.rawCandidateCount == 1)
         #expect(diagnostics.rawCandidateCountByType[.snore] == 1)
+        #expect(diagnostics.snoreRawCandidateCount == 1)
         #expect(diagnostics.confidenceHistogram["0.6-0.8"] == 1)
     }
 
@@ -74,6 +78,8 @@ struct DetectorDiagnosticsCollectorTests {
         let result = policy.applyWithDiagnostics(to: outputs)
 
         #expect(result.diagnostics.preSmoothingCandidateCount == 4)
+        #expect(result.diagnostics.preSmoothingCandidateCountByType[.snore] == 2)
+        #expect(result.diagnostics.postSmoothingEventCountByType[.snore] == 1)
         #expect(result.outputs.count == 1)
         #expect(result.diagnostics.postSmoothingEventCount == 1)
         #expect(result.diagnostics.rejectedCountByReason[.tooShort] == 1)
@@ -95,7 +101,92 @@ struct DetectorDiagnosticsCollectorTests {
 
         let diagnostics = try finalized(collector)
 
-        #expect(diagnostics.summaryTextForZeroEvents == "오디오 입력은 수신되었지만 detector 기준을 통과한 raw 후보가 없었습니다.")
+        #expect(diagnostics.summaryTextForZeroEvents == "오디오 입력은 수신되었지만 detector 기준을 통과한 raw 후보가 만들어지지 않았습니다.")
+    }
+
+    @Test
+    func collectorPersistsTypeCountsSnoreRejectAndTuningProfile() throws {
+        let collector = makeCollector()
+        let start = Date(timeIntervalSince1970: 80)
+        let snoreOutput = makeOutput(type: .snore, start: start, duration: 0.1, confidence: 0.20)
+
+        collector.record(features: makeFeatures(rms: 0.06, energy: 0.0036, startedAt: start), outputs: [snoreOutput])
+        collector.record(smoothingDiagnostics: DetectionSmoothingDiagnostics(
+            preSmoothingCandidateCount: 1,
+            postSmoothingEventCount: 0,
+            preSmoothingCandidateCountByType: [.snore: 1],
+            postSmoothingEventCountByType: [:],
+            rejectedCountByReason: [.belowConfidenceThreshold: 1]
+        ))
+        collector.record(finalEvents: [])
+
+        let diagnostics = try finalized(collector)
+        let encoded = try JSONEncoder().encode(diagnostics)
+        let decoded = try JSONDecoder().decode(DetectorDiagnostics.self, from: encoded)
+
+        #expect(decoded.tuningProfile == DetectorTuningProfile.balanced.displayName)
+        #expect(decoded.preSmoothingCandidateCountByType[.snore] == 1)
+        #expect(decoded.postSmoothingEventCountByType[.snore] == nil)
+        #expect(decoded.snoreRejectedCount == 1)
+        #expect(decoded.snoreRejectReasonTop == .belowConfidenceThreshold)
+        #expect(decoded.rejectedCountByReason[.smoothingDropped] == 1)
+        #expect(decoded.rejectReasonCounts[.belowConfidenceThreshold] == 1)
+    }
+
+    @Test
+    func legacyDiagnosticsDecodeDefaultsNewObservabilityFields() throws {
+        let legacyJSON = """
+        {
+          "sessionId": "00000000-0000-0000-0000-000000000101",
+          "startedAt": 0,
+          "detectorBackend": "Rule-based",
+          "modelInstalled": false,
+          "analyzedChunkCount": 12,
+          "receivedAudioSeconds": 12,
+          "analyzedAudioSeconds": 12,
+          "audioCoverageRatio": 1,
+          "rawCandidateCount": 1,
+          "rawCandidateCountByType": ["snore", 1],
+          "preSmoothingCandidateCount": 1,
+          "postSmoothingEventCount": 0,
+          "finalEventCountByType": [],
+          "rejectedCountByReason": ["belowConfidenceThreshold", 1],
+          "confidenceHistogram": {},
+          "eventAudioSampleStorageEnabled": false
+        }
+        """.data(using: .utf8)!
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        let diagnostics = try decoder.decode(DetectorDiagnostics.self, from: legacyJSON)
+
+        #expect(diagnostics.audioChunkCount == 12)
+        #expect(diagnostics.preSmoothingCandidateCountByType.isEmpty)
+        #expect(diagnostics.postSmoothingEventCountByType.isEmpty)
+        #expect(diagnostics.tuningProfile == nil)
+        #expect(diagnostics.snoreRawCandidateCount == 1)
+        #expect(diagnostics.snoreRejectedCount == 1)
+    }
+
+    @Test
+    func inferredRejectReasonsIncludeLowBandForSnoreLikeScaleMismatch() {
+        let features = makeFeatures(
+            rms: 0.045,
+            energy: 0.0021,
+            startedAt: Date(timeIntervalSince1970: 90)
+        )
+        let reasons = RejectReason.inferredForFeatureWithoutOutput(
+            features,
+            thresholdsSnapshot: [
+                "rule.silenceRMS": 0.01,
+                "rule.snoreRMS": 0.05,
+                "tuning.snoreEnergyThreshold": 0.0025
+            ]
+        )
+
+        #expect(reasons.contains(.belowRmsThreshold))
+        #expect(reasons.contains(.belowEnergyThreshold))
+        #expect(reasons.contains(.belowLowBandRatio))
     }
 
     @Test
@@ -184,8 +275,10 @@ struct DetectorDiagnosticsCollectorTests {
             thresholdsSnapshot: [
                 "rule.silenceRMS": 0.01,
                 "rule.snoreRMS": 0.05,
+                "tuning.snoreEnergyThreshold": 0.0025,
                 "smoothing.confidenceThreshold": 0.35
             ],
+            tuningProfile: DetectorTuningProfile.balanced.displayName,
             eventAudioSampleStorageEnabled: false
         )
         return collector

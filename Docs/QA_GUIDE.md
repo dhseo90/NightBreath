@@ -126,6 +126,38 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 세부 detector/dataset 문서는 `Docs/DETECTOR_TUNING.md`, `Docs/DATASET_REPLAY.md`, `Docs/DATASET_GUIDE.md`, `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
+## 실제 iPhone zero-event diagnostics
+
+실제 iPhone 세션에서 들리는 수면 중 소리가 있었는데 이벤트가 0개로 나온 경우, threshold 변경 전에 다음 값을 캡처합니다. 실제 오디오 파일명, local path, 개인 정보는 기록하지 않습니다.
+
+필수 기록:
+
+- 앱 동작 시간, 실제 오디오 수신 시간, 실제 분석 시간, audio coverage
+- `audioChunkCount`, `analyzedChunkCount`
+- `rawCandidateCountByType`
+- `preSmoothingCandidateCountByType`
+- `postSmoothingEventCountByType`
+- `finalEventCountByType`
+- `snoreRawCandidateCount`, `snoreRejectedCount`, `snoreRejectReasonTop`
+- `rejectReasonCounts` top 3
+- RMS/energy p50/p90, low-band p50/p90, zero crossing p50, spectral centroid p50
+- `thresholdSnapshot`, `activeDetectorBackend`, `tuningProfile`, `modelInstalled`, `fallbackUsed`
+
+DEBUG 확인:
+
+- `AudioDebugView`에서 live RMS / energy, current threshold, last raw candidate, last reject reason을 봅니다.
+- raw candidate count by type과 smoothing 전/후 count가 증가하는지 봅니다.
+- `DatasetReplayView`에서는 synthetic 또는 사용자가 준비한 로컬 짧은 segment로 같은 pipeline count를 비교합니다.
+- 이 과정은 원본 전체 오디오 저장이나 서버 전송 없이 수행합니다.
+
+zero-event 판독:
+
+- 실제 오디오 수신이 거의 없으면 capture/background 문제를 먼저 봅니다.
+- audio coverage는 충분하지만 raw 후보가 0개이면 feature scale과 threshold snapshot을 비교합니다.
+- raw 후보는 있었지만 post-smoothing이 0이면 confidence/duration/drop reason을 확인합니다.
+- `snore` raw 후보가 있었지만 최종 이벤트가 0이면 confidence histogram과 `snoreRejectReasonTop`을 우선 확인합니다.
+- user-facing 문구는 “감지 기준을 통과한 이벤트가 없었습니다”, “감지 기준이 보수적으로 동작했을 수 있습니다” 수준으로 유지합니다.
+
 ## 실제 iPhone QA가 필요한 경우
 
 다음 변경 또는 확인 시점에는 실제 iPhone QA가 필요합니다.

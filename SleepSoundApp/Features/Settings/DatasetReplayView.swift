@@ -263,16 +263,17 @@
       var audioFeatures: [AudioFeatures] = []
       let stream = source.makeChunkStream()
 
-      collector.reset(
-        sessionId: session.id,
-        startedAt: startedAt,
-        detectorBackend: analyzer.detectorBackend.displayName,
-        modelInstalled: analyzer.isModelInstalled,
-        thresholdsSnapshot: analyzer.thresholdsSnapshot.merging(configuration.thresholdSnapshot) {
-          current, _ in current
-        },
-        eventAudioSampleStorageEnabled: false
-      )
+        collector.reset(
+          sessionId: session.id,
+          startedAt: startedAt,
+          detectorBackend: analyzer.detectorBackend.displayName,
+          modelInstalled: analyzer.isModelInstalled,
+          thresholdsSnapshot: analyzer.thresholdsSnapshot.merging(configuration.thresholdSnapshot) {
+            current, _ in current
+          },
+          tuningProfile: configuration.profile.displayName,
+          eventAudioSampleStorageEnabled: false
+        )
       collector.addNote("Dataset Replay: \(label)")
 
       do {
@@ -389,13 +390,24 @@
     private var diagnosticItems: [NBDiagnosticItem] {
       [
         NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+        NBDiagnosticItem(title: "코골기 raw/제외", value: "\(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount)", status: .debug),
         NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
+        NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
         NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .good),
-        NBDiagnosticItem(title: "RMS / energy p90", value: "\(String(format: "%.4f", diagnostics.rmsSummary.p90)) / \(String(format: "%.4f", diagnostics.energySummary.p90))", status: .neutral),
-        NBDiagnosticItem(title: "detector backend", value: diagnostics.detectorBackend, status: .debug),
+        NBDiagnosticItem(title: "RMS / energy p90", value: "\(String(format: "%.4f", diagnostics.rmsP90)) / \(String(format: "%.4f", diagnostics.energyP90))", status: .neutral),
+        NBDiagnosticItem(title: "low/mid/high p50", value: "\(String(format: "%.3f", diagnostics.lowBandEnergyP50)) / \(String(format: "%.3f", diagnostics.midBandEnergyP50)) / \(String(format: "%.3f", diagnostics.highBandEnergyP50))", status: .neutral),
+        NBDiagnosticItem(title: "detector backend", value: diagnostics.activeDetectorBackend, status: .debug),
+        NBDiagnosticItem(title: "tuning profile", value: diagnostics.tuningProfile ?? "Unknown", status: .debug),
         NBDiagnosticItem(title: "Core ML model", value: diagnostics.modelInstalled ? "Installed" : "Not installed", status: diagnostics.modelInstalled ? .good : .neutral),
         NBDiagnosticItem(title: "fallback count", value: "\(diagnostics.modelFallbackCount)회", status: diagnostics.modelFallbackCount > 0 ? .caution : .good),
       ]
+    }
+
+    private func eventCountText(_ counts: [SleepEventType: Int]) -> String {
+      let parts = counts
+        .sorted { lhs, rhs in lhs.key.rawValue < rhs.key.rawValue }
+        .map { type, count in "\(type.timelineDisplayName) \(count)" }
+      return parts.isEmpty ? "없음" : parts.joined(separator: ", ")
     }
   }
 

@@ -2,9 +2,12 @@ import Foundation
 
 public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
     case audioNotReceivedEnough
+    case audioReceivedButNoRawCandidates
     case detectorTooConservative
+    case featureScaleBelowThreshold
     case featuresMostlySilence
     case candidatesRejectedByConfidence
+    case snoreCandidatesRejectedByConfidence
     case candidatesRejectedByTooShort
     case smoothingRemovedCandidates
     case modelUnavailableFallback
@@ -15,12 +18,18 @@ public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
         switch self {
         case .audioNotReceivedEnough:
             "오디오 수신 부족"
+        case .audioReceivedButNoRawCandidates:
+            "오디오 수신 후 raw 후보 없음"
         case .detectorTooConservative:
             "감지 기준이 보수적일 가능성"
+        case .featureScaleBelowThreshold:
+            "feature 분포가 기준보다 낮음"
         case .featuresMostlySilence:
             "대부분 저활동/무음"
         case .candidatesRejectedByConfidence:
             "confidence 기준에서 제외"
+        case .snoreCandidatesRejectedByConfidence:
+            "코골기 raw 후보가 confidence 기준에서 제외"
         case .candidatesRejectedByTooShort:
             "후보가 너무 짧음"
         case .smoothingRemovedCandidates:
@@ -56,7 +65,8 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
     ) -> ZeroEventAnalysis? {
         guard diagnostics.finalEventCountByType.values.reduce(0, +) == 0 else { return nil }
 
-        if diagnostics.analyzedChunkCount == 0 ||
+        if diagnostics.audioChunkCount == 0 ||
+            diagnostics.analyzedChunkCount == 0 ||
             diagnostics.analyzedAudioSeconds < 30 ||
             diagnostics.audioCoverageRatio < 0.60 {
             return ZeroEventAnalysis(
@@ -82,8 +92,19 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
             )
         }
 
+        if diagnostics.snoreRawCandidateCount > 0,
+           diagnostics.snorePostSmoothingEventCount == 0,
+           diagnostics.rejectedCountByReason[.belowConfidenceThreshold, default: 0] > 0 ||
+            diagnostics.rejectedCountByReason[.belowConfidence, default: 0] > 0 {
+            return ZeroEventAnalysis(
+                probableReason: .snoreCandidatesRejectedByConfidence,
+                recommendedDebugAction: "코골기 raw 후보가 있었지만 confidence 기준에서 제외되었습니다. Threshold를 바로 낮추기보다 raw 후보 confidence 분포, iPhone 배치, RMS/저주파 p90을 함께 확인하세요.",
+                confidence: 0.84
+            )
+        }
+
         let topReason = diagnostics.topRejectReasons.first?.0
-        if topReason == .belowConfidenceThreshold {
+        if topReason == .belowConfidenceThreshold || topReason == .belowConfidence {
             return ZeroEventAnalysis(
                 probableReason: .candidatesRejectedByConfidence,
                 recommendedDebugAction: "대부분의 후보가 confidence 기준에서 제외되었습니다. DEBUG에서 Sensitive profile로 짧은 비교 테스트를 해볼 수 있습니다.",
@@ -91,7 +112,7 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
             )
         }
 
-        if topReason == .tooShort {
+        if topReason == .tooShort || topReason == .tooShortDuration {
             return ZeroEventAnalysis(
                 probableReason: .candidatesRejectedByTooShort,
                 recommendedDebugAction: "후보는 있었지만 너무 짧아 이벤트로 남지 않았습니다. 박수/두드림 같은 짧은 소리 테스트와 minimumEventDuration을 비교하세요.",
@@ -103,8 +124,8 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
            diagnostics.postSmoothingEventCount == 0 {
             return ZeroEventAnalysis(
                 probableReason: .smoothingRemovedCandidates,
-                recommendedDebugAction: "raw 후보는 있었지만 smoothing 후 모두 제외되었습니다. 주요 탈락 이유와 merge/최소 duration 기준을 확인하세요.",
-                confidence: 0.76
+                recommendedDebugAction: "raw 후보는 있었지만 smoothing 후 모두 제외되었습니다. 주요 탈락 이유, 최소 duration, confidence 기준을 함께 확인하세요.",
+                confidence: 0.80
             )
         }
 
@@ -145,14 +166,14 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
 
         if belowRmsCount >= max(1, diagnostics.analyzedChunkCount / 2) {
             return ZeroEventAnalysis(
-                probableReason: .genuinelyQuietSession,
-                recommendedDebugAction: "오디오 입력은 있었지만 RMS/energy 분포가 낮았습니다. 조용한 세션일 가능성과 detector 기준을 함께 확인하세요.",
+                probableReason: .featureScaleBelowThreshold,
+                recommendedDebugAction: "오디오 입력은 있었지만 RMS/energy 분포가 기준보다 낮았습니다. 입력 크기, iPhone 위치, 마이크 방향을 짧은 foreground 테스트와 비교하세요.",
                 confidence: 0.68
             )
         }
 
         return ZeroEventAnalysis(
-            probableReason: .unknown,
+            probableReason: .audioReceivedButNoRawCandidates,
             recommendedDebugAction: "Raw 후보가 없었습니다. RMS/energy p90/p95, 마이크 배치, background 수신 상태를 함께 확인하세요.",
             confidence: 0.45
         )

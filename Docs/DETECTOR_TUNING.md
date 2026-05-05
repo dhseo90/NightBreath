@@ -26,6 +26,28 @@
 
 현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*` key로 저장됩니다.
 
+## 실제 iPhone zero-event triage
+
+실제 현장에서 코골기가 들렸는데 리포트 이벤트가 0개인 경우에도 threshold를 바로 낮추지 않습니다. 먼저 세션의 `DetectorDiagnostics`를 보고 capture → feature → raw candidate → smoothing → final event → report aggregation 중 어디에서 후보가 사라졌는지 분리합니다.
+
+확인 순서:
+
+1. `audioChunkCount`, `analyzedChunkCount`, `receivedAudioSeconds`, `analyzedAudioSeconds`, `audioCoverageRatio`로 실제 입력과 분석 시간이 충분했는지 확인합니다.
+2. `rmsSummary`, `energySummary`, `lowBandEnergySummary`, `zeroCrossingRateSummary`, `spectralCentroidSummary`의 p50/p90 값을 threshold snapshot과 비교합니다.
+3. `rawCandidateCountByType`에서 `snore` 후보가 아예 없었는지 확인합니다.
+4. `preSmoothingCandidateCountByType`와 `postSmoothingEventCountByType`를 비교해 raw 후보가 smoothing 단계에서 사라졌는지 봅니다.
+5. `finalEventCountByType`와 리포트 이벤트 집계가 같은지 확인합니다.
+6. `rejectedCountByReason`, `snoreRejectedCount`, `snoreRejectReasonTop`으로 confidence, duration, low-band ratio, 환경 소음 후보 영향 중 어떤 이유가 큰지 확인합니다.
+7. `detectorBackend`, `tuningProfile`, `modelInstalled`, `modelFallbackCount`, `fallbackUsed`를 함께 기록합니다.
+
+zero-event 해석 문구는 다음 범위를 넘지 않습니다.
+
+- “오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다.”
+- “감지 기준이 보수적으로 동작했을 수 있습니다.”
+- “측정 환경이나 iPhone 배치 영향을 받을 수 있습니다.”
+
+이 문구는 수면 중 소리 기반 detector 상태를 설명하기 위한 것이며 건강 상태를 확정하지 않습니다.
+
 ## 최신 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.

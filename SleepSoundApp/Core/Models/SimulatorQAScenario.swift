@@ -356,6 +356,7 @@ public enum SimulatorQAScenarioFactory {
       detectorBackend: SleepDetectionBackend.ruleBased.displayName,
       modelInstalled: false,
       modelFallbackCount: 0,
+      audioChunkCount: metrics.receivedChunkCount,
       analyzedChunkCount: metrics.analyzedChunkCount,
       receivedAudioSeconds: metrics.receivedAudioSeconds,
       analyzedAudioSeconds: metrics.analyzedAudioSeconds,
@@ -364,6 +365,8 @@ public enum SimulatorQAScenarioFactory {
       rawCandidateCountByType: rawCounts,
       preSmoothingCandidateCount: rawCandidateCount,
       postSmoothingEventCount: events.count,
+      preSmoothingCandidateCountByType: rawCounts,
+      postSmoothingEventCountByType: finalCounts,
       finalEventCountByType: finalCounts,
       rejectedCountByReason: rejected,
       confidenceHistogram: confidenceHistogram(events: events, rawCandidateCount: rawCandidateCount),
@@ -375,6 +378,7 @@ public enum SimulatorQAScenarioFactory {
       midBandEnergySummary: SummaryStats.make(values: [0.18, 0.24, 0.32, 0.42]),
       highBandEnergySummary: SummaryStats.make(values: [0.08, 0.16, 0.22, 0.36]),
       thresholdsSnapshot: DetectorTuningProfile.balanced.configuration.thresholdSnapshot,
+      tuningProfile: DetectorTuningProfile.balanced.displayName,
       eventAudioSampleStorageEnabled: storageEnabled,
       notes: [preset.qaFocus]
     )

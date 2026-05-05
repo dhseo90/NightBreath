@@ -78,6 +78,27 @@
           }
         }
 
+        Section("Detector Observability") {
+          NBDiagnosticCard(
+            title: "Detector Pipeline",
+            summary: "실시간 입력이 feature, raw 후보, smoothing 기준에서 어떻게 처리되는지 DEBUG 빌드에서만 봅니다.",
+            items: [
+              NBDiagnosticItem(title: "chunks received/analyzed", value: "\(viewModel.chunkCount) / \(viewModel.analyzedChunkCount)", status: .debug),
+              NBDiagnosticItem(title: "current thresholds", value: viewModel.currentThresholdText, status: .debug),
+              NBDiagnosticItem(title: "last raw candidate", value: viewModel.latestRawCandidateText, status: .neutral),
+              NBDiagnosticItem(title: "last reject reason", value: viewModel.lastRejectReasonText, status: .caution),
+              NBDiagnosticItem(title: "raw candidate count", value: viewModel.rawCandidateCountText, status: .neutral),
+              NBDiagnosticItem(title: "smoothing 전/후", value: "\(viewModel.preSmoothingCandidateCount) / \(viewModel.postSmoothingEventCount)", status: .debug),
+              NBDiagnosticItem(title: "smoothing drop", value: "\(viewModel.smoothingDropCount)개", status: viewModel.smoothingDropCount > 0 ? .caution : .good),
+              NBDiagnosticItem(title: "tuning profile", value: viewModel.tuningProfileText, status: .debug),
+            ],
+            showsDetails: true,
+            systemImage: "waveform.path.ecg"
+          )
+          .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+          .listRowBackground(Color.clear)
+        }
+
         Section("Detector Backend") {
           NBDiagnosticCard(
             title: "Detector Backend",
@@ -160,6 +181,7 @@
     @Published var permissionState: MicrophonePermissionState = .notDetermined
     @Published var message: String?
     @Published var chunkCount: Int = 0
+    @Published var analyzedChunkCount: Int = 0
     @Published var currentRMS: Double = 0
     @Published var currentEnergy: Double = 0
     @Published var currentPeak: Double = 0
@@ -171,6 +193,12 @@
     @Published var currentEstimatedNoiseLevel: Double = 0
     @Published var latestFeatures: AudioFeatures?
     @Published var latestOutput: DetectorOutput?
+    @Published var latestRawCandidateText: String = "없음"
+    @Published var lastRejectReasonText: String = "대기 중"
+    @Published var rawCandidateCountByType: [SleepEventType: Int] = [:]
+    @Published var preSmoothingCandidateCount: Int = 0
+    @Published var postSmoothingEventCount: Int = 0
+    @Published var smoothingDropCount: Int = 0
     @Published var detectorBackend: SleepDetectionBackend = .hybrid
     @Published var coreMLModelStatus: String = "Not installed"
     @Published var modelVersionText: String = CoreMLDetectorConfiguration.default.modelVersion
@@ -197,6 +225,7 @@
     private let featureExtractor: AudioFeatureExtracting
     private var detector: RuleBasedSleepEventDetector
     private var coreMLDetector: CoreMLSleepEventDetector
+    private var rawOutputs: [DetectorOutput] = []
 
     init(
       audioSessionManager: AudioSessionManaging = AudioSessionManager(),
@@ -255,6 +284,26 @@
       return "일반 입력 범위"
     }
 
+    var currentThresholdText: String {
+      String(
+        format: "silence %.3f / snore %.3f / noise %.3f",
+        silenceThreshold,
+        snoreThreshold,
+        noiseThreshold
+      )
+    }
+
+    var rawCandidateCountText: String {
+      let parts = rawCandidateCountByType
+        .sorted { lhs, rhs in lhs.key.rawValue < rhs.key.rawValue }
+        .map { type, count in "\(type.timelineDisplayName) \(count)" }
+      return parts.isEmpty ? "없음" : parts.joined(separator: ", ")
+    }
+
+    var tuningProfileText: String {
+      DetectorTuningProfile.customDebug.displayName
+    }
+
     func refreshPermissionState() {
       permissionState = audioSessionManager.microphonePermissionState()
     }
@@ -262,8 +311,16 @@
     func startCapture() async {
       message = nil
       chunkCount = 0
+      analyzedChunkCount = 0
       latestOutput = nil
+      latestRawCandidateText = "없음"
+      lastRejectReasonText = "대기 중"
       latestFeatures = nil
+      rawCandidateCountByType.removeAll()
+      rawOutputs.removeAll()
+      preSmoothingCandidateCount = 0
+      postSmoothingEventCount = 0
+      smoothingDropCount = 0
       latestCoreMLConfidenceText = "대기 중"
       coreMLFallbackCount = 0
       hybridFallbackStatus = "Available"
@@ -329,6 +386,7 @@
       let coreMLResult = coreMLDetector.detectWithStatus(features: features)
 
       chunkCount += 1
+      analyzedChunkCount += 1
       latestFeatures = features
       currentRMS = features.rms
       currentEnergy = features.energy
@@ -346,7 +404,39 @@
           lhs.confidence < rhs.confidence
         }
       }
+      updatePipelineObservability(features: features, outputs: outputs)
       updateCoreMLStatus(from: coreMLResult)
+    }
+
+    private func updatePipelineObservability(features: AudioFeatures, outputs: [DetectorOutput]) {
+      if outputs.isEmpty {
+        let reasons = RejectReason.inferredForFeatureWithoutOutput(
+          features,
+          thresholdsSnapshot: thresholdSnapshot
+        )
+        lastRejectReasonText = reasons.map(\.displayName).joined(separator: ", ")
+      } else {
+        for output in outputs {
+          rawCandidateCountByType[output.eventType, default: 0] += 1
+        }
+        if let strongestOutput = outputs.max(by: { lhs, rhs in lhs.confidence < rhs.confidence }) {
+          latestRawCandidateText =
+            "\(strongestOutput.eventType.timelineDisplayName) \(percentString(strongestOutput.confidence))"
+        }
+      }
+
+      rawOutputs.append(contentsOf: outputs)
+      let smoothingDiagnostics = smoothingPolicy.applyWithDiagnostics(to: rawOutputs).diagnostics
+      preSmoothingCandidateCount = smoothingDiagnostics.preSmoothingCandidateCount
+      postSmoothingEventCount = smoothingDiagnostics.postSmoothingEventCount
+      smoothingDropCount = max(0, preSmoothingCandidateCount - postSmoothingEventCount)
+      if outputs.isEmpty == false,
+         let topReason = smoothingDiagnostics.rejectedCountByReason.sorted(by: { lhs, rhs in
+           if lhs.value == rhs.value { return lhs.key.rawValue < rhs.key.rawValue }
+           return lhs.value > rhs.value
+         }).first?.key {
+        lastRejectReasonText = topReason.displayName
+      }
     }
 
     private func updateDetectorThresholds() {
@@ -358,6 +448,23 @@
           suspectedPauseMinimumDuration: suspectedPauseMinimumDuration
         )
       )
+    }
+
+    private var smoothingPolicy: DetectionSmoothingPolicy {
+      DetectionSmoothingPolicy(
+        minimumEventDuration: DetectorTuningProfile.customDebug.configuration.minimumEventDuration,
+        maximumMergeGap: DetectorTuningProfile.customDebug.configuration.mergeGapSeconds,
+        confidenceThreshold: DetectorTuningProfile.customDebug.configuration.minimumConfidence
+      )
+    }
+
+    private var thresholdSnapshot: [String: Double] {
+      [
+        "rule.silenceRMS": silenceThreshold,
+        "rule.snoreRMS": snoreThreshold,
+        "rule.noiseRMS": noiseThreshold,
+        "tuning.snoreEnergyThreshold": snoreThreshold * snoreThreshold
+      ]
     }
 
     private func updateCoreMLStatus(from result: CoreMLDetectionResult) {

@@ -3,9 +3,15 @@ import Foundation
 public enum RejectReason: String, Codable, CaseIterable, Sendable {
     case belowRmsThreshold
     case belowEnergyThreshold
+    case belowLowBandRatio
     case belowConfidenceThreshold
+    case belowConfidence
     case tooShort
+    case tooShortDuration
+    case tooLongGap
     case mergedIntoNearbyEvent
+    case mergedIntoNoise
+    case smoothingDropped
     case likelyEnvironmentalNoise
     case likelySilence
     case insufficientBreathingContext
@@ -21,12 +27,24 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
             "RMS 기준 미달"
         case .belowEnergyThreshold:
             "energy 기준 미달"
+        case .belowLowBandRatio:
+            "저주파 비율 기준 미달"
         case .belowConfidenceThreshold:
             "confidence 낮음"
+        case .belowConfidence:
+            "confidence 기준 미달"
         case .tooShort:
             "너무 짧음"
+        case .tooShortDuration:
+            "지속 시간 기준 미달"
+        case .tooLongGap:
+            "후보 간격이 김"
         case .mergedIntoNearbyEvent:
             "가까운 이벤트로 병합"
+        case .mergedIntoNoise:
+            "소음 후보에 병합"
+        case .smoothingDropped:
+            "smoothing 단계 제외"
         case .likelyEnvironmentalNoise:
             "환경 소음 가능성"
         case .likelySilence:
@@ -44,6 +62,38 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
         case .unknown:
             "기타"
         }
+    }
+
+    public static func inferredForFeatureWithoutOutput(
+        _ features: AudioFeatures,
+        thresholdsSnapshot: [String: Double]
+    ) -> [RejectReason] {
+        var reasons: [RejectReason] = []
+        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"]
+            ?? thresholdsSnapshot["tuning.silenceRmsThreshold"]
+            ?? 0.01
+        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"]
+            ?? thresholdsSnapshot["tuning.snoreRmsThreshold"]
+            ?? 0.05
+        let snoreEnergy = thresholdsSnapshot["tuning.snoreEnergyThreshold"] ?? snoreRMS * snoreRMS
+
+        if features.isLikelySilence || features.rms < silenceRMS {
+            reasons.append(.likelySilence)
+        }
+        if features.rms < snoreRMS {
+            reasons.append(.belowRmsThreshold)
+        }
+        if features.energy < snoreEnergy {
+            reasons.append(.belowEnergyThreshold)
+        }
+        if features.rms >= snoreRMS * 0.80,
+           features.lowFrequencyEnergyRatio < 0.45 {
+            reasons.append(.belowLowBandRatio)
+        }
+        if reasons.isEmpty {
+            reasons.append(.unknown)
+        }
+        return reasons
     }
 }
 
@@ -121,15 +171,21 @@ public struct SummaryStats: Codable, Equatable, Sendable {
 public struct DetectionSmoothingDiagnostics: Codable, Equatable, Sendable {
     public var preSmoothingCandidateCount: Int
     public var postSmoothingEventCount: Int
+    public var preSmoothingCandidateCountByType: [SleepEventType: Int]
+    public var postSmoothingEventCountByType: [SleepEventType: Int]
     public var rejectedCountByReason: [RejectReason: Int]
 
     public init(
         preSmoothingCandidateCount: Int = 0,
         postSmoothingEventCount: Int = 0,
+        preSmoothingCandidateCountByType: [SleepEventType: Int] = [:],
+        postSmoothingEventCountByType: [SleepEventType: Int] = [:],
         rejectedCountByReason: [RejectReason: Int] = [:]
     ) {
         self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
         self.postSmoothingEventCount = max(0, postSmoothingEventCount)
+        self.preSmoothingCandidateCountByType = preSmoothingCandidateCountByType
+        self.postSmoothingEventCountByType = postSmoothingEventCountByType
         self.rejectedCountByReason = rejectedCountByReason
     }
 }
@@ -151,6 +207,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var detectorBackend: String
     public var modelInstalled: Bool
     public var modelFallbackCount: Int
+    public var audioChunkCount: Int
     public var analyzedChunkCount: Int
     public var receivedAudioSeconds: TimeInterval
     public var analyzedAudioSeconds: TimeInterval
@@ -159,6 +216,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var rawCandidateCountByType: [SleepEventType: Int]
     public var preSmoothingCandidateCount: Int
     public var postSmoothingEventCount: Int
+    public var preSmoothingCandidateCountByType: [SleepEventType: Int]
+    public var postSmoothingEventCountByType: [SleepEventType: Int]
     public var finalEventCountByType: [SleepEventType: Int]
     public var rejectedCountByReason: [RejectReason: Int]
     public var confidenceHistogram: [String: Int]
@@ -170,6 +229,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var midBandEnergySummary: SummaryStats
     public var highBandEnergySummary: SummaryStats
     public var thresholdsSnapshot: [String: Double]
+    public var tuningProfile: String?
     public var eventAudioSampleStorageEnabled: Bool
     public var lowActivityObservedCount: Int?
     public var lowActivityDurationTotal: TimeInterval?
@@ -196,6 +256,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         detectorBackend: String,
         modelInstalled: Bool,
         modelFallbackCount: Int = 0,
+        audioChunkCount: Int = 0,
         analyzedChunkCount: Int = 0,
         receivedAudioSeconds: TimeInterval = 0,
         analyzedAudioSeconds: TimeInterval = 0,
@@ -204,6 +265,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         rawCandidateCountByType: [SleepEventType: Int] = [:],
         preSmoothingCandidateCount: Int = 0,
         postSmoothingEventCount: Int = 0,
+        preSmoothingCandidateCountByType: [SleepEventType: Int] = [:],
+        postSmoothingEventCountByType: [SleepEventType: Int] = [:],
         finalEventCountByType: [SleepEventType: Int] = [:],
         rejectedCountByReason: [RejectReason: Int] = [:],
         confidenceHistogram: [String: Int] = [:],
@@ -215,6 +278,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         midBandEnergySummary: SummaryStats = SummaryStats(),
         highBandEnergySummary: SummaryStats = SummaryStats(),
         thresholdsSnapshot: [String: Double] = [:],
+        tuningProfile: String? = nil,
         eventAudioSampleStorageEnabled: Bool,
         lowActivityObservedCount: Int = 0,
         lowActivityDurationTotal: TimeInterval = 0,
@@ -241,6 +305,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.modelInstalled = modelInstalled
         self.modelFallbackCount = max(0, modelFallbackCount)
         self.analyzedChunkCount = max(0, analyzedChunkCount)
+        self.audioChunkCount = max(0, max(audioChunkCount, self.analyzedChunkCount))
         self.receivedAudioSeconds = max(0, receivedAudioSeconds)
         self.analyzedAudioSeconds = max(0, analyzedAudioSeconds)
         self.audioCoverageRatio = Self.clampedRatio(audioCoverageRatio)
@@ -248,6 +313,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.rawCandidateCountByType = rawCandidateCountByType
         self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
         self.postSmoothingEventCount = max(0, postSmoothingEventCount)
+        self.preSmoothingCandidateCountByType = preSmoothingCandidateCountByType
+        self.postSmoothingEventCountByType = postSmoothingEventCountByType
         self.finalEventCountByType = finalEventCountByType
         self.rejectedCountByReason = rejectedCountByReason
         self.confidenceHistogram = confidenceHistogram
@@ -259,6 +326,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.midBandEnergySummary = midBandEnergySummary
         self.highBandEnergySummary = highBandEnergySummary
         self.thresholdsSnapshot = thresholdsSnapshot.filter { $0.value.isFinite }
+        self.tuningProfile = tuningProfile
         self.eventAudioSampleStorageEnabled = eventAudioSampleStorageEnabled
         self.lowActivityObservedCount = max(0, lowActivityObservedCount)
         self.lowActivityDurationTotal = max(0, lowActivityDurationTotal)
@@ -279,6 +347,113 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.notes = notes
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let analyzedChunkCount = try container.decodeIfPresent(Int.self, forKey: .analyzedChunkCount) ?? 0
+        let audioChunkCount = try container.decodeIfPresent(Int.self, forKey: .audioChunkCount) ?? analyzedChunkCount
+
+        self.init(
+            sessionId: try container.decodeIfPresent(UUID.self, forKey: .sessionId) ?? UUID(),
+            startedAt: try container.decodeIfPresent(Date.self, forKey: .startedAt) ?? Date(),
+            endedAt: try container.decodeIfPresent(Date.self, forKey: .endedAt),
+            detectorBackend: try container.decodeIfPresent(String.self, forKey: .detectorBackend)
+                ?? SleepDetectionBackend.ruleBased.displayName,
+            modelInstalled: try container.decodeIfPresent(Bool.self, forKey: .modelInstalled) ?? false,
+            modelFallbackCount: try container.decodeIfPresent(Int.self, forKey: .modelFallbackCount) ?? 0,
+            audioChunkCount: audioChunkCount,
+            analyzedChunkCount: analyzedChunkCount,
+            receivedAudioSeconds: try container.decodeIfPresent(TimeInterval.self, forKey: .receivedAudioSeconds) ?? 0,
+            analyzedAudioSeconds: try container.decodeIfPresent(TimeInterval.self, forKey: .analyzedAudioSeconds) ?? 0,
+            audioCoverageRatio: try container.decodeIfPresent(Double.self, forKey: .audioCoverageRatio) ?? 0,
+            rawCandidateCount: try container.decodeIfPresent(Int.self, forKey: .rawCandidateCount) ?? 0,
+            rawCandidateCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .rawCandidateCountByType) ?? [:],
+            preSmoothingCandidateCount: try container.decodeIfPresent(Int.self, forKey: .preSmoothingCandidateCount) ?? 0,
+            postSmoothingEventCount: try container.decodeIfPresent(Int.self, forKey: .postSmoothingEventCount) ?? 0,
+            preSmoothingCandidateCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .preSmoothingCandidateCountByType) ?? [:],
+            postSmoothingEventCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .postSmoothingEventCountByType) ?? [:],
+            finalEventCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .finalEventCountByType) ?? [:],
+            rejectedCountByReason: try container.decodeIfPresent([RejectReason: Int].self, forKey: .rejectedCountByReason) ?? [:],
+            confidenceHistogram: try container.decodeIfPresent([String: Int].self, forKey: .confidenceHistogram) ?? [:],
+            rmsSummary: try container.decodeIfPresent(SummaryStats.self, forKey: .rmsSummary) ?? SummaryStats(),
+            energySummary: try container.decodeIfPresent(SummaryStats.self, forKey: .energySummary) ?? SummaryStats(),
+            zeroCrossingRateSummary: try container.decodeIfPresent(SummaryStats.self, forKey: .zeroCrossingRateSummary) ?? SummaryStats(),
+            spectralCentroidSummary: try container.decodeIfPresent(SummaryStats.self, forKey: .spectralCentroidSummary) ?? SummaryStats(),
+            lowBandEnergySummary: try container.decodeIfPresent(SummaryStats.self, forKey: .lowBandEnergySummary) ?? SummaryStats(),
+            midBandEnergySummary: try container.decodeIfPresent(SummaryStats.self, forKey: .midBandEnergySummary) ?? SummaryStats(),
+            highBandEnergySummary: try container.decodeIfPresent(SummaryStats.self, forKey: .highBandEnergySummary) ?? SummaryStats(),
+            thresholdsSnapshot: try container.decodeIfPresent([String: Double].self, forKey: .thresholdsSnapshot) ?? [:],
+            tuningProfile: try container.decodeIfPresent(String.self, forKey: .tuningProfile),
+            eventAudioSampleStorageEnabled: try container.decodeIfPresent(Bool.self, forKey: .eventAudioSampleStorageEnabled) ?? false,
+            lowActivityObservedCount: try container.decodeIfPresent(Int.self, forKey: .lowActivityObservedCount) ?? 0,
+            lowActivityDurationTotal: try container.decodeIfPresent(TimeInterval.self, forKey: .lowActivityDurationTotal) ?? 0,
+            lowActivityCandidateCount: try container.decodeIfPresent(Int.self, forKey: .lowActivityCandidateCount) ?? 0,
+            noiseContaminatedLowActivityCount: try container.decodeIfPresent(Int.self, forKey: .noiseContaminatedLowActivityCount) ?? 0,
+            recoveryPatternCount: try container.decodeIfPresent(Int.self, forKey: .recoveryPatternCount) ?? 0,
+            pauseCandidatesRejectedByNoise: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesRejectedByNoise) ?? 0,
+            pauseCandidatesRejectedByDuration: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesRejectedByDuration) ?? 0,
+            pauseCandidatesRejectedByNoRecovery: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesRejectedByNoRecovery) ?? 0,
+            pauseCandidatesRejectedByInsufficientContext: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesRejectedByInsufficientContext) ?? 0,
+            pauseCandidatesRejectedByLikelySilence: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesRejectedByLikelySilence) ?? 0,
+            pauseCandidatesPromotedByGasp: try container.decodeIfPresent(Int.self, forKey: .pauseCandidatesPromotedByGasp) ?? 0,
+            latestBreathingActivityScore: try container.decodeIfPresent(Double.self, forKey: .latestBreathingActivityScore) ?? 0,
+            latestLowActivityDurationSeconds: try container.decodeIfPresent(TimeInterval.self, forKey: .latestLowActivityDurationSeconds) ?? 0,
+            latestRecoveryPatternDetected: try container.decodeIfPresent(Bool.self, forKey: .latestRecoveryPatternDetected) ?? false,
+            latestPauseCandidateConfidence: try container.decodeIfPresent(Double.self, forKey: .latestPauseCandidateConfidence) ?? 0,
+            latestPauseCandidateRejectedReason: try container.decodeIfPresent(String.self, forKey: .latestPauseCandidateRejectedReason),
+            notes: try container.decodeIfPresent([String].self, forKey: .notes) ?? []
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case sessionId
+        case startedAt
+        case endedAt
+        case detectorBackend
+        case modelInstalled
+        case modelFallbackCount
+        case audioChunkCount
+        case analyzedChunkCount
+        case receivedAudioSeconds
+        case analyzedAudioSeconds
+        case audioCoverageRatio
+        case rawCandidateCount
+        case rawCandidateCountByType
+        case preSmoothingCandidateCount
+        case postSmoothingEventCount
+        case preSmoothingCandidateCountByType
+        case postSmoothingEventCountByType
+        case finalEventCountByType
+        case rejectedCountByReason
+        case confidenceHistogram
+        case rmsSummary
+        case energySummary
+        case zeroCrossingRateSummary
+        case spectralCentroidSummary
+        case lowBandEnergySummary
+        case midBandEnergySummary
+        case highBandEnergySummary
+        case thresholdsSnapshot
+        case tuningProfile
+        case eventAudioSampleStorageEnabled
+        case lowActivityObservedCount
+        case lowActivityDurationTotal
+        case lowActivityCandidateCount
+        case noiseContaminatedLowActivityCount
+        case recoveryPatternCount
+        case pauseCandidatesRejectedByNoise
+        case pauseCandidatesRejectedByDuration
+        case pauseCandidatesRejectedByNoRecovery
+        case pauseCandidatesRejectedByInsufficientContext
+        case pauseCandidatesRejectedByLikelySilence
+        case pauseCandidatesPromotedByGasp
+        case latestBreathingActivityScore
+        case latestLowActivityDurationSeconds
+        case latestRecoveryPatternDetected
+        case latestPauseCandidateConfidence
+        case latestPauseCandidateRejectedReason
+        case notes
+    }
+
     public var topRejectReasons: [(RejectReason, Int)] {
         rejectedCountByReason.sorted { lhs, rhs in
             if lhs.value == rhs.value {
@@ -288,15 +463,64 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         }
     }
 
+    public var activeDetectorBackend: String { detectorBackend }
+
+    public var fallbackUsed: Bool { modelFallbackCount > 0 }
+
+    public var rejectReasonCounts: [RejectReason: Int] { rejectedCountByReason }
+
+    public var snoreRawCandidateCount: Int { rawCandidateCountByType[.snore] ?? 0 }
+
+    public var snoreFinalEventCount: Int { finalEventCountByType[.snore] ?? 0 }
+
+    public var snorePostSmoothingEventCount: Int { postSmoothingEventCountByType[.snore] ?? snoreFinalEventCount }
+
+    public var snoreRejectedCount: Int {
+        max(0, snoreRawCandidateCount - snorePostSmoothingEventCount)
+    }
+
+    public var snoreRejectReasonTop: RejectReason? {
+        if rejectedCountByReason[.belowConfidenceThreshold, default: 0] > 0 ||
+            rejectedCountByReason[.belowConfidence, default: 0] > 0 {
+            return .belowConfidenceThreshold
+        }
+        return topRejectReasons.first?.0
+    }
+
+    public var rmsMin: Double { rmsSummary.min }
+    public var rmsP50: Double { rmsSummary.p50 }
+    public var rmsP90: Double { rmsSummary.p90 }
+    public var rmsMax: Double { rmsSummary.max }
+    public var energyMin: Double { energySummary.min }
+    public var energyP50: Double { energySummary.p50 }
+    public var energyP90: Double { energySummary.p90 }
+    public var energyMax: Double { energySummary.max }
+    public var lowBandEnergyP50: Double { lowBandEnergySummary.p50 }
+    public var lowBandEnergyP90: Double { lowBandEnergySummary.p90 }
+    public var midBandEnergyP50: Double { midBandEnergySummary.p50 }
+    public var highBandEnergyP50: Double { highBandEnergySummary.p50 }
+    public var zeroCrossingRateP50: Double { zeroCrossingRateSummary.p50 }
+    public var spectralCentroidP50: Double { spectralCentroidSummary.p50 }
+    public var thresholdSnapshot: [String: Double] { thresholdsSnapshot }
+
     public var summaryTextForZeroEvents: String? {
         guard finalEventCountByType.values.reduce(0, +) == 0 else { return nil }
-        guard analyzedChunkCount > 0 else {
-            return "분석된 오디오 chunk가 없어 detector 요약을 만들 수 없습니다."
+        guard audioChunkCount > 0 || analyzedChunkCount > 0 else {
+            return "실제 오디오 수신이 거의 없어 detector 요약을 만들 수 없습니다."
+        }
+        guard analyzedChunkCount > 0, analyzedAudioSeconds > 0 else {
+            return "오디오 입력은 일부 수신되었지만 분석된 chunk가 부족해 detector 판단 경로를 제한적으로만 볼 수 있습니다."
+        }
+        if snoreRawCandidateCount > 0, snorePostSmoothingEventCount == 0 {
+            return "코골기 raw 후보는 있었지만 confidence, 지속 시간 또는 smoothing 기준을 통과한 최종 이벤트가 없었습니다."
         }
         if rawCandidateCount == 0 {
-            return "오디오 입력은 수신되었지만 detector 기준을 통과한 raw 후보가 없었습니다."
+            return "오디오 입력은 수신되었지만 detector 기준을 통과한 raw 후보가 만들어지지 않았습니다."
         }
-        return "raw 후보는 있었지만 smoothing 또는 최종 이벤트 기준을 통과한 이벤트가 없었습니다."
+        if preSmoothingCandidateCount > 0, postSmoothingEventCount == 0 {
+            return "raw 후보는 있었지만 smoothing 단계 이후 최종 이벤트가 남지 않았습니다."
+        }
+        return "raw 후보는 있었지만 최종 리포트 이벤트로 남은 항목이 없었습니다."
     }
 
     private static func clampedRatio(_ value: Double) -> Double {
@@ -311,6 +535,7 @@ public final class DetectorDiagnosticsCollector {
     private var detectorBackend: String = SleepDetectionBackend.ruleBased.displayName
     private var modelInstalled = false
     private var thresholdsSnapshot: [String: Double] = [:]
+    private var tuningProfile: String?
     private var eventAudioSampleStorageEnabled = false
     private var rawCandidateCountByType: [SleepEventType: Int] = [:]
     private var rejectedCountByReason: [RejectReason: Int] = [:]
@@ -326,6 +551,8 @@ public final class DetectorDiagnosticsCollector {
     private var highBandEnergyValues: [Double] = []
     private var preSmoothingCandidateCount = 0
     private var postSmoothingEventCount = 0
+    private var preSmoothingCandidateCountByType: [SleepEventType: Int] = [:]
+    private var postSmoothingEventCountByType: [SleepEventType: Int] = [:]
     private var finalEventCountByType: [SleepEventType: Int] = [:]
     private var sequenceSummary = SuspectedBreathingPauseSequenceSummary()
     private var notes: [String] = []
@@ -338,6 +565,7 @@ public final class DetectorDiagnosticsCollector {
         detectorBackend: String,
         modelInstalled: Bool,
         thresholdsSnapshot: [String: Double],
+        tuningProfile: String? = nil,
         eventAudioSampleStorageEnabled: Bool
     ) {
         self.sessionId = sessionId
@@ -345,6 +573,7 @@ public final class DetectorDiagnosticsCollector {
         self.detectorBackend = detectorBackend
         self.modelInstalled = modelInstalled
         self.thresholdsSnapshot = thresholdsSnapshot.filter { $0.value.isFinite }
+        self.tuningProfile = tuningProfile
         self.eventAudioSampleStorageEnabled = eventAudioSampleStorageEnabled
         rawCandidateCountByType.removeAll(keepingCapacity: true)
         rejectedCountByReason.removeAll(keepingCapacity: true)
@@ -360,6 +589,8 @@ public final class DetectorDiagnosticsCollector {
         highBandEnergyValues.removeAll(keepingCapacity: true)
         preSmoothingCandidateCount = 0
         postSmoothingEventCount = 0
+        preSmoothingCandidateCountByType.removeAll(keepingCapacity: true)
+        postSmoothingEventCountByType.removeAll(keepingCapacity: true)
         finalEventCountByType.removeAll(keepingCapacity: true)
         sequenceSummary = SuspectedBreathingPauseSequenceSummary()
         notes.removeAll(keepingCapacity: true)
@@ -376,7 +607,10 @@ public final class DetectorDiagnosticsCollector {
         appendFinite(features.highBandEnergy, to: &highBandEnergyValues)
 
         if outputs.isEmpty {
-            for reason in inferredRejectReasons(for: features) {
+            for reason in RejectReason.inferredForFeatureWithoutOutput(
+                features,
+                thresholdsSnapshot: thresholdsSnapshot
+            ) {
                 incrementReject(reason)
             }
             return
@@ -400,6 +634,12 @@ public final class DetectorDiagnosticsCollector {
     public func record(smoothingDiagnostics: DetectionSmoothingDiagnostics) {
         preSmoothingCandidateCount = smoothingDiagnostics.preSmoothingCandidateCount
         postSmoothingEventCount = smoothingDiagnostics.postSmoothingEventCount
+        preSmoothingCandidateCountByType = smoothingDiagnostics.preSmoothingCandidateCountByType
+        postSmoothingEventCountByType = smoothingDiagnostics.postSmoothingEventCountByType
+        let smoothingDropCount = max(0, preSmoothingCandidateCount - postSmoothingEventCount)
+        if smoothingDropCount > 0 {
+            rejectedCountByReason[.smoothingDropped, default: 0] += smoothingDropCount
+        }
         for (reason, count) in smoothingDiagnostics.rejectedCountByReason {
             rejectedCountByReason[reason, default: 0] += count
         }
@@ -456,6 +696,7 @@ public final class DetectorDiagnosticsCollector {
             detectorBackend: detectorBackend,
             modelInstalled: modelInstalled,
             modelFallbackCount: modelFallbackCount,
+            audioChunkCount: max(metrics.receivedChunkCount, analyzedChunkCount),
             analyzedChunkCount: analyzedChunkCount,
             receivedAudioSeconds: metrics.receivedAudioSeconds,
             analyzedAudioSeconds: metrics.analyzedAudioSeconds,
@@ -464,6 +705,8 @@ public final class DetectorDiagnosticsCollector {
             rawCandidateCountByType: rawCandidateCountByType,
             preSmoothingCandidateCount: preSmoothingCandidateCount,
             postSmoothingEventCount: postSmoothingEventCount,
+            preSmoothingCandidateCountByType: preSmoothingCandidateCountByType,
+            postSmoothingEventCountByType: postSmoothingEventCountByType,
             finalEventCountByType: finalEventCountByType,
             rejectedCountByReason: rejectedCountByReason,
             confidenceHistogram: confidenceHistogram,
@@ -475,6 +718,7 @@ public final class DetectorDiagnosticsCollector {
             midBandEnergySummary: SummaryStats.make(values: midBandEnergyValues),
             highBandEnergySummary: SummaryStats.make(values: highBandEnergyValues),
             thresholdsSnapshot: thresholdsSnapshot,
+            tuningProfile: tuningProfile,
             eventAudioSampleStorageEnabled: eventAudioSampleStorageEnabled,
             lowActivityObservedCount: sequenceSummary.lowActivityObservedCount,
             lowActivityDurationTotal: sequenceSummary.lowActivityDurationTotal,
@@ -494,26 +738,6 @@ public final class DetectorDiagnosticsCollector {
             latestPauseCandidateRejectedReason: sequenceSummary.latestPauseCandidateRejectedReason,
             notes: notes
         )
-    }
-
-    private func inferredRejectReasons(for features: AudioFeatures) -> [RejectReason] {
-        var reasons: [RejectReason] = []
-        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"] ?? 0.01
-        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"] ?? 0.05
-
-        if features.isLikelySilence || features.rms < silenceRMS {
-            reasons.append(.likelySilence)
-        }
-        if features.rms < snoreRMS {
-            reasons.append(.belowRmsThreshold)
-        }
-        if features.energy < snoreRMS * snoreRMS {
-            reasons.append(.belowEnergyThreshold)
-        }
-        if reasons.isEmpty {
-            reasons.append(.unknown)
-        }
-        return reasons
     }
 
     private func incrementReject(_ reason: RejectReason) {

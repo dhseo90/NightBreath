@@ -211,6 +211,12 @@ struct SleepReportView: View {
         VStack(alignment: .leading, spacing: NBSpacing.medium) {
           LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             ReportMetricCard(
+              title: "수신 chunk",
+              value: "\(diagnostics.audioChunkCount)개",
+              systemImage: "tray.and.arrow.down",
+              color: NBColor.audioTint
+            )
+            ReportMetricCard(
               title: "분석 chunk",
               value: "\(diagnostics.analyzedChunkCount)개",
               systemImage: "square.stack.3d.up",
@@ -221,6 +227,18 @@ struct SleepReportView: View {
               value: "\(diagnostics.rawCandidateCount)개",
               systemImage: "waveform",
               color: NBColor.breath
+            )
+            ReportMetricCard(
+              title: "코골기 raw",
+              value: "\(diagnostics.snoreRawCandidateCount)개",
+              systemImage: SleepEventType.snore.symbolName,
+              color: SleepEventType.snore.tintColor
+            )
+            ReportMetricCard(
+              title: "코골기 제외",
+              value: "\(diagnostics.snoreRejectedCount)개",
+              systemImage: "line.3.horizontal.decrease.circle",
+              color: NBColor.caution
             )
             ReportMetricCard(
               title: "Smoothing 후",
@@ -247,6 +265,18 @@ struct SleepReportView: View {
               color: NBColor.warning
             )
             ReportMetricCard(
+              title: "Low band p90",
+              value: shortNumber(diagnostics.lowBandEnergyP90),
+              systemImage: "waveform.path",
+              color: NBColor.breathBlue
+            )
+            ReportMetricCard(
+              title: "ZCR p50",
+              value: shortNumber(diagnostics.zeroCrossingRateP50),
+              systemImage: "waveform.path.ecg",
+              color: NBColor.mistTeal
+            )
+            ReportMetricCard(
               title: "저활동 관찰",
               value: "\(diagnostics.lowActivityObservedCount ?? 0)개",
               systemImage: "lungs",
@@ -261,12 +291,22 @@ struct SleepReportView: View {
           }
 
           VStack(alignment: .leading, spacing: 6) {
-            Text("현재 backend: \(diagnostics.detectorBackend)")
+            Text("현재 backend: \(diagnostics.activeDetectorBackend)")
               .font(.caption)
               .foregroundStyle(NBColor.secondaryText)
+            if let tuningProfile = diagnostics.tuningProfile {
+              Text("Tuning profile: \(tuningProfile)")
+                .font(.caption)
+                .foregroundStyle(NBColor.secondaryText)
+            }
             Text("Core ML fallback: \(diagnostics.modelFallbackCount)회")
               .font(.caption)
               .foregroundStyle(NBColor.secondaryText)
+            if let snoreRejectReason = diagnostics.snoreRejectReasonTop {
+              Text("코골기 후보 제외 주요 이유: \(snoreRejectReason.displayName)")
+                .font(.caption)
+                .foregroundStyle(NBColor.secondaryText)
+            }
             Text("주요 탈락 이유: \(topRejectReasonText(diagnostics))")
               .font(.caption)
               .foregroundStyle(NBColor.secondaryText)
@@ -287,7 +327,7 @@ struct SleepReportView: View {
           }
 
           if let zeroEventText = diagnostics.summaryTextForZeroEvents {
-            Text(zeroEventText + " 감지 기준이 보수적일 수 있어 Debug 진단 요약을 함께 확인하세요.")
+            Text(zeroEventText + " 감지 기준이 보수적으로 동작했을 수 있어 진단 요약을 함께 확인하세요.")
               .font(.callout)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
@@ -307,6 +347,20 @@ struct SleepReportView: View {
             }
             .padding(.top, 4)
           }
+
+          #if DEBUG
+            NBDiagnosticItemList(
+              items: [
+                NBDiagnosticItem(title: "raw by type", value: eventCountText(diagnostics.rawCandidateCountByType), status: .debug),
+                NBDiagnosticItem(title: "pre-smoothing by type", value: eventCountText(diagnostics.preSmoothingCandidateCountByType), status: .debug),
+                NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
+                NBDiagnosticItem(title: "threshold snapshot", value: thresholdSnapshotText(diagnostics), status: .debug),
+                NBDiagnosticItem(title: "RMS min/p50/p90/max", value: "\(shortNumber(diagnostics.rmsMin)) / \(shortNumber(diagnostics.rmsP50)) / \(shortNumber(diagnostics.rmsP90)) / \(shortNumber(diagnostics.rmsMax))", status: .neutral),
+                NBDiagnosticItem(title: "Energy min/p50/p90/max", value: "\(shortNumber(diagnostics.energyMin)) / \(shortNumber(diagnostics.energyP50)) / \(shortNumber(diagnostics.energyP90)) / \(shortNumber(diagnostics.energyMax))", status: .neutral),
+              ],
+              showsDetails: true
+            )
+          #endif
         }
       }
     }
@@ -335,6 +389,7 @@ struct SleepReportView: View {
               NBDiagnosticItemList(
                 items: [
                 NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+                NBDiagnosticItem(title: "코골기 raw/제외", value: "\(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount)", status: .debug),
                 NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
                 NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
                 NBDiagnosticItem(title: "주요 탈락 이유", value: topRejectReasonText(diagnostics), status: .caution),
@@ -693,6 +748,28 @@ struct SleepReportView: View {
       "\(reason.displayName) \(count)회"
     }
     return reasons.isEmpty ? "없음" : reasons.joined(separator: ", ")
+  }
+
+  private func eventCountText(_ counts: [SleepEventType: Int]) -> String {
+    let parts = counts
+      .sorted { lhs, rhs in lhs.key.rawValue < rhs.key.rawValue }
+      .map { type, count in "\(type.timelineDisplayName) \(count)" }
+    return parts.isEmpty ? "없음" : parts.joined(separator: ", ")
+  }
+
+  private func thresholdSnapshotText(_ diagnostics: DetectorDiagnostics) -> String {
+    let keys = [
+      "rule.silenceRMS",
+      "rule.snoreRMS",
+      "tuning.snoreEnergyThreshold",
+      "smoothing.confidenceThreshold",
+      "smoothing.minimumEventDuration",
+    ]
+    let parts = keys.compactMap { key -> String? in
+      guard let value = diagnostics.thresholdsSnapshot[key] else { return nil }
+      return "\(key)=\(shortNumber(value))"
+    }
+    return parts.isEmpty ? "없음" : parts.joined(separator: ", ")
   }
 
   private var trendReports: [NightReport] {

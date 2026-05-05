@@ -49,6 +49,19 @@ struct ZeroEventAnalysisTests {
     }
 
     @Test
+    func detectsAudioReceivedButNoRawCandidates() throws {
+        let diagnostics = makeDiagnostics(
+            rawCandidateCount: 0,
+            rejectedCountByReason: [.unknown: 12],
+            rmsValues: [0.012, 0.018, 0.022],
+            energyValues: [0.00014, 0.00032, 0.00048]
+        )
+
+        let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+        #expect(analysis.probableReason == .audioReceivedButNoRawCandidates)
+    }
+
+    @Test
     func detectorTooConservativeAnalysisWorksAcrossDebugProfiles() throws {
         for profile in DetectorTuningProfile.debugSelectableProfiles {
             let configuration = profile.configuration
@@ -88,6 +101,22 @@ struct ZeroEventAnalysisTests {
     }
 
     @Test
+    func detectsSnoreLikeRawCandidateRejectedByConfidence() throws {
+        let diagnostics = makeDiagnostics(
+            rawCandidateCount: 3,
+            rawCandidateCountByType: [.snore: 3],
+            preSmoothingCandidateCount: 3,
+            postSmoothingEventCount: 0,
+            preSmoothingCandidateCountByType: [.snore: 3],
+            postSmoothingEventCountByType: [:],
+            rejectedCountByReason: [.belowConfidenceThreshold: 3]
+        )
+
+        let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+        #expect(analysis.probableReason == .snoreCandidatesRejectedByConfidence)
+    }
+
+    @Test
     func detectsTooShortRejects() throws {
         let diagnostics = makeDiagnostics(
             rawCandidateCount: 5,
@@ -98,6 +127,22 @@ struct ZeroEventAnalysisTests {
 
         let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
         #expect(analysis.probableReason == .candidatesRejectedByTooShort)
+    }
+
+    @Test
+    func detectsRawCandidatesDroppedBySmoothing() throws {
+        let diagnostics = makeDiagnostics(
+            rawCandidateCount: 4,
+            rawCandidateCountByType: [.coughLike: 4],
+            preSmoothingCandidateCount: 4,
+            postSmoothingEventCount: 0,
+            preSmoothingCandidateCountByType: [.coughLike: 4],
+            postSmoothingEventCountByType: [:],
+            rejectedCountByReason: [.smoothingDropped: 4]
+        )
+
+        let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+        #expect(analysis.probableReason == .smoothingRemovedCandidates)
     }
 
     @Test
@@ -116,8 +161,11 @@ struct ZeroEventAnalysisTests {
 
     private func makeDiagnostics(
         rawCandidateCount: Int = 0,
+        rawCandidateCountByType: [SleepEventType: Int]? = nil,
         preSmoothingCandidateCount: Int = 0,
         postSmoothingEventCount: Int = 0,
+        preSmoothingCandidateCountByType: [SleepEventType: Int] = [:],
+        postSmoothingEventCountByType: [SleepEventType: Int] = [:],
         modelFallbackCount: Int = 0,
         rejectedCountByReason: [RejectReason: Int] = [:],
         rmsValues: [Double] = [0.02, 0.03],
@@ -132,14 +180,17 @@ struct ZeroEventAnalysisTests {
             detectorBackend: SleepDetectionBackend.ruleBased.displayName,
             modelInstalled: false,
             modelFallbackCount: modelFallbackCount,
+            audioChunkCount: 120,
             analyzedChunkCount: 120,
             receivedAudioSeconds: 300,
             analyzedAudioSeconds: 299,
             audioCoverageRatio: 0.99,
             rawCandidateCount: rawCandidateCount,
-            rawCandidateCountByType: rawCandidateCount > 0 ? [.unknown: rawCandidateCount] : [:],
+            rawCandidateCountByType: rawCandidateCountByType ?? (rawCandidateCount > 0 ? [.unknown: rawCandidateCount] : [:]),
             preSmoothingCandidateCount: preSmoothingCandidateCount,
             postSmoothingEventCount: postSmoothingEventCount,
+            preSmoothingCandidateCountByType: preSmoothingCandidateCountByType,
+            postSmoothingEventCountByType: postSmoothingEventCountByType,
             finalEventCountByType: [:],
             rejectedCountByReason: rejectedCountByReason,
             confidenceHistogram: [:],
@@ -151,6 +202,7 @@ struct ZeroEventAnalysisTests {
             midBandEnergySummary: SummaryStats.make(values: [0.1, 0.2]),
             highBandEnergySummary: SummaryStats.make(values: [0.1, 0.2]),
             thresholdsSnapshot: DetectorTuningProfile.balanced.configuration.thresholdSnapshot,
+            tuningProfile: DetectorTuningProfile.balanced.displayName,
             eventAudioSampleStorageEnabled: false,
             notes: []
         )

@@ -104,17 +104,20 @@
 
 - 공개 또는 로컬 데이터셋 manifest 작성
 - snore / non-snore labeled segment 정리
+- 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집
+- 수집된 diagnostics로 raw 후보 없음, smoothing drop, confidence drop, feature scale mismatch를 분류
 - Offline Evaluation으로 conservative / balanced / sensitive profile 비교
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리
 - Core ML 변환 결과를 앱 target에 추가하는 절차 검증
-- Rule-based와 Core ML backend 비교 DEBUG UI 보강
+- Rule-based와 Core ML backend 비교 결과를 실제 iPhone QA 기록에 연결
 
 주의:
 
 - 모델 성능을 확정적으로 표현하지 않습니다.
 - 공개/개인 오디오 파일을 repo에 포함하지 않습니다.
 - threshold 변경은 자동 적용하지 않고 수동 검토합니다.
+- 전체 밤 원본 오디오 저장 없이 feature/diagnostics summary만 사용합니다.
 
 ## UI Gallery / Screenshot
 

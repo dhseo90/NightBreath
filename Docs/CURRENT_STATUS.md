@@ -28,6 +28,9 @@
 - detector protocol
 - Core ML adapter placeholder
 - detector diagnostics
+- real-device zero-event detector observability
+- raw/pre-smoothing/post-smoothing/final event type count diagnostics
+- feature distribution diagnostics for RMS/energy/band/zero-crossing/centroid
 - zero-event analysis
 - 이벤트 오디오 샘플 저장/재생/삭제
 - 이벤트별 사용자 feedback 저장/삭제/export 구조
