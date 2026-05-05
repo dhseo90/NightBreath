@@ -157,7 +157,7 @@ struct MetricDetailViewModelTests {
         #expect(metadata.isExtendedLocalOnly)
         #expect(!metadata.isHealthKitBacked)
         #expect(explanation.messages.joined(separator: " ").contains("Fitdays CSV import"))
-        #expect(explanation.messages.joined(separator: " ").contains("local-only"))
+        #expect(explanation.messages.joined(separator: " ").contains("로컬 전용"))
         #expect(explanation.messages.joined(separator: " ").contains("import/manual"))
     }
 
@@ -182,8 +182,8 @@ struct MetricDetailViewModelTests {
         #expect(contents.contains("MetricSummaryCard"))
         #expect(contents.contains("rawSampleListSection"))
         #expect(contents.contains("MetricSourceBadgeStrip"))
-        #expect(contents.contains("HealthKit-backed"))
-        #expect(contents.contains("Local-only"))
+        #expect(contents.contains("HealthKit 기반"))
+        #expect(contents.contains("로컬 전용"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }
 

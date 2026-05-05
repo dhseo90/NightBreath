@@ -30,7 +30,7 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - `MorningBriefView`, `DailyRhythmReportView`, `EveningCheckInView`
 - `DailyHealthCardView`, `DailyHealthCardPreviewView`, 카드 template/privacy level 구조
 
-이 구현은 mock data, 실제 HealthKit read-only adapter, Fitdays local-only import data를 분리합니다. HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.
+이 구현은 mock data, 실제 HealthKit read-only adapter, Fitdays 로컬 전용 import data를 분리합니다. HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.
 
 ## 수면 소리 리포트에서 개인 건강 리듬 리포트로
 
@@ -92,11 +92,11 @@ HealthKit은 read-only로만 사용합니다.
 
 ## Fitdays 확장 지표 방향
 
-Fitdays에는 Apple 건강앱/HealthKit 표준 지표로 직접 표현되지 않는 체성분 항목이 있을 수 있습니다. 밤숨은 이런 항목을 HealthKit custom type으로 만들거나 HealthKit에 쓰지 않고, 앱 안의 local-only extended metric으로 관리합니다.
+Fitdays에는 Apple 건강앱/HealthKit 표준 지표로 직접 표현되지 않는 체성분 항목이 있을 수 있습니다. 밤숨은 이런 항목을 HealthKit custom type으로 만들거나 HealthKit에 쓰지 않고, 앱 안의 로컬 전용 확장 metric으로 관리합니다.
 
-EHM 원칙은 HealthKit-backed metric과 Fitdays local-only metric을 분리하는 것입니다. HealthKit-backed metric은 Apple 건강앱에서 read-only로 읽은 표준 지표이고, Fitdays local-only metric은 사용자가 직접 가져온 CSV/export file 또는 수동 입력/앱 계산 데이터로만 표시합니다.
+EHM 원칙은 HealthKit 기반 지표와 Fitdays 로컬 전용 지표를 분리하는 것입니다. HealthKit 기반 지표는 Apple 건강앱에서 read-only로 읽은 표준 지표이고, Fitdays 로컬 전용 지표는 사용자가 직접 가져온 CSV/export file 또는 수동 입력/앱 계산 데이터로만 표시합니다.
 
-local-only extended metric 예시는 다음과 같습니다.
+로컬 전용 확장 metric 예시는 다음과 같습니다.
 
 - 체수분률
 - 복부지방률 또는 복부지방 level
@@ -118,7 +118,7 @@ Fitdays 확장 지표 원칙:
 - 비공식 연결 방식이나 reverse engineering을 사용하지 않습니다.
 - CSV 원본 파일은 사용자가 선택한 import 입력이며, repository에는 실제 개인 CSV를 포함하지 않습니다.
 - HealthKit 표준 지표가 CSV에 포함되어 있어도 sourceType은 `fitdaysCSV`로 유지해 Apple 건강앱 read-only sample과 구분합니다.
-- HealthKit-backed 지표와 local-only 지표는 UI에서 badge, 설명, sourceName, sourceType으로 구분합니다.
+- HealthKit 기반 지표와 로컬 전용 지표는 UI에서 배지, 설명, sourceName, sourceType으로 구분합니다.
 - 확장 지표도 개인 참고용으로만 표시하고 건강 상태를 단정하지 않습니다.
 
 ## 개인정보와 오디오 저장
@@ -160,7 +160,7 @@ Fitdays 확장 지표 원칙:
 하루 리듬 리포트는 데이터가 완전하다고 가정하지 않습니다.
 
 - 수면 측정 시간이 짧거나 오디오 커버리지가 낮으면 리포트 품질을 제한적으로 표시합니다.
-- HealthKit 연결 전에는 mock preview 또는 연결 안내만 보여줍니다.
+- HealthKit 연결 전에는 mock 미리보기 또는 연결 안내만 보여줍니다.
 - HealthKit 권한이 일부만 허용되면 허용된 항목만 보여줍니다.
 - Apple 건강앱에 데이터가 없거나 source app 동기화가 늦으면 해당 항목을 비어 있는 상태로 안내합니다.
 - 같은 날짜에 여러 건강 지표가 있어도 인과관계 요약을 만들지 않습니다.

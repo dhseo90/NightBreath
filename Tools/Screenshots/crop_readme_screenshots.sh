@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 INPUT_DIR="$REPO_ROOT/Docs/Screenshots/README"
 OUTPUT_DIR="$INPUT_DIR/cropped"
 TOP_CROP_PX="${TOP_CROP_PX:-180}"
+BOTTOM_CROP_PX="${BOTTOM_CROP_PX:-320}"
 FFMPEG_BIN="${FFMPEG_BIN:-ffmpeg}"
 
 README_SCREENSHOTS=(
@@ -37,10 +38,10 @@ for screenshot in "${README_SCREENSHOTS[@]}"; do
 
   "$FFMPEG_BIN" -hide_banner -loglevel error -y \
     -i "$input" \
-    -vf "crop=iw:ih-${TOP_CROP_PX}:0:${TOP_CROP_PX}" \
+    -vf "crop=iw:ih-${TOP_CROP_PX}-${BOTTOM_CROP_PX}:0:${TOP_CROP_PX}" \
     -frames:v 1 \
     -update 1 \
     "$output"
 
-  echo "cropped $screenshot -> Docs/Screenshots/README/cropped/$screenshot (top ${TOP_CROP_PX}px)"
+  echo "cropped $screenshot -> Docs/Screenshots/README/cropped/$screenshot (top ${TOP_CROP_PX}px, bottom ${BOTTOM_CROP_PX}px)"
 done

@@ -8,7 +8,7 @@ NightBreath / 밤숨의 README와 UI Gallery screenshot은 DEBUG 빌드에서 mo
 2. Simulator에서 앱을 엽니다.
 3. 앱의 `설정 > 개발 > Simulator QA / Screenshot Scenario`로 이동합니다.
 4. `Screenshot Preset`에서 원하는 scenario를 선택합니다.
-5. `Screenshot preset 적용`을 누릅니다.
+5. `스크린샷 프리셋 적용`을 누릅니다.
 6. `선택 화면 열기`로 대상 화면을 엽니다.
 
 Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
@@ -93,7 +93,7 @@ README 대표 screenshot은 capture 후 상단 status bar, 시간, Dynamic Islan
 Tools/Screenshots/crop_readme_screenshots.sh
 ```
 
-현재 crop 기준은 1206x2622 simulator screenshot에서 상단 180px 제거이며, 결과 이미지는 1206x2442입니다. README에는 crop 결과를 `width="260"` 정도로 제한해 넣습니다.
+현재 crop 기준은 1206x2622 simulator screenshot에서 상단 180px, 하단 320px을 제거하며, 결과 이미지는 1206x2122입니다. 하단 crop은 floating tab bar가 본문 카드나 버튼을 가려 보이지 않게 하기 위한 문서용 처리입니다. README에는 crop 결과를 `width="260"` 정도로 제한해 넣습니다.
 
 Crop 후에는 title, 주요 card, CTA가 잘리지 않는지 확인합니다. crop이 실패했거나 화면을 오해하게 만들면 fake screenshot을 만들지 않고 원본을 다시 capture하거나 crop 값을 조정합니다.
 

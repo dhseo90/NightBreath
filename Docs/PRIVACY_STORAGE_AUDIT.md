@@ -16,7 +16,7 @@
 - HealthKit 쓰기, save/delete, 수면 소리 점수 기록은 없습니다.
 - Fitdays import는 사용자가 직접 선택한 로컬 CSV 또는 structured export 파일만 처리합니다.
 - Fitdays 원격 서비스 연결, 비공식 연결 방식, 자동 동기화는 없습니다.
-- Fitdays extended local-only 지표는 HealthKit으로 읽거나 HealthKit에 쓰지 않습니다.
+- Fitdays 확장 로컬 전용 지표는 HealthKit으로 읽거나 HealthKit에 쓰지 않습니다.
 - HealthKit 표준 지표가 Fitdays CSV에 포함되어도 `sourceType == fitdaysCSV`로 보관합니다.
 - 잠꼬대/말소리 내용을 텍스트로 변환하지 않습니다.
 - 공개/개인 오디오 파일은 git에 포함하지 않도록 `.gitignore`에 포함되어 있습니다.
@@ -224,7 +224,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.
 - batch 단위 삭제가 필요한 경우 `importBatchId`로 관련 sample을 함께 삭제할 수 있게 설계합니다.
 - extended metric sample은 sourceType/sourceName/importBatchId를 함께 저장해 HealthKit read-only sample과 구분합니다.
-- HealthKit-backed sample, Fitdays CSV sample, manual/appComputed/mock sample은 source type과 UI badge로 구분합니다.
+- HealthKit 기반 샘플, Fitdays CSV 샘플, 수동/appComputed/mock 샘플은 source type과 UI 배지로 구분합니다.
 - 실제 개인 CSV, 실제 개인 건강 데이터, 실제 HealthKit source device 식별 정보는 문서용 screenshot에 사용하지 않습니다.
 - Share Extension은 아직 구현하지 않고, 실제 Fitdays share UX를 확인한 뒤 별도 이슈로 판단합니다.
 

@@ -57,17 +57,27 @@ struct DailyRhythmReportView: View {
             .foregroundStyle(NBColor.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
 
-          HStack(spacing: NBSpacing.xs) {
-            NBStatusBadge(
-              "데이터 품질 \(bundle.report.dataQuality.displayName)",
-              kind: DailyRhythmUI.dataQualityStatus(bundle.report.dataQuality),
-              systemImage: "checkmark.seal"
-            )
-            NBStatusBadge("개인 참고용", kind: .neutral, systemImage: "person.text.rectangle")
+          ViewThatFits(in: .horizontal) {
+            HStack(spacing: NBSpacing.xs) {
+              rhythmHeaderBadges
+            }
+            VStack(alignment: .leading, spacing: NBSpacing.xs) {
+              rhythmHeaderBadges
+            }
           }
         }
       }
     }
+  }
+
+  @ViewBuilder
+  private var rhythmHeaderBadges: some View {
+    NBStatusBadge(
+      "데이터 품질 \(bundle.report.dataQuality.displayName)",
+      kind: DailyRhythmUI.dataQualityStatus(bundle.report.dataQuality),
+      systemImage: "checkmark.seal"
+    )
+    NBStatusBadge("개인 참고용", kind: .neutral, systemImage: "person.text.rectangle")
   }
 
   private var componentSection: some View {

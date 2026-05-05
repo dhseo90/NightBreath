@@ -66,7 +66,7 @@ struct MetricCatalogTests {
         for metricID in fitdaysMetricIDs {
             let metadata = try #require(catalog.metadata(for: metricID))
             #expect(metadata.isExtendedLocalOnly, "\(metricID.rawValue) should stay local-only")
-            #expect(!metadata.isHealthKitBacked, "\(metricID.rawValue) must not become HealthKit-backed")
+            #expect(!metadata.isHealthKitBacked, "\(metricID.rawValue) must not become HealthKit 기반")
             #expect(metricID.healthMetricType == nil, "\(metricID.rawValue) should not map to a HealthKit standard type")
         }
 

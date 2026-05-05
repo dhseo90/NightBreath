@@ -39,7 +39,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 
 ## 실제 코골이 DEBUG 샘플 구성
 
-실제 iPhone에서 이벤트가 0개였던 코골이 상황을 볼 때는 다음처럼 짧은 local-only segment를 구성합니다.
+실제 iPhone에서 이벤트가 0개였던 코골이 상황을 볼 때는 다음처럼 짧은 로컬 전용 segment를 구성합니다.
 
 - `snore` expected segment: 사용자가 직접 들은 2초/3초/5초 DEBUG 샘플
 - negative segment: 같은 기기 배치의 `silence`, `unknown`, `environmentalNoise` 짧은 샘플
@@ -50,7 +50,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 
 ## 2026-05-05 synthetic recall guard
 
-실제 개인 샘플이 없는 상태에서는 synthetic/local-only baseline으로 detector 단계별 동작만 확인합니다.
+실제 개인 샘플이 없는 상태에서는 synthetic/로컬 전용 baseline으로 detector 단계별 동작만 확인합니다.
 
 - low-amplitude snore-like synthetic CAF를 temp directory에 생성해 `OfflineEvaluationRunner`로 balanced/rule-based 경로를 통과시킵니다.
 - high-frequency negative synthetic CAF를 같은 manifest에 넣어 snore raw/final count가 0인지 확인합니다.

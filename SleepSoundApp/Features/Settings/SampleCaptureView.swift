@@ -82,7 +82,7 @@
         Section("저장 안전장치") {
           LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.md) {
             NBMetricCard(
-              title: "Debug sample count",
+              title: "DEBUG 샘플 개수",
               value: "\(viewModel.sampleStorageStatus.sampleCount)",
               unit: "개",
               systemImage: "waveform.circle",

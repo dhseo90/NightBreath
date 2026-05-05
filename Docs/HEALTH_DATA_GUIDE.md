@@ -33,7 +33,7 @@
 HealthKit mock과 Fitdays import mock은 다릅니다.
 
 - HealthKit mock: Apple 건강앱에 들어오는 표준 지표를 미리 보기 위한 preview/test fallback입니다.
-- Fitdays CSV/structured export import mock: HealthKit에 없는 extended local-only 지표를 미리 보기 위한 synthetic import fixture입니다.
+- Fitdays CSV/structured export import mock: HealthKit에 없는 확장 로컬 전용 지표를 미리 보기 위한 synthetic import fixture입니다.
 
 HealthKit mock service가 Fitdays 서버 연결, HealthKit custom type, HealthKit write를 의미하지 않습니다.
 
@@ -63,7 +63,7 @@ HealthKit 제한:
 
 ## Extended Health Metrics
 
-통합 metric catalog는 HealthKit 표준 지표, Fitdays local-only 확장 지표, 앱 계산 지표를 같은 UI 흐름에서 다루기 위한 구조입니다.
+통합 metric catalog는 HealthKit 표준 지표, Fitdays 로컬 전용 확장 지표, 앱 계산 지표를 같은 UI 흐름에서 다루기 위한 구조입니다.
 
 주요 타입:
 
@@ -81,9 +81,9 @@ HealthKit 제한:
 - `appComputed`
 - `mock`
 
-HealthKit-backed metric은 Apple 건강앱에서 read-only로 읽은 표준 지표입니다. Fitdays extended local-only metric은 HealthKit에 없는 지표이며 HealthKit으로 읽으려 하지 않습니다.
+HealthKit 기반 지표는 Apple 건강앱에서 read-only로 읽은 표준 지표입니다. Fitdays 확장 로컬 전용 지표는 HealthKit에 없는 지표이며 HealthKit으로 읽으려 하지 않습니다.
 
-Fitdays local-only metric 예시:
+Fitdays 로컬 전용 지표 예시:
 
 - 체수분률
 - 내장지방 레벨
@@ -245,7 +245,7 @@ Share Extension 후보:
 
 ## Metric Trends
 
-`HealthMetricsOverviewView`와 `MetricChartView`는 모든 health metric을 category별로 보여줍니다.
+`HealthMetricsOverviewView`와 `MetricChartView`는 모든 health metric을 카테고리별로 보여줍니다.
 
 지원 기간:
 
@@ -278,11 +278,11 @@ Share Extension 후보:
 - 체성분 데이터 존재 여부
 - 활동 데이터 존재 여부
 - 아침/저녁 체크인 존재 여부
-- sample count
+- 샘플 개수
 - source types
 - data quality
 
-날짜를 선택하면 `DailyMeasurementDetailView`에서 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 category별로 보여줍니다.
+날짜를 선택하면 `DailyMeasurementDetailView`에서 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 카테고리별로 보여줍니다.
 
 ## Metric Detail
 
@@ -297,7 +297,7 @@ Share Extension 후보:
 - source filter
 - trend chart
 - summary stats
-- raw sample list
+- 원본 샘플 목록
 
 source filter:
 
@@ -308,7 +308,7 @@ source filter:
 - App Computed
 - Mock는 DEBUG/screenshot scenario에서만 사용합니다.
 
-HealthKit-backed metric은 Apple 건강앱 read-only sample로 설명하고, Fitdays local-only metric은 CSV import 또는 수동/앱 계산 데이터로만 표시한다고 설명합니다.
+HealthKit 기반 지표는 Apple 건강앱 read-only 샘플로 설명하고, Fitdays 로컬 전용 지표는 CSV 가져오기 또는 수동/앱 계산 데이터로만 표시한다고 설명합니다.
 
 ## Cross Metric Analysis
 

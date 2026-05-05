@@ -228,7 +228,7 @@ struct CrossMetricDashboardView: View {
           .foregroundStyle(NBColor.secondaryText)
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-          summaryTile("비교 sample", "\(summary.matchedSampleCount)개", "link", .neutral)
+          summaryTile("비교 샘플", "\(summary.matchedSampleCount)개", "link", .neutral)
           summaryTile("데이터 품질", summary.dataQuality.displayName, "checkmark.seal", summaryStatusKind)
           summaryTile("구분 표시", "\(summary.lowQualityExcludedCount)개", "exclamationmark.triangle", .caution)
           summaryTile("건강 source", sourceNamesText, "square.stack.3d.up", .privacy)

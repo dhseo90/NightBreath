@@ -160,21 +160,21 @@ Core/Design 컴포넌트:
 
 ## Health Metric UI
 
-Extended Health Metrics 이후의 건강 데이터 화면은 HealthKit-backed sample, Fitdays CSV local-only sample, manual/app-computed/mock sample을 같은 화면에서 보되 source와 표시 한계를 분명히 구분합니다.
+Extended Health Metrics 이후의 건강 데이터 화면은 HealthKit 기반 샘플, Fitdays CSV 로컬 전용 샘플, 수동/앱 계산/mock 샘플을 같은 화면에서 보되 출처와 표시 한계를 분명히 구분합니다.
 
 Metric chart component 원칙:
 
 - `MetricChartView`는 Swift Charts를 우선 사용하고 외부 chart SDK를 추가하지 않습니다.
 - 기간 선택은 7일, 30일, 90일, 1년, 전체처럼 명확한 단위로 제공하며, 선택한 기간은 chart와 summary card에 함께 반영합니다.
-- source가 여러 개일 때는 선/점 색상만으로 구분하지 않고 source legend와 row subtitle을 함께 표시합니다.
-- 데이터가 없거나 선택한 source/기간에 sample이 없으면 빈 chart 대신 `NBEmptyStateView`를 사용합니다.
+- 출처가 여러 개일 때는 선/점 색상만으로 구분하지 않고 출처 범례와 row subtitle을 함께 표시합니다.
+- 데이터가 없거나 선택한 출처/기간에 샘플이 없으면 빈 chart 대신 `NBEmptyStateView`를 사용합니다.
 
 Source badge 원칙:
 
-- HealthKit-backed 지표는 `HealthKit read-only` 또는 `Apple 건강앱`으로 표시합니다.
-- Fitdays CSV import 지표는 `Fitdays CSV` 또는 `Local-only` 배지로 표시합니다.
+- HealthKit 기반 지표는 `HealthKit read-only` 또는 `Apple 건강앱`으로 표시합니다.
+- Fitdays CSV 가져오기 지표는 `Fitdays CSV` 또는 `로컬 전용` 배지로 표시합니다.
 - 앱 계산 지표는 `앱 계산값`, mock data는 DEBUG 또는 preview 맥락에서만 `Mock data`로 표시합니다.
-- source badge는 진단적 상태가 아니라 데이터 출처와 처리 방식을 설명하는 용도입니다.
+- 출처 배지는 진단적 상태가 아니라 데이터 출처와 처리 방식을 설명하는 용도입니다.
 
 Calendar day cell 원칙:
 
@@ -185,26 +185,26 @@ Calendar day cell 원칙:
 Daily measurement section 원칙:
 
 - `DailyMeasurementDetailView`는 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표, 데이터 출처를 section 단위로 나눕니다.
-- category별 데이터가 없으면 section 자체를 숨기기보다 짧은 empty state로 맥락을 제공합니다.
+- 카테고리별 데이터가 없으면 section 자체를 숨기기보다 짧은 empty state로 맥락을 제공합니다.
 - 서로 다른 지표가 같은 날짜에 있더라도 인과관계를 암시하지 않는 문구를 사용합니다.
 
 Metric detail 원칙:
 
-- `MetricDetailView` header는 지표명, unit, 최근 값, 최근 측정 시각, source, HealthKit-backed/local-only 여부를 먼저 보여줍니다.
+- `MetricDetailView` header는 지표명, unit, 최근 값, 최근 측정 시각, 출처, HealthKit 기반/로컬 전용 여부를 먼저 보여줍니다.
 - summary stats는 최근 값, 평균, 최소, 최대, 최근 변화, 측정 횟수, 첫/최근 측정일을 compact card로 표시합니다.
-- sample list는 측정 시간, 값, sourceName, sourceType, importBatchId, notes를 필요한 만큼만 보여주고 긴 메타데이터로 화면을 압도하지 않습니다.
+- 샘플 목록은 측정 시간, 값, sourceName, sourceType, importBatchId, notes를 필요한 만큼만 보여주고 긴 메타데이터로 화면을 압도하지 않습니다.
 - 수동 입력 버튼은 실제 입력 흐름이 준비되기 전에는 disabled placeholder로 유지합니다.
 
 Import result UI 원칙:
 
-- `FitdaysImportView`는 파일 선택, import preview, result, skipped row, unknown column, error count를 분리해 보여줍니다.
+- `FitdaysImportView`는 파일 선택, 가져오기 미리보기, 결과, skipped row, unknown column, error count를 분리해 보여줍니다.
 - unknown column은 실패가 아니라 mapping rule 확장 후보로 안내합니다.
 - invalid row는 전체 import를 막기보다 건너뛰고 결과에서 row count를 명확히 보여줍니다.
 - 실제 개인 CSV 파일명이나 local path는 screenshot과 README 대표 이미지에 노출하지 않습니다.
 
 Fitdays extended metric 표시명 원칙:
 
-- HealthKit 표준 지표가 아닌 항목은 `Fitdays 확장 체성분`, `Local-only`, `CSV import`처럼 출처와 범위를 같이 표시합니다.
+- HealthKit 표준 지표가 아닌 항목은 `Fitdays 확장 체성분`, `로컬 전용`, `CSV 가져오기`처럼 출처와 범위를 같이 표시합니다.
 - 체수분률, 복부지방률, 골격근량, 무기질, 골량, 기초대사량, 단백질률 같은 항목은 개인 참고용 지표로 설명합니다.
 - 수치 해석은 평균/최근 변화/측정 횟수 수준으로 제한하고 상태 판정이나 조치 안내로 확장하지 않습니다.
 
@@ -277,14 +277,14 @@ Fitdays extended metric 표시명 원칙:
 - `PrivacySettingsView`: `NBPrivacyNoticeCard`, `NBMetricCard`, `NBSecondaryButton`, `NBDangerButton`, `NBDiagnosticCard`로 이벤트 오디오 샘플 opt-in, 저장량, orphan cleanup, 전체 삭제, feedback 삭제 UI를 유지합니다.
 - `DevicePlacementGuideView`: `NBIllustration`, `NBCard`, `NBReportSection`, `NBListRow`, `NBStatusBadge`, `NBPrivacyNoticeCard`로 iPhone 배치, 마이크 가림 방지, 충전 연결, 저전력 모드 확인, 30초 캘리브레이션 진입을 정리합니다.
 - `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 mock/future read-only 건강 데이터 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
-- `HealthMetricsOverviewView`: `MetricChartView`, `MetricSummaryCard`, `NBListRow`, `NBStatusBadge`, `NBEmptyStateView`로 HealthKit-backed 지표와 Fitdays local-only 지표를 category별로 정리하고 `MetricDetailView`로 이어지게 합니다.
+- `HealthMetricsOverviewView`: `MetricChartView`, `MetricSummaryCard`, `NBListRow`, `NBStatusBadge`, `NBEmptyStateView`로 HealthKit 기반 지표와 Fitdays 로컬 전용 지표를 카테고리별로 정리하고 `MetricDetailView`로 이어지게 합니다.
 - `HealthCalendarView`: `CalendarDayCell`, source/data-quality indicator, `NBPrivacyNoticeCard`로 월별 데이터 존재 여부와 날짜 선택 흐름을 보여줍니다.
 - `DailyMeasurementDetailView`: `NBReportSection`, `NBMetricCard`, `NBListRow`, `NBEmptyStateView`로 날짜별 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표를 section 단위로 정리합니다.
-- `MetricDetailView`: `MetricChartView`, `MetricSummaryCard`, 기간 picker, source filter, raw sample list로 지표 하나의 흐름을 자세히 보여줍니다.
+- `MetricDetailView`: `MetricChartView`, `MetricSummaryCard`, 기간 picker, source filter, 원본 샘플 목록으로 지표 하나의 흐름을 자세히 보여줍니다.
 - `FitdaysImportView`: `NBReportSection`, `NBPrivacyNoticeCard`, `NBMetricCard`, `NBEmptyStateView`, file importer trigger로 사용자가 직접 선택한 파일 기반 import 상태를 정리합니다.
 - `BloodPressureDashboardView`: 최근 수축기/이완기 혈압, 측정 시각, 데이터 출처, 추세와 데이터 없음 상태를 `NBMetricCard`, `NBListRow`, `NBEmptyStateView` 중심으로 표시합니다.
 - `BodyCompositionDashboardView`: 체중, 체지방률, BMI, 제지방량과 추세를 `NBMetricCard`와 `NBReportSection`으로 정리합니다.
-- `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, matched sample count, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.
+- `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, 매칭 샘플 개수, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.
 - `TrendDashboardView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 7일/30일/90일 수면 소리 지표 추세, 낮은 측정 품질 구분, 리포트 없음 상태를 표시합니다.
 - DEBUG 화면: `DatasetReplayView`, `DetectorTuningView`, `SimulatorScenarioView`, `AudioDebugView`, `SampleCaptureView`는 `NBDiagnosticCard`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`를 사용하고 `#if DEBUG` 경계를 유지합니다.
 

@@ -78,8 +78,10 @@ struct NBStatusBadge: View {
       }
       Text(text)
         .font(NBTypography.captionEmphasis)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
+        .lineLimit(2)
+        .minimumScaleFactor(0.85)
+        .multilineTextAlignment(.leading)
+        .fixedSize(horizontal: false, vertical: true)
     }
     .padding(.horizontal, 10)
     .padding(.vertical, 6)

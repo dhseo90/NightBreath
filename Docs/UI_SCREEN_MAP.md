@@ -21,10 +21,10 @@
 | `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 침대 옆 배치, 마이크 가림 방지, 충전 연결 권장, 저전력 모드 확인, 너무 멀거나 밀폐된 위치 피하기 | 30초 캘리브레이션 실행 |
 | `TrendDashboardView` | 최근 7일/30일/90일 수면 소리 지표 흐름 | 수면 소리 점수, 코골기 시간, 호흡정지 의심 구간, 이갈이 의심 소리, 환경 소음, 측정 품질 추세 | 기간 선택 |
 | `HealthDashboardView` | 건강 데이터 dashboard 허브 | 예시 미리보기/read-only 연결 상태, 최근 건강 지표, 데이터 출처, 전체 지표/캘린더/Fitdays import/BloodPressure/BodyComposition/CrossMetric 진입 | 건강 데이터 연결, 하위 dashboard 진입 |
-| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit-backed 지표, Fitdays local-only 지표, 최근 값, 평균, 최소, 최대, 최근 변화, source별 샘플 수 | 기간 선택, 지표별 `MetricDetailView` 진입 |
+| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit 기반 지표, Fitdays 로컬 전용 지표, 최근 값, 평균, 최소, 최대, 최근 변화, 출처별 샘플 수 | 기간 선택, 지표별 `MetricDetailView` 진입 |
 | `MetricDetailView` | 특정 health metric 상세 탐색 화면 | 지표 설명, 최근 값, 측정 시각, source, 기간별 그래프, 요약 통계, 원본 샘플 목록 | 기간 선택, source filter, 수동 입력 placeholder 확인 |
 | `HealthCalendarView` | 월 단위 건강/수면 데이터 캘린더 | 월별 날짜 cell, 수면/혈압/체성분/활동/check-in dot, 샘플 수, data quality, source type | 이전/다음 월 이동, 오늘 이동, 날짜 선택 |
-| `DailyMeasurementDetailView` | 특정 날짜의 전체 측정 데이터 상세 | 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표, 데이터 출처 | category별 row 확인, metric detail 진입 |
+| `DailyMeasurementDetailView` | 특정 날짜의 전체 측정 데이터 상세 | 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표, 데이터 출처 | 카테고리별 row 확인, metric detail 진입 |
 | `FitdaysImportView` | 사용자가 선택한 Fitdays CSV/export 파일 import 화면 | 파일 선택 상태, import preview/result, 생성 샘플 수, skipped row, unknown column, errors | 파일 선택, preview 확인, import result 확인 |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 최근 측정 시각, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
@@ -108,14 +108,14 @@ Release 빌드에서는 detector threshold 조정, dataset replay, raw feature s
 
 ## Health Dashboard 방향
 
-Health dashboard는 Apple 건강앱 데이터를 read-only로 읽고, 사용자가 직접 가져온 Fitdays CSV/export 샘플을 local-only 지표로 정리하는 확장 영역입니다. preview와 테스트에서는 예시/protocol 기반 데이터를 사용할 수 있습니다.
+Health dashboard는 Apple 건강앱 데이터를 read-only로 읽고, 사용자가 직접 가져온 Fitdays CSV/export 샘플을 로컬 전용 지표로 정리하는 확장 영역입니다. preview와 테스트에서는 예시/protocol 기반 데이터를 사용할 수 있습니다.
 
 - 권한 요청은 사용자가 `HealthDashboardView`의 연결 액션을 선택할 때만 수행합니다.
 - 앱은 HealthKit에 데이터를 쓰지 않습니다.
 - 건강 데이터는 서버나 외부 앱으로 전송하지 않습니다.
-- HealthKit-backed metric과 Fitdays local-only metric은 source badge, 지표 설명, 샘플 목록에서 구분합니다.
-- `HealthMetricsOverviewView`는 category별 지표를 보여주고, 각 row는 `MetricDetailView`로 이어집니다.
-- `HealthCalendarView`는 날짜별 데이터 존재 여부를 표시하고, 날짜 선택 시 `DailyMeasurementDetailView`에서 category별 샘플을 보여줍니다.
+- HealthKit 기반 metric과 Fitdays 로컬 전용 metric은 출처 badge, 지표 설명, 샘플 목록에서 구분합니다.
+- `HealthMetricsOverviewView`는 카테고리별 지표를 보여주고, 각 row는 `MetricDetailView`로 이어집니다.
+- `HealthCalendarView`는 날짜별 데이터 존재 여부를 표시하고, 날짜 선택 시 `DailyMeasurementDetailView`에서 카테고리별 샘플을 보여줍니다.
 - `FitdaysImportView`는 사용자가 직접 선택한 로컬 파일만 처리하며, Fitdays 원격 서비스나 비공식 연결 방식에 직접 연결하지 않습니다.
 - `CrossMetricDashboardView`는 수면 소리 지표와 건강 지표를 개인 패턴 참고용으로 비교하며, 인과관계를 의미하지 않습니다.
 

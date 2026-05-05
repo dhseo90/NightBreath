@@ -182,7 +182,7 @@ public struct MetricDetailExplanation: Equatable, Sendable {
 
         if metadata.isExtendedLocalOnly {
             return MetricDetailExplanation(messages: [
-                "\(metadata.displayNameKo)는 Fitdays CSV import 또는 수동 입력으로 저장된 local-only 지표입니다.",
+                "\(metadata.displayNameKo)는 Fitdays CSV import 또는 수동 입력으로 저장된 로컬 전용 지표입니다.",
                 "HealthKit 표준 지표가 아니며 import/manual 데이터로만 표시됩니다.",
                 "값은 개인 참고용으로만 정리합니다.",
             ])

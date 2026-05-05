@@ -125,10 +125,10 @@ struct SimulatorQAScenarioTests {
       #expect(screenshotScenarios.contains(scenarioName), "\(scenarioName) should stay available for simulator screenshot QA.")
     }
     #expect(simulatorScenarioView.contains("EHM 화면 상태"))
-    #expect(simulatorScenarioView.contains("HealthKit unavailable"))
-    #expect(simulatorScenarioView.contains("source mixed"))
-    #expect(simulatorScenarioView.contains("HealthCalendar empty date"))
-    #expect(simulatorScenarioView.contains("MetricDetail HealthKit-backed"))
+    #expect(simulatorScenarioView.contains("HealthKit 사용 불가"))
+    #expect(simulatorScenarioView.contains("출처 혼합"))
+    #expect(simulatorScenarioView.contains("HealthCalendar 빈 날짜"))
+    #expect(simulatorScenarioView.contains("MetricDetail HealthKit 기반"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

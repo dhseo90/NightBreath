@@ -66,8 +66,8 @@ python3 train_multiclass_event_detector.py --manifest ../OfflineEvaluation/sampl
 
 기본 guard:
 
-- 전체 sample 180개 이상
-- label별 sample 20개 이상
+- 전체 샘플 180개 이상
+- label별 샘플 20개 이상
 - label imbalance warning ratio 4.0x
 
 기준 미달이면 학습을 시작하지 않고 label별 count와 warning을 출력합니다. `exclude_underrepresented_labels`를 켜면 부족한 label을 제외한 subset 학습을 허용할 수 있지만, 최소 2개 label이 남아야 합니다.
@@ -88,7 +88,7 @@ python3 evaluate_multiclass_event_detector.py \
 - confusion matrix
 - false-positive-like cases
 - false-negative-like cases
-- label별 sample count
+- label별 샘플 개수
 - confidence distribution
 
 이 지표는 detector 개발용 비교 자료입니다. 실제 iPhone 환경과 사용자 feedback을 함께 봐야 합니다.

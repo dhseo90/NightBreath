@@ -87,7 +87,7 @@ struct HealthCalendarView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
-        Text("날짜를 선택하면 이날 기록된 데이터를 category별로 확인할 수 있습니다.")
+        Text("날짜를 선택하면 이날 기록된 데이터를 카테고리별로 확인할 수 있습니다.")
           .font(NBTypography.footnote)
           .foregroundStyle(NBColor.tertiaryText)
       }
@@ -195,7 +195,7 @@ struct HealthCalendarView: View {
               .font(NBTypography.headline)
               .foregroundStyle(NBColor.primaryText)
 
-            Text(selectedDaySummary.hasAnyData ? "이 날짜의 데이터를 category와 source별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
+            Text(selectedDaySummary.hasAnyData ? "이 날짜의 데이터를 카테고리와 출처별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
               .font(NBTypography.caption)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)

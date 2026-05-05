@@ -58,7 +58,7 @@ struct HealthMetricsOverviewView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
-        Text("최근 값, 평균, 최소, 최대, 최근 변화와 측정 횟수를 source별로 구분해 볼 수 있습니다.")
+        Text("최근 값, 평균, 최소, 최대, 최근 변화와 측정 횟수를 출처별로 구분해 볼 수 있습니다.")
           .font(NBTypography.footnote)
           .foregroundStyle(NBColor.tertiaryText)
       }
@@ -710,11 +710,11 @@ struct MetricSourceBadgeStrip: View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: NBSpacing.small) {
         if metadata.isHealthKitBacked {
-          NBStatusBadge("HealthKit-backed", kind: .privacy, systemImage: "heart.text.square")
+          NBStatusBadge("HealthKit 기반", kind: .privacy, systemImage: "heart.text.square")
         }
 
         if metadata.isExtendedLocalOnly {
-          NBStatusBadge("Local-only", kind: .neutral, systemImage: "internaldrive")
+          NBStatusBadge("로컬 전용", kind: .neutral, systemImage: "internaldrive")
         }
 
         ForEach(orderedSourceTypes) { sourceType in
@@ -738,10 +738,10 @@ struct MetricSourceBadgeStrip: View {
   private var accessibilityText: String {
     var parts: [String] = []
     if metadata.isHealthKitBacked {
-      parts.append("HealthKit-backed")
+      parts.append("HealthKit 기반")
     }
     if metadata.isExtendedLocalOnly {
-      parts.append("Local-only")
+      parts.append("로컬 전용")
     }
     parts.append(contentsOf: orderedSourceTypes.map(\.displayName))
     return parts.joined(separator: ", ")

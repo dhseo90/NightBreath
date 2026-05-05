@@ -55,7 +55,7 @@
 - Share Extension 필요 여부 결정
 - invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름 확인
-- HealthKit-backed metric과 Fitdays local-only metric badge/source 표시 재점검
+- HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시 재점검
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강

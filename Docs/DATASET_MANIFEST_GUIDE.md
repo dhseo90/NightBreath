@@ -143,7 +143,7 @@ Snore ML v0 training에 manifest를 직접 입력할 때 권장하는 `features`
       "expectedLabels": ["silence"],
       "negativeLabels": ["snore"],
       "confidenceNote": "같은 기기 배치에서 조용한 짧은 구간을 함께 비교합니다.",
-      "notes": "false-positive-like 비교용 local-only segment입니다."
+      "notes": "false-positive-like 비교용 로컬 전용 segment입니다."
     }
   ]
 }

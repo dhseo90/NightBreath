@@ -37,7 +37,7 @@
 - 오늘의 리듬 점수
 - Daily Rhythm Report
 - HealthKit read-only 건강 데이터 대시보드
-- Fitdays CSV/import 기반 local-only 확장 지표
+- Fitdays CSV/import 기반 로컬 전용 확장 지표
 - 월 건강 캘린더와 Metric Detail
 - 개인정보/저장소 설정
 

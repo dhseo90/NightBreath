@@ -101,7 +101,7 @@ EHM screenshot / 화면 상태 scenario:
 - `ScreenshotImportErrorScenario`
 - `ScreenshotLocalOnlyMetricScenario`
 
-`SimulatorScenarioView`의 `EHM 화면 상태` section은 DEBUG 전용입니다. 여기에서 HealthKit unavailable, 권한 없음, 일부 권한 허용, 데이터 없음, HealthKit-backed source, Fitdays CSV local-only source, source mixed 상태를 mock/synthetic data로 확인합니다.
+`SimulatorScenarioView`의 `EHM 화면 상태` section은 DEBUG 전용입니다. 여기에서 HealthKit 사용 불가, 권한 없음, 일부 권한 허용, 데이터 없음, HealthKit 기반 출처, Fitdays CSV 로컬 전용 출처, 출처 혼합 상태를 mock/synthetic data로 확인합니다.
 
 ## Dataset Replay / Offline Evaluation
 
@@ -435,7 +435,7 @@ Simulator 결과가 좋아도 실제 iPhone의 background audio 정책, 발열, 
 2. `HealthDashboardView`에서 사용자가 건강 데이터 연결을 선택할 때만 권한 sheet가 표시되는지 확인합니다.
 3. 전체 허용, 일부 허용, 거부, 데이터 없음 상태를 가능한 범위에서 확인합니다.
 4. 혈압, 체중, 체성분, 활동 지표가 sourceName과 측정 시각을 함께 표시하는지 확인합니다.
-5. HealthKit-backed metric과 Fitdays local-only metric이 badge와 설명으로 구분되는지 확인합니다.
+5. HealthKit 기반 지표와 Fitdays 로컬 전용 지표가 배지와 설명으로 구분되는지 확인합니다.
 6. 앱이 HealthKit에 데이터를 쓰지 않는지 코드 scan과 실제 동작으로 확인합니다.
 7. 수면 기능은 HealthKit 권한 거부 후에도 정상 동작해야 합니다.
 
@@ -443,13 +443,13 @@ Simulator-first mock state 확인:
 
 | 상태 | 확인 화면 | 기대 표시 |
 | --- | --- | --- |
-| HealthKit unavailable | `HealthDashboardView(DisabledHealthKitService)` | 건강 데이터 읽기를 사용할 수 없다는 안내, 샘플 없음 |
-| 권한 없음 | `HealthMetricsOverviewView(permissionState: .denied)` | 로컬 import 샘플은 볼 수 있다는 안내 |
-| 일부 권한 허용 | `HealthMetricsOverviewView(permissionState: .readRequestCompleted)` | 허용된 metric 샘플만 표시 |
+| HealthKit 사용 불가 | `HealthDashboardView(DisabledHealthKitService)` | 건강 데이터 읽기를 사용할 수 없다는 안내, 샘플 없음 |
+| 권한 없음 | `HealthMetricsOverviewView(permissionState: .denied)` | 로컬 가져오기 샘플은 볼 수 있다는 안내 |
+| 일부 권한 허용 | `HealthMetricsOverviewView(permissionState: .readRequestCompleted)` | 허용된 지표 샘플만 표시 |
 | 데이터 없음 | `HealthMetricsOverviewView(samples: [])` | empty state와 연결/import 안내 |
-| 데이터 있음 | mock HealthKit-backed samples | sourceName, 측정 시각, 기간별 통계 표시 |
-| Fitdays CSV local-only | synthetic Fitdays samples | Local-only badge와 Fitdays CSV source 표시 |
-| source mixed | HealthKit-backed + Fitdays CSV + app computed samples | source별 breakdown과 raw sample list 구분 |
+| 데이터 있음 | mock HealthKit 기반 샘플 | sourceName, 측정 시각, 기간별 통계 표시 |
+| Fitdays CSV 로컬 전용 | synthetic Fitdays 샘플 | 로컬 전용 배지와 Fitdays CSV 출처 표시 |
+| 출처 혼합 | HealthKit 기반 + Fitdays CSV + 앱 계산 샘플 | 출처별 breakdown과 원본 샘플 목록 구분 |
 
 기록 시 실제 수치 대신 다음처럼 요약합니다.
 
@@ -472,11 +472,11 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 5. CSV가 보이지 않으면 Account / Export My Data / Customer Service Center 경로를 확인합니다.
 6. 그래도 export 파일을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 고유 지표는 manual input follow-up으로 남깁니다.
 7. 사용자가 명시적으로 파일을 선택할 때만 import가 시작되는지 확인합니다.
-8. valid CSV에서 preview, result, sample count, skipped row, unknown column이 표시되는지 확인합니다.
+8. valid CSV에서 preview, result, 샘플 개수, skipped row, unknown column이 표시되는지 확인합니다.
 9. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.
 10. localized column name, 단위 suffix, 날짜/시간 형식 차이가 flexible mapping으로 처리되는지 확인합니다.
 11. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
-12. Fitdays 확장 지표는 HealthKit-backed가 아니라 local-only로 설명되는지 확인합니다.
+12. Fitdays 확장 지표는 HealthKit 기반이 아니라 로컬 전용으로 설명되는지 확인합니다.
 13. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
 14. Files 앱에서 `.csv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
 15. unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
@@ -494,7 +494,7 @@ Rows parsed:
 Samples created:
 Skipped rows:
 Unknown columns:
-Local-only metric visible: yes / no
+로컬 전용 지표 표시: yes / no
 Actual file name recorded in repo: no
 Actual path recorded in screenshot: no
 Share Extension used: no

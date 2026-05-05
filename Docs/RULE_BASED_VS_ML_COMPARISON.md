@@ -73,7 +73,7 @@ rule-based가 `snore` expected segment에서 자주 0 event이면 threshold가 �
 
 ## 2026-05-05 rule-based recall safeguard
 
-실제 코골이 zero-event를 재현할 개인 샘플은 repository에 넣지 않았습니다. 대신 local-only synthetic/replay 경로에서 rule-based 병목을 확인했습니다.
+실제 코골이 zero-event를 재현할 개인 샘플은 repository에 넣지 않았습니다. 대신 로컬 전용 synthetic/replay 경로에서 rule-based 병목을 확인했습니다.
 
 - 기존 balanced RMS 0.050 경계에서는 낮은 진폭의 코골기 유사 sample이 feature 단계에서는 near-threshold로 보이지만 raw snore 후보가 0개가 될 수 있습니다.
 - balanced RMS를 0.045로 작게 완화하되, RMS 0.050 미만 구간에는 low-band/ZCR/high-band/spectral centroid guard를 적용했습니다.

@@ -147,17 +147,17 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .fitdaysImportResult:
       "Fitdays CSV import 결과 확인"
     case .healthMetricsOverview:
-      "모든 건강 지표를 source와 함께"
+      "모든 건강 지표를 출처와 함께"
     case .healthCalendar:
       "월별로 보는 수면과 건강 기록"
     case .dailyMeasurementDetail:
-      "하루의 기록을 category별로"
+      "하루의 기록을 카테고리별로"
     case .metricDetail:
       "지표 하나의 흐름을 자세히"
     case .importError:
       "가져오기 오류도 차분하게 안내"
     case .localOnlyMetric:
-      "Fitdays local-only 지표 구분"
+      "Fitdays 로컬 전용 지표 구분"
     case .zeroEventReport:
       "이벤트가 적은 밤도 측정 맥락과 함께"
     case .lowCoverageReport:
@@ -196,17 +196,17 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .fitdaysImportResult:
       "synthetic import 결과, 생성 샘플 수, 알 수 없는 column, 미리보기 목록이 보이게 캡처합니다."
     case .healthMetricsOverview:
-      "HealthKit-backed 지표와 Fitdays local-only 지표, 기간 선택, category row가 보이게 캡처합니다."
+      "HealthKit 기반 지표와 Fitdays 로컬 전용 지표, 기간 선택, 카테고리 row가 보이게 캡처합니다."
     case .healthCalendar:
       "월 이동, 데이터 있는 날짜 dot, source/data quality 안내가 보이게 캡처합니다."
     case .dailyMeasurementDetail:
       "선택 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표 section이 보이게 캡처합니다."
     case .metricDetail:
-      "체수분률 상세 화면의 기간 선택, source filter, 그래프, sample list가 보이게 캡처합니다."
+      "체수분률 상세 화면의 기간 선택, source filter, 그래프, 샘플 목록이 보이게 캡처합니다."
     case .importError:
       "invalid CSV와 unknown column을 안내하는 import edge state를 캡처합니다."
     case .localOnlyMetric:
-      "기초대사량 같은 Fitdays local-only 지표 설명과 sample list가 보이게 캡처합니다."
+      "기초대사량 같은 Fitdays 로컬 전용 지표 설명과 샘플 목록이 보이게 캡처합니다."
     case .zeroEventReport:
       "이벤트 0개 상태, zero-event 분석, 측정 품질 안내가 보이게 캡처합니다."
     case .lowCoverageReport:
@@ -504,7 +504,7 @@ enum ScreenshotScenarioFactory {
     state.detectedEventCandidateCount = 6
     state.latestDetectedEventText = "코골기 후보"
     state.latestDetectedEventAt = now.addingTimeInterval(-12 * 60)
-    state.audioCaptureMessage = "Screenshot preset입니다. 실제 오디오 파일은 생성하지 않습니다."
+    state.audioCaptureMessage = "스크린샷 프리셋입니다. 실제 오디오 파일은 생성하지 않습니다."
   }
 }
 

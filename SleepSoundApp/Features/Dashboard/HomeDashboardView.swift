@@ -155,17 +155,13 @@ struct HomeDashboardView: View {
             .foregroundStyle(NBColor.secondaryText)
             Text(SleepFormatters.shortDate(appState.latestReport.generatedAt))
               .foregroundStyle(NBColor.secondaryText)
-            HStack(spacing: NBSpacing.xs) {
-              NBStatusBadge(
-                "측정 품질 \(appState.latestReport.measurementQuality.displayName)",
-                kind: measurementQualityStatus,
-                systemImage: "checkmark.seal"
-              )
-              NBStatusBadge(
-                "커버리지 \(percentString(appState.latestReport.audioCoverageRatio))",
-                kind: coverageStatus,
-                systemImage: "waveform"
-              )
+            ViewThatFits(in: .horizontal) {
+              HStack(spacing: NBSpacing.xs) {
+                scoreHeaderBadges
+              }
+              VStack(alignment: .leading, spacing: NBSpacing.xs) {
+                scoreHeaderBadges
+              }
             }
             Text(appState.latestReport.mainDisturbanceReason)
               .font(.callout)
@@ -183,6 +179,20 @@ struct HomeDashboardView: View {
         }
       }
     }
+  }
+
+  @ViewBuilder
+  private var scoreHeaderBadges: some View {
+    NBStatusBadge(
+      "측정 품질 \(appState.latestReport.measurementQuality.displayName)",
+      kind: measurementQualityStatus,
+      systemImage: "checkmark.seal"
+    )
+    NBStatusBadge(
+      "커버리지 \(percentString(appState.latestReport.audioCoverageRatio))",
+      kind: coverageStatus,
+      systemImage: "waveform"
+    )
   }
 
   private var actionLinks: some View {

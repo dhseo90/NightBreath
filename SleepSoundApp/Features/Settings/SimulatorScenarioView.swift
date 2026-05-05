@@ -117,7 +117,7 @@ struct SimulatorScenarioView: View {
           Text(selectedScreenshotScenario.captureNote)
             .font(.callout)
             .foregroundStyle(NBColor.secondaryText)
-          Text("Suggested path: \(selectedScreenshotScenario.suggestedScreenshotPath)")
+          Text("권장 경로: \(selectedScreenshotScenario.suggestedScreenshotPath)")
             .font(.caption.monospaced())
             .foregroundStyle(NBColor.tertiaryText)
         }
@@ -126,7 +126,7 @@ struct SimulatorScenarioView: View {
         Button {
           appState.applyScreenshotScenario(selectedScreenshotScenario)
         } label: {
-          Label("Screenshot preset 적용", systemImage: "camera.viewfinder")
+          Label("스크린샷 프리셋 적용", systemImage: "camera.viewfinder")
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
 
@@ -152,7 +152,7 @@ struct SimulatorScenarioView: View {
             unifiedSampleRepository: InMemoryUnifiedHealthMetricSampleRepository()
           )
         } label: {
-          Label("HealthKit unavailable", systemImage: "exclamationmark.triangle")
+          Label("HealthKit 사용 불가", systemImage: "exclamationmark.triangle")
         }
 
         NavigationLink {
@@ -162,7 +162,7 @@ struct SimulatorScenarioView: View {
             isPreviewData: false
           )
         } label: {
-          Label("권한 없음 + Fitdays local-only", systemImage: "lock.slash")
+          Label("권한 없음 + Fitdays 로컬 전용", systemImage: "lock.slash")
         }
 
         NavigationLink {
@@ -192,7 +192,7 @@ struct SimulatorScenarioView: View {
             isPreviewData: false
           )
         } label: {
-          Label("source mixed", systemImage: "square.stack.3d.up")
+          Label("출처 혼합", systemImage: "square.stack.3d.up")
         }
 
         NavigationLink {
@@ -206,7 +206,7 @@ struct SimulatorScenarioView: View {
             initialMonth: ehmReferenceDate
           )
         } label: {
-          Label("HealthCalendar mixed sources", systemImage: "calendar")
+          Label("HealthCalendar 출처 혼합", systemImage: "calendar")
         }
 
         NavigationLink {
@@ -220,7 +220,7 @@ struct SimulatorScenarioView: View {
             initialMonth: ehmReferenceDate
           )
         } label: {
-          Label("HealthCalendar empty date", systemImage: "calendar.badge.exclamationmark")
+          Label("HealthCalendar 빈 날짜", systemImage: "calendar.badge.exclamationmark")
         }
 
         NavigationLink {
@@ -239,7 +239,7 @@ struct SimulatorScenarioView: View {
             selectedPeriod: .all
           )
         } label: {
-          Label("MetricDetail HealthKit-backed", systemImage: "heart.text.square")
+          Label("MetricDetail HealthKit 기반", systemImage: "heart.text.square")
         }
 
         NavigationLink {
@@ -249,10 +249,10 @@ struct SimulatorScenarioView: View {
             selectedPeriod: .all
           )
         } label: {
-          Label("MetricDetail local-only", systemImage: "chart.xyaxis.line")
+          Label("MetricDetail 로컬 전용", systemImage: "chart.xyaxis.line")
         }
 
-        Text("이 section은 DEBUG 전용이며 mock HealthKit 상태, synthetic Fitdays CSV 결과, 앱 계산 샘플만 사용합니다. Release 사용자에게 노출되지 않습니다.")
+        Text("이 섹션은 DEBUG 전용이며 mock HealthKit 상태, synthetic Fitdays CSV 결과, 앱 계산 샘플만 사용합니다. Release 사용자에게 노출되지 않습니다.")
           .font(.footnote)
           .foregroundStyle(NBColor.secondaryText)
       }
