@@ -9,6 +9,9 @@ struct DailyHealthCardPreviewView: View {
   @State private var exportResult: DailyHealthCardImageResult?
   @State private var shareURL: URL?
   @State private var exportErrorMessage: String?
+  @State private var exportState: DailyHealthCardExportState = .preview
+  @State private var isShowingSensitiveExportConfirmation = false
+  @State private var isShowingShareSheet = false
 
   init(
     nightReport: NightReport? = nil,
@@ -44,6 +47,28 @@ struct DailyHealthCardPreviewView: View {
     }
     .onChange(of: privacyLevel) { _, _ in
       resetExportState()
+    }
+    .sheet(isPresented: $isShowingSensitiveExportConfirmation) {
+      DailyHealthCardExportConfirmationSheet(
+        content: content,
+        onCancel: {
+          exportState = .cancelled
+          isShowingSensitiveExportConfirmation = false
+        },
+        onConfirm: {
+          isShowingSensitiveExportConfirmation = false
+          Task { await renderImageForSharing() }
+        }
+      )
+      .presentationDetents([.medium, .large])
+    }
+    .sheet(isPresented: $isShowingShareSheet, onDismiss: handleShareSheetDismiss) {
+      if let shareURL {
+        DailyHealthCardActivityView(itemURL: shareURL) { completed in
+          exportState = completed ? .completed : .cancelled
+          isShowingShareSheet = false
+        }
+      }
     }
   }
 
@@ -100,6 +125,12 @@ struct DailyHealthCardPreviewView: View {
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
 
+        NBPrivacyNoticeCard(
+          title: content.containsSensitiveHealthValues ? "공유 전 확인" : "공유 안전장치",
+          messages: content.exportPrivacyNoticeMessages,
+          systemImage: content.containsSensitiveHealthValues ? "exclamationmark.shield" : "lock.shield"
+        )
+
         ViewThatFits(in: .horizontal) {
           HStack(spacing: NBSpacing.sm) {
             exportButton
@@ -119,6 +150,10 @@ struct DailyHealthCardPreviewView: View {
           )
         }
 
+        if exportState != .preview {
+          NBStatusBadge(exportState.displayText, kind: exportState.statusKind, systemImage: exportState.systemImage)
+        }
+
         if let exportErrorMessage {
           NBStatusBadge(exportErrorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
         }
@@ -128,7 +163,7 @@ struct DailyHealthCardPreviewView: View {
 
   private var exportButton: some View {
     Button {
-      Task { await renderImageForSharing() }
+      requestImageRender()
     } label: {
       Label(isRenderingExport ? "이미지 만드는 중" : "이미지 만들기", systemImage: "photo")
     }
@@ -139,8 +174,11 @@ struct DailyHealthCardPreviewView: View {
 
   @ViewBuilder
   private var shareButton: some View {
-    if let shareURL {
-      ShareLink(item: shareURL) {
+    if shareURL != nil {
+      Button {
+        exportState = .shareRequested
+        isShowingShareSheet = true
+      } label: {
         Label("공유", systemImage: "square.and.arrow.up")
       }
       .buttonStyle(.bordered)
@@ -171,22 +209,41 @@ struct DailyHealthCardPreviewView: View {
   }
 
   @MainActor
+  private func requestImageRender() {
+    if content.requiresSensitiveExportConfirmation {
+      exportState = .confirmationRequired
+      isShowingSensitiveExportConfirmation = true
+    } else {
+      Task { await renderImageForSharing() }
+    }
+  }
+
+  @MainActor
   private func renderImageForSharing() async {
     isRenderingExport = true
     exportErrorMessage = nil
     exportResult = nil
     shareURL = nil
+    exportState = .rendering
 
     do {
       let renderer = DailyHealthCardImageRenderer()
       let output = try renderer.render(content: content, reportId: bundle.report.id)
       exportResult = output.result
       shareURL = output.fileURL
+      exportState = .imageReady
     } catch {
       exportErrorMessage = "이미지 만들기에 실패했습니다. 다시 시도해 주세요."
+      exportState = .failed
     }
 
     isRenderingExport = false
+  }
+
+  private func handleShareSheetDismiss() {
+    if exportState == .shareRequested {
+      exportState = .cancelled
+    }
   }
 
   private func resetExportState() {
@@ -196,7 +253,173 @@ struct DailyHealthCardPreviewView: View {
     exportResult = nil
     shareURL = nil
     exportErrorMessage = nil
+    exportState = .preview
+    isShowingSensitiveExportConfirmation = false
+    isShowingShareSheet = false
   }
+}
+
+private enum DailyHealthCardExportState: Equatable {
+  case preview
+  case confirmationRequired
+  case rendering
+  case imageReady
+  case shareRequested
+  case cancelled
+  case completed
+  case failed
+
+  var displayText: String {
+    switch self {
+    case .preview:
+      "표시 항목을 확인한 뒤 이미지를 만들 수 있습니다."
+    case .confirmationRequired:
+      "건강 관련 수치가 포함되어 공유 전 확인이 필요합니다."
+    case .rendering:
+      "로컬 이미지를 만드는 중입니다."
+    case .imageReady:
+      "로컬 이미지가 준비되었습니다. 공유는 사용자가 선택할 때만 열립니다."
+    case .shareRequested:
+      "공유 sheet를 열었습니다."
+    case .cancelled:
+      "공유를 취소했거나 진행하지 않았습니다."
+    case .completed:
+      "공유를 완료했습니다."
+    case .failed:
+      "이미지 만들기에 실패했습니다."
+    }
+  }
+
+  var statusKind: NBStatusKind {
+    switch self {
+    case .preview:
+      .neutral
+    case .confirmationRequired:
+      .privacy
+    case .rendering:
+      .debug
+    case .imageReady:
+      .good
+    case .shareRequested:
+      .neutral
+    case .cancelled:
+      .caution
+    case .completed:
+      .good
+    case .failed:
+      .warning
+    }
+  }
+
+  var systemImage: String {
+    switch self {
+    case .preview:
+      "rectangle.on.rectangle"
+    case .confirmationRequired:
+      "exclamationmark.shield"
+    case .rendering:
+      "photo"
+    case .imageReady:
+      "checkmark.circle"
+    case .shareRequested:
+      "square.and.arrow.up"
+    case .cancelled:
+      "xmark.circle"
+    case .completed:
+      "checkmark.seal"
+    case .failed:
+      "exclamationmark.triangle"
+    }
+  }
+}
+
+private struct DailyHealthCardExportConfirmationSheet: View {
+  let content: DailyHealthCardContent
+  let onCancel: () -> Void
+  let onConfirm: () -> Void
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+          NBPrivacyNoticeCard(
+            title: "공유 전 표시 항목 확인",
+            messages: content.exportPrivacyNoticeMessages,
+            systemImage: "exclamationmark.shield"
+          )
+
+          VStack(alignment: .leading, spacing: NBSpacing.sm) {
+            Text("포함되는 항목")
+              .font(NBTypography.headline)
+            ForEach(content.keyMetrics) { metric in
+              HStack(spacing: NBSpacing.sm) {
+                Image(systemName: metric.sensitivity == .sensitiveHealth ? "heart.text.square" : "checkmark.circle")
+                  .foregroundStyle(metric.sensitivity == .sensitiveHealth ? NBColor.privacyTint : NBColor.success)
+                VStack(alignment: .leading, spacing: 2) {
+                  Text(metric.title)
+                    .font(NBTypography.captionEmphasis)
+                  Text(metric.sensitivity == .sensitiveHealth ? "건강 관련 수치 포함" : "일반 표시 항목")
+                    .font(NBTypography.caption)
+                    .foregroundStyle(NBColor.secondaryText)
+                }
+              }
+            }
+          }
+
+          ViewThatFits(in: .horizontal) {
+            HStack(spacing: NBSpacing.sm) {
+              confirmButton
+              cancelButton
+            }
+            VStack(spacing: NBSpacing.sm) {
+              confirmButton
+              cancelButton
+            }
+          }
+        }
+        .padding(NBSpacing.screenHorizontal)
+      }
+      .background(NBColor.pageBackground)
+      .navigationTitle("공유 전 확인")
+    }
+  }
+
+  private var confirmButton: some View {
+    Button {
+      onConfirm()
+    } label: {
+      Label("확인하고 이미지 만들기", systemImage: "photo")
+        .frame(maxWidth: .infinity)
+    }
+    .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
+  }
+
+  private var cancelButton: some View {
+    Button(role: .cancel) {
+      onCancel()
+    } label: {
+      Label("취소", systemImage: "xmark.circle")
+        .frame(maxWidth: .infinity)
+    }
+    .buttonStyle(.nbSecondary)
+  }
+}
+
+private struct DailyHealthCardActivityView: UIViewControllerRepresentable {
+  let itemURL: URL
+  let onComplete: (Bool) -> Void
+
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    let controller = UIActivityViewController(activityItems: [itemURL], applicationActivities: nil)
+    controller.completionWithItemsHandler = { _, completed, _, _ in
+      DispatchQueue.main.async {
+        onComplete(completed)
+      }
+    }
+    return controller
+  }
+
+  func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 @MainActor

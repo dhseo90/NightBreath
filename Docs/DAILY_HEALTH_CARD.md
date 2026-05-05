@@ -39,7 +39,7 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 `CardRendererProtocol`은 테스트 가능한 renderer boundary를 유지하기 위한 자리입니다. `PlaceholderDailyHealthCardRenderer`는 이미지 데이터를 만들지 않고, 선택된 report/template/privacyLevel만 담은 placeholder result를 반환합니다.
 
-`DailyHealthCardPreviewView`는 실제 사용자 액션이 있을 때 `ImageRenderer` 기반 `DailyHealthCardImageRenderer`로 현재 카드 상태를 로컬 PNG로 렌더링합니다. 생성된 파일은 임시 디렉터리에 저장하고, 이미지가 준비된 뒤에만 `ShareLink`를 노출합니다.
+`DailyHealthCardPreviewView`는 실제 사용자 액션이 있을 때 `ImageRenderer` 기반 `DailyHealthCardImageRenderer`로 현재 카드 상태를 로컬 PNG로 렌더링합니다. 생성된 파일은 임시 디렉터리에 저장하고, 이미지가 준비된 뒤에만 시스템 공유 sheet를 열 수 있습니다.
 
 실제 구현 시에도 렌더링은 로컬 기기 안에서 수행해야 하며, 생성된 이미지를 서버로 보내면 안 됩니다.
 
@@ -189,16 +189,16 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 - `ImageRenderer` 기반 `DailyHealthCardImageRenderer` 구현
 - 명시적인 `이미지 만들기` 액션
-- 임시 로컬 PNG 생성 후 `ShareLink` 노출
+- 임시 로컬 PNG 생성 후 시스템 공유 sheet 노출
 - 서버 업로드/자동 공유 부재 source regression test
+- 민감 수치 포함 여부 계산 helper
+- 별도 export confirmation sheet
+- 공유 취소/completed state UI
 
 남은 구현:
 
-- 별도 export confirmation sheet 추가
 - privacy level별 export snapshot test 추가
-- 민감 수치 포함 여부 계산 helper 추가
 - 사진 앱 또는 파일 저장 흐름 추가
-- 공유 취소/completed state UI 보강
 
 ## 의료 진단 아님
 

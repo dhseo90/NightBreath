@@ -138,6 +138,47 @@ struct DailyHealthCardContentTests {
     }
 
     @Test
+    func sensitiveHealthValuesRequireExportConfirmation() {
+        let fixture = makeFixture()
+        let content = DailyHealthCardContent.make(
+            date: referenceDate,
+            report: MockDailyRhythmData.sampleReport,
+            nightReport: fixture.nightReport,
+            healthMetricSamples: fixture.samples,
+            template: .healthSummary,
+            privacyLevel: .standard,
+            calendar: calendar
+        )
+
+        #expect(content.containsSensitiveHealthValues)
+        #expect(content.requiresSensitiveExportConfirmation)
+        #expect(content.exportPrivacyNoticeMessages.contains {
+            $0.contains("건강 관련 수치") && $0.contains("공유 전")
+        })
+        #expect(content.exportPrivacyNoticeMessages.contains("자동 공유와 서버 업로드는 없습니다."))
+    }
+
+    @Test
+    func minimalPrivacyExportDoesNotRequireSensitiveConfirmation() {
+        let fixture = makeFixture()
+        let content = DailyHealthCardContent.make(
+            date: referenceDate,
+            report: MockDailyRhythmData.sampleReport,
+            nightReport: fixture.nightReport,
+            healthMetricSamples: fixture.samples,
+            template: .privacyMinimal,
+            privacyLevel: .detailed,
+            calendar: calendar
+        )
+
+        #expect(!content.containsSensitiveHealthValues)
+        #expect(!content.requiresSensitiveExportConfirmation)
+        #expect(content.exportPrivacyNoticeMessages.contains {
+            $0.contains("민감 건강 수치를 줄여")
+        })
+    }
+
+    @Test
     func placeholderRendererDoesNotExportImageData() async {
         let result = await PlaceholderDailyHealthCardRenderer().renderCard(
             report: MockDailyRhythmData.sampleReport,
@@ -158,10 +199,15 @@ struct DailyHealthCardContentTests {
         let contents = try sourceContents("SleepSoundApp/Features/DailyRhythm/DailyHealthCardPreviewView.swift")
 
         #expect(contents.contains("ImageRenderer"))
-        #expect(contents.contains("ShareLink"))
+        #expect(contents.contains("UIActivityViewController"))
+        #expect(contents.contains("completionWithItemsHandler"))
+        #expect(contents.contains("DailyHealthCardExportConfirmationSheet"))
+        #expect(contents.contains("isShowingSensitiveExportConfirmation"))
         #expect(contents.contains("이미지 만들기"))
         #expect(contents.contains("FileManager.default.temporaryDirectory"))
         #expect(contents.contains("자동 공유와 서버 업로드는 없습니다."))
+        #expect(contents.contains("공유를 완료했습니다."))
+        #expect(contents.contains("공유를 취소했거나 진행하지 않았습니다."))
         #expect(contents.contains(".pngData()"))
         #expect(contents.contains(".png"))
         #expect(!contents.contains("URLSession"))

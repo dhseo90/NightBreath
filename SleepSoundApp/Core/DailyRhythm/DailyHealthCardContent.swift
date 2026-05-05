@@ -34,6 +34,33 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
     public var summaryText: String
     public var referenceText: String
 
+    public var containsSensitiveHealthValues: Bool {
+        privacyLevel.includesSensitiveValues && keyMetrics.contains { $0.sensitivity == .sensitiveHealth }
+    }
+
+    public var requiresSensitiveExportConfirmation: Bool {
+        containsSensitiveHealthValues
+    }
+
+    public var exportPrivacyNoticeMessages: [String] {
+        var messages = [
+            "이미지는 사용자가 선택한 경우에만 생성됩니다.",
+            "자동 공유와 서버 업로드는 없습니다.",
+        ]
+
+        if containsSensitiveHealthValues {
+            messages.insert("이 카드에는 건강 관련 수치가 포함됩니다. 공유 전 표시 항목을 확인해 주세요.", at: 0)
+        } else {
+            messages.insert("현재 표시 수준에서는 민감 건강 수치를 줄여 보여줍니다.", at: 0)
+        }
+
+        if privacyLevel.includesSourceDetails {
+            messages.append("상세 표시 수준은 예시 데이터 출처와 기록 시간을 함께 보여줄 수 있습니다.")
+        }
+
+        return messages
+    }
+
     public init(
         date: Date,
         template: DailyHealthCardTemplate = .healthSummary,
