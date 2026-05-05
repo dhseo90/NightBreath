@@ -227,6 +227,7 @@ public enum UnifiedHealthMetricOverviewGroupID: String, Codable, CaseIterable, I
     case bloodPressure
     case bodyComposition
     case activity
+    case recovery
     case sleepAndApp
     case fitdaysExtended
 
@@ -240,6 +241,8 @@ public enum UnifiedHealthMetricOverviewGroupID: String, Codable, CaseIterable, I
             "체성분"
         case .activity:
             "활동"
+        case .recovery:
+            "회복 지표"
         case .sleepAndApp:
             "수면/앱 지표"
         case .fitdaysExtended:
@@ -305,6 +308,13 @@ public struct UnifiedHealthMetricOverviewGrouping: Equatable, Sendable {
                 id: .activity,
                 title: UnifiedHealthMetricOverviewGroupID.activity.displayName,
                 metricIDs: catalog.metrics(in: .activity).map(\.metricID)
+            ),
+            UnifiedHealthMetricOverviewGroup(
+                id: .recovery,
+                title: UnifiedHealthMetricOverviewGroupID.recovery.displayName,
+                metricIDs: catalog.metrics(in: .recovery)
+                    .map(\.metricID)
+                    .filter { !Self.fitdaysExtendedMetricIDs.contains($0) }
             ),
             UnifiedHealthMetricOverviewGroup(
                 id: .sleepAndApp,

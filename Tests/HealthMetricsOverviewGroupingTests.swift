@@ -11,6 +11,7 @@ struct HealthMetricsOverviewGroupingTests {
             .bloodPressure,
             .bodyComposition,
             .activity,
+            .recovery,
             .sleepAndApp,
             .fitdaysExtended,
         ])
@@ -41,5 +42,27 @@ struct HealthMetricsOverviewGroupingTests {
             .bodyMassIndex,
             .leanBodyMass,
         ])
+    }
+
+    @Test
+    func recoveryGroupContainsReadOnlyRecoveryMetricsButExcludesFitdaysExtendedOnes() throws {
+        let groups = UnifiedHealthMetricOverviewGrouping().groups()
+        let recoveryGroup = try #require(groups.first { $0.id == .recovery })
+
+        #expect(recoveryGroup.metricIDs == [
+            .restingHeartRate,
+            .heartRate,
+            .respiratoryRate,
+        ])
+        #expect(!recoveryGroup.metricIDs.contains(.basalMetabolicRate))
+    }
+
+    @Test
+    func overviewGroupsCoverEveryCatalogMetricExactlyOnce() {
+        let groups = UnifiedHealthMetricOverviewGrouping().groups()
+        let groupedMetricIDs = groups.flatMap(\.metricIDs)
+
+        #expect(groupedMetricIDs.count == Set(groupedMetricIDs).count)
+        #expect(Set(groupedMetricIDs) == Set(MetricCatalog.default.allMetrics().map(\.metricID)))
     }
 }

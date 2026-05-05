@@ -72,6 +72,7 @@
 - MetricChartView
 - 건강 지표 통계/그래프
 - HealthMetricsOverviewView
+- HealthMetricsOverviewView recovery metric grouping
 - 월 건강 캘린더
 - HealthCalendarView
 - DailyMeasurementDetailView

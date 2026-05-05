@@ -56,7 +56,7 @@
 - invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름 확인
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시 재점검
-- HealthMetricsOverviewView category grouping 회귀 테스트 보강
+- HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강
 - `Docs/HEALTH_DATA_GUIDE.md`의 Fitdays CSV/export 차이 추적

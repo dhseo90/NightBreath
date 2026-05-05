@@ -183,6 +183,8 @@ struct HealthMetricsOverviewView: View {
       "scalemass"
     case .activity:
       "figure.walk"
+    case .recovery:
+      "heart.text.square"
     case .sleepAndApp:
       "bed.double"
     case .fitdaysExtended:
