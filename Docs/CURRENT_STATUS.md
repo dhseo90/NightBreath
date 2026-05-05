@@ -100,6 +100,7 @@
 - README 대표 mock/simulator screenshot 8개
 - README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
+- Daily Health Card 미리보기의 명시 액션 기반 로컬 PNG 생성/ShareLink 연결
 - 실제 iPhone QA runbook과 기록 템플릿
 - Health/QA/App Release 문서 통합 정리
 
@@ -135,7 +136,7 @@
 - App Store screenshot marketing final version
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
-- 실제 Daily Health Card image share/export
+- Daily Health Card 별도 confirmation sheet, 사진/파일 저장 흐름, privacy level별 export snapshot
 - UI Gallery 상세/edge/debug screenshot 전체 캡처
 - 혈압/체성분/교차 보기/edge/debug 상세 screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증

@@ -6,8 +6,8 @@ NightBreath / 밤숨의 Daily Health Card는 하루 리듬 리포트를 한 장�
 
 - 오늘의 리듬 점수와 핵심 지표를 한눈에 보기 쉽게 정리합니다.
 - Morning Brief, Daily Rhythm Report, 건강 대시보드에서 나온 정보를 카드 형태로 재구성합니다.
-- 나중에 SwiftUI View를 이미지로 렌더링해 저장 또는 공유할 수 있는 구조를 준비합니다.
-- 이번 단계에서는 실제 이미지 export/share 기능을 구현하지 않습니다.
+- SwiftUI View를 로컬 이미지로 렌더링해 사용자가 명시적으로 공유할 수 있는 구조를 제공합니다.
+- 현재 단계에서는 사진 앱 저장이 아니라 임시 로컬 PNG 생성과 시스템 공유 sheet 연결까지 지원합니다.
 
 ## 템플릿
 
@@ -37,7 +37,9 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 ## Rendering 구조
 
-`CardRendererProtocol`은 나중에 SwiftUI View를 이미지로 렌더링하는 구현을 붙이기 위한 자리입니다. 현재 `PlaceholderDailyHealthCardRenderer`는 이미지 데이터를 만들지 않고, 선택된 report/template/privacyLevel만 담은 placeholder result를 반환합니다.
+`CardRendererProtocol`은 테스트 가능한 renderer boundary를 유지하기 위한 자리입니다. `PlaceholderDailyHealthCardRenderer`는 이미지 데이터를 만들지 않고, 선택된 report/template/privacyLevel만 담은 placeholder result를 반환합니다.
+
+`DailyHealthCardPreviewView`는 실제 사용자 액션이 있을 때 `ImageRenderer` 기반 `DailyHealthCardImageRenderer`로 현재 카드 상태를 로컬 PNG로 렌더링합니다. 생성된 파일은 임시 디렉터리에 저장하고, 이미지가 준비된 뒤에만 `ShareLink`를 노출합니다.
 
 실제 구현 시에도 렌더링은 로컬 기기 안에서 수행해야 하며, 생성된 이미지를 서버로 보내면 안 됩니다.
 
@@ -62,22 +64,22 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 ## Export / Share 설계
 
-이번 단계에서는 실제 export/share 기능을 구현하지 않고, 다음 구현 이슈에서 붙일 수 있도록 흐름만 고정합니다.
+현재 단계에서는 카드 미리보기 화면에서 명시적인 `이미지 만들기` 액션을 제공하고, 렌더링이 성공한 경우에만 `공유` 액션을 활성화합니다. 자동 저장, 자동 공유, 서버 업로드는 없습니다.
 
 ### SwiftUI View to Image Rendering
 
-계획:
+현재 구현:
 
 1. `DailyHealthCardContent`와 `DailyHealthCardTemplate`으로 export 전용 SwiftUI card view를 구성합니다.
-2. iOS 16+에서는 `ImageRenderer` 기반으로 SwiftUI view를 로컬 이미지 데이터로 렌더링합니다.
-3. 렌더링 크기는 card template별 고정 비율을 사용하고, Dynamic Type으로 내용이 잘리지 않도록 export preview에서 검증합니다.
+2. iOS 17+ app target에서 `ImageRenderer` 기반으로 SwiftUI view를 로컬 PNG 데이터로 렌더링합니다.
+3. 렌더링 표면은 고정 폭과 safe padding을 사용합니다.
 4. 렌더링은 기기 안에서만 수행합니다.
 5. 생성된 이미지에는 사용자가 선택한 privacy level에 맞는 항목만 포함합니다.
 6. 렌더링 실패 시 이미지를 만들지 않고 사용자에게 다시 시도 안내만 표시합니다.
 
 ### Export 전 확인 화면
 
-export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 먼저 표시합니다.
+카드 미리보기 화면은 공유 sheet를 바로 열지 않고 먼저 현재 template/privacy level과 카드 preview를 보여줍니다. 사용자가 `이미지 만들기`를 선택해야 임시 PNG가 생성되고, 그 다음에만 `공유` 버튼이 활성화됩니다.
 
 확인 화면에 포함할 항목:
 
@@ -90,26 +92,25 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 - "서버 업로드 없음" 안내
 - "외부 SDK 없음" 안내
 
-사용자가 확인 화면에서 명시적으로 export 또는 share를 선택한 경우에만 이미지 생성과 공유 흐름을 시작합니다.
+사용자가 명시적으로 이미지 생성을 선택한 경우에만 이미지 생성 흐름을 시작합니다. 공유 sheet는 이미지가 준비된 뒤 사용자가 다시 `공유`를 선택할 때 열립니다.
 
 확인 흐름:
 
-1. 카드 화면에서 export/share 버튼을 누릅니다.
-2. template과 privacy level을 선택하거나 기존 선택값을 확인합니다.
-3. export preview를 생성하기 전에 포함될 항목 목록을 먼저 보여줍니다.
-4. `standard` 또는 `detailed`에서 민감할 수 있는 수치가 포함되면 안내 문구를 표시합니다.
-5. 사용자가 저장 또는 공유를 명시적으로 선택한 경우에만 이미지 렌더링을 시작합니다.
-6. 저장을 선택한 경우 로컬 photo/file 저장 흐름으로 이동합니다.
-7. 공유를 선택한 경우 시스템 share sheet를 엽니다.
-8. 사용자가 취소하면 이미지가 앱 밖으로 나가지 않았음을 표시하고 원래 화면으로 돌아갑니다.
+1. 카드 미리보기 화면에서 template과 privacy level을 선택합니다.
+2. 카드 preview와 안내 문구를 확인합니다.
+3. 사용자가 `이미지 만들기`를 선택한 경우에만 이미지 렌더링을 시작합니다.
+4. 렌더링에 성공하면 임시 로컬 PNG와 `DailyHealthCardImageResult`가 생성됩니다.
+5. 이미지가 준비된 뒤 사용자가 `공유`를 선택한 경우에만 시스템 share sheet를 엽니다.
+6. 사용자가 취소하면 자동 재공유나 서버 전송 없이 미리보기 화면에 남습니다.
 
 저장/공유/취소/실패 state:
 
 | State | 동작 | 사용자 안내 |
 | --- | --- | --- |
-| `preview` | export 전 card preview와 포함 항목을 표시 | 표시 항목을 확인한 뒤 저장 또는 공유를 선택 |
+| `preview` | export 전 card preview와 포함 항목을 표시 | 표시 항목을 확인한 뒤 이미지 만들기를 선택 |
 | `rendering` | 로컬에서 SwiftUI view를 이미지로 변환 | 잠시 기다리기 |
-| `saveRequested` | 사용자가 저장을 명시적으로 선택 | 저장 위치 또는 사진 접근 흐름으로 이동 |
+| `imageReady` | 임시 로컬 PNG 생성 완료 | 공유 버튼 활성화 |
+| `saveRequested` | 사용자가 저장을 명시적으로 선택 | 향후 사진/파일 저장 흐름에서 구현 |
 | `shareRequested` | 사용자가 공유를 명시적으로 선택 | 시스템 share sheet 표시 |
 | `cancelled` | 사용자가 저장/공유를 취소 | 카드가 공유되지 않았다는 짧은 확인 표시 |
 | `failed` | 렌더링, 저장, share sheet 준비가 실패 | 이미지를 만들지 못했으며 다시 시도할 수 있음 |
@@ -177,22 +178,27 @@ export/share를 누르면 바로 공유 sheet를 열지 않고 확인 화면을 
 - 광고/분석 SDK 연결 없음
 - HealthKit write 없음
 - 사용자가 명시적으로 선택한 경우에만 export/share
-- share sheet를 열기 전 preview와 privacy level을 다시 확인
+- share sheet를 열기 전 preview와 privacy level을 확인
 - 생성된 이미지는 사용자가 저장/공유를 선택하지 않으면 앱 밖으로 나가지 않음
 - 생성된 이미지는 analytics event, crash log, debug log에 첨부하지 않음
 - export preview screenshot에는 실제 personal CSV 파일명, 실제 local path, 실제 HealthKit device 식별자를 표시하지 않음
 
 ### 다음 구현 이슈
 
-남은 구현:
+구현 완료:
 
 - `ImageRenderer` 기반 `DailyHealthCardImageRenderer` 구현
-- export preview confirmation view 추가
+- 명시적인 `이미지 만들기` 액션
+- 임시 로컬 PNG 생성 후 `ShareLink` 노출
+- 서버 업로드/자동 공유 부재 source regression test
+
+남은 구현:
+
+- 별도 export confirmation sheet 추가
 - privacy level별 export snapshot test 추가
 - 민감 수치 포함 여부 계산 helper 추가
-- 저장/공유 취소 state와 실패 state UI 추가
-- 자동 공유/서버 업로드/외부 SDK 부재를 검증하는 privacy regression test 추가
-- 공유 sheet 연결
+- 사진 앱 또는 파일 저장 흐름 추가
+- 공유 취소/completed state UI 보강
 
 ## 의료 진단 아님
 

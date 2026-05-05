@@ -71,12 +71,13 @@
 
 ## Daily Health Card
 
-- `ImageRenderer` 기반 SwiftUI view to image renderer 구현
-- `minimal`, `standard`, `detailed` privacy level별 export preview UI 구현
-- 민감 수치가 포함된 카드의 사용자 명시 액션 흐름 구현
-- 저장/공유 실패 state와 취소 state 구현
+- `ImageRenderer` 기반 SwiftUI view to image renderer는 카드 미리보기 화면에 반영 완료
+- `minimal`, `standard`, `detailed` privacy level별 export preview UI 보강
+- 민감 수치가 포함된 카드의 별도 confirmation sheet 구현
+- 사진 앱 또는 파일 저장 흐름 구현
+- 공유 취소/completed state UI 보강
 - privacy level별 snapshot/regression test 추가
-- 서버 업로드, 외부 SDK, 자동 공유가 없음을 확인하는 privacy test 추가
+- 서버 업로드, 외부 SDK, 자동 공유가 없음을 확인하는 privacy test 유지/확장
 - README용 대표 카드와 App Store용 카드의 표시 데이터 분리
 
 주의:

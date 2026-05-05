@@ -154,6 +154,22 @@ struct DailyHealthCardContentTests {
     }
 
     @Test
+    func previewImageExportRequiresExplicitLocalActionAndShareButton() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/DailyRhythm/DailyHealthCardPreviewView.swift")
+
+        #expect(contents.contains("ImageRenderer"))
+        #expect(contents.contains("ShareLink"))
+        #expect(contents.contains("이미지 만들기"))
+        #expect(contents.contains("FileManager.default.temporaryDirectory"))
+        #expect(contents.contains("자동 공유와 서버 업로드는 없습니다."))
+        #expect(contents.contains(".pngData()"))
+        #expect(contents.contains(".png"))
+        #expect(!contents.contains("URLSession"))
+        #expect(!contents.contains("http://"))
+        #expect(!contents.contains("https://"))
+    }
+
+    @Test
     func emptyContentUsesLimitedDataCopyInsteadOfLoweringIntoHealthJudgment() {
         let content = DailyHealthCardContent.make(
             date: referenceDate,
@@ -247,5 +263,10 @@ struct DailyHealthCardContentTests {
     private struct DailyHealthCardFixture {
         var nightReport: NightReport
         var samples: [HealthMetricSample]
+    }
+
+    private func sourceContents(_ relativePath: String) throws -> String {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
     }
 }
