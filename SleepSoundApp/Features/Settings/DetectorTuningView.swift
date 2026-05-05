@@ -62,7 +62,7 @@
       Section("최근 세션 Detector Diagnostics") {
         if let diagnostics = appState.latestDetectorDiagnostics {
           NBDiagnosticCard(
-            title: "DEBUG Detector 진단",
+            title: "DEBUG Detector 분석",
             summary: "raw 후보, smoothing 전/후, 최종 이벤트, backend/fallback 상태를 DEBUG 화면에서 상세히 확인합니다.",
             systemImage: "waveform.and.magnifyingglass"
           ) {

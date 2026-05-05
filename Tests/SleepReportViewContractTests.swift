@@ -20,12 +20,17 @@ struct SleepReportViewContractTests {
       "코골기가 " + "없었습니다",
       "수면무호흡증 " + "없음",
       "질병 " + "아님",
-      "치료 " + "필요"
+      "치료 " + "필요",
+      "진단 " + "요약",
+      "Zero-event " + "진단"
     ]
 
     for phrase in forbiddenPhrases {
       #expect(!source.contains(phrase))
     }
+
+    #expect(source.contains("Zero-event 분석"))
+    #expect(source.contains("상세 분석"))
   }
 
   private func sleepReportViewSource() throws -> String {

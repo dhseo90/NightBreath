@@ -165,7 +165,7 @@ struct SleepRepositoryTests {
             highBandEnergySummary: SummaryStats.make(values: [0.0005, 0.001]),
             thresholdsSnapshot: ["rule.snoreRMS": 0.03],
             eventAudioSampleStorageEnabled: false,
-            notes: ["테스트용 detector 진단 요약"]
+            notes: ["테스트용 detector 분석 요약"]
         )
     }
 }

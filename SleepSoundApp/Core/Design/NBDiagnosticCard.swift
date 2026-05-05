@@ -85,7 +85,7 @@ struct NBDiagnosticCard<Content: View>: View {
 
 extension NBDiagnosticCard where Content == NBDiagnosticItemList {
   init(
-    title: String = "Detector 진단 요약",
+    title: String = "Detector 분석 요약",
     summary: String? = nil,
     items: [NBDiagnosticItem],
     showsDetails: Bool = false,

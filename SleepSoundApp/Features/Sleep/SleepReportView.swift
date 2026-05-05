@@ -207,7 +207,7 @@ struct SleepReportView: View {
   @ViewBuilder
   private var detectorDiagnosticsSection: some View {
     if let diagnostics = report.detectorDiagnostics {
-      NBDiagnosticCard(title: "Detector 진단 요약") {
+      NBDiagnosticCard(title: "Detector 분석 요약") {
         VStack(alignment: .leading, spacing: NBSpacing.medium) {
           LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             ReportMetricCard(
@@ -338,7 +338,7 @@ struct SleepReportView: View {
           }
 
           if let zeroEventText = diagnostics.summaryTextForZeroEvents {
-            Text(zeroEventText + " 감지 기준이 보수적으로 동작했을 수 있어 진단 요약을 함께 확인하세요.")
+            Text(zeroEventText + " 감지 기준이 보수적으로 동작했을 수 있어 상세 분석을 함께 확인하세요.")
               .font(.callout)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
@@ -394,7 +394,7 @@ struct SleepReportView: View {
 
           if let diagnostics = report.detectorDiagnostics {
             VStack(alignment: .leading, spacing: NBSpacing.sm) {
-              Label("Zero-event 진단", systemImage: "waveform.and.magnifyingglass")
+              Label("Zero-event 분석", systemImage: "waveform.and.magnifyingglass")
                 .font(NBTypography.headline)
                 .foregroundStyle(NBColor.audioTint)
               Text("raw 후보 수와 주요 탈락 이유를 함께 확인합니다.")

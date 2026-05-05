@@ -255,7 +255,7 @@ rg -n "확진|질병|치료|AHI|확정" SleepSoundApp README.md QA_CHECKLIST.md
 - [ ] 다양한 iPhone 모델에서 마이크 입력 level 차이를 확인해야 한다.
 - [ ] 조용한 방, 선풍기/에어컨, 거리 소음, 침구 마찰 등 환경별 오탐 가능성을 기록해야 한다.
 - [ ] rule-based detector threshold는 실제 데이터로 계속 튜닝해야 한다.
-- [ ] 장시간 측정에서 이벤트가 0개일 때 Detector 진단 요약의 raw 후보 수, smoothing 전/후 후보 수, 주요 탈락 이유, RMS/energy p90을 확인해야 한다.
+- [ ] 장시간 측정에서 이벤트가 0개일 때 Detector 분석 요약의 raw 후보 수, smoothing 전/후 후보 수, 주요 탈락 이유, RMS/energy p90을 확인해야 한다.
 - [ ] 실제 코골이 또는 코골기 유사 smoke에서 final event가 0개여도 raw/reject diagnostics가 남는지 확인해야 한다.
 - [ ] Snore signal smoke에서 raw diagnostics가 전혀 없으면 detector 판단용 overnight로 넘어가지 않는다.
 - [ ] 이벤트 오디오 샘플 저장 opt-in 토글이 실제 iPhone에서도 기본 OFF로 표시되는지 확인해야 한다.

@@ -320,11 +320,11 @@ NBPrivacyNoticeCard(
 )
 ```
 
-DEBUG 진단:
+DEBUG 분석:
 
 ```swift
 NBDiagnosticCard(
-  title: "DEBUG Detector 진단",
+  title: "DEBUG Detector 분석",
   summary: "raw 후보부터 최종 이벤트까지 확인합니다.",
   items: [
     NBDiagnosticItem(title: "raw 후보 수", value: "12개", status: .neutral),

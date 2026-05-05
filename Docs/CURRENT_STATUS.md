@@ -162,6 +162,17 @@
 - 실제 개인 CSV 파일은 git에 포함하지 않습니다.
 - 서버 전송, HealthKit 쓰기, 외부 SDK는 없습니다.
 
+## P0 Stop / Detector Diagnostics 감사 기록
+
+2026-05-05 기준 최근 P0 stop capture와 zero-event detector observability 수정 상태를 코드 기준으로 재확인했습니다.
+
+- 수면 종료 tap은 `AppState.endSleepSession()`에서 `stopButtonTappedAt`과 `stopRequestedAt`을 먼저 기록한 뒤 `AudioCaptureService.stopCapture()`를 즉시 호출합니다.
+- `AudioCaptureService.stopCapture()`는 input tap 제거, `AVAudioEngine.stop()`, audio session deactivate, chunk stream 종료, capture task cancel 기록을 analyzer finalize와 report generation보다 먼저 수행합니다.
+- stop flow는 idempotent하며 double tap 중에는 기존 finalization을 유지하고 duplicate report 생성을 피합니다.
+- stop 이후 chunk가 들어오면 `chunksReceivedAfterStopRequest`, `secondsReceivingAudioAfterStopRequest`, `lastChunkReceivedAt`, force stop reason으로 남깁니다.
+- detector diagnostics는 raw/pre-smoothing/post-smoothing/final type count, reject reason, RMS/energy/band/zero-crossing/centroid summary, threshold snapshot, backend, tuning profile, model fallback 상태를 리포트에 보존합니다.
+- 이벤트 오디오 샘플은 opt-in일 때만 짧게 저장되며, 전체 밤 원본 오디오 저장 경로는 추가하지 않았습니다.
+
 ## 실기기 확인이 남은 항목
 
 - 화면 잠금 상태에서 장시간 오디오 수신 유지

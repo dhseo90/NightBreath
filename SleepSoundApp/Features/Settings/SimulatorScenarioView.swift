@@ -59,7 +59,7 @@ struct SimulatorScenarioView: View {
             .font(NBTypography.sectionTitle)
             .foregroundStyle(NBColor.audioTint)
 
-          Text("실제 iPhone 녹음 없이 mock 수면 세션, 이벤트, 리포트, detector 진단, 이벤트 오디오 저장소 상태를 재현합니다.")
+          Text("실제 iPhone 녹음 없이 mock 수면 세션, 이벤트, 리포트, detector 분석, 이벤트 오디오 저장소 상태를 재현합니다.")
             .font(NBTypography.callout)
             .foregroundStyle(NBColor.secondaryText)
           NBStatusBadge("DEBUG 전용", kind: .debug)
@@ -348,7 +348,7 @@ struct SimulatorScenarioView: View {
           Label("PrivacySettingsView", systemImage: "lock.shield")
         }
 
-        Text("먼저 시나리오를 적용한 뒤 각 화면에서 점수, 측정 품질, 실제 오디오 수신 시간, 이벤트 수, 샘플 저장 상태, 저장 용량, detector 진단, zero-event 분석을 확인합니다.")
+        Text("먼저 시나리오를 적용한 뒤 각 화면에서 점수, 측정 품질, 실제 오디오 수신 시간, 이벤트 수, 샘플 저장 상태, 저장 용량, detector 분석, zero-event 분석을 확인합니다.")
           .font(.footnote)
           .foregroundStyle(NBColor.secondaryText)
       }

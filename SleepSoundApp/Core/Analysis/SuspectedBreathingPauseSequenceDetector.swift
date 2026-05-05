@@ -352,7 +352,7 @@ public struct SuspectedBreathingPauseSequenceDetector: Equatable, Sendable {
         if movementOverlap != nil {
             reasons.append("움직임 의심 소리와 겹쳐 confidence 하향")
         }
-        reasons.append("오디오 기반 의심 패턴이며 진단 목적 아님")
+        reasons.append("오디오 기반 의심 패턴이며 개인 참고용")
 
         return DetectorOutput(
             eventType: .breathingPauseSuspected,

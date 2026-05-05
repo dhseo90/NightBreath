@@ -194,10 +194,10 @@ struct PrivacySettingsView: View {
           .foregroundStyle(.secondary)
       }
 
-      Section("Detector 진단 요약") {
+      Section("Detector 분석 요약") {
         if let diagnostics = appState.latestDetectorDiagnostics {
           NBDiagnosticCard(
-            title: "Detector 진단 요약",
+            title: "Detector 분석 요약",
             summary: "로컬 detector가 남긴 raw 후보, smoothing 결과, fallback 정보를 표시합니다.",
             items: [
               NBDiagnosticItem(title: "현재 backend", value: diagnostics.detectorBackend, status: .debug),
@@ -236,7 +236,7 @@ struct PrivacySettingsView: View {
           }
         } else {
           Text(
-            "아직 저장된 detector 진단 요약이 없습니다. 수면 측정을 종료하면 raw 후보 수, smoothing 결과, 주요 탈락 이유가 로컬에 저장됩니다."
+            "아직 저장된 detector 분석 요약이 없습니다. 수면 측정을 종료하면 raw 후보 수, smoothing 결과, 주요 탈락 이유가 로컬에 저장됩니다."
           )
           .font(.footnote)
           .foregroundStyle(.secondary)

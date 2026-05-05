@@ -364,7 +364,7 @@
 
     var body: some View {
       NBDiagnosticCard(
-        title: "DEBUG Detector 진단",
+        title: "DEBUG Detector 분석",
         summary: diagnostics.summaryTextForZeroEvents ?? "Replay detector diagnostics를 raw 후보부터 최종 이벤트까지 확인합니다.",
         systemImage: "waveform.and.magnifyingglass"
       ) {
