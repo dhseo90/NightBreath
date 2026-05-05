@@ -218,6 +218,7 @@ struct AppStoreReadinessTests {
         [
             "SampleCaptureView",
             "AudioDebugView",
+            "DebugAudioSamplesView",
             "DetectorTuningView",
             "DatasetReplayView",
             "SimulatorScenarioView",
@@ -228,6 +229,7 @@ struct AppStoreReadinessTests {
         [
             "SleepSoundApp/Features/Settings/SampleCaptureView.swift",
             "SleepSoundApp/Features/Settings/AudioDebugView.swift",
+            "SleepSoundApp/Features/Settings/DebugAudioSamplesView.swift",
             "SleepSoundApp/Features/Settings/DetectorTuningView.swift",
             "SleepSoundApp/Features/Settings/DatasetReplayView.swift",
             "SleepSoundApp/Features/Settings/SimulatorScenarioView.swift",

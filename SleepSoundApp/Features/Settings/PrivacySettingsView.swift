@@ -327,7 +327,7 @@ struct PrivacySettingsView: View {
   }
 }
 
-private struct PrivacyStorageStatRow: View {
+struct PrivacyStorageStatRow: View {
   let title: String
   let value: String
   let systemImage: String

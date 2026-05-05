@@ -36,7 +36,9 @@ struct SleepRecordingView: View {
 
         TimelineView(.periodic(from: session.startedAt, by: 1)) { context in
           Text(
-            SleepFormatters.compactDurationString(context.date.timeIntervalSince(session.startedAt))
+            SleepFormatters.compactDurationString(
+              displayedSessionElapsed(for: session, at: context.date)
+            )
           )
           .font(.system(size: 42, weight: .bold, design: .rounded))
           .monospacedDigit()
@@ -243,6 +245,14 @@ struct SleepRecordingView: View {
 
   private var displayAudioLevel: Double {
     min(max(appState.latestAudioLevel * 8, 0), 1)
+  }
+
+  private func displayedSessionElapsed(for session: SleepSession, at date: Date) -> TimeInterval {
+    let metrics = appState.audioCaptureMetrics.snapshot(at: date)
+    if metrics.stopRequestedAt != nil || appState.sleepRecordingPhase != .recording {
+      return metrics.sessionElapsedSeconds
+    }
+    return date.timeIntervalSince(session.startedAt)
   }
 
   private var scenePhaseDisplayText: String {

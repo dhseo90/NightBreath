@@ -49,6 +49,7 @@
 		000000000000000000000228 /* AudioFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012E /* AudioFeatures.swift */; };
 		000000000000000000000229 /* DetectionSmoothingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000012F /* DetectionSmoothingPolicy.swift */; };
 		00000000000000000000022A /* AudioDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000135 /* AudioDebugView.swift */; };
+		0000000000000000000002A0 /* DebugAudioSamplesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001D0 /* DebugAudioSamplesView.swift */; };
 		00000000000000000000022B /* FeatureCSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000136 /* FeatureCSVExporter.swift */; };
 		00000000000000000000022C /* SleepDetectionBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000138 /* SleepDetectionBackend.swift */; };
 		00000000000000000000022D /* CoreMLDetectorConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000139 /* CoreMLDetectorConfiguration.swift */; };
@@ -207,6 +208,7 @@
 		000000000000000000000133 /* SleepAnalysisPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepAnalysisPipelineTests.swift; sourceTree = "<group>"; };
 		000000000000000000000134 /* SleepRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRepositoryTests.swift; sourceTree = "<group>"; };
 		000000000000000000000135 /* AudioDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDebugView.swift; sourceTree = "<group>"; };
+		0000000000000000000001D0 /* DebugAudioSamplesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugAudioSamplesView.swift; sourceTree = "<group>"; };
 		000000000000000000000136 /* FeatureCSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureCSVExporter.swift; sourceTree = "<group>"; };
 		000000000000000000000137 /* RuleBasedDetectorValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleBasedDetectorValidationTests.swift; sourceTree = "<group>"; };
 		000000000000000000000138 /* SleepDetectionBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetectionBackend.swift; sourceTree = "<group>"; };
@@ -495,6 +497,7 @@
 				000000000000000000000120 /* PrivacySettingsView.swift */,
 				00000000000000000000011F /* DevicePlacementGuideView.swift */,
 				000000000000000000000135 /* AudioDebugView.swift */,
+				0000000000000000000001D0 /* DebugAudioSamplesView.swift */,
 				000000000000000000000145 /* SampleCaptureView.swift */,
 				000000000000000000000155 /* DetectorTuningView.swift */,
 				000000000000000000000169 /* DatasetReplayView.swift */,
@@ -931,6 +934,7 @@
 				00000000000000000000021D /* DevicePlacementGuideView.swift in Sources */,
 				00000000000000000000021E /* PrivacySettingsView.swift in Sources */,
 				00000000000000000000022A /* AudioDebugView.swift in Sources */,
+				0000000000000000000002A0 /* DebugAudioSamplesView.swift in Sources */,
 				000000000000000000000236 /* SampleCaptureView.swift in Sources */,
 				00000000000000000000023F /* DetectorTuningView.swift in Sources */,
 				000000000000000000000250 /* DatasetReplayView.swift in Sources */,

@@ -251,6 +251,38 @@ struct EventAudioSnippetStoreTests {
     }
 
     @Test
+    func debugPlayableRecordsCanListAllLocalSamplesWithoutReportSession() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(maxSnippetsPerSession: 10, maxFolderSizeBytes: 2_000_000)
+        )
+        let eventSessionId = UUID()
+        let debugSessionId = UUID()
+
+        let eventSnippet = try store.saveSnippet(
+            sessionId: eventSessionId,
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 740)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 739))
+        )
+        let debugPreview = try store.saveDebugPreview(
+            sessionId: debugSessionId,
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 750)),
+            createdAt: Date(timeIntervalSince1970: 760)
+        )
+
+        let allRecords = store.debugPlayableRecords()
+        let eventSessionRecords = store.debugPlayableRecords(sessionId: eventSessionId)
+        let debugPreviewRecords = store.debugPreviewRecords()
+
+        #expect(Set(allRecords.map(\.fileName)) == Set([eventSnippet.fileName, debugPreview.fileName]))
+        #expect(eventSessionRecords.map(\.fileName) == [eventSnippet.fileName])
+        #expect(debugPreviewRecords.map(\.fileName).contains(debugPreview.fileName))
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
     func debugPreviewRespectsSnippetLimit() throws {
         let root = makeTemporaryDirectory()
         let store = EventAudioSnippetStore(

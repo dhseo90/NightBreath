@@ -35,6 +35,22 @@ struct SuspectedBreathingPauseSequenceDetectorTests {
     }
 
     @Test
+    func fiveHourContinuousLowActivityFinalizesQuickly() {
+        let detector = SuspectedBreathingPauseSequenceDetector(minimumLowActivityDuration: 10)
+        let features = lowActivityFeatures(duration: 18_000)
+        let startedAt = Date()
+
+        let result = detector.detect(features: features, contextOutputs: [])
+        let elapsed = Date().timeIntervalSince(startedAt)
+
+        #expect(result.outputs.isEmpty)
+        #expect(result.summary.lowActivityObservedCount == 1)
+        #expect(result.summary.lowActivityDurationTotal == 18_000)
+        #expect(result.summary.pauseCandidatesRejectedByInsufficientContext == 1)
+        #expect(elapsed < 1.5)
+    }
+
+    @Test
     func priorContextLowActivityAndRecoveryCreatesCandidate() throws {
         let detector = SuspectedBreathingPauseSequenceDetector(minimumLowActivityDuration: 10)
         let result = detector.detect(

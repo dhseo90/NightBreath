@@ -262,9 +262,12 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
             .map(EventAudioSnippetFileRecord.init)
     }
 
-    public func debugPlayableRecords(sessionId: UUID) -> [EventAudioSnippetFileRecord] {
+    public func debugPlayableRecords(sessionId: UUID? = nil) -> [EventAudioSnippetFileRecord] {
         snippetFileRecords()
-            .filter { $0.belongsToSession(id: sessionId) }
+            .filter { record in
+                guard let sessionId else { return true }
+                return record.belongsToSession(id: sessionId)
+            }
             .sorted { lhs, rhs in
                 (lhs.createdAt ?? .distantPast) > (rhs.createdAt ?? .distantPast)
             }

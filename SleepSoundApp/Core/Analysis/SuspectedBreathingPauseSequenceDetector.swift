@@ -371,18 +371,28 @@ public struct SuspectedBreathingPauseSequenceDetector: Equatable, Sendable {
 }
 
 private struct LowActivityRun: Equatable {
-    var estimates: [BreathingActivityEstimate]
+    private var estimateCount: Int
+    private var activityScoreSum: Double
+    private var noiseContaminatedCount: Int
+    private var likelySilenceCount: Int
+    private var start: Date
+    private var end: Date
 
     init(firstEstimate: BreathingActivityEstimate) {
-        estimates = [firstEstimate]
+        estimateCount = 1
+        activityScoreSum = firstEstimate.breathingActivityScore
+        noiseContaminatedCount = firstEstimate.isNoiseContaminated ? 1 : 0
+        likelySilenceCount = firstEstimate.isLikelySilence ? 1 : 0
+        start = firstEstimate.startedAt
+        end = firstEstimate.endedAt
     }
 
     var startedAt: Date {
-        estimates.first?.startedAt ?? Date(timeIntervalSinceReferenceDate: 0)
+        start
     }
 
     var endedAt: Date {
-        estimates.map(\.endedAt).max() ?? startedAt
+        end
     }
 
     var duration: TimeInterval {
@@ -394,27 +404,33 @@ private struct LowActivityRun: Equatable {
     }
 
     var averageActivityScore: Double {
-        guard !estimates.isEmpty else { return 0 }
-        let sum = estimates.reduce(0) { $0 + $1.breathingActivityScore }
-        return sum / Double(estimates.count)
+        guard estimateCount > 0 else { return 0 }
+        return activityScoreSum / Double(estimateCount)
     }
 
     var isNoiseContaminated: Bool {
-        estimates.contains { $0.isNoiseContaminated }
+        noiseContaminatedCount > 0
     }
 
     var isStronglyNoiseContaminated: Bool {
-        guard !estimates.isEmpty else { return false }
-        let contaminatedCount = estimates.filter(\.isNoiseContaminated).count
-        return Double(contaminatedCount) / Double(estimates.count) >= 0.70
+        guard estimateCount > 0 else { return false }
+        return Double(noiseContaminatedCount) / Double(estimateCount) >= 0.70
     }
 
     var isLikelySilenceOnly: Bool {
-        !estimates.isEmpty && estimates.allSatisfy { $0.isLikelySilence && !$0.isNoiseContaminated }
+        estimateCount > 0 && likelySilenceCount == estimateCount && noiseContaminatedCount == 0
     }
 
     mutating func append(_ estimate: BreathingActivityEstimate) {
-        estimates.append(estimate)
+        estimateCount += 1
+        activityScoreSum += estimate.breathingActivityScore
+        if estimate.isNoiseContaminated {
+            noiseContaminatedCount += 1
+        }
+        if estimate.isLikelySilence {
+            likelySilenceCount += 1
+        }
+        end = max(end, estimate.endedAt)
     }
 }
 

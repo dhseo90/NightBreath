@@ -560,6 +560,12 @@ private struct SettingsListView: View {
           }
 
           NavigationLink {
+            DebugAudioSamplesView()
+          } label: {
+            Label("DEBUG 오디오 샘플", systemImage: "waveform.circle")
+          }
+
+          NavigationLink {
             DetectorTuningView()
           } label: {
             Label("Detector 튜닝", systemImage: "slider.horizontal.3")
