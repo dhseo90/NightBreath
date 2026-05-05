@@ -138,22 +138,25 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - `preSmoothingCandidateCountByType`
 - `postSmoothingEventCountByType`
 - `finalEventCountByType`
+- `snoreLikeFeatureCandidateCount`, `snoreLikeFeatureRejectedCount`, `snoreLikeFeatureRejectReasonCounts`
 - `snoreRawCandidateCount`, `snoreRejectedCount`, `snoreRejectReasonTop`
 - `rejectReasonCounts` top 3
 - RMS/energy p50/p90, low-band p50/p90, zero crossing p50, spectral centroid p50
 - `thresholdSnapshot`, `activeDetectorBackend`, `tuningProfile`, `modelInstalled`, `fallbackUsed`
+- `latestFeatureDebugSummary`, `latestRawCandidateDebugSummary`
 
 DEBUG 확인:
 
 - `AudioDebugView`에서 live RMS / energy, current threshold, last raw candidate, last reject reason을 봅니다.
-- raw candidate count by type과 smoothing 전/후 count가 증가하는지 봅니다.
+- feature 분포 p50/p90, 코골기 feature 후보/제외 수, raw candidate count by type과 smoothing 전/후 count가 증가하는지 봅니다.
 - `DatasetReplayView`에서는 synthetic 또는 사용자가 준비한 로컬 짧은 segment로 같은 pipeline count를 비교합니다.
 - 이 과정은 원본 전체 오디오 저장이나 서버 전송 없이 수행합니다.
 
 zero-event 판독:
 
 - 실제 오디오 수신이 거의 없으면 capture/background 문제를 먼저 봅니다.
-- audio coverage는 충분하지만 raw 후보가 0개이면 feature scale과 threshold snapshot을 비교합니다.
+- audio coverage는 충분하지만 코골기 feature 후보와 raw 후보가 모두 0개이면 feature scale과 threshold snapshot을 비교합니다.
+- 코골기 feature 후보는 있었지만 raw 후보가 0개이면 `snoreLikeFeatureRejectReasonCounts`와 `latestFeatureDebugSummary`를 확인합니다.
 - raw 후보는 있었지만 post-smoothing이 0이면 confidence/duration/drop reason을 확인합니다.
 - `snore` raw 후보가 있었지만 최종 이벤트가 0이면 confidence histogram과 `snoreRejectReasonTop`을 우선 확인합니다.
 - user-facing 문구는 “감지 기준을 통과한 이벤트가 없었습니다”, “감지 기준이 보수적으로 동작했을 수 있습니다” 수준으로 유지합니다.

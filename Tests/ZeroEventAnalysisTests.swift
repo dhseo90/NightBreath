@@ -62,6 +62,22 @@ struct ZeroEventAnalysisTests {
     }
 
     @Test
+    func detectsSnoreLikeFeaturesRejectedBeforeRawCandidate() throws {
+        let diagnostics = makeDiagnostics(
+            rawCandidateCount: 0,
+            snoreLikeFeatureCandidateCount: 6,
+            snoreLikeFeatureRejectedCount: 6,
+            snoreLikeFeatureRejectReasonCounts: [.belowLowBandRatio: 4, .belowRmsThreshold: 2],
+            rmsValues: [0.038, 0.043, 0.047],
+            energyValues: [0.0016, 0.0020, 0.0023]
+        )
+
+        let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+        #expect(analysis.probableReason == .snoreLikeFeaturesRejectedBeforeRaw)
+        #expect(analysis.recommendedDebugAction.contains("RMS/energy"))
+    }
+
+    @Test
     func detectorTooConservativeAnalysisWorksAcrossDebugProfiles() throws {
         for profile in DetectorTuningProfile.debugSelectableProfiles {
             let configuration = profile.configuration
@@ -159,6 +175,35 @@ struct ZeroEventAnalysisTests {
         #expect(analysis.probableReason == .modelUnavailableFallback)
     }
 
+    @Test
+    func zeroEventExplanationsUseSafeNonDiagnosticCopy() throws {
+        let scenarios = [
+            makeDiagnostics(rawCandidateCount: 0, rejectedCountByReason: [.unknown: 3]),
+            makeDiagnostics(rawCandidateCount: 5, preSmoothingCandidateCount: 5, postSmoothingEventCount: 0, rejectedCountByReason: [.belowConfidenceThreshold: 5]),
+            makeDiagnostics(rawCandidateCount: 0, snoreLikeFeatureCandidateCount: 2, snoreLikeFeatureRejectedCount: 2)
+        ]
+        let forbiddenPhrases = [
+            "정상" + "입니다",
+            "코골기가 " + "없었습니다",
+            "수면무호흡증 " + "없음",
+            "질병 " + "아님",
+            "치료 " + "필요"
+        ]
+
+        for diagnostics in scenarios {
+            let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+            let combinedText = [
+                diagnostics.summaryTextForZeroEvents,
+                analysis.probableReason.displayName,
+                analysis.recommendedDebugAction
+            ].compactMap { $0 }.joined(separator: " ")
+
+            for phrase in forbiddenPhrases {
+                #expect(!combinedText.contains(phrase))
+            }
+        }
+    }
+
     private func makeDiagnostics(
         rawCandidateCount: Int = 0,
         rawCandidateCountByType: [SleepEventType: Int]? = nil,
@@ -168,6 +213,9 @@ struct ZeroEventAnalysisTests {
         postSmoothingEventCountByType: [SleepEventType: Int] = [:],
         modelFallbackCount: Int = 0,
         rejectedCountByReason: [RejectReason: Int] = [:],
+        snoreLikeFeatureCandidateCount: Int = 0,
+        snoreLikeFeatureRejectedCount: Int = 0,
+        snoreLikeFeatureRejectReasonCounts: [RejectReason: Int] = [:],
         rmsValues: [Double] = [0.02, 0.03],
         energyValues: [Double] = [0.0004, 0.0009]
     ) -> DetectorDiagnostics {
@@ -193,6 +241,9 @@ struct ZeroEventAnalysisTests {
             postSmoothingEventCountByType: postSmoothingEventCountByType,
             finalEventCountByType: [:],
             rejectedCountByReason: rejectedCountByReason,
+            snoreLikeFeatureCandidateCount: snoreLikeFeatureCandidateCount,
+            snoreLikeFeatureRejectedCount: snoreLikeFeatureRejectedCount,
+            snoreLikeFeatureRejectReasonCounts: snoreLikeFeatureRejectReasonCounts,
             confidenceHistogram: [:],
             rmsSummary: SummaryStats.make(values: rmsValues),
             energySummary: SummaryStats.make(values: energyValues),

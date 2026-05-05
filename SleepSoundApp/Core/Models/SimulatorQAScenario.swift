@@ -348,6 +348,8 @@ public enum SimulatorQAScenarioFactory {
     let rawCounts = rawCandidateCounts(preset: preset, finalCounts: finalCounts)
     let rawCandidateCount = rawCounts.values.reduce(0, +)
     let rejected = rejectReasons(preset: preset, analyzedChunkCount: metrics.analyzedChunkCount)
+    let snoreLikeFeatureCount = max(rawCounts[.snore] ?? 0, finalCounts[.snore] ?? 0)
+    let snoreLikeRejectedCount = max(0, snoreLikeFeatureCount - (finalCounts[.snore] ?? 0))
 
     return DetectorDiagnostics(
       sessionId: session.id,
@@ -369,6 +371,9 @@ public enum SimulatorQAScenarioFactory {
       postSmoothingEventCountByType: finalCounts,
       finalEventCountByType: finalCounts,
       rejectedCountByReason: rejected,
+      snoreLikeFeatureCandidateCount: snoreLikeFeatureCount,
+      snoreLikeFeatureRejectedCount: snoreLikeRejectedCount,
+      snoreLikeFeatureRejectReasonCounts: snoreLikeRejectedCount > 0 ? [.belowConfidenceThreshold: snoreLikeRejectedCount] : [:],
       confidenceHistogram: confidenceHistogram(events: events, rawCandidateCount: rawCandidateCount),
       rmsSummary: rmsSummary(preset: preset),
       energySummary: energySummary(preset: preset),

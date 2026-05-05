@@ -85,6 +85,9 @@
             items: [
               NBDiagnosticItem(title: "chunks received/analyzed", value: "\(viewModel.chunkCount) / \(viewModel.analyzedChunkCount)", status: .debug),
               NBDiagnosticItem(title: "current thresholds", value: viewModel.currentThresholdText, status: .debug),
+              NBDiagnosticItem(title: "RMS / energy p50/p90", value: viewModel.featureDistributionText, status: .neutral),
+              NBDiagnosticItem(title: "low band p50/p90", value: viewModel.lowBandDistributionText, status: .neutral),
+              NBDiagnosticItem(title: "snore-like feature", value: "\(viewModel.snoreLikeFeatureCandidateCount) / rejected \(viewModel.snoreLikeFeatureRejectedCount)", status: viewModel.snoreLikeFeatureRejectedCount > 0 ? .caution : .debug),
               NBDiagnosticItem(title: "last raw candidate", value: viewModel.latestRawCandidateText, status: .neutral),
               NBDiagnosticItem(title: "last reject reason", value: viewModel.lastRejectReasonText, status: .caution),
               NBDiagnosticItem(title: "raw candidate count", value: viewModel.rawCandidateCountText, status: .neutral),
@@ -199,6 +202,8 @@
     @Published var preSmoothingCandidateCount: Int = 0
     @Published var postSmoothingEventCount: Int = 0
     @Published var smoothingDropCount: Int = 0
+    @Published var snoreLikeFeatureCandidateCount: Int = 0
+    @Published var snoreLikeFeatureRejectedCount: Int = 0
     @Published var detectorBackend: SleepDetectionBackend = .hybrid
     @Published var coreMLModelStatus: String = "Not installed"
     @Published var modelVersionText: String = CoreMLDetectorConfiguration.default.modelVersion
@@ -226,6 +231,9 @@
     private var detector: RuleBasedSleepEventDetector
     private var coreMLDetector: CoreMLSleepEventDetector
     private var rawOutputs: [DetectorOutput] = []
+    private var rmsValues: [Double] = []
+    private var energyValues: [Double] = []
+    private var lowBandValues: [Double] = []
 
     init(
       audioSessionManager: AudioSessionManaging = AudioSessionManager(),
@@ -293,6 +301,19 @@
       )
     }
 
+    var featureDistributionText: String {
+      let rms = SummaryStats.make(values: rmsValues)
+      let energy = SummaryStats.make(values: energyValues)
+      guard rms.count > 0 else { return "대기 중" }
+      return "\(format(rms.p50, digits: 4))/\(format(rms.p90, digits: 4)) · \(format(energy.p50, digits: 6))/\(format(energy.p90, digits: 6))"
+    }
+
+    var lowBandDistributionText: String {
+      let lowBand = SummaryStats.make(values: lowBandValues)
+      guard lowBand.count > 0 else { return "대기 중" }
+      return "\(format(lowBand.p50, digits: 3)) / \(format(lowBand.p90, digits: 3))"
+    }
+
     var rawCandidateCountText: String {
       let parts = rawCandidateCountByType
         .sorted { lhs, rhs in lhs.key.rawValue < rhs.key.rawValue }
@@ -318,9 +339,14 @@
       latestFeatures = nil
       rawCandidateCountByType.removeAll()
       rawOutputs.removeAll()
+      rmsValues.removeAll(keepingCapacity: true)
+      energyValues.removeAll(keepingCapacity: true)
+      lowBandValues.removeAll(keepingCapacity: true)
       preSmoothingCandidateCount = 0
       postSmoothingEventCount = 0
       smoothingDropCount = 0
+      snoreLikeFeatureCandidateCount = 0
+      snoreLikeFeatureRejectedCount = 0
       latestCoreMLConfidenceText = "대기 중"
       coreMLFallbackCount = 0
       hybridFallbackStatus = "Available"
@@ -397,6 +423,9 @@
       currentMidBandEnergy = features.midBandEnergy
       currentHighBandEnergy = features.highBandEnergy
       currentEstimatedNoiseLevel = features.estimatedNoiseLevel
+      rmsValues.append(features.rms)
+      energyValues.append(features.energy)
+      lowBandValues.append(features.lowBandEnergy)
       if let mlSnoreOutput = coreMLResult.outputs.first(where: { $0.eventType == .snore }) {
         latestOutput = mlSnoreOutput
       } else {
@@ -409,6 +438,15 @@
     }
 
     private func updatePipelineObservability(features: AudioFeatures, outputs: [DetectorOutput]) {
+      let snoreObservation = snoreLikeFeatureObservation(for: features)
+      if snoreObservation.isCandidate {
+        snoreLikeFeatureCandidateCount += 1
+        if !outputs.contains(where: { $0.eventType == .snore }) {
+          snoreLikeFeatureRejectedCount += 1
+          lastRejectReasonText = snoreObservation.rejectReasons.map(\.displayName).joined(separator: ", ")
+        }
+      }
+
       if outputs.isEmpty {
         let reasons = RejectReason.inferredForFeatureWithoutOutput(
           features,
@@ -437,6 +475,36 @@
          }).first?.key {
         lastRejectReasonText = topReason.displayName
       }
+    }
+
+    private func snoreLikeFeatureObservation(
+      for features: AudioFeatures
+    ) -> (isCandidate: Bool, rejectReasons: [RejectReason]) {
+      let snoreEnergyThreshold = snoreThreshold * snoreThreshold
+      let isCandidate = !features.isLikelySilence
+        && features.rms >= silenceThreshold
+        && (features.rms >= snoreThreshold * 0.75 || features.energy >= snoreEnergyThreshold * 0.75)
+        && (features.lowFrequencyEnergyRatio >= 0.30 || features.zeroCrossingRate <= 0.60)
+
+      guard isCandidate else { return (false, []) }
+
+      var reasons: [RejectReason] = []
+      if features.rms < snoreThreshold {
+        reasons.append(.belowRmsThreshold)
+      }
+      if features.energy < snoreEnergyThreshold {
+        reasons.append(.belowEnergyThreshold)
+      }
+      if features.lowFrequencyEnergyRatio < 0.45 {
+        reasons.append(.belowLowBandRatio)
+      }
+      if features.zeroCrossingRate > 0.45 ||
+          features.spectralCentroid >= 2_200 ||
+          features.highBandEnergy >= 0.30 {
+        reasons.append(.likelyEnvironmentalNoise)
+      }
+
+      return (true, reasons.isEmpty ? [.unknown] : reasons)
     }
 
     private func updateDetectorThresholds() {

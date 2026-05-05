@@ -3,6 +3,7 @@ import Foundation
 public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
     case audioNotReceivedEnough
     case audioReceivedButNoRawCandidates
+    case snoreLikeFeaturesRejectedBeforeRaw
     case detectorTooConservative
     case featureScaleBelowThreshold
     case featuresMostlySilence
@@ -20,6 +21,8 @@ public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
             "오디오 수신 부족"
         case .audioReceivedButNoRawCandidates:
             "오디오 수신 후 raw 후보 없음"
+        case .snoreLikeFeaturesRejectedBeforeRaw:
+            "코골기 feature 후보가 raw 후보 전 단계에서 제외"
         case .detectorTooConservative:
             "감지 기준이 보수적일 가능성"
         case .featureScaleBelowThreshold:
@@ -82,6 +85,15 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
                 probableReason: .modelUnavailableFallback,
                 recommendedDebugAction: "Core ML 모델이 없어 rule-based fallback으로 동작했습니다. backend와 fallback 횟수를 함께 확인하세요.",
                 confidence: 0.70
+            )
+        }
+
+        if diagnostics.snoreLikeFeatureCandidateCount > 0,
+           diagnostics.snoreRawCandidateCount == 0 {
+            return ZeroEventAnalysis(
+                probableReason: .snoreLikeFeaturesRejectedBeforeRaw,
+                recommendedDebugAction: "코골기처럼 보이는 feature 후보는 있었지만 raw 코골기 후보로 올라오지 않았습니다. RMS/energy p90, low-band 비율, zero crossing, iPhone 배치를 함께 확인하세요.",
+                confidence: 0.82
             )
         }
 

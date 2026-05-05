@@ -220,6 +220,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var postSmoothingEventCountByType: [SleepEventType: Int]
     public var finalEventCountByType: [SleepEventType: Int]
     public var rejectedCountByReason: [RejectReason: Int]
+    public var snoreLikeFeatureCandidateCount: Int
+    public var snoreLikeFeatureRejectedCount: Int
+    public var snoreLikeFeatureRejectReasonCounts: [RejectReason: Int]
     public var confidenceHistogram: [String: Int]
     public var rmsSummary: SummaryStats
     public var energySummary: SummaryStats
@@ -247,6 +250,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var latestRecoveryPatternDetected: Bool?
     public var latestPauseCandidateConfidence: Double?
     public var latestPauseCandidateRejectedReason: String?
+    public var latestFeatureDebugSummary: String?
+    public var latestRawCandidateDebugSummary: String?
     public var notes: [String]
 
     public init(
@@ -269,6 +274,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         postSmoothingEventCountByType: [SleepEventType: Int] = [:],
         finalEventCountByType: [SleepEventType: Int] = [:],
         rejectedCountByReason: [RejectReason: Int] = [:],
+        snoreLikeFeatureCandidateCount: Int = 0,
+        snoreLikeFeatureRejectedCount: Int = 0,
+        snoreLikeFeatureRejectReasonCounts: [RejectReason: Int] = [:],
         confidenceHistogram: [String: Int] = [:],
         rmsSummary: SummaryStats = SummaryStats(),
         energySummary: SummaryStats = SummaryStats(),
@@ -296,6 +304,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         latestRecoveryPatternDetected: Bool = false,
         latestPauseCandidateConfidence: Double = 0,
         latestPauseCandidateRejectedReason: String? = nil,
+        latestFeatureDebugSummary: String? = nil,
+        latestRawCandidateDebugSummary: String? = nil,
         notes: [String] = []
     ) {
         self.sessionId = sessionId
@@ -317,6 +327,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.postSmoothingEventCountByType = postSmoothingEventCountByType
         self.finalEventCountByType = finalEventCountByType
         self.rejectedCountByReason = rejectedCountByReason
+        self.snoreLikeFeatureCandidateCount = max(0, snoreLikeFeatureCandidateCount)
+        self.snoreLikeFeatureRejectedCount = max(0, snoreLikeFeatureRejectedCount)
+        self.snoreLikeFeatureRejectReasonCounts = snoreLikeFeatureRejectReasonCounts
         self.confidenceHistogram = confidenceHistogram
         self.rmsSummary = rmsSummary
         self.energySummary = energySummary
@@ -344,6 +357,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.latestRecoveryPatternDetected = latestRecoveryPatternDetected
         self.latestPauseCandidateConfidence = Self.clampedRatio(latestPauseCandidateConfidence)
         self.latestPauseCandidateRejectedReason = latestPauseCandidateRejectedReason
+        self.latestFeatureDebugSummary = latestFeatureDebugSummary
+        self.latestRawCandidateDebugSummary = latestRawCandidateDebugSummary
         self.notes = notes
     }
 
@@ -373,6 +388,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
             postSmoothingEventCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .postSmoothingEventCountByType) ?? [:],
             finalEventCountByType: try container.decodeIfPresent([SleepEventType: Int].self, forKey: .finalEventCountByType) ?? [:],
             rejectedCountByReason: try container.decodeIfPresent([RejectReason: Int].self, forKey: .rejectedCountByReason) ?? [:],
+            snoreLikeFeatureCandidateCount: try container.decodeIfPresent(Int.self, forKey: .snoreLikeFeatureCandidateCount) ?? 0,
+            snoreLikeFeatureRejectedCount: try container.decodeIfPresent(Int.self, forKey: .snoreLikeFeatureRejectedCount) ?? 0,
+            snoreLikeFeatureRejectReasonCounts: try container.decodeIfPresent([RejectReason: Int].self, forKey: .snoreLikeFeatureRejectReasonCounts) ?? [:],
             confidenceHistogram: try container.decodeIfPresent([String: Int].self, forKey: .confidenceHistogram) ?? [:],
             rmsSummary: try container.decodeIfPresent(SummaryStats.self, forKey: .rmsSummary) ?? SummaryStats(),
             energySummary: try container.decodeIfPresent(SummaryStats.self, forKey: .energySummary) ?? SummaryStats(),
@@ -400,6 +418,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
             latestRecoveryPatternDetected: try container.decodeIfPresent(Bool.self, forKey: .latestRecoveryPatternDetected) ?? false,
             latestPauseCandidateConfidence: try container.decodeIfPresent(Double.self, forKey: .latestPauseCandidateConfidence) ?? 0,
             latestPauseCandidateRejectedReason: try container.decodeIfPresent(String.self, forKey: .latestPauseCandidateRejectedReason),
+            latestFeatureDebugSummary: try container.decodeIfPresent(String.self, forKey: .latestFeatureDebugSummary),
+            latestRawCandidateDebugSummary: try container.decodeIfPresent(String.self, forKey: .latestRawCandidateDebugSummary),
             notes: try container.decodeIfPresent([String].self, forKey: .notes) ?? []
         )
     }
@@ -424,6 +444,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         case postSmoothingEventCountByType
         case finalEventCountByType
         case rejectedCountByReason
+        case snoreLikeFeatureCandidateCount
+        case snoreLikeFeatureRejectedCount
+        case snoreLikeFeatureRejectReasonCounts
         case confidenceHistogram
         case rmsSummary
         case energySummary
@@ -451,6 +474,8 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         case latestRecoveryPatternDetected
         case latestPauseCandidateConfidence
         case latestPauseCandidateRejectedReason
+        case latestFeatureDebugSummary
+        case latestRawCandidateDebugSummary
         case notes
     }
 
@@ -484,6 +509,12 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
             rejectedCountByReason[.belowConfidence, default: 0] > 0 {
             return .belowConfidenceThreshold
         }
+        if snoreRawCandidateCount == 0, !snoreLikeFeatureRejectReasonCounts.isEmpty {
+            return snoreLikeFeatureRejectReasonCounts.sorted { lhs, rhs in
+                if lhs.value == rhs.value { return lhs.key.rawValue < rhs.key.rawValue }
+                return lhs.value > rhs.value
+            }.first?.key
+        }
         return topRejectReasons.first?.0
     }
 
@@ -513,6 +544,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         }
         if snoreRawCandidateCount > 0, snorePostSmoothingEventCount == 0 {
             return "코골기 raw 후보는 있었지만 confidence, 지속 시간 또는 smoothing 기준을 통과한 최종 이벤트가 없었습니다."
+        }
+        if snoreLikeFeatureCandidateCount > 0, snoreRawCandidateCount == 0 {
+            return "코골기처럼 보이는 feature 후보는 있었지만 raw 코골기 후보로 올라오지 않았습니다."
         }
         if rawCandidateCount == 0 {
             return "오디오 입력은 수신되었지만 detector 기준을 통과한 raw 후보가 만들어지지 않았습니다."
@@ -555,6 +589,11 @@ public final class DetectorDiagnosticsCollector {
     private var postSmoothingEventCountByType: [SleepEventType: Int] = [:]
     private var finalEventCountByType: [SleepEventType: Int] = [:]
     private var sequenceSummary = SuspectedBreathingPauseSequenceSummary()
+    private var snoreLikeFeatureCandidateCount = 0
+    private var snoreLikeFeatureRejectedCount = 0
+    private var snoreLikeFeatureRejectReasonCounts: [RejectReason: Int] = [:]
+    private var latestFeatureDebugSummary: String?
+    private var latestRawCandidateDebugSummary: String?
     private var notes: [String] = []
 
     public init() {}
@@ -593,11 +632,17 @@ public final class DetectorDiagnosticsCollector {
         postSmoothingEventCountByType.removeAll(keepingCapacity: true)
         finalEventCountByType.removeAll(keepingCapacity: true)
         sequenceSummary = SuspectedBreathingPauseSequenceSummary()
+        snoreLikeFeatureCandidateCount = 0
+        snoreLikeFeatureRejectedCount = 0
+        snoreLikeFeatureRejectReasonCounts.removeAll(keepingCapacity: true)
+        latestFeatureDebugSummary = nil
+        latestRawCandidateDebugSummary = nil
         notes.removeAll(keepingCapacity: true)
     }
 
     public func record(features: AudioFeatures, outputs: [DetectorOutput]) {
         analyzedChunkCount += 1
+        latestFeatureDebugSummary = features.debugSummary
         appendFinite(features.rms, to: &rmsValues)
         appendFinite(features.energy, to: &energyValues)
         appendFinite(features.zeroCrossingRate, to: &zeroCrossingRateValues)
@@ -605,6 +650,17 @@ public final class DetectorDiagnosticsCollector {
         appendFinite(features.lowBandEnergy, to: &lowBandEnergyValues)
         appendFinite(features.midBandEnergy, to: &midBandEnergyValues)
         appendFinite(features.highBandEnergy, to: &highBandEnergyValues)
+
+        let snoreObservation = snoreLikeFeatureObservation(for: features)
+        if snoreObservation.isCandidate {
+            snoreLikeFeatureCandidateCount += 1
+            if !outputs.contains(where: { $0.eventType == .snore }) {
+                snoreLikeFeatureRejectedCount += 1
+                for reason in snoreObservation.rejectReasons {
+                    snoreLikeFeatureRejectReasonCounts[reason, default: 0] += 1
+                }
+            }
+        }
 
         if outputs.isEmpty {
             for reason in RejectReason.inferredForFeatureWithoutOutput(
@@ -619,6 +675,7 @@ public final class DetectorDiagnosticsCollector {
         for output in outputs {
             rawCandidateCountByType[output.eventType, default: 0] += 1
             confidenceHistogram[Self.confidenceBucket(for: output.confidence), default: 0] += 1
+            latestRawCandidateDebugSummary = Self.outputDebugSummary(output)
             if output.debugReason?.localizedCaseInsensitiveContains("fallback") == true {
                 modelFallbackCount += 1
             }
@@ -651,6 +708,7 @@ public final class DetectorDiagnosticsCollector {
         for output in sequenceResult.outputs {
             rawCandidateCountByType[output.eventType, default: 0] += 1
             confidenceHistogram[Self.confidenceBucket(for: output.confidence), default: 0] += 1
+            latestRawCandidateDebugSummary = Self.outputDebugSummary(output)
         }
 
         if sequenceResult.summary.pauseCandidatesRejectedByDuration > 0 {
@@ -709,6 +767,9 @@ public final class DetectorDiagnosticsCollector {
             postSmoothingEventCountByType: postSmoothingEventCountByType,
             finalEventCountByType: finalEventCountByType,
             rejectedCountByReason: rejectedCountByReason,
+            snoreLikeFeatureCandidateCount: snoreLikeFeatureCandidateCount,
+            snoreLikeFeatureRejectedCount: snoreLikeFeatureRejectedCount,
+            snoreLikeFeatureRejectReasonCounts: snoreLikeFeatureRejectReasonCounts,
             confidenceHistogram: confidenceHistogram,
             rmsSummary: SummaryStats.make(values: rmsValues),
             energySummary: SummaryStats.make(values: energyValues),
@@ -736,12 +797,57 @@ public final class DetectorDiagnosticsCollector {
             latestRecoveryPatternDetected: sequenceSummary.latestRecoveryPatternDetected,
             latestPauseCandidateConfidence: sequenceSummary.latestPauseCandidateConfidence,
             latestPauseCandidateRejectedReason: sequenceSummary.latestPauseCandidateRejectedReason,
+            latestFeatureDebugSummary: latestFeatureDebugSummary,
+            latestRawCandidateDebugSummary: latestRawCandidateDebugSummary,
             notes: notes
         )
     }
 
     private func incrementReject(_ reason: RejectReason) {
         rejectedCountByReason[reason, default: 0] += 1
+    }
+
+    private func snoreLikeFeatureObservation(
+        for features: AudioFeatures
+    ) -> (isCandidate: Bool, rejectReasons: [RejectReason]) {
+        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"]
+            ?? thresholdsSnapshot["tuning.silenceRmsThreshold"]
+            ?? 0.01
+        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"]
+            ?? thresholdsSnapshot["tuning.snoreRmsThreshold"]
+            ?? 0.05
+        let snoreEnergy = thresholdsSnapshot["tuning.snoreEnergyThreshold"] ?? snoreRMS * snoreRMS
+        let nearRMS = features.rms >= snoreRMS * 0.75
+        let nearEnergy = features.energy >= snoreEnergy * 0.75
+        let hasLowBandHint = features.lowFrequencyEnergyRatio >= 0.30
+        let hasSnoreLikeCadence = features.zeroCrossingRate <= 0.60
+        let isCandidate = !features.isLikelySilence
+            && features.rms >= silenceRMS
+            && (nearRMS || nearEnergy)
+            && (hasLowBandHint || hasSnoreLikeCadence)
+
+        guard isCandidate else { return (false, []) }
+
+        var reasons: [RejectReason] = []
+        if features.rms < snoreRMS {
+            reasons.append(.belowRmsThreshold)
+        }
+        if features.energy < snoreEnergy {
+            reasons.append(.belowEnergyThreshold)
+        }
+        if features.lowFrequencyEnergyRatio < 0.45 {
+            reasons.append(.belowLowBandRatio)
+        }
+        if features.zeroCrossingRate > 0.45 ||
+            features.spectralCentroid >= 2_200 ||
+            features.highBandEnergy >= 0.30 {
+            reasons.append(.likelyEnvironmentalNoise)
+        }
+        if features.isLikelySilence {
+            reasons.append(.likelySilence)
+        }
+
+        return (true, reasons.isEmpty ? [.unknown] : reasons)
     }
 
     private func appendFinite(_ value: Double, to values: inout [Double]) {
@@ -763,5 +869,16 @@ public final class DetectorDiagnosticsCollector {
         default:
             return "0.8-1.0"
         }
+    }
+
+    private static func outputDebugSummary(_ output: DetectorOutput) -> String {
+        let reason = output.debugReason.map { " reason=\($0)" } ?? ""
+        return String(
+            format: "%@ confidence=%.3f duration=%.2fs%@",
+            output.eventType.rawValue,
+            output.confidence,
+            output.duration,
+            reason
+        )
     }
 }

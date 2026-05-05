@@ -64,9 +64,14 @@ pipeline count 필드:
 - `postSmoothingEventCountByType`
 - `finalEventCountByType`
 - `rejectReasonCounts`
+- `snoreLikeFeatureCandidateCount`
+- `snoreLikeFeatureRejectedCount`
+- `snoreLikeFeatureRejectReasonCounts`
 - `snoreRawCandidateCount`
 - `snoreRejectedCount`
 - `snoreRejectReasonTop`
+- `latestFeatureDebugSummary`
+- `latestRawCandidateDebugSummary`
 - `thresholdSnapshot`
 - `activeDetectorBackend`
 - `tuningProfile`
@@ -76,7 +81,8 @@ pipeline count 필드:
 판독 기준:
 
 - audio chunk가 거의 없으면 먼저 capture/background 상태를 확인합니다.
-- raw 후보가 0개이면 RMS/energy/low-band 분포가 threshold 근처까지 올라왔는지 확인합니다.
+- 코골기 feature 후보와 raw 후보가 모두 0개이면 RMS/energy/low-band 분포가 threshold 근처까지 올라왔는지 확인합니다.
+- 코골기 feature 후보는 있지만 raw 후보가 0개이면 `snoreLikeFeatureRejectReasonCounts`로 RMS, energy, low-band ratio, confidence 근접 여부를 확인합니다.
 - raw 후보는 있는데 post-smoothing이 0이면 confidence, duration, merge/drop reason을 봅니다.
 - `snore` raw 후보는 있는데 최종 이벤트가 0이면 `snoreRejectReasonTop`과 confidence histogram을 우선 확인합니다.
 - feature 분포가 threshold보다 낮으면 iPhone 위치, 마이크 방향, 케이스, 주변 소리 영향을 짧은 foreground 테스트로 비교합니다.

@@ -57,7 +57,39 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(diagnostics.rawCandidateCount == 1)
         #expect(diagnostics.rawCandidateCountByType[.snore] == 1)
         #expect(diagnostics.snoreRawCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectedCount == 0)
         #expect(diagnostics.confidenceHistogram["0.6-0.8"] == 1)
+        #expect(diagnostics.latestRawCandidateDebugSummary?.contains("snore") == true)
+    }
+
+    @Test
+    func collectorRecordsSnoreLikeFeatureNearMissBeforeRawCandidate() throws {
+        let collector = makeCollector()
+        let features = makeFeatures(
+            rms: 0.045,
+            energy: 0.0021,
+            startedAt: Date(timeIntervalSince1970: 25),
+            lowBandEnergy: 0.32
+        )
+
+        collector.record(features: features, outputs: [])
+        collector.record(smoothingDiagnostics: DetectionSmoothingDiagnostics(
+            preSmoothingCandidateCount: 0,
+            postSmoothingEventCount: 0
+        ))
+        collector.record(finalEvents: [])
+
+        let diagnostics = try finalized(collector)
+
+        #expect(diagnostics.rawCandidateCount == 0)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectedCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowRmsThreshold] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowEnergyThreshold] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowLowBandRatio] == 1)
+        #expect(diagnostics.summaryTextForZeroEvents == "코골기처럼 보이는 feature 후보는 있었지만 raw 코골기 후보로 올라오지 않았습니다.")
+        #expect(diagnostics.latestFeatureDebugSummary?.contains("rms") == true)
     }
 
     @Test
@@ -166,6 +198,9 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(diagnostics.tuningProfile == nil)
         #expect(diagnostics.snoreRawCandidateCount == 1)
         #expect(diagnostics.snoreRejectedCount == 1)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 0)
+        #expect(diagnostics.snoreLikeFeatureRejectedCount == 0)
+        #expect(diagnostics.latestFeatureDebugSummary == nil)
     }
 
     @Test
@@ -301,7 +336,12 @@ struct DetectorDiagnosticsCollectorTests {
     private func makeFeatures(
         rms: Double,
         energy: Double,
-        startedAt: Date
+        startedAt: Date,
+        lowBandEnergy: Double = 0.4,
+        midBandEnergy: Double = 0.4,
+        highBandEnergy: Double = 0.2,
+        zeroCrossingRate: Double = 0.2,
+        spectralCentroid: Double = 1_000
     ) -> AudioFeatures {
         AudioFeatures(
             startedAt: startedAt,
@@ -312,12 +352,12 @@ struct DetectorDiagnosticsCollectorTests {
             rms: rms,
             energy: energy,
             peak: max(rms * 2, rms),
-            zeroCrossingRate: 0.2,
-            lowFrequencyEnergyRatio: 0.4,
-            spectralCentroid: 1_000,
-            lowBandEnergy: 0.4,
-            midBandEnergy: 0.4,
-            highBandEnergy: 0.2,
+            zeroCrossingRate: zeroCrossingRate,
+            lowFrequencyEnergyRatio: lowBandEnergy,
+            spectralCentroid: spectralCentroid,
+            lowBandEnergy: lowBandEnergy,
+            midBandEnergy: midBandEnergy,
+            highBandEnergy: highBandEnergy,
             estimatedNoiseLevel: rms,
             isLikelySilence: rms < 0.01
         )

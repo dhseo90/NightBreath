@@ -105,7 +105,8 @@
 - 공개 또는 로컬 데이터셋 manifest 작성
 - snore / non-snore labeled segment 정리
 - 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집
-- 수집된 diagnostics로 raw 후보 없음, smoothing drop, confidence drop, feature scale mismatch를 분류
+- 수집된 diagnostics로 feature 후보 없음, raw 후보 전 제외, smoothing drop, confidence drop, feature scale mismatch를 분류
+- `snoreLikeFeatureRejectReasonCounts`와 p50/p90 feature 분포를 실제 iPhone 배치별로 비교
 - Offline Evaluation으로 conservative / balanced / sensitive profile 비교
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리

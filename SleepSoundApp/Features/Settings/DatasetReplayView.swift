@@ -390,7 +390,7 @@
     private var diagnosticItems: [NBDiagnosticItem] {
       [
         NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
-        NBDiagnosticItem(title: "코골기 raw/제외", value: "\(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount)", status: .debug),
+        NBDiagnosticItem(title: "코골기 feature/raw/제외", value: "\(diagnostics.snoreLikeFeatureCandidateCount) / \(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)", status: .debug),
         NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
         NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
         NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .good),

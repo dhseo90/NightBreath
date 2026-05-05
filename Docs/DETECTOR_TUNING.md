@@ -34,11 +34,12 @@
 
 1. `audioChunkCount`, `analyzedChunkCount`, `receivedAudioSeconds`, `analyzedAudioSeconds`, `audioCoverageRatio`로 실제 입력과 분석 시간이 충분했는지 확인합니다.
 2. `rmsSummary`, `energySummary`, `lowBandEnergySummary`, `zeroCrossingRateSummary`, `spectralCentroidSummary`의 p50/p90 값을 threshold snapshot과 비교합니다.
-3. `rawCandidateCountByType`에서 `snore` 후보가 아예 없었는지 확인합니다.
-4. `preSmoothingCandidateCountByType`와 `postSmoothingEventCountByType`를 비교해 raw 후보가 smoothing 단계에서 사라졌는지 봅니다.
-5. `finalEventCountByType`와 리포트 이벤트 집계가 같은지 확인합니다.
-6. `rejectedCountByReason`, `snoreRejectedCount`, `snoreRejectReasonTop`으로 confidence, duration, low-band ratio, 환경 소음 후보 영향 중 어떤 이유가 큰지 확인합니다.
-7. `detectorBackend`, `tuningProfile`, `modelInstalled`, `modelFallbackCount`, `fallbackUsed`를 함께 기록합니다.
+3. `snoreLikeFeatureCandidateCount`와 `snoreLikeFeatureRejectReasonCounts`로 feature 단계의 코골기 유사 신호가 raw 후보 전 단계에서 제외되었는지 확인합니다.
+4. `rawCandidateCountByType`에서 `snore` 후보가 올라왔는지 확인합니다.
+5. `preSmoothingCandidateCountByType`와 `postSmoothingEventCountByType`를 비교해 raw 후보가 smoothing 단계에서 사라졌는지 봅니다.
+6. `finalEventCountByType`와 리포트 이벤트 집계가 같은지 확인합니다.
+7. `rejectedCountByReason`, `snoreRejectedCount`, `snoreRejectReasonTop`으로 confidence, duration, low-band ratio, 환경 소음 후보 영향 중 어떤 이유가 큰지 확인합니다.
+8. `latestFeatureDebugSummary`, `latestRawCandidateDebugSummary`, `detectorBackend`, `tuningProfile`, `modelInstalled`, `modelFallbackCount`, `fallbackUsed`를 함께 기록합니다.
 
 zero-event 해석 문구는 다음 범위를 넘지 않습니다.
 
@@ -47,6 +48,8 @@ zero-event 해석 문구는 다음 범위를 넘지 않습니다.
 - “측정 환경이나 iPhone 배치 영향을 받을 수 있습니다.”
 
 이 문구는 수면 중 소리 기반 detector 상태를 설명하기 위한 것이며 건강 상태를 확정하지 않습니다.
+
+threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregation 중 어느 단계에서 누락이 발생했는지 분리한 뒤에만 검토합니다. 이 문서의 triage만으로 Release 기본 threshold를 바로 낮추지 않습니다.
 
 ## 최신 로컬 Report 판독
 

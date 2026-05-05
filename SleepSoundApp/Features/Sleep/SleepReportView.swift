@@ -235,8 +235,14 @@ struct SleepReportView: View {
               color: SleepEventType.snore.tintColor
             )
             ReportMetricCard(
+              title: "코골기 feature",
+              value: "\(diagnostics.snoreLikeFeatureCandidateCount)개",
+              systemImage: "waveform.badge.magnifyingglass",
+              color: NBColor.breathBlue
+            )
+            ReportMetricCard(
               title: "코골기 제외",
-              value: "\(diagnostics.snoreRejectedCount)개",
+              value: "\(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)개",
               systemImage: "line.3.horizontal.decrease.circle",
               color: NBColor.caution
             )
@@ -307,6 +313,11 @@ struct SleepReportView: View {
                 .font(.caption)
                 .foregroundStyle(NBColor.secondaryText)
             }
+            if !diagnostics.snoreLikeFeatureRejectReasonCounts.isEmpty {
+              Text("코골기 feature 제외 이유: \(featureRejectReasonText(diagnostics))")
+                .font(.caption)
+                .foregroundStyle(NBColor.secondaryText)
+            }
             Text("주요 탈락 이유: \(topRejectReasonText(diagnostics))")
               .font(.caption)
               .foregroundStyle(NBColor.secondaryText)
@@ -354,9 +365,12 @@ struct SleepReportView: View {
                 NBDiagnosticItem(title: "raw by type", value: eventCountText(diagnostics.rawCandidateCountByType), status: .debug),
                 NBDiagnosticItem(title: "pre-smoothing by type", value: eventCountText(diagnostics.preSmoothingCandidateCountByType), status: .debug),
                 NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
+                NBDiagnosticItem(title: "snore-like feature rejected", value: "\(diagnostics.snoreLikeFeatureRejectedCount)개, \(featureRejectReasonText(diagnostics))", status: diagnostics.snoreLikeFeatureRejectedCount > 0 ? .caution : .good),
                 NBDiagnosticItem(title: "threshold snapshot", value: thresholdSnapshotText(diagnostics), status: .debug),
                 NBDiagnosticItem(title: "RMS min/p50/p90/max", value: "\(shortNumber(diagnostics.rmsMin)) / \(shortNumber(diagnostics.rmsP50)) / \(shortNumber(diagnostics.rmsP90)) / \(shortNumber(diagnostics.rmsMax))", status: .neutral),
                 NBDiagnosticItem(title: "Energy min/p50/p90/max", value: "\(shortNumber(diagnostics.energyMin)) / \(shortNumber(diagnostics.energyP50)) / \(shortNumber(diagnostics.energyP90)) / \(shortNumber(diagnostics.energyMax))", status: .neutral),
+                NBDiagnosticItem(title: "latest feature", value: diagnostics.latestFeatureDebugSummary ?? "없음", status: .debug),
+                NBDiagnosticItem(title: "latest raw candidate", value: diagnostics.latestRawCandidateDebugSummary ?? "없음", status: .debug),
               ],
               showsDetails: true
             )
@@ -389,7 +403,7 @@ struct SleepReportView: View {
               NBDiagnosticItemList(
                 items: [
                 NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
-                NBDiagnosticItem(title: "코골기 raw/제외", value: "\(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount)", status: .debug),
+                NBDiagnosticItem(title: "코골기 feature/raw/제외", value: "\(diagnostics.snoreLikeFeatureCandidateCount) / \(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)", status: .debug),
                 NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
                 NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
                 NBDiagnosticItem(title: "주요 탈락 이유", value: topRejectReasonText(diagnostics), status: .caution),
@@ -747,6 +761,17 @@ struct SleepReportView: View {
     let reasons = diagnostics.topRejectReasons.prefix(3).map { reason, count in
       "\(reason.displayName) \(count)회"
     }
+    return reasons.isEmpty ? "없음" : reasons.joined(separator: ", ")
+  }
+
+  private func featureRejectReasonText(_ diagnostics: DetectorDiagnostics) -> String {
+    let reasons = diagnostics.snoreLikeFeatureRejectReasonCounts
+      .sorted { lhs, rhs in
+        if lhs.value == rhs.value { return lhs.key.rawValue < rhs.key.rawValue }
+        return lhs.value > rhs.value
+      }
+      .prefix(3)
+      .map { reason, count in "\(reason.displayName) \(count)회" }
     return reasons.isEmpty ? "없음" : reasons.joined(separator: ", ")
   }
 
