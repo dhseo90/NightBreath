@@ -132,6 +132,22 @@ struct SleepRecordingView: View {
             title: "종료 후 입력 시간",
             value: SleepFormatters.compactDurationString(metrics.secondsReceivingAudioAfterStopRequest)
           )
+          if metrics.stopRequestedAt != nil {
+            MeasurementStatusRow(title: "종료 버튼 탭", value: optionalTime(metrics.stopButtonTappedAt))
+            MeasurementStatusRow(title: "종료 요청", value: optionalTime(metrics.stopRequestedAt))
+            MeasurementStatusRow(title: "캡처 중단 시작", value: optionalTime(metrics.captureStopStartedAt))
+            MeasurementStatusRow(title: "Input tap 제거", value: optionalTime(metrics.inputTapRemovedAt))
+            MeasurementStatusRow(title: "Audio engine 정지", value: optionalTime(metrics.audioEngineStoppedAt))
+            MeasurementStatusRow(title: "Audio session 비활성화", value: optionalTime(metrics.audioSessionDeactivatedAt))
+            MeasurementStatusRow(title: "Capture task 종료", value: optionalTime(metrics.captureTaskCancelledAt))
+            MeasurementStatusRow(title: "Analyzer finalize 시작", value: optionalTime(metrics.analyzerFinalizeStartedAt))
+            MeasurementStatusRow(title: "Analyzer finalize 완료", value: optionalTime(metrics.analyzerFinalizeFinishedAt))
+            MeasurementStatusRow(title: "리포트 생성 시작", value: optionalTime(metrics.reportGenerationStartedAt))
+            MeasurementStatusRow(title: "리포트 생성 완료", value: optionalTime(metrics.reportGenerationFinishedAt))
+            if let forceStopReason = metrics.forceStopReason {
+              MeasurementStatusRow(title: "Force stop", value: forceStopReason)
+            }
+          }
           MeasurementStatusRow(title: "오디오 중단 횟수", value: "\(metrics.interruptionCount)회")
           MeasurementStatusRow(
             title: "가장 긴 입력 공백",

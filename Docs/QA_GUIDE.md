@@ -229,6 +229,7 @@ xcrun xctrace list devices
 - 수면 종료 tap 이후 실제 오디오 수신 시간이 더 이상 증가하지 않는지
 - stop 이후에도 report finalization은 진행되지만 capture는 이미 멈춘 상태인지
 - `chunksReceivedAfterStopRequest`가 0 또는 매우 작은 값인지
+- stop tap 후 1~2초 안에 chunk 수신이 멈추고, 이후 수신된 chunk는 분석/리포트 입력이 아니라 diagnostics로만 집계되는지
 - stop timeout safety가 발생했다면 force stop reason이 detector diagnostics note 또는 DEBUG lifecycle log에 남는지
 - 잠금/백그라운드 이후에도 수신 시간이 합리적으로 증가하는지
 - interruption count와 longest gap이 기록되는지

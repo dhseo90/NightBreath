@@ -24,6 +24,8 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     private var continuations: [UUID: AsyncStream<AudioChunk>.Continuation] = [:]
     private var interruptionObserver: NotificationObserverToken?
     private var stopSafetyTask: Task<Void, Never>?
+    private var captureGeneration: UInt64 = 0
+    private var didRunPhysicalStop = false
 
     public init(
         engine: AVAudioEngine = AVAudioEngine(),
@@ -60,9 +62,11 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     }
 
     public func startCapture() throws {
-        guard !isCapturing else { return }
+        guard !isCapturing, state != .stopping else { return }
         stopSafetyTask?.cancel()
         stopSafetyTask = nil
+        didRunPhysicalStop = false
+        captureGeneration &+= 1
         metrics = AudioCaptureMetrics()
 
         switch sessionManager.microphonePermissionState() {
@@ -100,9 +104,11 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
 
         inputNode.removeTap(onBus: 0)
 
+        let generation = captureGeneration
         let tapBlock = AudioCaptureTapFactory.makeTapBlock(
             retainedSampleLimit: retainedSampleLimitPerChunk,
-            service: self
+            service: self,
+            generation: generation
         )
         inputNode.installTap(onBus: 0, bufferSize: 4_096, format: nil, block: tapBlock)
 
@@ -115,6 +121,8 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
             state = .capturing(startedAt: startedAt)
         } catch {
             inputNode.removeTap(onBus: 0)
+            captureGeneration &+= 1
+            didRunPhysicalStop = true
             sessionManager.finishSleepRecording()
             metrics.recordCaptureError()
             state = .failed(message: AudioCaptureError.engineStartFailed(error.localizedDescription).message)
@@ -123,23 +131,35 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     }
 
     public func stopCapture() {
-        performStop(reason: "user stop request", force: false)
-        scheduleStopSafetyCheck()
+        if performStop(reason: "user stop request", force: false) {
+            scheduleStopSafetyCheck()
+        }
     }
 
     public func forceStopCapture(reason: String) {
         performStop(reason: reason, force: true)
     }
 
-    private func performStop(reason: String, force: Bool) {
+    @discardableResult
+    private func performStop(reason: String, force: Bool) -> Bool {
         let stopStartedAt = Date()
         metrics.recordStopRequested(at: stopStartedAt)
-        metrics.recordCaptureStopStarted(at: stopStartedAt)
         if force {
             metrics.recordForceStop(reason: reason, at: stopStartedAt)
         }
 
+        guard !didRunPhysicalStop else {
+            if case .failed = state {
+                return false
+            }
+            state = .stopped
+            return false
+        }
+
+        didRunPhysicalStop = true
+        metrics.recordCaptureStopStarted(at: stopStartedAt)
         state = .stopping
+        captureGeneration &+= 1
         engine.inputNode.removeTap(onBus: 0)
         metrics.recordInputTapRemoved(at: Date())
         engine.stop()
@@ -150,9 +170,18 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         metrics.recordCaptureTaskCancelled(at: Date())
         metrics.stop(at: Date())
         state = .stopped
+        return true
     }
 
-    fileprivate func emit(_ chunk: AudioChunk) {
+    fileprivate func emit(_ chunk: AudioChunk, generation: UInt64) {
+        guard generation == captureGeneration else {
+            if metrics.stopRequestedAt != nil {
+                metrics.recordReceivedAfterStopRequest(chunk: chunk)
+                forceStopCapture(reason: "stale audio chunk received after stop request")
+            }
+            return
+        }
+
         guard state.isCapturing, metrics.stopRequestedAt == nil else {
             metrics.recordReceivedAfterStopRequest(chunk: chunk)
             forceStopCapture(reason: "audio chunk received after stop request")
@@ -228,7 +257,8 @@ private struct NotificationObserverToken: @unchecked Sendable {
 private enum AudioCaptureTapFactory {
     static func makeTapBlock(
         retainedSampleLimit: Int,
-        service: AudioCaptureService
+        service: AudioCaptureService,
+        generation: UInt64
     ) -> AVAudioNodeTapBlock {
         { [weak service] buffer, _ in
             guard let chunk = AudioChunkFactory.makeChunk(
@@ -239,7 +269,7 @@ private enum AudioCaptureTapFactory {
             }
 
             Task { @MainActor [weak service] in
-                service?.emit(chunk)
+                service?.emit(chunk, generation: generation)
             }
         }
     }
@@ -311,6 +341,7 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
 
     public var onChunk: AudioChunkConsumer?
     public var onStateChange: AudioCaptureStateConsumer?
+    private var didRunPhysicalStop = false
 
     public var isCapturing: Bool {
         state.isCapturing
@@ -326,12 +357,22 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
 
     public func startCapture() throws {
         let startedAt = Date()
+        didRunPhysicalStop = false
         metrics.start(at: startedAt)
         state = .capturing(startedAt: startedAt)
     }
 
     public func stopCapture() {
         metrics.recordStopRequested()
+        guard !didRunPhysicalStop else {
+            if case .failed = state {
+                return
+            }
+            state = .stopped
+            return
+        }
+
+        didRunPhysicalStop = true
         metrics.recordCaptureStopStarted()
         metrics.recordInputTapRemoved()
         metrics.recordAudioEngineStopped()
@@ -344,5 +385,16 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
     public func forceStopCapture(reason: String) {
         metrics.recordForceStop(reason: reason)
         stopCapture()
+    }
+
+    public func emitTestChunk(_ chunk: AudioChunk) {
+        guard state.isCapturing, metrics.stopRequestedAt == nil else {
+            metrics.recordReceivedAfterStopRequest(chunk: chunk)
+            forceStopCapture(reason: "test audio chunk received after stop request")
+            return
+        }
+
+        metrics.recordReceived(chunk: chunk)
+        onChunk?(chunk)
     }
 }

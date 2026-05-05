@@ -443,14 +443,22 @@ final class AppState: ObservableObject {
         recordDebugLifecycleEvent("stop button tapped")
 
         guard let session = activeSession else {
-            audioCaptureService.forceStopCapture(reason: "stop requested with no active session")
+            if audioCaptureService.isCapturing || audioCaptureService.state == .stopping {
+                audioCaptureService.forceStopCapture(reason: "stop requested with no active session")
+            } else {
+                audioCaptureService.stopCapture()
+            }
             audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
             audioCaptureState = audioCaptureService.state
             return
         }
 
         guard !isFinalizingSleepSession else {
-            audioCaptureService.forceStopCapture(reason: "duplicate stop request while finalizing")
+            if audioCaptureService.isCapturing || audioCaptureService.state == .stopping {
+                audioCaptureService.forceStopCapture(reason: "duplicate stop request while finalizing")
+            } else {
+                audioCaptureService.stopCapture()
+            }
             audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
             audioCaptureState = audioCaptureService.state
             recordDebugLifecycleEvent("duplicate stop request ignored")
@@ -467,6 +475,9 @@ final class AppState: ObservableObject {
         audioCaptureState = audioCaptureService.state
         sleepRecordingPhase = audioCaptureState == .stopped ? .captureStoppedFinalizing : .stoppingCapture
         audioCaptureMessage = "녹음은 중단되었습니다. 리포트를 정리하는 중입니다."
+        if audioCaptureState == .stopped {
+            recordDebugLifecycleEvent("audio capture stopped before report finalization")
+        }
         scheduleCaptureStopSafetyCheck(sessionId: session.id)
 
         let endedAt = Date()
