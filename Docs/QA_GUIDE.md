@@ -173,6 +173,9 @@ xcrun xctrace list devices
    - 수면 시작 후 1분 동안 화면을 켠 상태로 둡니다.
    - 경과 시간, 실제 오디오 수신 시간, 커버리지 값이 움직이는지 확인합니다.
    - 수면 종료 후 리포트가 생성되는지 확인합니다.
+   - 수면 종료 버튼을 누른 직후 캡처 상태가 `캡처 종료됨`으로 바뀌고 실제 오디오 수신 시간이 더 이상 증가하지 않는지 확인합니다.
+   - 리포트 생성이 계속 진행되더라도 화면 문구가 “녹음은 중단되었습니다. 리포트를 정리하는 중입니다.” 계열로 바뀌는지 확인합니다.
+   - DEBUG 상태에서 `종료 후 입력 chunk`가 0이거나 매우 작은 값인지 확인합니다.
 3. 화면 잠금 3분
    - 수면 시작 후 iPhone을 잠급니다.
    - 3분 후 잠금 해제하고 수신 시간과 interruption count를 확인합니다.
@@ -191,6 +194,10 @@ xcrun xctrace list devices
 확인 포인트:
 
 - 앱 세션 시간과 실제 오디오 수신 시간이 분리되어 표시되는지
+- 수면 종료 tap 이후 실제 오디오 수신 시간이 더 이상 증가하지 않는지
+- stop 이후에도 report finalization은 진행되지만 capture는 이미 멈춘 상태인지
+- `chunksReceivedAfterStopRequest`가 0 또는 매우 작은 값인지
+- stop timeout safety가 발생했다면 force stop reason이 detector diagnostics note 또는 DEBUG lifecycle log에 남는지
 - 잠금/백그라운드 이후에도 수신 시간이 합리적으로 증가하는지
 - interruption count와 longest gap이 기록되는지
 - 낮은 오디오 커버리지 상태가 안전하게 표시되는지

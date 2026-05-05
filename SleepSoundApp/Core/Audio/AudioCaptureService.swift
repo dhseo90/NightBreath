@@ -23,6 +23,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     private let retainedSampleLimitPerChunk: Int
     private var continuations: [UUID: AsyncStream<AudioChunk>.Continuation] = [:]
     private var interruptionObserver: NotificationObserverToken?
+    private var stopSafetyTask: Task<Void, Never>?
 
     public init(
         engine: AVAudioEngine = AVAudioEngine(),
@@ -36,6 +37,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     }
 
     deinit {
+        stopSafetyTask?.cancel()
         if let interruptionObserver {
             NotificationCenter.default.removeObserver(interruptionObserver.observer)
         }
@@ -59,6 +61,8 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
 
     public func startCapture() throws {
         guard !isCapturing else { return }
+        stopSafetyTask?.cancel()
+        stopSafetyTask = nil
         metrics = AudioCaptureMetrics()
 
         switch sessionManager.microphonePermissionState() {
@@ -119,27 +123,67 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     }
 
     public func stopCapture() {
-        guard isCapturing else {
-            metrics.stop(at: Date())
-            state = .stopped
-            sessionManager.finishSleepRecording()
-            return
+        performStop(reason: "user stop request", force: false)
+        scheduleStopSafetyCheck()
+    }
+
+    public func forceStopCapture(reason: String) {
+        performStop(reason: reason, force: true)
+    }
+
+    private func performStop(reason: String, force: Bool) {
+        let stopStartedAt = Date()
+        metrics.recordStopRequested(at: stopStartedAt)
+        metrics.recordCaptureStopStarted(at: stopStartedAt)
+        if force {
+            metrics.recordForceStop(reason: reason, at: stopStartedAt)
         }
 
         state = .stopping
         engine.inputNode.removeTap(onBus: 0)
+        metrics.recordInputTapRemoved(at: Date())
         engine.stop()
+        metrics.recordAudioEngineStopped(at: Date())
         sessionManager.finishSleepRecording()
+        metrics.recordAudioSessionDeactivated(at: Date())
+        finishChunkStreams()
+        metrics.recordCaptureTaskCancelled(at: Date())
         metrics.stop(at: Date())
         state = .stopped
     }
 
     fileprivate func emit(_ chunk: AudioChunk) {
+        guard state.isCapturing, metrics.stopRequestedAt == nil else {
+            metrics.recordReceivedAfterStopRequest(chunk: chunk)
+            forceStopCapture(reason: "audio chunk received after stop request")
+            return
+        }
+
         metrics.recordReceived(chunk: chunk)
         onChunk?(chunk)
 
         for continuation in continuations.values {
             continuation.yield(chunk)
+        }
+    }
+
+    private func finishChunkStreams() {
+        for continuation in continuations.values {
+            continuation.finish()
+        }
+        continuations.removeAll(keepingCapacity: true)
+    }
+
+    private func scheduleStopSafetyCheck() {
+        stopSafetyTask?.cancel()
+        stopSafetyTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if self.state != .stopped || self.metrics.chunksReceivedAfterStopRequest > 0 {
+                    self.forceStopCapture(reason: "stop timeout safety check")
+                }
+            }
         }
     }
 
@@ -169,9 +213,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
             return
         }
 
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
-        sessionManager.finishSleepRecording()
+        forceStopCapture(reason: "audio session interruption")
         metrics.recordInterruption()
         metrics.recordCaptureError()
         state = .failed(message: AudioCaptureError.captureInterrupted.message)
@@ -289,7 +331,18 @@ public final class MockAudioCaptureService: ObservableObject, AudioCaptureServic
     }
 
     public func stopCapture() {
+        metrics.recordStopRequested()
+        metrics.recordCaptureStopStarted()
+        metrics.recordInputTapRemoved()
+        metrics.recordAudioEngineStopped()
+        metrics.recordAudioSessionDeactivated()
+        metrics.recordCaptureTaskCancelled()
         metrics.stop(at: Date())
         state = .stopped
+    }
+
+    public func forceStopCapture(reason: String) {
+        metrics.recordForceStop(reason: reason)
+        stopCapture()
     }
 }

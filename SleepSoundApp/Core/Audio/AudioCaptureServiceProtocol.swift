@@ -40,4 +40,5 @@ public protocol AudioCaptureServiceProtocol: AnyObject {
     func makeChunkStream() -> AsyncStream<AudioChunk>
     func startCapture() throws
     func stopCapture()
+    func forceStopCapture(reason: String)
 }

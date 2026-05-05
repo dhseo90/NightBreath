@@ -12,6 +12,7 @@
 - 앱 세션 시간과 실제 오디오 수신 시간 분리
 - 실제 분석 시간 tracking
 - 오디오 커버리지 계산
+- 수면 종료 tap 이후 capture-first stop flow와 post-stop chunk diagnostics
 - 수면 세션 시작/종료 flow
 - 수면 이벤트 모델
 - 수면 리포트 모델

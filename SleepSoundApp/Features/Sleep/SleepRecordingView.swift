@@ -30,7 +30,7 @@ struct SleepRecordingView: View {
           .frame(width: 64, height: 64)
           .accessibilityHidden(true)
 
-        Text(appState.isFinalizingSleepSession ? "수면 리포트 정리 중" : "수면 기록 중")
+        Text(appState.sleepRecordingPhase.title)
           .font(.title.bold())
           .foregroundStyle(NBColor.primaryText)
 
@@ -42,13 +42,13 @@ struct SleepRecordingView: View {
           .monospacedDigit()
         }
 
-        Text(appState.isFinalizingSleepSession ? "캡처는 멈췄고, iPhone 안에서 리포트를 정리하고 있습니다." : "감지 결과는 로컬 리포트 생성을 위한 이벤트 형태로 정리됩니다.")
+        Text(appState.sleepRecordingPhase.message)
           .font(.callout)
           .foregroundStyle(NBColor.secondaryText)
           .multilineTextAlignment(.center)
 
-        if appState.isFinalizingSleepSession {
-          ProgressView("잠시만 기다려 주세요")
+        if appState.sleepRecordingPhase != .recording {
+          ProgressView(appState.sleepRecordingPhase == .stoppingCapture ? "녹음을 멈추는 중입니다" : "잠시만 기다려 주세요")
             .font(.callout)
         }
 
@@ -62,9 +62,9 @@ struct SleepRecordingView: View {
         )
 
         NBDangerButton(
-          title: appState.isFinalizingSleepSession ? "리포트 정리 중" : "수면 종료",
-          systemImage: appState.isFinalizingSleepSession ? "hourglass" : "stop.fill",
-          isDisabled: appState.isFinalizingSleepSession
+          title: appState.sleepRecordingPhase.isStopButtonDisabled ? "종료 처리 중" : "수면 종료",
+          systemImage: appState.sleepRecordingPhase.isStopButtonDisabled ? "hourglass" : "stop.fill",
+          isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled
         ) {
           appState.endSleepSession()
         }
@@ -124,6 +124,14 @@ struct SleepRecordingView: View {
             title: "마지막 이벤트 감지", value: optionalTime(appState.latestDetectedEventAt))
           MeasurementStatusRow(title: "오디오 chunk 수", value: "\(metrics.receivedChunkCount)개")
           MeasurementStatusRow(title: "분석 chunk 수", value: "\(metrics.analyzedChunkCount)개")
+          MeasurementStatusRow(
+            title: "종료 후 입력 chunk",
+            value: "\(metrics.chunksReceivedAfterStopRequest)개"
+          )
+          MeasurementStatusRow(
+            title: "종료 후 입력 시간",
+            value: SleepFormatters.compactDurationString(metrics.secondsReceivingAudioAfterStopRequest)
+          )
           MeasurementStatusRow(title: "오디오 중단 횟수", value: "\(metrics.interruptionCount)회")
           MeasurementStatusRow(
             title: "가장 긴 입력 공백",

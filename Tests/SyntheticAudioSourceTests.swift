@@ -63,4 +63,29 @@ struct SyntheticAudioSourceTests {
     #expect(source.metrics.receivedChunkCount == 2)
     #expect(abs(source.metrics.receivedAudioSeconds - 2) < 0.0001)
   }
+
+  @Test
+  @MainActor
+  func stopRequestCancelsRealTimeReplayWithoutMoreChunks() async throws {
+    let source = SyntheticAudioSource(
+      pattern: .lowEnergyNoise,
+      replayMode: .realTime,
+      duration: 3,
+      sampleRate: 16_000,
+      chunkDuration: 0.05
+    )
+    var receivedChunkCount = 0
+    source.onChunk = { _ in
+      receivedChunkCount += 1
+    }
+
+    try await source.start()
+    try await Task.sleep(nanoseconds: 160_000_000)
+    source.stop()
+    let countAtStop = receivedChunkCount
+    try await Task.sleep(nanoseconds: 240_000_000)
+
+    #expect(source.state == .stopped)
+    #expect(receivedChunkCount == countAtStop)
+  }
 }

@@ -33,6 +33,43 @@ enum SleepReportSource: Equatable {
     }
 }
 
+enum SleepRecordingPhase: Equatable {
+    case recording
+    case stoppingCapture
+    case captureStoppedFinalizing
+    case reportReady
+
+    var title: String {
+        switch self {
+        case .recording:
+            "수면 기록 중"
+        case .stoppingCapture:
+            "녹음 중단 처리 중"
+        case .captureStoppedFinalizing:
+            "수면 리포트 정리 중"
+        case .reportReady:
+            "리포트 준비 완료"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .recording:
+            "감지 결과는 로컬 리포트 생성을 위한 이벤트 형태로 정리됩니다."
+        case .stoppingCapture:
+            "녹음 중단 요청을 처리하고 있습니다."
+        case .captureStoppedFinalizing:
+            "녹음은 중단되었습니다. iPhone 안에서 리포트를 정리하고 있습니다."
+        case .reportReady:
+            "리포트 정리가 끝났습니다."
+        }
+    }
+
+    var isStopButtonDisabled: Bool {
+        self != .recording
+    }
+}
+
 struct PendingFitdaysImportFile: Identifiable {
     let id = UUID()
     var url: URL
@@ -53,6 +90,7 @@ final class AppState: ObservableObject {
     @Published var latestAudioLevel: Double = 0
     @Published var audioCaptureMessage: String?
     @Published var isFinalizingSleepSession = false
+    @Published var sleepRecordingPhase: SleepRecordingPhase = .reportReady
     @Published var detectedEventCandidateCount: Int = 0
     @Published var capturedAudioChunkCount: Int = 0
     @Published var latestDetectedEventText: String = "아직 없음"
@@ -87,6 +125,7 @@ final class AppState: ObservableObject {
     private var currentAudioFeatures: [AudioFeatures] = []
     private var eventAudioSnippetTasks: [Task<Void, Never>] = []
     private var sleepFinalizationTask: Task<Void, Never>?
+    private var captureStopSafetyTask: Task<Void, Never>?
     private var savedAudioSnippets: [EventAudioSnippet] = []
     private var scheduledSnippetKeys = Set<String>()
     private var latestSnippetStartedAtByType: [SleepEventType: Date] = [:]
@@ -301,6 +340,7 @@ final class AppState: ObservableObject {
         activeSimulatorQAScenario = preset
         activeScreenshotScenario = nil
         activeSession = nil
+        sleepRecordingPhase = .reportReady
 
         audioCaptureMetrics = AudioCaptureMetrics(
             captureStartedAt: bundle.session.startedAt,
@@ -373,6 +413,7 @@ final class AppState: ObservableObject {
 
         audioCaptureMessage = nil
         isFinalizingSleepSession = false
+        sleepRecordingPhase = .recording
         latestAudioLevel = 0
         detectedEventCandidateCount = 0
         capturedAudioChunkCount = 0
@@ -388,6 +429,8 @@ final class AppState: ObservableObject {
         scheduledSnippetKeys.removeAll(keepingCapacity: true)
         latestSnippetStartedAtByType.removeAll(keepingCapacity: true)
         recentAudioBuffer.removeAll()
+        captureStopSafetyTask?.cancel()
+        captureStopSafetyTask = nil
 
         Task {
             await startAudioCaptureAndCreateSession()
@@ -395,18 +438,40 @@ final class AppState: ObservableObject {
     }
 
     func endSleepSession() {
-        guard let session = activeSession, !isFinalizingSleepSession else { return }
+        let stopTappedAt = Date()
+        audioCaptureMetrics.recordStopButtonTapped(at: stopTappedAt)
+        recordDebugLifecycleEvent("stop button tapped")
+
+        guard let session = activeSession else {
+            audioCaptureService.forceStopCapture(reason: "stop requested with no active session")
+            audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+            audioCaptureState = audioCaptureService.state
+            return
+        }
+
+        guard !isFinalizingSleepSession else {
+            audioCaptureService.forceStopCapture(reason: "duplicate stop request while finalizing")
+            audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+            audioCaptureState = audioCaptureService.state
+            recordDebugLifecycleEvent("duplicate stop request ignored")
+            return
+        }
 
         isFinalizingSleepSession = true
-        audioCaptureMessage = "수면 기록을 종료하고 리포트를 정리하는 중입니다."
+        sleepRecordingPhase = .stoppingCapture
+        audioCaptureMessage = "녹음 중단 요청을 처리하고 있습니다."
+        audioCaptureMetrics.recordStopRequested(at: stopTappedAt)
         audioCaptureService.stopCapture()
-        recordDebugLifecycleEvent("audio capture stopped")
+        audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+        recordDebugLifecycleEvent("audio capture stop requested")
         audioCaptureState = audioCaptureService.state
+        sleepRecordingPhase = audioCaptureState == .stopped ? .captureStoppedFinalizing : .stoppingCapture
+        audioCaptureMessage = "녹음은 중단되었습니다. 리포트를 정리하는 중입니다."
+        scheduleCaptureStopSafetyCheck(sessionId: session.id)
 
         let endedAt = Date()
         audioCaptureMetrics.stop(at: endedAt)
         let completedSession = makeCompletedSession(from: session, endedAt: endedAt)
-        let metricsSnapshot = audioCaptureMetrics
         let finalizationInput = SleepSessionFinalizationInput(
             features: currentAudioFeatures,
             contextOutputs: currentDetectorOutputs,
@@ -415,6 +480,7 @@ final class AppState: ObservableObject {
         )
 
         cancelPendingEventAudioSnippetTasks()
+        audioCaptureMetrics.recordAnalyzerFinalizeStarted(at: Date())
 
         #if DEBUG
         let debugPreview = saveDebugAudioPreviewIfAllowed(sessionId: completedSession.id)
@@ -431,7 +497,6 @@ final class AppState: ObservableObject {
             await MainActor.run { [weak self] in
                 self?.completeSleepSessionFinalization(
                     completedSession: completedSession,
-                    metrics: metricsSnapshot,
                     finalizationResult: result,
                     debugPreview: debugPreview
                 )
@@ -441,15 +506,19 @@ final class AppState: ObservableObject {
 
     private func completeSleepSessionFinalization(
         completedSession: SleepSession,
-        metrics: AudioCaptureMetrics,
         finalizationResult: SleepSessionFinalizationResult,
         debugPreview: EventAudioSnippet?
     ) {
         guard activeSession?.id == completedSession.id else {
             isFinalizingSleepSession = false
+            sleepRecordingPhase = .reportReady
             return
         }
 
+        captureStopSafetyTask?.cancel()
+        captureStopSafetyTask = nil
+        audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+        audioCaptureMetrics.recordAnalyzerFinalizeFinished(at: Date())
         currentDetectorOutputs = finalizationResult.allOutputs
         detectorDiagnosticsCollector.record(sequenceResult: finalizationResult.sequenceResult)
         saveMissingEventAudioSnippets(sessionId: completedSession.id, outputs: finalizationResult.smoothedOutputs)
@@ -464,11 +533,19 @@ final class AppState: ObservableObject {
         if events.isEmpty {
             detectorDiagnosticsCollector.addNote("오디오 입력은 수신되었지만 최종 이벤트 기준을 통과한 이벤트가 없었습니다.")
         }
-        let diagnostics = detectorDiagnosticsCollector.finalize(endedAt: completedSession.endedAt ?? Date(), metrics: metrics)
+        if let stopDiagnosticsSummary = audioCaptureMetrics.stopDiagnosticsSummary {
+            detectorDiagnosticsCollector.addNote("Capture stop diagnostics: \(stopDiagnosticsSummary)")
+        }
+        audioCaptureMetrics.recordReportGenerationStarted(at: Date())
         var report = SleepScoreCalculator().makeReport(
             session: completedSession,
             events: events,
-            captureMetrics: metrics
+            captureMetrics: audioCaptureMetrics
+        )
+        audioCaptureMetrics.recordReportGenerationFinished(at: Date())
+        let diagnostics = detectorDiagnosticsCollector.finalize(
+            endedAt: completedSession.endedAt ?? Date(),
+            metrics: audioCaptureMetrics
         )
         report.detectorDiagnostics = diagnostics
 
@@ -480,6 +557,7 @@ final class AppState: ObservableObject {
         morningCheckIn = MorningCheckIn(sessionId: completedSession.id)
         activeSession = nil
         isFinalizingSleepSession = false
+        sleepRecordingPhase = .reportReady
 
         let chunkMessage = capturedAudioChunkCount == 0
             ? "캡처된 오디오 청크가 없어 이벤트 없는 분석 리포트를 만들었습니다."
@@ -694,6 +772,15 @@ final class AppState: ObservableObject {
     }
 
     private func handleAudioChunk(_ chunk: AudioChunk) {
+        if isFinalizingSleepSession || audioCaptureMetrics.stopRequestedAt != nil {
+            audioCaptureMetrics.recordReceivedAfterStopRequest(chunk: chunk)
+            audioCaptureService.forceStopCapture(reason: "audio chunk delivered to app after stop request")
+            audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+            audioCaptureState = audioCaptureService.state
+            recordDebugLifecycleEvent("post-stop audio chunk ignored")
+            return
+        }
+
         recentAudioBuffer.append(chunk)
         audioCaptureMetrics.recordReceived(chunk: chunk)
         let detection = sleepAnalyzer.detectOutputsWithFeatures(from: chunk, updating: &audioCaptureMetrics)
@@ -718,8 +805,35 @@ final class AppState: ObservableObject {
         audioCaptureState = audioCaptureService.state
     }
 
+    private func scheduleCaptureStopSafetyCheck(sessionId: UUID) {
+        captureStopSafetyTask?.cancel()
+        captureStopSafetyTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                guard self.activeSession?.id == sessionId || self.latestSession.id == sessionId else { return }
+
+                self.audioCaptureMetrics.mergeStopDiagnostics(from: self.audioCaptureService.metrics)
+                let needsForceStop = self.audioCaptureService.state != .stopped
+                    || self.audioCaptureService.isCapturing
+                    || self.audioCaptureMetrics.chunksReceivedAfterStopRequest > 0
+
+                guard needsForceStop else { return }
+
+                self.audioCaptureService.forceStopCapture(reason: "app stop timeout safety check")
+                self.audioCaptureMetrics.mergeStopDiagnostics(from: self.audioCaptureService.metrics)
+                self.audioCaptureState = self.audioCaptureService.state
+                self.recordDebugLifecycleEvent("capture force stop safety check")
+            }
+        }
+    }
+
     private func handleAudioCaptureStateChange(_ state: AudioCaptureState) {
         audioCaptureState = state
+
+        if isFinalizingSleepSession, state == .stopped {
+            sleepRecordingPhase = .captureStoppedFinalizing
+        }
 
         if case .failed(let message) = state {
             if message == AudioCaptureError.captureInterrupted.message {
