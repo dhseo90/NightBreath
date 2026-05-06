@@ -26,8 +26,9 @@
 12. `Docs/HEALTH_DATA_GUIDE.md`
 13. `Docs/QA_GUIDE.md`
 14. `Docs/APP_RELEASE_GUIDE.md`
-15. `Docs/DAILY_RHYTHM_SCORE.md`
-16. `Docs/DAILY_HEALTH_CARD.md`
+15. `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`
+16. `Docs/DAILY_RHYTHM_SCORE.md`
+17. `Docs/DAILY_HEALTH_CARD.md`
 
 ## EHM 리뷰용 우선 세트
 
@@ -56,14 +57,15 @@
 8. `Docs/NEXT_ISSUES.md`
 9. `Docs/PRIVACY_STORAGE_AUDIT.md`
 10. `Docs/APP_RELEASE_GUIDE.md`
-11. `Docs/HEALTH_DATA_GUIDE.md`
-12. `Docs/DAILY_HEALTH_CARD.md`
-13. `Docs/DAILY_RHYTHM_SCORE.md`
-14. `QA_CHECKLIST.md`
+11. `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`
+12. `Docs/HEALTH_DATA_GUIDE.md`
+13. `Docs/DAILY_HEALTH_CARD.md`
+14. `Docs/DAILY_RHYTHM_SCORE.md`
+15. `QA_CHECKLIST.md`
 
 ## 생략 가능 문서
 
-- App Store 작업이 아니면 `Docs/APP_RELEASE_GUIDE.md`는 생략할 수 있습니다.
+- App Store 작업이 아니면 `Docs/APP_RELEASE_GUIDE.md`와 `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`는 생략할 수 있습니다.
 - Detector/ML 작업이 아니면 detector, dataset, offline evaluation, Core ML 문서는 생략할 수 있습니다.
 - 실제 기기 오디오 QA가 아니면 `Docs/QA_GUIDE.md`의 관련 section만 공유해도 됩니다.
 - HealthKit/EHM 작업이 아니면 `Docs/HEALTH_DATA_GUIDE.md`는 우선순위를 낮출 수 있습니다.

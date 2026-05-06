@@ -4,14 +4,13 @@
 
 ## 우선순위 후보
 
-1. App Store product page copy 최종 점검
-2. Fitdays export availability 실기기 재확인 실행 및 private evidence 기록
-3. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
-4. 실제 iPhone smoke test
-5. TestFlight 내부 테스트 실행
-6. Legal/App Review 최종 재확인
-7. detector threshold tuning with real data
-8. Core ML model 실제 앱 target 적용
+1. Fitdays export availability 실기기 재확인 실행 및 private evidence 기록
+2. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
+3. 실제 iPhone smoke test
+4. TestFlight 내부 테스트 실행
+5. Legal/App Review 최종 재확인
+6. detector threshold tuning with real data
+7. Core ML model 실제 앱 target 적용
 
 ## Release / App Store 준비
 
@@ -19,7 +18,7 @@
 - App Store screenshot headline copy와 mock scenario plan은 정리 완료
 - App Store screenshot marketing visual 재캡처와 App Store Connect size export
 - App Store Connect용 screenshot size/export 절차 정리
-- App Store product page copy 최종 점검
+- App Store product page copy 후보 정리 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
 - TestFlight 내부 테스트 체크리스트 정리 완료, 실제 내부 테스트 실행은 TestFlight build와 실기기 필요
 - App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 audit 문서화 완료, 제출 직전 최종 재확인 필요

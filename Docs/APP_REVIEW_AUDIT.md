@@ -9,6 +9,7 @@
 - 용도: iPhone 안에서 수면 중 소리 기반 지표와 하루 리듬 정보를 개인 참고용으로 정리합니다.
 - 범위: 웰니스/개인 참고용 리포트, HealthKit read-only dashboard, 사용자가 직접 선택한 Fitdays CSV/export local import
 - 금지: 의료적 판단으로 읽히는 표현, 치료 조언, 질병 여부 단정, HealthKit write, 서버 업로드, 클라우드 처리, 외부 분석 SDK, 광고 SDK
+- Product page 후보 문구: `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`
 
 ## App Review Notes
 
@@ -80,6 +81,7 @@ Avoid:
 
 ## App Store Asset Checklist
 
+- Product page copy 후보는 `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`에서 ko-KR/en-US locale별로 관리합니다.
 - Screenshots use mock/synthetic data only.
 - App Store raw screenshots live under `Docs/Screenshots/AppStore/raw/`.
 - App Store Connect export output is regenerated locally and not committed.

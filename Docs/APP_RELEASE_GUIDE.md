@@ -14,7 +14,9 @@
 - 기본 동작으로 원본 전체 오디오는 저장하지 않습니다.
 - Fitdays 서버/API 직접 연결이나 비공식 연결 방식은 사용하지 않습니다.
 
-## App Store Copy Draft
+## App Store Product Page Copy
+
+Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`를 기준으로 합니다. 아래 문구는 release guide 안에서 빠르게 확인하기 위한 요약입니다.
 
 짧은 소개:
 
@@ -54,6 +56,12 @@
 - 임상 지표처럼 정확도를 보장하는 문구
 - 치료나 의학적 조치를 직접 권하는 문구
 - 수면 소리와 혈압/체중/체성분 변화 사이의 원인과 결과를 단정하는 문구
+
+제출 직전 확인:
+
+- `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`의 ko-KR subtitle, promotional text, keywords 글자 수를 App Store Connect 화면에서 다시 확인합니다.
+- en-US secondary locale을 사용할 경우 한국어 copy와 개인정보/HealthKit/read-only 경계가 어긋나지 않는지 확인합니다.
+- screenshot headline과 product description이 서로 다른 기능 범위를 주장하지 않는지 확인합니다.
 
 ## App Store Screenshot Guide
 
@@ -220,7 +228,7 @@ Reports are for personal wellness reference and are not intended for medical dia
 
 - 실제 기기 홈 화면/Settings/TestFlight 표면에서 최종 앱 아이콘 작은 크기 확인
 - App Store marketing screenshot final
-- App Store product page copy 최종 조정
+- App Store product page copy 제출 직전 글자 수/locale 확인
 - TestFlight 내부 테스트
 - Legal/App Review audit 최종 재확인
 - 실제 iPhone overnight 안정성 확인

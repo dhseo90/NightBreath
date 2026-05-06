@@ -179,6 +179,73 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appStoreProductPageCopyIsLocalizedSafeAndWithinDraftLimits() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let productCopy = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let reviewAudit = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_REVIEW_AUDIT.md"),
+            encoding: .utf8
+        )
+        let nextIssues = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/NEXT_ISSUES.md"),
+            encoding: .utf8
+        )
+
+        let koreanSubtitle = "수면 소리와 하루 리듬"
+        let koreanPromotionalText = "밤새 수면 중 소리 기반 지표와 아침 컨디션, 하루 리듬을 iPhone 안에서 개인 참고용으로 정리합니다."
+        let koreanKeywords = "수면,코골기,수면기록,건강리듬,HealthKit,컨디션,리포트"
+        let englishSubtitle = "Sleep Sound Report"
+        let englishKeywords = "sleep,snore,wellness,rhythm,HealthKit,checkin,report"
+
+        #expect(productCopy.contains("Primary Locale: ko-KR"))
+        #expect(productCopy.contains("Secondary Locale: en-US"))
+        #expect(productCopy.contains("| App Name | 밤숨 |"))
+        #expect(productCopy.contains("| App Name | NightBreath |"))
+        #expect(productCopy.contains(koreanSubtitle))
+        #expect(productCopy.contains(koreanPromotionalText))
+        #expect(productCopy.contains(koreanKeywords))
+        #expect(productCopy.contains(englishSubtitle))
+        #expect(productCopy.contains(englishKeywords))
+        #expect(koreanSubtitle.count <= 30)
+        #expect(koreanPromotionalText.count <= 170)
+        #expect(koreanKeywords.count <= 100)
+        #expect(englishSubtitle.count <= 30)
+        #expect(englishKeywords.count <= 100)
+        #expect(productCopy.contains("서버 업로드나 클라우드 처리를 사용하지 않습니다"))
+        #expect(productCopy.contains("HealthKit은 사용자가 건강 데이터 연결을 선택한 경우에만 read-only"))
+        #expect(productCopy.contains("HealthKit에 데이터를 쓰지 않습니다"))
+        #expect(productCopy.contains("전체 밤 원본 오디오는 기본 저장하지 않습니다"))
+        #expect(productCopy.contains("mock/synthetic data"))
+        #expect(releaseGuide.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
+        #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
+        #expect(nextIssues.contains("product page copy 후보 정리 완료"))
+
+        let forbiddenPhrases = [
+            "수면무호흡증 " + "진단",
+            "AHI " + "정확 측정",
+            "이갈이 " + "확진",
+            "질병 " + "판정",
+            "치료 " + "필요",
+            "정상" + "입니다",
+            "코골이가 " + "없었습니다",
+            "서버 업로드를 사용합니다",
+            "HealthKit에 데이터를 씁니다",
+            "전체 밤 원본 오디오를 저장합니다",
+        ]
+
+        for phrase in forbiddenPhrases {
+            #expect(!productCopy.contains(phrase), "Product page copy contains restricted wording: \(phrase)")
+        }
+    }
+
+    @Test
     func appStoreScreenshotPlanDocumentsMockScenariosAndSafeHeadlines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let guide = try String(

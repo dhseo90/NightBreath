@@ -115,6 +115,7 @@
 - 실제 iPhone QA runbook과 기록 템플릿
 - Health/QA/App Release 문서 통합 정리
 - App Icon generate/validate/review sheet 로컬 도구
+- App Store product page ko-KR/en-US 후보 copy 정리
 
 ## 현재 개발 전략
 
@@ -146,6 +147,7 @@
 - App Store 제출
 - 실제 기기 홈 화면/Settings/TestFlight 표면의 최종 앱 아이콘 확인
 - App Store screenshot marketing final visual/export version
+- App Store Connect 화면에서 product page copy 글자 수/locale 최종 확인
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
 - UI Gallery 수동 진입 상세 screenshot 전체 캡처
