@@ -136,6 +136,59 @@ struct OfflineProfileComparisonTests {
   }
 
   @Test
+  func markdownReportIncludesQuickComparisonAndRiskMatrix() {
+    let records = [
+      makeRecord(
+        profile: "balanced",
+        fileId: "snore-a",
+        expectedLabels: ["snore"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 1,
+        rejectReasonTop: [OfflineEvaluationReasonCount(reason: "belowConfidenceThreshold", count: 3)]
+      ),
+      makeRecord(
+        profile: "balanced",
+        fileId: "quiet-a",
+        expectedLabels: ["unknown"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 0
+      ),
+      makeRecord(
+        profile: "sensitive",
+        fileId: "snore-a",
+        expectedLabels: ["snore"],
+        finalEventCountByType: ["snore": 1],
+        rawCandidateCount: 3
+      ),
+      makeRecord(
+        profile: "sensitive",
+        fileId: "quiet-a",
+        expectedLabels: ["unknown"],
+        finalEventCountByType: ["environmentalNoise": 1],
+        rawCandidateCount: 2,
+        rejectReasonTop: [OfflineEvaluationReasonCount(reason: "likelyEnvironmentalNoise", count: 1)]
+      ),
+    ]
+    let comparison = OfflineProfileComparisonRunner().makeComparison(
+      outputs: [
+        OfflineEvaluationOutput(
+          summary: OfflineEvaluationRunSummary(records: records, manifestSegmentCount: 2),
+          records: records
+        )
+      ]
+    )
+
+    let report = OfflineProfileComparisonRunner.makeMarkdownReport(comparison)
+
+    #expect(report.contains("## Quick Comparison"))
+    #expect(report.contains("| Lowest zero-event rate | sensitive | 0/2 (0.0%) |"))
+    #expect(report.contains("| Release default guard | balanced | 2/2 (100.0%), FP-like 0, FN-like 1 |"))
+    #expect(report.contains("## Recall / Risk Matrix"))
+    #expect(report.contains("| balanced | 2 | 0 | 2/2 (100.0%) | 1 -> 0 | none | belowConfidenceThreshold: 3 |"))
+    #expect(report.contains("| sensitive | 2 | 0 | 0/2 (0.0%) | 5 -> 2 | environmentalNoise: 1, snore: 1 | likelyEnvironmentalNoise: 1 |"))
+  }
+
+  @Test
   func emptyComparisonDoesNotProduceWritableReport() {
     let outputDirectory = FileManager.default.temporaryDirectory
       .appendingPathComponent("NightBreathEmptyProfileCompare-\(UUID().uuidString)", isDirectory: true)

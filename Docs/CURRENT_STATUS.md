@@ -47,6 +47,7 @@
 - Dataset Replay
 - Offline Evaluation
 - profile comparison 도구
+- Detector Offline Evaluation profile 비교 markdown quick summary
 - snore baseline/backend comparison 도구
 - Snore ML v0 training/변환 준비 도구
 - multiclass event classifier 준비 도구

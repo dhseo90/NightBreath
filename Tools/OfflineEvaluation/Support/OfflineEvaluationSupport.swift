@@ -1865,6 +1865,15 @@ public struct OfflineProfileComparisonRunner {
       "이 리포트는 Offline Evaluation 결과를 profile별로 비교하는 개발용 요약입니다.",
       "threshold 변경은 자동 적용되지 않았습니다.",
       "",
+      "## Quick Comparison",
+      "",
+      "| Signal | Profile | Value | Review Cue |",
+      "| --- | --- | ---: | --- |",
+    ]
+    lines.append(contentsOf: quickComparisonRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
       "## Recommendation",
       "",
       comparison.recommendation.summary,
@@ -1875,13 +1884,22 @@ public struct OfflineProfileComparisonRunner {
       "",
       "| Profile | Records | Zero Event | Raw Candidates | Pre Smoothing | Post Smoothing | Final Events | Avg Confidence | FP-like | FN-like |",
       "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
-    ]
+    ])
 
     for summary in comparison.profileSummaries {
       lines.append(
         "| \(summary.tuningProfile) | \(summary.evaluatedRecords) | \(summary.zeroEventCount) | \(summary.rawCandidateCount) | \(summary.preSmoothingCandidateCount) | \(summary.postSmoothingEventCount) | \(summary.finalEventCount) | \(format(summary.averageConfidence)) | \(summary.possibleFalsePositiveLikeCount) | \(summary.possibleFalseNegativeLikeCount) |"
       )
     }
+
+    lines.append(contentsOf: [
+      "",
+      "## Recall / Risk Matrix",
+      "",
+      "| Profile | Records | Failed | Zero Event Rate | Raw -> Final | Final By Type | Top Reject | Review Cue |",
+      "| --- | ---: | ---: | ---: | ---: | --- | --- | --- |",
+    ])
+    lines.append(contentsOf: riskMatrixRows(summaries: comparison.profileSummaries))
 
     lines.append(contentsOf: [
       "",
@@ -1927,6 +1945,133 @@ public struct OfflineProfileComparisonRunner {
     ])
 
     return lines.joined(separator: "\n")
+  }
+
+  private static func quickComparisonRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| No records | none | 0 | Offline Evaluation JSON을 먼저 생성하세요. |"]
+    }
+
+    var rows: [String] = []
+    if let lowestZeroEvent = summaries.min(by: zeroEventSort) {
+      rows.append(
+        "| Lowest zero-event rate | \(lowestZeroEvent.tuningProfile) | \(zeroEventText(lowestZeroEvent)) | 최종 이벤트 누락이 가장 적은 profile 후보입니다. FP-like도 함께 확인하세요. |"
+      )
+    }
+    if let highestFinal = summaries.max(by: finalEventSort) {
+      rows.append(
+        "| Most final events | \(highestFinal.tuningProfile) | \(highestFinal.finalEventCount) | recall 후보입니다. quiet/noise segment의 FP-like 증가 여부를 같이 보세요. |"
+      )
+    }
+    if let lowestFPRisk = summaries.min(by: falsePositiveRiskSort) {
+      rows.append(
+        "| Lowest FP-like count | \(lowestFPRisk.tuningProfile) | \(lowestFPRisk.possibleFalsePositiveLikeCount) | 과탐지 위험이 가장 낮은 profile 후보입니다. FN-like가 늘지 않았는지 확인하세요. |"
+      )
+    }
+    if let highestFNRisk = summaries.max(by: falseNegativeRiskSort) {
+      rows.append(
+        "| Highest FN-like count | \(highestFNRisk.tuningProfile) | \(highestFNRisk.possibleFalseNegativeLikeCount) | expected label이 있는 segment에서 누락이 많은지 raw/reject/smoothing을 확인하세요. |"
+      )
+    }
+    if let balanced = summaries.first(where: { $0.tuningProfile == DetectorTuningProfile.balanced.rawValue }) {
+      rows.append(
+        "| Release default guard | balanced | \(zeroEventText(balanced)), FP-like \(balanced.possibleFalsePositiveLikeCount), FN-like \(balanced.possibleFalseNegativeLikeCount) | 충분한 근거 전에는 Release 기본값을 유지하고 sensitive는 DEBUG 비교용으로 보세요. |"
+      )
+    }
+    return rows
+  }
+
+  private static func riskMatrixRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| none | 0 | 0 | 0.0% | 0 -> 0 | none | none | 비교할 record가 없습니다. |"]
+    }
+
+    return summaries.map { summary in
+      "| \(summary.tuningProfile) | \(summary.evaluatedRecords) | \(summary.failedRecords) | \(zeroEventText(summary)) | \(summary.rawCandidateCount) -> \(summary.finalEventCount) | \(finalEventsText(summary.finalEventCountByType)) | \(topRejectReasonText(summary.topRejectReasons)) | \(reviewCue(summary)) |"
+    }
+  }
+
+  private static func zeroEventText(_ summary: OfflineProfileSummary) -> String {
+    "\(summary.zeroEventCount)/\(summary.evaluatedRecords) (\(formatPercent(summary.zeroEventRate)))"
+  }
+
+  private static func finalEventsText(_ counts: [String: Int]) -> String {
+    guard !counts.isEmpty else { return "none" }
+    return counts.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
+  }
+
+  private static func topRejectReasonText(_ reasons: [OfflineEvaluationReasonCount]) -> String {
+    guard let reason = reasons.first else { return "none" }
+    return "\(reason.reason): \(reason.count)"
+  }
+
+  private static func reviewCue(_ summary: OfflineProfileSummary) -> String {
+    if summary.failedRecords > 0 {
+      return "missing/failed record를 먼저 해결하세요."
+    }
+    if summary.possibleFalsePositiveLikeCount > 0 {
+      return "quiet/noise segment의 false-positive-like guard를 확인하세요."
+    }
+    if summary.rawCandidateCount == 0, summary.zeroEventCount > 0 {
+      return "feature scale 또는 raw threshold에서 후보가 생기지 않는지 확인하세요."
+    }
+    if summary.rawCandidateCount > 0, summary.finalEventCount == 0 {
+      return "raw 후보가 smoothing/final 단계에서 사라지는지 확인하세요."
+    }
+    if summary.possibleFalseNegativeLikeCount > 0 {
+      return "expected label 누락 segment의 reject reason을 확인하세요."
+    }
+    return "labeled segment를 늘려 반복 확인하세요."
+  }
+
+  private static func zeroEventSort(
+    lhs: OfflineProfileSummary,
+    rhs: OfflineProfileSummary
+  ) -> Bool {
+    if lhs.zeroEventRate != rhs.zeroEventRate {
+      return lhs.zeroEventRate < rhs.zeroEventRate
+    }
+    if lhs.possibleFalsePositiveLikeCount != rhs.possibleFalsePositiveLikeCount {
+      return lhs.possibleFalsePositiveLikeCount < rhs.possibleFalsePositiveLikeCount
+    }
+    return lhs.tuningProfile < rhs.tuningProfile
+  }
+
+  private static func finalEventSort(
+    lhs: OfflineProfileSummary,
+    rhs: OfflineProfileSummary
+  ) -> Bool {
+    if lhs.finalEventCount != rhs.finalEventCount {
+      return lhs.finalEventCount < rhs.finalEventCount
+    }
+    if lhs.possibleFalsePositiveLikeCount != rhs.possibleFalsePositiveLikeCount {
+      return lhs.possibleFalsePositiveLikeCount > rhs.possibleFalsePositiveLikeCount
+    }
+    return lhs.tuningProfile > rhs.tuningProfile
+  }
+
+  private static func falsePositiveRiskSort(
+    lhs: OfflineProfileSummary,
+    rhs: OfflineProfileSummary
+  ) -> Bool {
+    if lhs.possibleFalsePositiveLikeCount != rhs.possibleFalsePositiveLikeCount {
+      return lhs.possibleFalsePositiveLikeCount < rhs.possibleFalsePositiveLikeCount
+    }
+    return lhs.tuningProfile < rhs.tuningProfile
+  }
+
+  private static func falseNegativeRiskSort(
+    lhs: OfflineProfileSummary,
+    rhs: OfflineProfileSummary
+  ) -> Bool {
+    if lhs.possibleFalseNegativeLikeCount != rhs.possibleFalseNegativeLikeCount {
+      return lhs.possibleFalseNegativeLikeCount < rhs.possibleFalseNegativeLikeCount
+    }
+    return lhs.tuningProfile > rhs.tuningProfile
+  }
+
+  private static func formatPercent(_ value: Double) -> String {
+    String(format: "%.1f%%", value * 100)
   }
 
   private static func makeFinding(
