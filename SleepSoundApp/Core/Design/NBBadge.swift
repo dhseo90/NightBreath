@@ -75,6 +75,7 @@ struct NBStatusBadge: View {
       if let systemImage {
         Image(systemName: systemImage)
           .font(NBTypography.captionEmphasis)
+          .accessibilityHidden(true)
       }
       Text(text)
         .font(NBTypography.captionEmphasis)

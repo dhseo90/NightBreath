@@ -91,6 +91,7 @@ private struct DebugAudioSampleRow: View {
         Image(systemName: record.isDebugPreview ? "waveform.circle" : "waveform.badge.magnifyingglass")
           .foregroundStyle(record.isDebugPreview ? NBColor.audioTint : NBColor.sleepTint)
           .frame(width: 24)
+          .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {
           Text(record.isDebugPreview ? "DEBUG 미리듣기" : "이벤트 오디오 샘플")

@@ -32,6 +32,7 @@ struct NBListRow: View {
         .frame(width: 28, height: 28)
         .background(tint.opacity(0.10))
         .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+        .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
         HStack(alignment: .firstTextBaseline) {

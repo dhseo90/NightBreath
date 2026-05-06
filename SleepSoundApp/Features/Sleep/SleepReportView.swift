@@ -826,6 +826,7 @@ struct SleepReportView: View {
           Image(systemName: "waveform.circle")
             .foregroundStyle(NBColor.audioTint)
             .frame(width: 24)
+            .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: 4) {
             Text("최근 오디오 미리듣기")

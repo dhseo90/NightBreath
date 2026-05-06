@@ -112,6 +112,7 @@ struct FitdaysImportView: View {
               .foregroundStyle(NBColor.privacyTint)
               .font(.caption)
               .padding(.top, 2)
+              .accessibilityHidden(true)
 
             Text(step)
               .font(NBTypography.footnote)

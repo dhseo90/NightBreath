@@ -437,6 +437,7 @@ Screenshot 문서 구조는 `Docs/UI_GALLERY.md`와 `Docs/Screenshots/`를 기�
 - 수치 카드에는 의미 있는 `accessibilityLabel`을 제공합니다.
 - Dynamic Type에서 긴 한국어 문구가 줄바꿈될 수 있게 `fixedSize(horizontal: false, vertical: true)`를 사용합니다.
 - 아이콘 전용 버튼은 VoiceOver label을 반드시 가집니다.
+- 텍스트와 같은 의미를 반복하는 장식용 SF Symbol은 `accessibilityHidden(true)`로 숨기고, 부모 row/card가 의미 있는 label을 제공합니다.
 
 ## Preview 확인
 
