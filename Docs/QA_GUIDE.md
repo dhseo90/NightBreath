@@ -465,6 +465,16 @@ Server transfer observed: no
 
 Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 다만 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
 
+실기기 export availability 재확인 smoke:
+
+1. 실제 iPhone에서 Fitdays 앱 버전, 로그인 상태, 지역/언어 설정을 private note에만 기록합니다.
+2. Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center를 순서대로 확인합니다.
+3. Share / Export / Progress Report / Data Report / Export My Data / Personal Data Request처럼 보이는 항목이 있는지 확인합니다.
+4. CSV, text, email attachment, Files 저장, iCloud Drive 저장, AirDrop 공유 중 하나라도 가능한지 확인합니다.
+5. export가 보이면 실제 파일은 repository 밖에 저장하고, NightBreath에서는 파일 선택 또는 Open in NightBreath preview까지만 확인합니다.
+6. export가 보이지 않으면 Fitdays 앱을 더 파고들지 않고 Apple 건강앱 read-only fallback과 향후 로컬 입력 follow-up으로 기록합니다.
+7. 이 재확인은 Fitdays 서버/API 연결, 자동 로그인, UI scraping, 비공식 연결 방식, reverse engineering을 만들기 위한 근거로 사용하지 않습니다.
+
 1. 실제 개인 CSV 또는 structured export file은 repository 밖에 둡니다.
 2. screenshot이나 public review에는 synthetic CSV만 사용합니다.
 3. Reports / Data Reports / Chart / History Records / More Data에서 Share / Export 버튼과 CSV format 선택지를 확인합니다.
@@ -494,6 +504,8 @@ App path checked: Reports / Data Reports / Chart / History Records / More Data /
 NightBreath entry point: file picker / Open in NightBreath / Apple Health read-only fallback
 Fallback used: CSV export / data request / Apple Health read-only / manual follow-up
 Export menu visible: yes / no
+Fitdays app version recorded in repo: no
+Fitdays account/login details recorded in repo: no
 If no export menu: Apple Health read-only fallback / manual input follow-up
 Rows parsed:
 Samples created:

@@ -153,10 +153,13 @@ NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세
 사용자 확인 경로:
 
 - Fitdays 앱의 Reports / Data Reports / Chart / History Records / More Data 영역을 확인합니다.
+- Account / Export My Data / Customer Service Center / Personal Data Request처럼 보이는 메뉴도 확인합니다.
 - Share / Export 버튼이 있는지 확인합니다.
 - Format 선택지에서 CSV 또는 유사한 structured export 형식이 있는지 확인합니다.
 - Files, iCloud Drive, AirDrop, Mail 등으로 파일을 저장할 수 있는지 확인합니다.
+- 실제 iPhone 재확인에서는 확인한 메뉴 path와 export 가능 여부만 private QA note에 기록합니다.
 - export 파일의 column 이름, 날짜/시간 필드, 단위 표기, metric 값 형식을 private QA note에서만 확인합니다. 실제 파일명, 실제 path, 실제 수치는 repository와 screenshot에 남기지 않습니다.
+- Fitdays 앱 버전, 로그인 상태, 지역/언어 설정은 repository가 아니라 private QA note에만 기록합니다.
 
 CSV가 보이지 않을 때 fallback:
 
@@ -166,6 +169,7 @@ CSV가 보이지 않을 때 fallback:
 - HealthKit에 없는 Fitdays 고유 지표는 manual input 또는 향후 로컬 입력 기능의 follow-up으로 남깁니다.
 - `FitdaysImportView`는 파일이 없어도 괜찮다는 섹션과 건강 데이터 대시보드 진입을 제공해, 사용자가 CSV/export 없이도 read-only 표준 지표 흐름을 계속 볼 수 있게 합니다.
 - NightBreath는 이 fallback을 위해 Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식을 구현하지 않습니다.
+- export가 보이지 않는 상황은 Fitdays 서버/API 연결이나 UI scraping을 추가할 근거가 아니며, 사용자 선택 기반 로컬 파일 또는 Apple 건강앱 read-only 경로만 유지합니다.
 
 지원하는 mapping 예시:
 

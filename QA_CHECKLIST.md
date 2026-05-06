@@ -212,7 +212,10 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 
 - [ ] `HealthDashboardView`에서 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
 - [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택할 때만 import 흐름이 시작된다.
+- [ ] 실제 Fitdays 앱에서 Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center 경로를 확인하고, 결과는 private note에만 남긴다.
 - [ ] 실제 Fitdays 앱에서 CSV/export 메뉴가 보이지 않으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 서버/API나 비공식 연결을 시도하지 않는다.
+- [ ] Fitdays 앱 버전, 로그인 상태, 실제 메뉴명, 실제 파일명, 실제 path, 실제 수치는 repository나 screenshot에 남기지 않는다.
+- [ ] export가 보이지 않아도 Fitdays 로그인, 서버/API 연결, 자동 동기화, UI scraping, reverse engineering을 추가하지 않는다.
 - [ ] valid synthetic CSV로 import preview와 import result가 표시된다.
 - [ ] invalid CSV row는 앱을 멈추지 않고 skipped row로 표시된다.
 - [ ] 알 수 없는 column은 unknown column으로 표시되고 전체 import를 막지 않는다.

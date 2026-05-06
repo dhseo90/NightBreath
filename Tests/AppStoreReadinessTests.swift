@@ -81,6 +81,45 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func fitdaysExportRecheckRunbookKeepsRealDeviceEvidencePrivateAndLocalOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let qaGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/QA_GUIDE.md"),
+            encoding: .utf8
+        )
+        let healthGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/HEALTH_DATA_GUIDE.md"),
+            encoding: .utf8
+        )
+        let checklist = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("QA_CHECKLIST.md"),
+            encoding: .utf8
+        )
+        let combined = [qaGuide, healthGuide, checklist].joined(separator: "\n")
+
+        #expect(qaGuide.contains("실기기 export availability 재확인 smoke"))
+        #expect(qaGuide.contains("Export menu visible: yes / no"))
+        #expect(qaGuide.contains("Fitdays app version recorded in repo: no"))
+        #expect(qaGuide.contains("Fitdays account/login details recorded in repo: no"))
+        #expect(healthGuide.contains("Personal Data Request"))
+        #expect(healthGuide.contains("private QA note"))
+        #expect(checklist.contains("UI scraping"))
+        #expect(combined.contains("Apple 건강앱 read-only"))
+        #expect(combined.contains("repository 밖"))
+
+        let forbiddenFallbacks = [
+            "Fitdays 서버/API에 직접 연결합니다",
+            "비공식 연결 방식을 구현합니다",
+            "자동 동기화를 구현합니다",
+            "HealthKit에 Fitdays import 값을 씁니다",
+        ]
+
+        for fallback in forbiddenFallbacks {
+            #expect(!combined.contains(fallback), "Fitdays runbook should not introduce forbidden fallback: \(fallback)")
+        }
+    }
+
+    @Test
     func appIconCatalogContainsGeneratedArtworkAndTargetUsesIt() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let appIconRoot = repositoryRoot.appendingPathComponent("SleepSoundApp/App/Assets.xcassets/AppIcon.appiconset")
