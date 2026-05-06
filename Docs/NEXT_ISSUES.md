@@ -144,8 +144,10 @@
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 반영 완료
 - SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario로 캡처 완료
 - 혈압, 체성분, 교차 보기와 health/metric/cross edge screenshot은 simulator direct scenario로 캡처 완료
-- onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 추가 캡처 후보
-- 직접 launch scenario가 없는 상세 화면은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
+- onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 simulator direct scenario로 캡처 완료
+- App Store raw/review-cropped 후보 8개와 export 절차는 문서화 완료
+- `Docs/UI_GALLERY.md` image markdown 경로는 regression test로 실제 파일 존재 여부를 확인
+- 직접 launch scenario가 없는 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 `screenshot pending` 항목으로 유지
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 

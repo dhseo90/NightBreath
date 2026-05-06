@@ -120,6 +120,8 @@
 - App Icon generate/validate/review sheet 로컬 도구
 - App Store product page ko-KR/en-US 후보 copy 정리
 - Release readiness 자동 gate 테스트
+- UI Gallery screenshot captured/pending 상태와 App Store 후보 흐름 정리
+- UI Gallery screenshot link regression test
 
 ## 현재 개발 전략
 
@@ -155,7 +157,6 @@
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
 - UI Gallery 수동 진입 상세 screenshot 전체 캡처
-- onboarding/device/calibration/replay/audio/sample capture screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증
 - 실제 Fitdays CSV import manual QA
 - 실제 Fitdays 앱 내 CSV/export 메뉴 확인

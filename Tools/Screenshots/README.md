@@ -185,11 +185,12 @@ Docs/Screenshots/Debug/cropped/
 - `audioDebug`
 - `sampleCapture`
 - `datasetReplay`
+- `debugTools`
 
 특정 scenario만 재캡처:
 
 ```bash
-SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
+SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,debugTools Tools/Screenshots/capture_support_screenshots.sh
 ```
 
 ## App Store Marketing Screenshot

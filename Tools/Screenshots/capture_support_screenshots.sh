@@ -16,6 +16,7 @@ CAPTURES=(
   "audioDebug:Docs/Screenshots/Debug/audio_debug_light.png"
   "sampleCapture:Docs/Screenshots/Debug/sample_capture_light.png"
   "datasetReplay:Docs/Screenshots/Debug/dataset_replay_light.png"
+  "debugTools:Docs/Screenshots/Debug/detector_tuning_light.png"
 )
 
 if [[ -n "${SUPPORT_SCREENSHOT_SCENARIOS:-}" ]]; then

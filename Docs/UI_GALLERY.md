@@ -4,7 +4,7 @@
 
 ## 개요
 
-NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리듬을 참고용으로 정리하는 온디바이스 앱입니다. UI gallery는 README 대표 screenshot과 아직 pending인 화면 범위를 함께 추적하기 위한 문서입니다.
+NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리듬을 참고용으로 정리하는 온디바이스 앱입니다. UI gallery는 README 대표 screenshot, 상세 gallery screenshot, App Store 후보 screenshot, 아직 pending인 화면 범위를 함께 추적하기 위한 문서입니다.
 
 ## Screenshot 원칙
 
@@ -18,7 +18,51 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot 8개와 EHM 상세 screenshot 8개는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. 아직 캡처하지 않은 상세 화면과 edge state는 `screenshot pending`으로 유지합니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. 아직 직접 launch scenario가 없거나 수동 navigation이 필요한 상세 화면은 `screenshot pending`으로 유지합니다.
+
+## Capture Status Summary
+
+| 범위 | 상태 | 비고 |
+| --- | --- | --- |
+| README 대표 8개 | captured | `Docs/Screenshots/README/cropped/` 기준 |
+| Health/EHM 상세 | captured | Health overview, Fitdays import, calendar, metric detail, 혈압, 체성분, cross metric |
+| Privacy/Support | captured | privacy settings, onboarding, device placement, calibration |
+| Sleep/Edge direct scenario | captured | recording, zero-event, low coverage, event audio storage off, Health/Metric/Cross empty states |
+| DEBUG observability | captured | dataset replay, detector tuning, audio debug, sample capture |
+| App Store 후보 8개 | captured | raw source와 review-cropped를 분리해 관리 |
+| 수동 navigation 상세 | screenshot pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
+
+## App Store Screenshot Candidate Flow
+
+App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. `Tools/Screenshots/capture_app_store_screenshots.sh`가 raw source를 `Docs/Screenshots/AppStore/raw/`에 저장하고, 내부 검토용 crop을 `Docs/Screenshots/AppStore/review-cropped/`에 생성합니다. App Store Connect size별 export는 raw source에서 재생성하며 `Docs/Screenshots/AppStore/export/` 산출물은 커밋하지 않습니다.
+
+현재 후보 흐름:
+
+| 순서 | 후보 | raw source | review crop |
+| --- | --- | --- | --- |
+| 1 | Home dashboard | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | `Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png` |
+| 2 | Sleep report | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png` |
+| 3 | Event timeline | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | `Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png` |
+| 4 | Daily rhythm report | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/04_daily_rhythm_report_light.png` |
+| 5 | Daily health card | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | `Docs/Screenshots/AppStore/review-cropped/05_daily_health_card_light.png` |
+| 6 | Health metrics overview | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | `Docs/Screenshots/AppStore/review-cropped/06_health_metrics_overview_light.png` |
+| 7 | Privacy settings | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | `Docs/Screenshots/AppStore/review-cropped/07_privacy_settings_light.png` |
+| 8 | Zero-event report | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png` |
+
+모든 후보는 mock/synthetic data 기반이어야 하며, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
+
+## Pending Capture Queue
+
+아래 항목은 현재 simulator 직접 launch scenario나 capture 파일이 없어 `screenshot pending`으로 유지합니다. 파일이 실제로 생성되기 전까지 image markdown을 추가하지 않습니다.
+
+| 항목 | 필요한 작업 |
+| --- | --- |
+| `TrendDashboardView` | `ScreenshotHomeScenario` 적용 후 trend 화면으로 수동 진입 |
+| `MorningCheckInView` | `ScreenshotMorningBriefScenario` 적용 후 아침 체크인으로 수동 진입 |
+| `EveningCheckInView` | `ScreenshotDailyRhythmScenario` 적용 후 저녁 체크인으로 수동 진입 |
+| `DailyHealthCardPreviewView` export/share state | 이미지 만들기와 `DailyHealthCardExportConfirmationSheet` 상태를 수동 확인 |
+| Report empty state | empty repository state 또는 전용 scenario 추가 후 캡처 |
+| `SimulatorScenarioView` | DEBUG scenario 목록 화면을 직접 열고 캡처 |
 
 ## 예시 데이터 사용 원칙
 

@@ -154,6 +154,7 @@ struct SimulatorQAScenarioTests {
       ("ScreenshotAudioDebugScenario", "AudioDebugView()", "Debug/cropped/audio_debug_light.png"),
       ("ScreenshotSampleCaptureScenario", "SampleCaptureView()", "Debug/cropped/sample_capture_light.png"),
       ("ScreenshotDatasetReplayScenario", "DatasetReplayView()", "Debug/cropped/dataset_replay_light.png"),
+      ("ScreenshotDebugScenario", "DetectorTuningView()", "Debug/cropped/detector_tuning_light.png"),
     ]
 
     #expect(captureScript.contains("SUPPORT_SCREENSHOT_SCENARIOS"))
