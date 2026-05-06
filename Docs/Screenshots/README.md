@@ -75,6 +75,26 @@ UI Gallery crop 위치:
 - `Health/cropped/metric_detail_basal_metabolic_rate_light.png`
 - `Health/cropped/fitdays_import_error_light.png`
 
+## UI Gallery 직접 캡처 screenshot
+
+다음 파일은 DEBUG simulator에서 `--nightbreath-screenshot-scenario` launch argument로 바로 진입 가능한 pending 화면을 캡처한 것입니다. 원본은 각 폴더에 보존하고, UI Gallery에는 `cropped/` 버전을 우선 사용합니다.
+
+- `Sleep/sleep_recording_light.png`
+- `Privacy/privacy_settings_light.png`
+- `EdgeStates/zero_event_report_light.png`
+- `EdgeStates/low_coverage_report_light.png`
+- `EdgeStates/event_audio_storage_off_light.png`
+- `Debug/detector_tuning_light.png`
+
+UI Gallery crop 위치:
+
+- `Sleep/cropped/sleep_recording_light.png`
+- `Privacy/cropped/privacy_settings_light.png`
+- `EdgeStates/cropped/zero_event_report_light.png`
+- `EdgeStates/cropped/low_coverage_report_light.png`
+- `EdgeStates/cropped/event_audio_storage_off_light.png`
+- `Debug/cropped/detector_tuning_light.png`
+
 ## 주의
 
 Screenshot은 앱의 제품 방향을 보여주는 문서 자료입니다. 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하는 copy를 사용하지 않습니다.

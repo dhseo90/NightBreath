@@ -132,8 +132,9 @@
 - README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 README용 crop으로 반영 완료
 - README screenshot crop/재캡처는 앱 UI나 simulator device가 바뀔 때 유지보수 항목으로 관리
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 반영 완료
-- 혈압, 체성분, 교차 보기, edge state, DEBUG-only 상세 screenshot은 추가 캡처 후보
-- Privacy, edge state, DEBUG-only 상세 screenshot은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
+- SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario로 캡처 완료
+- 혈압, 체성분, 교차 보기, onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 추가 캡처 후보
+- 직접 launch scenario가 없는 상세 화면은 `Docs/UI_GALLERY.md`의 `screenshot pending` 항목으로 유지
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 
