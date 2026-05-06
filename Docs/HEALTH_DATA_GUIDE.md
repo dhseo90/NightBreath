@@ -12,7 +12,7 @@
 - HealthKit 권한 요청은 사용자가 건강 데이터 연결을 명시적으로 선택한 경우에만 시작합니다.
 - HealthKit 데이터를 서버로 전송하지 않습니다.
 - Fitdays 서버/API 직접 연결, 비공식 연결 방식, reverse engineering은 하지 않습니다.
-- Fitdays CSV 또는 structured export file은 사용자가 직접 확보하고 선택한 로컬 파일만 처리합니다.
+- Fitdays CSV/TSV 또는 structured text export file은 사용자가 직접 확보하고 선택한 로컬 파일만 처리합니다.
 - Fitdays 앱 안에서 CSV/export 경로가 보이지 않는 경우에는 Apple 건강앱 read-only 표준 지표만 사용합니다.
 - 실제 개인 CSV 파일은 repository에 포함하지 않습니다.
 - 건강 데이터는 개인 참고용으로만 표시하며, 상태를 단정하거나 지표 사이의 원인과 결과를 주장하지 않습니다.
@@ -102,7 +102,7 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 
 ## Fitdays CSV Import
 
-기능명은 V1에서 `Fitdays CSV Import`로 유지합니다. 다만 제품 설명과 importer 설계는 Fitdays 앱에서 사용자가 직접 확보한 CSV 또는 CSV-compatible structured export file을 로컬에서 가져오는 흐름으로 둡니다. 실제 앱에서 export 경로가 보이지 않을 수 있으므로 이 기능은 선택적 보조 경로이며, 파일이 없을 때도 NightBreath의 HealthKit read-only 건강 대시보드는 동작해야 합니다.
+기능명은 V1에서 `Fitdays CSV Import`로 유지합니다. 다만 제품 설명과 importer 설계는 Fitdays 앱에서 사용자가 직접 확보한 CSV/TSV 또는 CSV-compatible structured text export file을 로컬에서 가져오는 흐름으로 둡니다. 실제 앱에서 export 경로가 보이지 않을 수 있으므로 이 기능은 선택적 보조 경로이며, 파일이 없을 때도 NightBreath의 HealthKit read-only 건강 대시보드는 동작해야 합니다.
 
 2026-05-04 기준 조사 메모:
 
@@ -121,7 +121,7 @@ NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세
    - NightBreath는 HealthKit write를 하지 않고, HealthKit custom type을 만들지 않습니다.
    - HealthKit에 없는 Fitdays 고유 지표는 이 경로로 읽으려 하지 않습니다.
 2. Fitdays CSV/export -> 앱 내부 file import
-   - 사용자가 Files, iCloud Drive, AirDrop, Mail 등으로 확보한 CSV 또는 structured export file을 `FitdaysImportView`에서 직접 선택합니다.
+   - 사용자가 Files, iCloud Drive, AirDrop, Mail 등으로 확보한 CSV/TSV 또는 structured text export file을 `FitdaysImportView`에서 직접 선택합니다.
    - CSV/export 파일이 없다면 이 경로는 사용하지 않습니다.
    - `fileImporter`는 CSV/text 기반 type을 열 수 있지만, preview validation을 통과한 structured export만 저장할 수 있습니다.
    - unknown column은 warning, invalid row는 skipped row로 처리합니다.
@@ -191,8 +191,8 @@ Importer 설계 원칙:
 
 - 입력은 사용자가 명시적으로 선택한 local file URL입니다.
 - 앱 내부 파일 선택과 iOS open-in document URL은 같은 preview/import pipeline을 사용합니다.
-- document type은 CSV와 plain text 기반 export 파일을 대상으로 하며, 모든 text 파일을 무조건 import하지 않습니다.
-- `.csv`, `.txt` 외의 파일은 preview parsing 전에 unsupported file type으로 거부합니다.
+- document type은 CSV/TSV와 plain text 기반 export 파일을 대상으로 하며, 모든 text 파일을 무조건 import하지 않습니다.
+- `.csv`, `.tsv`, `.txt` 외의 파일은 preview parsing 전에 unsupported file type으로 거부합니다.
 - CSV-compatible text를 우선 지원하고, 향후 structured export file이 확인되면 같은 privacy boundary 안에서 parser를 추가합니다.
 - column mapping은 영어, 한국어, 축약 column, punctuation/space/case 차이를 유연하게 받아들입니다.
 - unknown column은 전체 실패가 아니라 warning으로 남깁니다.
@@ -200,7 +200,7 @@ Importer 설계 원칙:
 - date column이 없거나 structured export로 해석할 수 없는 text 파일은 저장 전에 실패합니다.
 - 측정일 column은 있지만 지원 지표 column이 없는 text 파일은 저장 전에 실패합니다.
 - 지원 지표 column이 있어도 import 가능한 샘플이 0개인 파일은 저장하지 않습니다.
-- CSV delimiter, decimal separator, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
+- CSV/TSV delimiter, decimal separator, 날짜/시간 format, localized column name, UTF-8 BOM, 단위 suffix 차이를 regression test로 점검합니다.
 - 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
 - 다른 file에서 같은 metric/source/external record key가 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
 - 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
@@ -213,7 +213,7 @@ V1에서는 Share Extension을 바로 추가하지 않고 document type/open-in�
 
 현재 구현 범위:
 
-- `Info.plist`에 CSV/plain text document type을 등록합니다.
+- `Info.plist`에 CSV/TSV/plain text document type을 등록합니다.
 - 앱 root에서 `onOpenURL`로 file URL을 받아 `FitdaysImportView` preview sheet로 연결합니다.
 - 같은 `FitdaysImportService` validation을 사용해 unsupported extension, missing date column, invalid row, unknown column을 처리합니다.
 - 원본 파일은 읽기 입력으로만 사용하고, import 결과만 로컬 `ImportBatch`와 `UnifiedHealthMetricSample`로 저장합니다.
@@ -224,7 +224,7 @@ Share Extension 후보:
 - 단점: App Group, extension target, extension UI, QA matrix가 늘어납니다.
 - 결정 기준: 실제 Fitdays share/export UX를 iPhone에서 확인한 뒤, document type/open-in만으로 충분한지 판단합니다.
 
-호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV를 포함합니다.
+호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV, BOM이 포함된 TSV short export를 포함합니다.
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 

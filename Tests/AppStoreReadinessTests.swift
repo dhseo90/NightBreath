@@ -42,6 +42,7 @@ struct AppStoreReadinessTests {
         #expect(fitdaysDocumentType["CFBundleTypeRole"] as? String == "Viewer")
         #expect(fitdaysDocumentType["LSHandlerRank"] as? String == "Alternate")
         #expect(itemContentTypes.contains("public.comma-separated-values-text"))
+        #expect(itemContentTypes.contains("public.tab-separated-values-text"))
         #expect(itemContentTypes.contains("public.plain-text"))
         #expect(!itemContentTypes.contains("public.data"))
         #expect(plist["LSSupportsOpeningDocumentsInPlace"] as? Bool == false)

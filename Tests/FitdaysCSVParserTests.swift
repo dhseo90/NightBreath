@@ -172,6 +172,30 @@ struct FitdaysCSVParserTests {
         #expect(result.samples.map(\.measuredAt) == result.samples.map(\.measuredAt).sorted())
     }
 
+    @Test
+    func tabSeparatedExportWithBOMUnitsAndDecimalCommaParsesAsLocalFitdaysSamples() throws {
+        let tsv = """
+        \u{feff}측정일\t측정시간\tWeight kg\tBody Fat %\tDevice Nickname
+        2026.05.04\t07:20\t71,8 kg\t21,4%\tSynthetic Device
+        """
+
+        let result = try service.parseCSV(tsv, fileName: "synthetic_fitdays_export.tsv", importedAt: referenceDate)
+        let bodyMass = try #require(result.samples.first { $0.metricID == .bodyMass })
+        let bodyFat = try #require(result.samples.first { $0.metricID == .bodyFatPercentage })
+
+        #expect(result.batch.fileName == "synthetic_fitdays_export.tsv")
+        #expect(result.batch.rowCount == 1)
+        #expect(result.batch.sampleCount == 2)
+        #expect(result.unknownColumns == ["Device Nickname"])
+        #expect(result.rowErrors.isEmpty)
+        #expect(bodyMass.value == 71.8)
+        #expect(bodyMass.unit == "kg")
+        #expect(bodyMass.sourceType == .fitdaysCSV)
+        #expect(bodyFat.value == 21.4)
+        #expect(bodyFat.unit == "%")
+        #expect(bodyFat.sourceType == .fitdaysCSV)
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,

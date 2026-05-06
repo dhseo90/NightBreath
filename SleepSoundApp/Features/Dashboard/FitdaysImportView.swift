@@ -73,6 +73,10 @@ struct FitdaysImportView: View {
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
 
+        Text(FitdaysImportFallbackGuidance.supportedFileSummary)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+
         if let statusMessage {
           NBStatusBadge(statusMessage, kind: .good, systemImage: "checkmark.circle")
         }
@@ -208,6 +212,14 @@ struct FitdaysImportView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
         }
 
+        if result.samples.isEmpty {
+          NBStatusBadge(
+            FitdaysImportFallbackGuidance.noImportablePreviewMessage,
+            kind: .caution,
+            systemImage: "exclamationmark.circle"
+          )
+        }
+
         Button {
           save(result)
         } label: {
@@ -255,8 +267,17 @@ struct FitdaysImportView: View {
       preview(fileURL: url, successMessage: "저장 전 미리보기를 만들었습니다.")
     } catch {
       importResult = nil
-      errorMessage = error.localizedDescription
+      errorMessage = userFacingImportErrorMessage(error)
     }
+  }
+
+  private func userFacingImportErrorMessage(_ error: Error) -> String {
+    guard let fitdaysError = error as? FitdaysImportError,
+          let description = fitdaysError.errorDescription else {
+      return error.localizedDescription
+    }
+
+    return "\(description) \(FitdaysImportFallbackGuidance.importErrorRecoveryMessage)"
   }
 
   private func previewInitialFileIfNeeded() {

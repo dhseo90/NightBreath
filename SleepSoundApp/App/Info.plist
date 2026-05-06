@@ -18,6 +18,7 @@
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>public.comma-separated-values-text</string>
+				<string>public.tab-separated-values-text</string>
 				<string>public.plain-text</string>
 			</array>
 		</dict>

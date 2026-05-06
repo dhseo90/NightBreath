@@ -82,7 +82,7 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
     public var errorDescription: String? {
         switch self {
         case .unsupportedFileType:
-            "CSV 또는 text 기반 export 파일만 가져올 수 있습니다."
+            "CSV, TSV 또는 text 기반 export 파일만 가져올 수 있습니다."
         case .unreadableFile:
             "선택한 파일을 읽을 수 없습니다."
         case .emptyFile:
@@ -98,9 +98,10 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
 }
 
 public enum FitdaysImportFilePolicy {
-    public static let supportedFileExtensions = ["csv", "txt"]
+    public static let supportedFileExtensions = ["csv", "tsv", "txt"]
     public static let supportedContentTypeIdentifiers = [
         "public.comma-separated-values-text",
+        "public.tab-separated-values-text",
         "public.plain-text",
         "public.utf8-plain-text",
         "public.text",
@@ -129,6 +130,9 @@ public enum FitdaysImportFallbackGuidance {
     ]
 
     public static let emptyStateMessage = "CSV 또는 text 기반 export 파일을 확보한 경우에만 선택합니다. 파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."
+    public static let supportedFileSummary = "지원 파일: .csv, .tsv, .txt"
+    public static let noImportablePreviewMessage = "저장 가능한 샘플이 없습니다. 측정일과 지원 지표 column이 있는 짧은 CSV/TSV export인지 확인해 주세요."
+    public static let importErrorRecoveryMessage = "파일 구조를 확인하거나, export 메뉴를 찾지 못했다면 Apple 건강앱 read-only 경로를 먼저 사용해 주세요."
 
     public static let exportUnavailableTitle = "CSV/export 메뉴를 찾지 못한 경우"
 

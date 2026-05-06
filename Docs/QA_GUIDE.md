@@ -494,7 +494,7 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 1. 실제 iPhone에서 Fitdays 앱 버전, 로그인 상태, 지역/언어 설정을 private note에만 기록합니다.
 2. Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center를 순서대로 확인합니다.
 3. Share / Export / Progress Report / Data Report / Export My Data / Personal Data Request처럼 보이는 항목이 있는지 확인합니다.
-4. CSV, text, email attachment, Files 저장, iCloud Drive 저장, AirDrop 공유 중 하나라도 가능한지 확인합니다.
+4. CSV, TSV, text, email attachment, Files 저장, iCloud Drive 저장, AirDrop 공유 중 하나라도 가능한지 확인합니다.
 5. export가 보이면 실제 파일은 repository 밖에 저장하고, NightBreath에서는 파일 선택 또는 Open in NightBreath preview까지만 확인합니다.
 6. export가 보이지 않으면 Fitdays 앱을 더 파고들지 않고 Apple 건강앱 read-only fallback과 향후 로컬 입력 follow-up으로 기록합니다.
 7. 이 재확인은 Fitdays 서버/API 연결, 자동 로그인, UI scraping, 비공식 연결 방식, reverse engineering을 만들기 위한 근거로 사용하지 않습니다.
@@ -513,7 +513,7 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 12. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
 13. Fitdays 확장 지표는 HealthKit 기반이 아니라 로컬 전용으로 설명되는지 확인합니다.
 14. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
-15. Files 앱에서 `.csv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
+15. Files 앱에서 `.csv`, `.tsv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
 16. unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
 17. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
 18. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.

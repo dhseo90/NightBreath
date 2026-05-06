@@ -52,11 +52,12 @@
 - `Docs/QA_GUIDE.md`와 `Docs/HEALTH_DATA_GUIDE.md`의 실기기 export availability runbook 준비 완료
 - export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
 - `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
+- `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
 - Share Extension 필요 여부는 실제 export/share 경로가 확인된 뒤 결정
-- invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
+- invalid CSV/TSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
 - 지원 지표 column 없음, import 가능한 sample 0개인 파일을 저장 전에 거부하는지 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름 확인
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시 재점검

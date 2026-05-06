@@ -7,8 +7,10 @@ struct FitdaysImportServiceTests {
     @Test
     func filePolicyAllowsCSVAndTextExportFilesOnly() {
         #expect(FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.csv"))
+        #expect(FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.tsv"))
         #expect(FitdaysImportFilePolicy.isSupportedFileName("Fitdays Export.TXT"))
         #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.comma-separated-values-text"))
+        #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.tab-separated-values-text"))
         #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.plain-text"))
         #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.pdf"))
         #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.json"))
@@ -22,6 +24,9 @@ struct FitdaysImportServiceTests {
         let combined = (
             FitdaysImportFallbackGuidance.privacyMessages
             + [FitdaysImportFallbackGuidance.emptyStateMessage]
+            + [FitdaysImportFallbackGuidance.supportedFileSummary]
+            + [FitdaysImportFallbackGuidance.noImportablePreviewMessage]
+            + [FitdaysImportFallbackGuidance.importErrorRecoveryMessage]
             + [FitdaysImportFallbackGuidance.exportUnavailableTitle]
             + FitdaysImportFallbackGuidance.exportUnavailableSteps
             + [FitdaysImportFallbackGuidance.healthDashboardFallbackTitle]
@@ -31,6 +36,9 @@ struct FitdaysImportServiceTests {
 
         #expect(combined.contains("CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다."))
         #expect(combined.contains("파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."))
+        #expect(combined.contains("지원 파일: .csv, .tsv, .txt"))
+        #expect(combined.contains("저장 가능한 샘플이 없습니다."))
+        #expect(combined.contains("파일 구조를 확인하거나"))
         #expect(combined.contains("Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다."))
         #expect(combined.contains("HealthKit에 없는 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 후속 기능으로 분리합니다."))
         #expect(combined.contains("private QA note"))
@@ -204,6 +212,20 @@ struct FitdaysImportServiceTests {
         #expect(repository.fetchSamples().isEmpty)
     }
 
+    @Test
+    func fitdaysImportViewExplainsTSVEmptyPreviewAndRecoveryWithoutServerFallback() throws {
+        let source = try sourceContents("SleepSoundApp/Features/Dashboard/FitdaysImportView.swift")
+        let infoPlist = try sourceContents("SleepSoundApp/App/Info.plist")
+
+        #expect(source.contains("FitdaysImportFallbackGuidance.supportedFileSummary"))
+        #expect(source.contains("FitdaysImportFallbackGuidance.noImportablePreviewMessage"))
+        #expect(source.contains("userFacingImportErrorMessage"))
+        #expect(source.contains("FitdaysImportFallbackGuidance.importErrorRecoveryMessage"))
+        #expect(infoPlist.contains("public.tab-separated-values-text"))
+        #expect(!source.contains("URLSession"))
+        #expect(!source.contains("Fitdays 서버/API에 직접 연결합니다"))
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,
@@ -235,5 +257,10 @@ struct FitdaysImportServiceTests {
     private func temporaryFileURL(fileName: String) -> URL {
         URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("\(UUID().uuidString)-\(fileName)")
+    }
+
+    private func sourceContents(_ relativePath: String) throws -> String {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
     }
 }
