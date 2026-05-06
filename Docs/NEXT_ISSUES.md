@@ -6,7 +6,7 @@
 
 1. 최종 앱 아이콘 고품질 아트워크 제작
 2. App Store screenshot marketing version 준비
-3. Fitdays export availability 재확인 및 fallback UX 보강
+3. Fitdays export availability 실기기 재확인
 4. EHM regression test 강화
 5. onboarding/device/calibration/debug 상세 screenshot 추가
 6. 실제 HealthKit permission flow manual QA
@@ -53,6 +53,7 @@
 
 - 실제 Fitdays 앱에서 CSV/export 메뉴가 보이는지 재확인
 - export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
+- `FitdaysImportView`의 read-only fallback UX 보강 완료
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인

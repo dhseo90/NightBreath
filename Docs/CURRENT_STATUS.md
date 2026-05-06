@@ -66,6 +66,7 @@
 - `HealthMetricSourceType`
 - `MetricCatalog`
 - Fitdays CSV/import flow
+- Fitdays CSV/export 미확보 시 HealthKit read-only fallback UX
 - `ImportBatch`
 - synthetic Fitdays CSV fixture
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 출처 구분

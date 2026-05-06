@@ -35,6 +35,7 @@ struct FitdaysImportView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         headerSection
         policySection
+        fallbackSection
 
         if let importResult {
           resultSection(importResult)
@@ -104,6 +105,42 @@ struct FitdaysImportView: View {
       actionTitle: "파일 선택"
     ) {
       isFileImporterPresented = true
+    }
+  }
+
+  private var fallbackSection: some View {
+    NBReportSection(title: "파일이 없어도 괜찮습니다", systemImage: "heart.text.square") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        NBListRow(
+          title: "Apple 건강앱 read-only로 계속 보기",
+          value: "표준 지표",
+          subtitle: "혈압, 체중, 체지방률처럼 건강앱에 동기화된 표준 지표는 HealthKit read-only 연결로 볼 수 있습니다.",
+          systemImage: "heart.text.square",
+          tint: NBColor.privacyTint
+        )
+
+        Divider().overlay(NBColor.divider)
+
+        NBListRow(
+          title: "Fitdays 고유 지표는 후속 로컬 입력으로 분리",
+          value: "보류",
+          subtitle: "CSV/export 파일이 없으면 체수분률, 내장지방 레벨 같은 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 기능으로 분리합니다.",
+          systemImage: "square.and.pencil",
+          tint: NBColor.mistTeal
+        )
+
+        NavigationLink {
+          HealthDashboardView()
+        } label: {
+          Label("건강 데이터 대시보드 보기", systemImage: "heart.text.square")
+        }
+        .buttonStyle(.nbSecondary)
+
+        Text("NightBreath는 Fitdays 로그인, 서버/API 연결, 자동 동기화, 비공식 연결 방식을 사용하지 않습니다.")
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
     }
   }
 

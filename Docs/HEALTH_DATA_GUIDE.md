@@ -164,6 +164,7 @@ CSV가 보이지 않을 때 fallback:
 - Fitdays+ 사용자라면 personal data export 요청 경로를 확인합니다.
 - 그래도 CSV 또는 structured export file을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용합니다.
 - HealthKit에 없는 Fitdays 고유 지표는 manual input 또는 향후 로컬 입력 기능의 follow-up으로 남깁니다.
+- `FitdaysImportView`는 파일이 없어도 괜찮다는 섹션과 건강 데이터 대시보드 진입을 제공해, 사용자가 CSV/export 없이도 read-only 표준 지표 흐름을 계속 볼 수 있게 합니다.
 - NightBreath는 이 fallback을 위해 Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식을 구현하지 않습니다.
 
 지원하는 mapping 예시:
