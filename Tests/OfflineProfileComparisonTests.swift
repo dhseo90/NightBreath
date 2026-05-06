@@ -72,6 +72,10 @@ struct OfflineProfileComparisonTests {
     #expect(balanced.totalEvaluatedSegments == 2)
     #expect(balanced.rawCandidateCount == 2)
     #expect(balanced.zeroEventCount == 1)
+    #expect(balanced.zeroEventNoRawCandidateCount == 1)
+    #expect(balanced.zeroEventRawCandidateCount == 0)
+    #expect(balanced.zeroEventDroppedBySmoothingCount == 0)
+    #expect(balanced.zeroEventAfterPostSmoothingCount == 0)
     #expect(balanced.finalEventCountByType["snore"] == 1)
     #expect(balanced.averageConfidence == 0.7)
     #expect(balanced.topRejectReasons.first?.reason == "belowConfidenceThreshold")
@@ -186,6 +190,9 @@ struct OfflineProfileComparisonTests {
     #expect(report.contains("## Recall / Risk Matrix"))
     #expect(report.contains("| balanced | 2 | 0 | 2/2 (100.0%) | 1 -> 0 | none | belowConfidenceThreshold: 3 |"))
     #expect(report.contains("| sensitive | 2 | 0 | 0/2 (0.0%) | 5 -> 2 | environmentalNoise: 1, snore: 1 | likelyEnvironmentalNoise: 1 |"))
+    #expect(report.contains("## Zero Event Stage Breakdown"))
+    #expect(report.contains("| balanced | 2 | 1 | 1 | 1 | 0 | belowConfidenceThreshold: 3 | raw 후보가 smoothing/final 단계에서 사라지는지 확인하세요. |"))
+    #expect(report.contains("| sensitive | 0 | 0 | 0 | 0 | 0 | likelyEnvironmentalNoise: 1 | quiet/noise segment의 false-positive-like guard를 확인하세요. |"))
   }
 
   @Test

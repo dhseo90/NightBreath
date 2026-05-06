@@ -1418,6 +1418,10 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
   public var finalEventCountByType: [String: Int]
   public var zeroEventCount: Int
   public var zeroEventRate: Double
+  public var zeroEventNoRawCandidateCount: Int
+  public var zeroEventRawCandidateCount: Int
+  public var zeroEventDroppedBySmoothingCount: Int
+  public var zeroEventAfterPostSmoothingCount: Int
   public var topRejectReasons: [OfflineEvaluationReasonCount]
   public var averageConfidence: Double?
   public var possibleFalsePositiveLikeCount: Int
@@ -1437,7 +1441,11 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     topRejectReasons: [OfflineEvaluationReasonCount],
     averageConfidence: Double?,
     possibleFalsePositiveLikeCount: Int,
-    possibleFalseNegativeLikeCount: Int
+    possibleFalseNegativeLikeCount: Int,
+    zeroEventNoRawCandidateCount: Int = 0,
+    zeroEventRawCandidateCount: Int = 0,
+    zeroEventDroppedBySmoothingCount: Int = 0,
+    zeroEventAfterPostSmoothingCount: Int = 0
   ) {
     self.tuningProfile = tuningProfile
     self.totalEvaluatedSegments = max(0, totalEvaluatedSegments)
@@ -1449,6 +1457,10 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     self.finalEventCountByType = finalEventCountByType
     self.zeroEventCount = max(0, zeroEventCount)
     self.zeroEventRate = Self.clampedRatio(zeroEventRate)
+    self.zeroEventNoRawCandidateCount = max(0, zeroEventNoRawCandidateCount)
+    self.zeroEventRawCandidateCount = max(0, zeroEventRawCandidateCount)
+    self.zeroEventDroppedBySmoothingCount = max(0, zeroEventDroppedBySmoothingCount)
+    self.zeroEventAfterPostSmoothingCount = max(0, zeroEventAfterPostSmoothingCount)
     self.topRejectReasons = topRejectReasons
     self.averageConfidence = averageConfidence.map(Self.clampedRatio)
     self.possibleFalsePositiveLikeCount = max(0, possibleFalsePositiveLikeCount)
@@ -1716,6 +1728,8 @@ public struct OfflineProfileComparisonRunner {
         .prefix(5)
         .map { OfflineEvaluationReasonCount(reason: $0.key, count: $0.value) }
       let profileFindings = findings.filter { $0.tuningProfile == profile }
+      let validProfileRecords = profileRecords.filter { $0.errorMessage == nil }
+      let zeroEventRecords = validProfileRecords.filter { $0.finalEventCount == 0 }
 
       return OfflineProfileSummary(
         tuningProfile: profile,
@@ -1726,12 +1740,20 @@ public struct OfflineProfileComparisonRunner {
         preSmoothingCandidateCount: profileRecords.reduce(0) { $0 + $1.preSmoothingCandidateCount },
         postSmoothingEventCount: profileRecords.reduce(0) { $0 + $1.postSmoothingEventCount },
         finalEventCountByType: finalCounts,
-        zeroEventCount: profileRecords.filter { $0.errorMessage == nil && $0.finalEventCount == 0 }.count,
-        zeroEventRate: profileRecords.isEmpty ? 0 : Double(profileRecords.filter { $0.errorMessage == nil && $0.finalEventCount == 0 }.count) / Double(profileRecords.count),
+        zeroEventCount: zeroEventRecords.count,
+        zeroEventRate: profileRecords.isEmpty ? 0 : Double(zeroEventRecords.count) / Double(profileRecords.count),
         topRejectReasons: topRejectReasons,
         averageConfidence: weightedAverageConfidence(records: profileRecords),
         possibleFalsePositiveLikeCount: profileFindings.filter { $0.kind == .possibleFalsePositiveLike }.count,
-        possibleFalseNegativeLikeCount: profileFindings.filter { $0.kind == .possibleFalseNegativeLike }.count
+        possibleFalseNegativeLikeCount: profileFindings.filter { $0.kind == .possibleFalseNegativeLike }.count,
+        zeroEventNoRawCandidateCount: zeroEventRecords.filter { $0.rawCandidateCount == 0 }.count,
+        zeroEventRawCandidateCount: zeroEventRecords.filter { $0.rawCandidateCount > 0 }.count,
+        zeroEventDroppedBySmoothingCount: zeroEventRecords.filter {
+          $0.rawCandidateCount > 0 && $0.postSmoothingEventCount == 0
+        }.count,
+        zeroEventAfterPostSmoothingCount: zeroEventRecords.filter {
+          $0.postSmoothingEventCount > 0
+        }.count
       )
     }
   }
@@ -1903,6 +1925,15 @@ public struct OfflineProfileComparisonRunner {
 
     lines.append(contentsOf: [
       "",
+      "## Zero Event Stage Breakdown",
+      "",
+      "| Profile | Zero Events | No Raw Candidate | Raw But No Final | Smoothing Dropped | Post Smoothing But No Final | Top Reject | Review Cue |",
+      "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+    ])
+    lines.append(contentsOf: zeroEventBreakdownRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
       "## Observations",
       "",
     ])
@@ -1988,6 +2019,16 @@ public struct OfflineProfileComparisonRunner {
 
     return summaries.map { summary in
       "| \(summary.tuningProfile) | \(summary.evaluatedRecords) | \(summary.failedRecords) | \(zeroEventText(summary)) | \(summary.rawCandidateCount) -> \(summary.finalEventCount) | \(finalEventsText(summary.finalEventCountByType)) | \(topRejectReasonText(summary.topRejectReasons)) | \(reviewCue(summary)) |"
+    }
+  }
+
+  private static func zeroEventBreakdownRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| none | 0 | 0 | 0 | 0 | 0 | none | 비교할 record가 없습니다. |"]
+    }
+
+    return summaries.map { summary in
+      "| \(summary.tuningProfile) | \(summary.zeroEventCount) | \(summary.zeroEventNoRawCandidateCount) | \(summary.zeroEventRawCandidateCount) | \(summary.zeroEventDroppedBySmoothingCount) | \(summary.zeroEventAfterPostSmoothingCount) | \(topRejectReasonText(summary.topRejectReasons)) | \(reviewCue(summary)) |"
     }
   }
 
