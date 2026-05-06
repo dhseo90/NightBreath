@@ -91,6 +91,34 @@ struct DailyMeasurementDetailTests {
     }
 
     @Test
+    func checkInOnlyDetailKeepsSelectedDayStateWithoutMetricSamples() {
+        let targetDate = date(2026, 5, 3)
+        let otherDate = date(2026, 5, 4)
+        let targetMorning = MorningCheckIn(sessionId: UUID(), createdAt: targetDate.addingTimeInterval(60 * 60))
+        let otherMorning = MorningCheckIn(sessionId: UUID(), createdAt: otherDate.addingTimeInterval(60 * 60))
+        let targetEvening = EveningCheckIn(date: targetDate.addingTimeInterval(12 * 60 * 60))
+        let otherEvening = EveningCheckIn(date: otherDate.addingTimeInterval(12 * 60 * 60))
+
+        let detail = builder.detailData(
+            for: targetDate,
+            samples: [],
+            sleepReports: [],
+            morningCheckIns: [otherMorning, targetMorning],
+            eveningCheckIns: [otherEvening, targetEvening],
+            calendar: calendar
+        )
+
+        #expect(detail.samples.isEmpty)
+        #expect(detail.morningCheckIns == [targetMorning])
+        #expect(detail.eveningCheckIns == [targetEvening])
+        #expect(detail.summary.hasAnyData)
+        #expect(detail.summary.hasMorningCheckIn)
+        #expect(detail.summary.hasEveningCheckIn)
+        #expect(detail.summary.sampleCount == 0)
+        #expect(detail.summary.dataQuality == .poor)
+    }
+
+    @Test
     func dailyMeasurementRowsNavigateToMetricDetailAndShowSourceBadges() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 

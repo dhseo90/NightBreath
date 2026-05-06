@@ -73,6 +73,31 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func checkInOnlyDayStillCountsAsDataWithoutMetricSamples() {
+        let targetDate = date(2026, 5, 11)
+        let summary = builder.summary(
+            for: targetDate,
+            samples: [],
+            sleepReports: [],
+            morningCheckIns: [
+                MorningCheckIn(sessionId: UUID(), createdAt: targetDate.addingTimeInterval(60 * 60)),
+            ],
+            eveningCheckIns: [
+                EveningCheckIn(date: targetDate.addingTimeInterval(12 * 60 * 60)),
+            ],
+            calendar: calendar
+        )
+
+        #expect(summary.hasAnyData)
+        #expect(!summary.hasSleepReport)
+        #expect(summary.hasMorningCheckIn)
+        #expect(summary.hasEveningCheckIn)
+        #expect(summary.sampleCount == 0)
+        #expect(summary.sourceTypes.isEmpty)
+        #expect(summary.dataQuality == .poor)
+    }
+
+    @Test
     func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 

@@ -32,6 +32,32 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func periodBoundaryIncludesStartAndEndSamplesButExcludesOutside() {
+        let start = referenceDate.addingTimeInterval(-7 * day)
+        let samples = [
+            sample(.bodyMass, 70.1, measuredAt: start.addingTimeInterval(-1), sourceType: .healthKit),
+            sample(.bodyMass, 70.2, measuredAt: start, sourceType: .healthKit),
+            sample(.bodyMass, 70.3, measuredAt: referenceDate, sourceType: .healthKit),
+            sample(.bodyMass, 70.4, measuredAt: referenceDate.addingTimeInterval(1), sourceType: .healthKit),
+            sample(.bodyWaterPercentage, 56.8, measuredAt: referenceDate, sourceType: .fitdaysCSV),
+        ]
+
+        let viewModel = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: samples,
+            period: .sevenDays,
+            endDate: referenceDate
+        )
+
+        #expect(viewModel.filteredSamples.map(\.value) == [70.2, 70.3])
+        #expect(viewModel.points.map(\.value) == [70.2, 70.3])
+        #expect(viewModel.summary.sampleCount == 2)
+        #expect(viewModel.summary.firstMeasuredAt == start)
+        #expect(viewModel.summary.latestMeasuredAt == referenceDate)
+        #expect(viewModel.latestSample?.value == 70.3)
+    }
+
+    @Test
     func sourceFilterKeepsOnlySelectedSourceType() {
         let samples = [
             sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),
@@ -235,6 +261,24 @@ struct MetricDetailViewModelTests {
             value: value,
             unit: MetricCatalog.default.metadata(for: metricID)?.unit ?? "",
             measuredAt: referenceDate.addingTimeInterval(-Double(daysAgo) * day),
+            sourceType: sourceType,
+            sourceName: sourceName,
+            createdAt: referenceDate
+        )
+    }
+
+    private func sample(
+        _ metricID: UnifiedHealthMetricID,
+        _ value: Double,
+        measuredAt: Date,
+        sourceType: HealthMetricSourceType,
+        sourceName: String = "Test Source"
+    ) -> UnifiedHealthMetricSample {
+        UnifiedHealthMetricSample(
+            metricID: metricID,
+            value: value,
+            unit: MetricCatalog.default.metadata(for: metricID)?.unit ?? "",
+            measuredAt: measuredAt,
             sourceType: sourceType,
             sourceName: sourceName,
             createdAt: referenceDate

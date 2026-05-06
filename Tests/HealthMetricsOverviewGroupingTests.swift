@@ -65,4 +65,25 @@ struct HealthMetricsOverviewGroupingTests {
         #expect(groupedMetricIDs.count == Set(groupedMetricIDs).count)
         #expect(Set(groupedMetricIDs) == Set(MetricCatalog.default.allMetrics().map(\.metricID)))
     }
+
+    @Test
+    func localOnlyMetricsStayIsolatedToFitdaysExtendedGroup() throws {
+        let groups = UnifiedHealthMetricOverviewGrouping().groups()
+        let fitdaysGroup = try #require(groups.first { $0.id == .fitdaysExtended })
+        let nonFitdaysGroups = groups.filter { $0.id != .fitdaysExtended }
+        let fitdaysExtendedMetricIDs = Set(UnifiedHealthMetricOverviewGrouping.fitdaysExtendedMetricIDs)
+
+        #expect(Set(fitdaysGroup.metricIDs) == fitdaysExtendedMetricIDs)
+
+        for group in nonFitdaysGroups {
+            #expect(
+                Set(group.metricIDs).isDisjoint(with: fitdaysExtendedMetricIDs),
+                "\(group.id.rawValue) should not contain Fitdays extended metrics."
+            )
+        }
+
+        let sleepAndAppGroup = try #require(groups.first { $0.id == .sleepAndApp })
+        #expect(sleepAndAppGroup.metricIDs.contains(.sleepSoundScore))
+        #expect(sleepAndAppGroup.metricIDs.contains(.dailyRhythmScore))
+    }
 }
