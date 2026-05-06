@@ -183,7 +183,7 @@ struct PrivacyCopySafetyTests {
     let scopedHealthKitSignatures = [
       "import HealthKit",
       "HKHealthStore",
-      "requestAuthorization",
+      "healthStore.requestAuthorization",
       "HKSampleQuery",
       "HKSampleType",
       "HKQuantityType",

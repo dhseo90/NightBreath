@@ -1,17 +1,22 @@
 import SwiftUI
 import UIKit
+import Photos
+import UniformTypeIdentifiers
 
 struct DailyHealthCardPreviewView: View {
   let bundle: DailyRhythmMockBundle
   @State private var template: DailyHealthCardTemplate = .healthSummary
   @State private var privacyLevel: DailyHealthCardPrivacyLevel = .standard
   @State private var isRenderingExport = false
+  @State private var isSavingToPhotos = false
   @State private var exportResult: DailyHealthCardImageResult?
   @State private var shareURL: URL?
+  @State private var fileExportDocument = DailyHealthCardPNGDocument.empty
   @State private var exportErrorMessage: String?
   @State private var exportState: DailyHealthCardExportState = .preview
   @State private var isShowingSensitiveExportConfirmation = false
   @State private var isShowingShareSheet = false
+  @State private var isShowingFileExporter = false
 
   init(
     nightReport: NightReport? = nil,
@@ -70,6 +75,13 @@ struct DailyHealthCardPreviewView: View {
         }
       }
     }
+    .fileExporter(
+      isPresented: $isShowingFileExporter,
+      document: fileExportDocument,
+      contentType: .png,
+      defaultFilename: fileExportDefaultName,
+      onCompletion: handleFileExportCompletion
+    )
   }
 
   private var controls: some View {
@@ -110,6 +122,7 @@ struct DailyHealthCardPreviewView: View {
       messages: [
         "이미지 만들기를 누른 경우에만 현재 카드 상태를 로컬 PNG로 렌더링합니다.",
         "공유는 이미지가 준비된 뒤 사용자가 공유 버튼을 선택할 때만 열립니다.",
+        "사진 앱 또는 파일 앱 저장도 사용자가 명시적으로 선택한 경우에만 진행됩니다.",
         "자동 공유와 서버 업로드는 없습니다.",
         "이 앱은 진단 목적의 의료기기가 아닙니다.",
       ],
@@ -131,20 +144,11 @@ struct DailyHealthCardPreviewView: View {
           systemImage: content.containsSensitiveHealthValues ? "exclamationmark.shield" : "lock.shield"
         )
 
-        ViewThatFits(in: .horizontal) {
-          HStack(spacing: NBSpacing.sm) {
-            exportButton
-            shareButton
-          }
-          VStack(alignment: .leading, spacing: NBSpacing.sm) {
-            exportButton
-            shareButton
-          }
-        }
+        actionButtons
 
         if let exportResult {
           NBStatusBadge(
-            exportResult.fileName.map { "로컬 이미지 준비됨: \($0)" } ?? "로컬 이미지 준비됨",
+            exportResult.imageData == nil ? "이미지 준비 상태를 확인할 수 없습니다." : "로컬 이미지 준비됨",
             kind: .good,
             systemImage: "checkmark.circle"
           )
@@ -161,6 +165,23 @@ struct DailyHealthCardPreviewView: View {
     }
   }
 
+  private var actionButtons: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack(spacing: NBSpacing.sm) {
+        exportButton
+        shareButton
+        photoSaveButton
+        fileSaveButton
+      }
+      VStack(alignment: .leading, spacing: NBSpacing.sm) {
+        exportButton
+        shareButton
+        photoSaveButton
+        fileSaveButton
+      }
+    }
+  }
+
   private var exportButton: some View {
     Button {
       requestImageRender()
@@ -170,6 +191,47 @@ struct DailyHealthCardPreviewView: View {
     .buttonStyle(.borderedProminent)
     .disabled(isRenderingExport)
     .accessibilityLabel("현재 하루 리듬 카드 이미지 만들기")
+  }
+
+  @ViewBuilder
+  private var photoSaveButton: some View {
+    if exportResult?.imageData != nil {
+      Button {
+        Task { await saveImageToPhotos() }
+      } label: {
+        Label(isSavingToPhotos ? "사진 저장 중" : "사진에 저장", systemImage: "photo.badge.plus")
+      }
+      .buttonStyle(.bordered)
+      .disabled(isSavingToPhotos)
+      .accessibilityLabel("준비된 하루 리듬 카드 이미지를 사진 앱에 저장")
+    } else {
+      Button {} label: {
+        Label("사진에 저장", systemImage: "photo.badge.plus")
+      }
+      .buttonStyle(.bordered)
+      .disabled(true)
+      .accessibilityLabel("이미지를 만든 뒤 사진 앱에 저장할 수 있습니다")
+    }
+  }
+
+  @ViewBuilder
+  private var fileSaveButton: some View {
+    if exportResult?.imageData != nil {
+      Button {
+        requestFileExport()
+      } label: {
+        Label("파일에 저장", systemImage: "folder.badge.plus")
+      }
+      .buttonStyle(.bordered)
+      .accessibilityLabel("준비된 하루 리듬 카드 이미지를 파일 앱에 저장")
+    } else {
+      Button {} label: {
+        Label("파일에 저장", systemImage: "folder.badge.plus")
+      }
+      .buttonStyle(.bordered)
+      .disabled(true)
+      .accessibilityLabel("이미지를 만든 뒤 파일 앱에 저장할 수 있습니다")
+    }
   }
 
   @ViewBuilder
@@ -208,6 +270,10 @@ struct DailyHealthCardPreviewView: View {
     template.effectivePrivacyLevel ?? privacyLevel
   }
 
+  private var fileExportDefaultName: String {
+    exportResult?.fileName ?? "nightbreath-daily-health-card.png"
+  }
+
   @MainActor
   private func requestImageRender() {
     if content.requiresSensitiveExportConfirmation {
@@ -240,6 +306,58 @@ struct DailyHealthCardPreviewView: View {
     isRenderingExport = false
   }
 
+  @MainActor
+  private func saveImageToPhotos() async {
+    guard let imageData = exportResult?.imageData else {
+      exportErrorMessage = "이미지를 만든 뒤 다시 시도해 주세요."
+      exportState = .failed
+      return
+    }
+
+    isSavingToPhotos = true
+    exportErrorMessage = nil
+    exportState = .photoSaveRequested
+
+    do {
+      try await DailyHealthCardPhotoSaver.savePNGData(imageData)
+      exportState = .photoSaved
+    } catch DailyHealthCardPhotoSaveError.notAuthorized {
+      exportErrorMessage = "사진 앱 저장 권한이 허용되지 않았습니다."
+      exportState = .failed
+    } catch {
+      exportErrorMessage = "사진 앱 저장에 실패했습니다. 다시 시도해 주세요."
+      exportState = .failed
+    }
+
+    isSavingToPhotos = false
+  }
+
+  @MainActor
+  private func requestFileExport() {
+    guard let imageData = exportResult?.imageData else {
+      exportErrorMessage = "이미지를 만든 뒤 다시 시도해 주세요."
+      exportState = .failed
+      return
+    }
+
+    fileExportDocument = DailyHealthCardPNGDocument(data: imageData)
+    exportErrorMessage = nil
+    exportState = .fileExportRequested
+    isShowingFileExporter = true
+  }
+
+  private func handleFileExportCompletion(_ result: Result<URL, Error>) {
+    fileExportDocument = .empty
+
+    switch result {
+    case .success:
+      exportState = .fileSaved
+    case .failure:
+      exportState = .cancelled
+      exportErrorMessage = "파일 저장을 완료하지 않았습니다. 필요하면 다시 시도해 주세요."
+    }
+  }
+
   private func handleShareSheetDismiss() {
     if exportState == .shareRequested {
       exportState = .cancelled
@@ -252,10 +370,13 @@ struct DailyHealthCardPreviewView: View {
     }
     exportResult = nil
     shareURL = nil
+    fileExportDocument = .empty
     exportErrorMessage = nil
     exportState = .preview
+    isSavingToPhotos = false
     isShowingSensitiveExportConfirmation = false
     isShowingShareSheet = false
+    isShowingFileExporter = false
   }
 }
 
@@ -265,6 +386,10 @@ private enum DailyHealthCardExportState: Equatable {
   case rendering
   case imageReady
   case shareRequested
+  case photoSaveRequested
+  case photoSaved
+  case fileExportRequested
+  case fileSaved
   case cancelled
   case completed
   case failed
@@ -278,9 +403,17 @@ private enum DailyHealthCardExportState: Equatable {
     case .rendering:
       "로컬 이미지를 만드는 중입니다."
     case .imageReady:
-      "로컬 이미지가 준비되었습니다. 공유는 사용자가 선택할 때만 열립니다."
+      "로컬 이미지가 준비되었습니다. 공유 또는 저장은 사용자가 선택할 때만 진행됩니다."
     case .shareRequested:
       "공유 sheet를 열었습니다."
+    case .photoSaveRequested:
+      "사진 앱에 저장하는 중입니다."
+    case .photoSaved:
+      "사진 앱에 저장했습니다."
+    case .fileExportRequested:
+      "파일 앱 저장 위치를 선택하는 중입니다."
+    case .fileSaved:
+      "파일 앱에 저장했습니다."
     case .cancelled:
       "공유를 취소했거나 진행하지 않았습니다."
     case .completed:
@@ -300,8 +433,12 @@ private enum DailyHealthCardExportState: Equatable {
       .debug
     case .imageReady:
       .good
-    case .shareRequested:
+    case .shareRequested, .fileExportRequested:
       .neutral
+    case .photoSaveRequested:
+      .debug
+    case .photoSaved, .fileSaved:
+      .good
     case .cancelled:
       .caution
     case .completed:
@@ -323,6 +460,14 @@ private enum DailyHealthCardExportState: Equatable {
       "checkmark.circle"
     case .shareRequested:
       "square.and.arrow.up"
+    case .photoSaveRequested:
+      "photo.badge.plus"
+    case .photoSaved:
+      "checkmark.seal"
+    case .fileExportRequested:
+      "folder.badge.plus"
+    case .fileSaved:
+      "checkmark.seal"
     case .cancelled:
       "xmark.circle"
     case .completed:
@@ -420,6 +565,63 @@ private struct DailyHealthCardActivityView: UIViewControllerRepresentable {
   }
 
   func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+private struct DailyHealthCardPNGDocument: FileDocument {
+  static let empty = DailyHealthCardPNGDocument(data: Data())
+  static var readableContentTypes: [UTType] { [.png] }
+
+  var data: Data
+
+  init(data: Data) {
+    self.data = data
+  }
+
+  init(configuration: ReadConfiguration) throws {
+    data = configuration.file.regularFileContents ?? Data()
+  }
+
+  func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+    FileWrapper(regularFileWithContents: data)
+  }
+}
+
+private enum DailyHealthCardPhotoSaveError: Error {
+  case notAuthorized
+  case saveFailed
+}
+
+private struct DailyHealthCardPhotoSaver {
+  static func savePNGData(_ data: Data) async throws {
+    let status = await requestAddOnlyAuthorizationIfNeeded()
+    guard status == .authorized || status == .limited else {
+      throw DailyHealthCardPhotoSaveError.notAuthorized
+    }
+
+    try await withCheckedThrowingContinuation { continuation in
+      PHPhotoLibrary.shared().performChanges {
+        let request = PHAssetCreationRequest.forAsset()
+        request.addResource(with: .photo, data: data, options: nil)
+      } completionHandler: { success, error in
+        if success {
+          continuation.resume()
+        } else {
+          continuation.resume(throwing: error ?? DailyHealthCardPhotoSaveError.saveFailed)
+        }
+      }
+    }
+  }
+
+  private static func requestAddOnlyAuthorizationIfNeeded() async -> PHAuthorizationStatus {
+    let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+    guard status == .notDetermined else { return status }
+
+    return await withCheckedContinuation { continuation in
+      PHPhotoLibrary.requestAuthorization(for: .addOnly) { newStatus in
+        continuation.resume(returning: newStatus)
+      }
+    }
+  }
 }
 
 @MainActor

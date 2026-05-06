@@ -104,6 +104,8 @@
 - Daily Health Card 미리보기의 명시 액션 기반 로컬 PNG 생성/시스템 공유 sheet 연결
 - Daily Health Card 민감 수치 export confirmation sheet
 - Daily Health Card 공유 완료/취소 상태 UI
+- Daily Health Card 사진 앱/파일 앱 저장 전용 흐름
+- Daily Health Card privacy level별 export snapshot regression test
 - 실제 iPhone QA runbook과 기록 템플릿
 - Health/QA/App Release 문서 통합 정리
 
@@ -139,7 +141,6 @@
 - App Store screenshot marketing final version
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
-- Daily Health Card 사진/파일 저장 흐름, privacy level별 export snapshot
 - UI Gallery 상세/edge/debug screenshot 전체 캡처
 - 혈압/체성분/교차 보기/edge/debug 상세 screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증

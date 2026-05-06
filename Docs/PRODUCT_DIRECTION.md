@@ -71,7 +71,7 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 
 하루 리듬 카드는 하루 중 확인할 수 있는 핵심 지표를 작게 묶은 카드입니다. 수면, 혈압, 체중, 체성분, 활동, 컨디션 중 데이터가 있는 항목만 조심스럽게 보여줍니다. 현재는 `simple`, `sleepFocused`, `healthSummary`, `privacyMinimal` template과 `minimal`, `standard`, `detailed` privacy level을 준비해 민감 수치 표시 범위를 조절합니다.
 
-이미지 export/share는 `DailyHealthCardPreviewView`에서 사용자가 명시적으로 `이미지 만들기`를 선택한 경우에만 로컬 PNG를 생성하고, 이미지가 준비된 뒤에만 시스템 share sheet를 여는 방식으로 구현했습니다. 자동 공유, 서버 업로드, 외부 SDK는 사용하지 않으며, 사진 앱 또는 파일 앱에 직접 저장하는 전용 흐름은 별도 후속 작업으로 남겨둡니다.
+이미지 export/share/save는 `DailyHealthCardPreviewView`에서 사용자가 명시적으로 `이미지 만들기`를 선택한 경우에만 로컬 PNG를 생성하고, 이미지가 준비된 뒤에만 시스템 share sheet, 사진 앱 저장, 파일 앱 저장을 여는 방식으로 구현했습니다. 자동 공유, 자동 저장, 서버 업로드, 외부 SDK는 사용하지 않습니다.
 
 건강 대시보드는 사용자가 더 자세히 보고 싶을 때 들어가는 화면입니다. 혈압, 체중, 체성분, 활동, 수면 지표를 각각의 출처와 측정 시각, 데이터 품질과 함께 보여줍니다.
 

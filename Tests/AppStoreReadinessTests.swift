@@ -23,6 +23,11 @@ struct AppStoreReadinessTests {
         #expect(healthCopy.contains("HealthKit에 데이터를 쓰지 않고"))
         #expect(healthCopy.contains("서버로 전송하지 않습니다"))
         #expect(plist["NSHealthUpdateUsageDescription"] == nil)
+
+        let photoAddCopy = try #require(plist["NSPhotoLibraryAddUsageDescription"] as? String)
+        #expect(photoAddCopy.contains("하루 리듬 카드"))
+        #expect(photoAddCopy.contains("선택한 경우에만"))
+        #expect(photoAddCopy.contains("서버로 업로드하지 않습니다"))
     }
 
     @Test

@@ -7,7 +7,7 @@ NightBreath / 밤숨의 Daily Health Card는 하루 리듬 리포트를 한 장�
 - 오늘의 리듬 점수와 핵심 지표를 한눈에 보기 쉽게 정리합니다.
 - Morning Brief, Daily Rhythm Report, 건강 대시보드에서 나온 정보를 카드 형태로 재구성합니다.
 - SwiftUI View를 로컬 이미지로 렌더링해 사용자가 명시적으로 공유할 수 있는 구조를 제공합니다.
-- 현재 단계에서는 사진 앱 저장이 아니라 임시 로컬 PNG 생성과 시스템 공유 sheet 연결까지 지원합니다.
+- 현재 단계에서는 임시 로컬 PNG 생성, 시스템 공유 sheet, 사진 앱 저장, 파일 앱 저장을 사용자의 명시 액션으로만 지원합니다.
 
 ## 템플릿
 
@@ -64,7 +64,7 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 ## Export / Share 설계
 
-현재 단계에서는 카드 미리보기 화면에서 명시적인 `이미지 만들기` 액션을 제공하고, 렌더링이 성공한 경우에만 `공유` 액션을 활성화합니다. 자동 저장, 자동 공유, 서버 업로드는 없습니다.
+현재 단계에서는 카드 미리보기 화면에서 명시적인 `이미지 만들기` 액션을 제공하고, 렌더링이 성공한 경우에만 `공유`, `사진에 저장`, `파일에 저장` 액션을 활성화합니다. 자동 저장, 자동 공유, 서버 업로드는 없습니다.
 
 ### SwiftUI View to Image Rendering
 
@@ -101,7 +101,9 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 3. 사용자가 `이미지 만들기`를 선택한 경우에만 이미지 렌더링을 시작합니다.
 4. 렌더링에 성공하면 임시 로컬 PNG와 `DailyHealthCardImageResult`가 생성됩니다.
 5. 이미지가 준비된 뒤 사용자가 `공유`를 선택한 경우에만 시스템 share sheet를 엽니다.
-6. 사용자가 취소하면 자동 재공유나 서버 전송 없이 미리보기 화면에 남습니다.
+6. 이미지가 준비된 뒤 사용자가 `사진에 저장`을 선택한 경우에만 Photos add-only 권한을 요청하고 사진 앱에 추가합니다.
+7. 이미지가 준비된 뒤 사용자가 `파일에 저장`을 선택한 경우에만 iOS file exporter를 열어 사용자가 저장 위치를 고릅니다.
+8. 사용자가 취소하면 자동 재시도, 자동 재공유, 서버 전송 없이 미리보기 화면에 남습니다.
 
 저장/공유/취소/실패 state:
 
@@ -109,12 +111,15 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 | --- | --- | --- |
 | `preview` | export 전 card preview와 포함 항목을 표시 | 표시 항목을 확인한 뒤 이미지 만들기를 선택 |
 | `rendering` | 로컬에서 SwiftUI view를 이미지로 변환 | 잠시 기다리기 |
-| `imageReady` | 임시 로컬 PNG 생성 완료 | 공유 버튼 활성화 |
-| `saveRequested` | 사용자가 저장을 명시적으로 선택 | 향후 사진/파일 저장 흐름에서 구현 |
+| `imageReady` | 임시 로컬 PNG 생성 완료 | 공유/사진 저장/파일 저장 버튼 활성화 |
 | `shareRequested` | 사용자가 공유를 명시적으로 선택 | 시스템 share sheet 표시 |
+| `photoSaveRequested` | 사용자가 사진 앱 저장을 명시적으로 선택 | Photos add-only 권한 확인 후 저장 |
+| `fileExportRequested` | 사용자가 파일 앱 저장을 명시적으로 선택 | iOS file exporter 표시 |
 | `cancelled` | 사용자가 저장/공유를 취소 | 카드가 공유되지 않았다는 짧은 확인 표시 |
 | `failed` | 렌더링, 저장, share sheet 준비가 실패 | 이미지를 만들지 못했으며 다시 시도할 수 있음 |
 | `completed` | 저장 또는 공유 흐름이 정상 종료 | 완료 상태만 표시하고 자동 재공유는 하지 않음 |
+| `photoSaved` | 사진 앱 저장 완료 | 완료 상태만 표시 |
+| `fileSaved` | 파일 앱 저장 완료 | 완료 상태만 표시 |
 
 ### Privacy Level별 표시 항목
 
@@ -194,11 +199,13 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 - 민감 수치 포함 여부 계산 helper
 - 별도 export confirmation sheet
 - 공유 취소/completed state UI
+- 사진 앱 저장 전용 버튼과 Photos add-only 권한 copy
+- 파일 앱 저장 전용 버튼과 iOS file exporter
+- privacy level별 export snapshot test
 
 남은 구현:
 
-- privacy level별 export snapshot test 추가
-- 사진 앱 또는 파일 저장 흐름 추가
+- README용 대표 카드와 App Store용 카드의 표시 데이터 분리
 
 ## 의료 진단 아님
 

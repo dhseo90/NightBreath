@@ -230,7 +230,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 
 ## Daily Health Card export/share 점검
 
-Daily Health Card image export/share는 `DailyHealthCardPreviewView`에서 사용자 명시 액션 기반으로 구현했습니다. 현재 구현은 `ImageRenderer`로 SwiftUI export view를 기기 안에서 임시 PNG로 렌더링하고, 이미지가 준비된 뒤에만 시스템 share sheet를 엽니다. 사진 앱 직접 저장 또는 파일 앱 저장 전용 흐름은 아직 별도 잔여 작업입니다.
+Daily Health Card image export/share/save는 `DailyHealthCardPreviewView`에서 사용자 명시 액션 기반으로 구현했습니다. 현재 구현은 `ImageRenderer`로 SwiftUI export view를 기기 안에서 임시 PNG로 렌더링하고, 이미지가 준비된 뒤에만 시스템 share sheet, 사진 앱 저장, 파일 앱 저장을 열 수 있습니다.
 
 허용되는 항목:
 
@@ -239,7 +239,8 @@ Daily Health Card image export/share는 `DailyHealthCardPreviewView`에서 사�
 - `minimal`, `standard`, `detailed` privacy level에 따른 표시 항목 제한
 - 민감할 수 있는 건강 수치 포함 여부 안내
 - 사용자가 명시적으로 선택한 시스템 share sheet 열기
-- 향후 별도 구현 시 사용자 명시 선택 기반 사진 앱 또는 파일 저장
+- 사용자가 명시적으로 선택한 Photos add-only 사진 앱 저장
+- 사용자가 명시적으로 선택한 iOS file exporter 파일 앱 저장
 - 저장/공유 취소 state와 실패 state 표시
 
 제한 사항:

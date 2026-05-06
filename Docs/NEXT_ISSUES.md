@@ -10,7 +10,7 @@
 4. EHM regression test 강화
 5. 혈압/체성분/교차 보기/edge screenshot 추가
 6. 실제 HealthKit permission flow manual QA
-7. Daily Health Card 사진 앱/파일 저장 흐름과 export snapshot test
+7. Daily Health Card README/App Store 표시 데이터 분리
 8. 실제 iPhone smoke test
 9. TestFlight 준비
 10. Legal/App Review audit
@@ -75,8 +75,8 @@
 - `minimal`, `standard`, `detailed` privacy level별 export preview UI 보강
 - 민감 수치가 포함된 카드의 별도 confirmation sheet 구현 완료
 - 공유 취소/completed state UI 보강 완료
-- 사진 앱 또는 파일 저장 전용 흐름 구현
-- privacy level별 export snapshot/regression test 추가
+- 사진 앱 또는 파일 저장 전용 흐름 구현 완료
+- privacy level별 export snapshot/regression test 추가 완료
 - 서버 업로드, 외부 SDK, 자동 공유가 없음을 확인하는 privacy test 유지/확장
 - README용 대표 카드와 App Store용 카드의 표시 데이터 분리
 
