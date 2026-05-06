@@ -85,6 +85,28 @@ Screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 
 README에는 대표 screenshot만 사용합니다. 전체 화면별 설명과 pending 상태는 `Docs/UI_GALLERY.md`에서 관리합니다.
 
+### Mock Scenario / Headline Plan
+
+App Store screenshot은 아래 mock scenario와 headline copy를 우선 후보로 사용합니다. 모든 화면은 DEBUG simulator scenario 또는 mock bundle 기반으로만 만들고, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 쓰지 않습니다.
+
+| 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 안전 기준 |
+| --- | --- | --- | --- | --- |
+| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
+| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/README/cropped/sleep_report_light.png` | 점수와 이벤트는 개인 참고용으로 표현 |
+| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
+| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | 건강 상태나 원인과 결과를 단정하지 않음 |
+| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | privacy level과 명시적 공유/저장 흐름을 분리 |
+| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | HealthKit read-only와 Fitdays local-only 출처 구분 |
+| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
+| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
+
+Headline copy 원칙:
+
+- 제품명을 가리는 과장 headline보다 화면의 실제 가치와 제한을 짧게 설명합니다.
+- “진단”, “정확 측정”, “질병 여부 단정”, “치료”처럼 의료적 판단으로 읽힐 수 있는 표현을 쓰지 않습니다.
+- 혈압, 체중, 체성분, 수면 소리 지표가 함께 보여도 인과관계를 주장하지 않습니다.
+- privacy screenshot은 마케팅 컷으로 쓰더라도 서버 미전송, 전체 밤 원본 오디오 미저장, opt-in 샘플 정책이 보이게 구성합니다.
+
 README용 crop 원칙:
 
 - status bar, 시간, Dynamic Island 영역은 README 대표 이미지에서 제거합니다.

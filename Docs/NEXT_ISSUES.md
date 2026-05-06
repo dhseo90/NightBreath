@@ -20,7 +20,8 @@
 ## Release / App Store 준비
 
 - 최종 앱 아이콘 제작과 device별 asset 확인
-- App Store screenshot headline copy와 mock scenario 재캡처
+- App Store screenshot headline copy와 mock scenario plan은 정리 완료
+- App Store screenshot marketing visual 재캡처와 App Store Connect size export
 - App Store Connect용 screenshot size/export 절차 정리
 - App Store product page copy 최종 점검
 - `Docs/APP_RELEASE_GUIDE.md` 최신화

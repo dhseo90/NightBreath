@@ -102,6 +102,7 @@
 - README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
 - UI Gallery direct simulator screenshot 6개
+- App Store screenshot mock scenario/headline plan
 - Daily Health Card 미리보기의 명시 액션 기반 로컬 PNG 생성/시스템 공유 sheet 연결
 - Daily Health Card 민감 수치 export confirmation sheet
 - Daily Health Card 공유 완료/취소 상태 UI
@@ -139,7 +140,7 @@
 - sleep talk 텍스트 변환
 - App Store 제출
 - 최종 앱 아이콘 고품질 아트워크
-- App Store screenshot marketing final version
+- App Store screenshot marketing final visual/export version
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
 - UI Gallery 수동 진입 상세 screenshot 전체 캡처

@@ -133,6 +133,90 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appStoreScreenshotPlanDocumentsMockScenariosAndSafeHeadlines() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let guide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let scenarioSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/ScreenshotScenarios.swift"),
+            encoding: .utf8
+        )
+        let expectedRows = [
+            (
+                "ScreenshotHomeScenario",
+                "수면 중 소리 기반 지표를 한눈에",
+                "Docs/Screenshots/README/cropped/home_dashboard_light.png"
+            ),
+            (
+                "ScreenshotSleepReportScenario",
+                "아침에 읽기 쉬운 수면 소리 리포트",
+                "Docs/Screenshots/README/cropped/sleep_report_light.png"
+            ),
+            (
+                "ScreenshotTimelineScenario",
+                "코골기와 환경 소음 흐름 확인",
+                "Docs/Screenshots/README/cropped/sleep_timeline_light.png"
+            ),
+            (
+                "ScreenshotDailyRhythmScenario",
+                "오늘의 리듬 점수를 참고용으로",
+                "Docs/Screenshots/README/cropped/daily_rhythm_report_light.png"
+            ),
+            (
+                "ScreenshotDailyHealthCardScenario",
+                "하루 리듬을 카드 한 장으로",
+                "Docs/Screenshots/README/cropped/daily_health_card_light.png"
+            ),
+            (
+                "ScreenshotHealthMetricsOverviewScenario",
+                "모든 건강 지표를 출처와 함께",
+                "Docs/Screenshots/Health/cropped/health_metrics_overview_light.png"
+            ),
+            (
+                "ScreenshotPrivacyScenario",
+                "전체 밤 오디오는 저장하지 않습니다",
+                "Docs/Screenshots/Privacy/cropped/privacy_settings_light.png"
+            ),
+            (
+                "ScreenshotZeroEventScenario",
+                "이벤트가 적은 밤도 측정 맥락과 함께",
+                "Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png"
+            ),
+        ]
+
+        #expect(guide.contains("mock data와 simulator scenario"))
+        #expect(guide.contains("실제 개인 건강 데이터"))
+        #expect(guide.contains("실제 HealthKit 데이터"))
+        #expect(guide.contains("실제 Fitdays CSV 파일명"))
+        #expect(guide.contains("실제 오디오 파일명"))
+        #expect(guide.contains("서버 미전송"))
+        #expect(guide.contains("opt-in 샘플 정책"))
+
+        for (scenario, headline, screenshotPath) in expectedRows {
+            #expect(guide.contains(scenario), "\(scenario) should be documented in the App Store screenshot plan.")
+            #expect(guide.contains(headline), "\(headline) should be documented in the App Store screenshot plan.")
+            #expect(guide.contains(screenshotPath), "\(screenshotPath) should be documented in the App Store screenshot plan.")
+            #expect(scenarioSource.contains(scenario), "\(scenario) should exist in ScreenshotScenario.")
+            #expect(scenarioSource.contains(headline), "\(headline) should stay aligned with ScreenshotScenario headline copy.")
+        }
+
+        let forbiddenMarketingClaims = [
+            "정상입니다",
+            "코골이가 없었습니다",
+            "수면무호흡증 " + "없음",
+            "질병 " + "아님",
+            "치료 " + "필요",
+            "건강 상태를 예측",
+        ]
+
+        for claim in forbiddenMarketingClaims {
+            #expect(!guide.contains(claim), "App Store screenshot plan contains unsafe marketing copy: \(claim)")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(
