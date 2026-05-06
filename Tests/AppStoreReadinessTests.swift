@@ -364,6 +364,59 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func testFlightInternalPlanDocumentsBlockingGatesAndPrivateEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let testFlightPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let qaChecklist = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("QA_CHECKLIST.md"),
+            encoding: .utf8
+        )
+        let nextIssues = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/NEXT_ISSUES.md"),
+            encoding: .utf8
+        )
+        let combined = [testFlightPlan, releaseGuide, qaChecklist, nextIssues].joined(separator: "\n")
+
+        #expect(testFlightPlan.contains("Blocking gate"))
+        #expect(testFlightPlan.contains("Evidence Template"))
+        #expect(testFlightPlan.contains("foreground stop smoke"))
+        #expect(testFlightPlan.contains("double stop tap"))
+        #expect(testFlightPlan.contains("zero-event diagnostics present"))
+        #expect(testFlightPlan.contains("HealthKit read-only permission flow"))
+        #expect(testFlightPlan.contains("Fitdays local import fallback"))
+        #expect(testFlightPlan.contains("Daily Health Card export/share explicit action"))
+        #expect(testFlightPlan.contains("sensitive data included in repo: No"))
+        #expect(testFlightPlan.contains("real personal audio committed: No"))
+        #expect(testFlightPlan.contains("real personal CSV committed: No"))
+        #expect(testFlightPlan.contains("server/network code added: No"))
+        #expect(testFlightPlan.contains("HealthKit write observed: No"))
+        #expect(testFlightPlan.contains("diagnosis wording observed: No"))
+        #expect(releaseGuide.contains("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"))
+        #expect(qaChecklist.contains("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"))
+        #expect(nextIssues.contains("TestFlight 내부 테스트 체크리스트 정리 완료"))
+
+        let forbiddenPhrases = [
+            "수면무호흡증 " + "진단",
+            "질병 " + "판정",
+            "치료 " + "필요",
+            "서버 업로드를 사용합니다",
+            "HealthKit에 데이터를 씁니다",
+            "전체 밤 원본 오디오를 저장합니다",
+        ]
+
+        for phrase in forbiddenPhrases {
+            #expect(!combined.contains(phrase), "TestFlight plan should not introduce restricted wording: \(phrase)")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(

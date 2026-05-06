@@ -161,6 +161,8 @@ App Store 제출 전에는 실제 기기 홈 화면, Settings 앱 목록, TestFl
 
 ## TestFlight Checklist
 
+상세 내부 테스트 기준은 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`를 따릅니다.
+
 TestFlight 전 확인:
 
 - `swift test --no-parallel` 통과
@@ -178,7 +180,15 @@ TestFlight 전 확인:
 - HealthKit write scan
 - 전체 밤 원본 오디오 저장 scan
 
-실제 iPhone manual QA 절차는 `Docs/QA_GUIDE.md`를 따릅니다.
+TestFlight blocking gate:
+
+- 수면 종료 후 실제 오디오 수신 시간이 계속 증가하면 확대 배포를 중단합니다.
+- double stop tap에서 duplicate report나 crash가 있으면 중단합니다.
+- 이벤트 0개 세션에서 raw/reject diagnostics가 전혀 남지 않으면 detector 판단을 보류합니다.
+- HealthKit write 요청, 전체 밤 원본 오디오 저장, 서버/네트워크/외부 SDK 호출이 발견되면 중단합니다.
+- 의료 진단처럼 읽히는 copy가 있으면 수정 전 배포하지 않습니다.
+
+실제 iPhone manual QA 절차는 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 따릅니다.
 
 ## App Review Notes 후보
 

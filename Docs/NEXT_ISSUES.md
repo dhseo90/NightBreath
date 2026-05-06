@@ -12,7 +12,7 @@
 6. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
 7. App Store screenshot final export 절차 정리
 8. 실제 iPhone smoke test
-9. TestFlight 준비
+9. TestFlight 내부 테스트 실행
 10. Legal/App Review audit
 11. detector threshold tuning with real data
 12. Core ML model 실제 앱 target 적용
@@ -25,7 +25,7 @@
 - App Store Connect용 screenshot size/export 절차 정리
 - App Store product page copy 최종 점검
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
-- TestFlight 내부 테스트 체크리스트 정리
+- TestFlight 내부 테스트 체크리스트 정리 완료, 실제 내부 테스트 실행은 TestFlight build와 실기기 필요
 - App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 재검토
 
 주의:
