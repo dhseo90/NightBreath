@@ -122,6 +122,9 @@ struct DetectorThresholdConfigurationTests {
 
         #expect(analyzer.detectorBackend == .hybrid)
         #expect(analyzer.thresholdsSnapshot["rule.snoreRMS"] == configuration.snoreRmsThreshold)
+        #expect(analyzer.thresholdsSnapshot["rule.lowLevelSnoreRMS"] == configuration.ruleBasedThresholds.lowLevelSnoreRMS)
+        #expect(analyzer.thresholdsSnapshot["rule.lowLevelSnoreLowBandRatio"] == configuration.ruleBasedThresholds.lowLevelSnoreLowBandRatio)
+        #expect(analyzer.thresholdsSnapshot["rule.snoreRelativeEnergyRatio"] == configuration.ruleBasedThresholds.snoreRelativeEnergyRatio)
         #expect(analyzer.thresholdsSnapshot["smoothing.confidenceThreshold"] == configuration.minimumConfidence)
         #expect(analyzer.thresholdsSnapshot["coreML.confidenceThreshold"] == CoreMLDetectorConfiguration.default.confidenceThreshold)
     }

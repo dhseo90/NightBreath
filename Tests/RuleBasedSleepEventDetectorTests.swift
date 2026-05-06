@@ -20,7 +20,7 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
-    func detectsRealisticLowAmplitudeSnoreLikeCandidateWithBalancedThreshold() {
+    func detectsRealisticLowLevelSnoreLikeCandidateWithBalancedThreshold() {
         let detector = RuleBasedSleepEventDetector(
             thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
         )
@@ -41,7 +41,56 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
-    func quietLowAmplitudeNoiseDoesNotBecomeSnore() {
+    func detectsDistantLowLevelSnoreLikeCandidateUsingRelativeEnergyAndLowBandGuard() {
+        let detector = RuleBasedSleepEventDetector(
+            thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
+        )
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.030,
+                energy: 0.0009,
+                peak: 0.050,
+                zeroCrossingRate: 0.08,
+                lowFrequencyEnergyRatio: 0.76,
+                midBandEnergy: 0.18,
+                highBandEnergy: 0.06,
+                spectralCentroid: 280,
+                estimatedNoiseLevel: 0.018
+            )
+        )
+
+        let snoreOutput = output.first { $0.eventType == .snore }
+        #expect(snoreOutput != nil)
+        #expect(snoreOutput?.confidence ?? 0 >= DetectorTuningProfile.balanced.configuration.minimumConfidence)
+        #expect(snoreOutput?.debugReason?.contains("저진폭") == true)
+    }
+
+    @Test
+    func lowFrequencyRoomHumAtNoiseFloorDoesNotBecomeSnore() {
+        let detector = RuleBasedSleepEventDetector(
+            thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
+        )
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.030,
+                energy: 0.0009,
+                peak: 0.045,
+                zeroCrossingRate: 0.07,
+                lowFrequencyEnergyRatio: 0.78,
+                midBandEnergy: 0.16,
+                highBandEnergy: 0.06,
+                spectralCentroid: 240,
+                estimatedNoiseLevel: 0.030
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func quietLowLevelNoiseDoesNotBecomeSnore() {
         let detector = RuleBasedSleepEventDetector(
             thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
         )
@@ -62,7 +111,7 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
-    func lowAmplitudeBroadbandNoiseDoesNotBecomeSnore() {
+    func lowLevelBroadbandNoiseDoesNotBecomeSnore() {
         let detector = RuleBasedSleepEventDetector(
             thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds
         )
@@ -211,24 +260,28 @@ struct RuleBasedSleepEventDetectorTests {
     private func makeFeatures(
         duration: TimeInterval = 1,
         rms: Double,
+        energy: Double? = nil,
         peak: Double,
         zeroCrossingRate: Double,
         lowFrequencyEnergyRatio: Double,
         midBandEnergy: Double? = nil,
         highBandEnergy: Double? = nil,
         spectralCentroid: Double? = nil,
+        estimatedNoiseLevel: Double? = nil,
         isLikelySilence: Bool? = nil
     ) -> AudioFeatures {
         AudioFeatures(
             startedAt: Date(timeIntervalSince1970: 100),
             duration: duration,
             rms: rms,
+            energy: energy,
             peak: peak,
             zeroCrossingRate: zeroCrossingRate,
             lowFrequencyEnergyRatio: lowFrequencyEnergyRatio,
             spectralCentroid: spectralCentroid,
             midBandEnergy: midBandEnergy,
             highBandEnergy: highBandEnergy,
+            estimatedNoiseLevel: estimatedNoiseLevel,
             isLikelySilence: isLikelySilence
         )
     }

@@ -236,6 +236,10 @@ public struct SleepAnalyzer: SleepAnalyzing {
     [
       "rule.silenceRMS": thresholds.silenceRMS,
       "rule.snoreRMS": thresholds.snoreRMS,
+      "rule.lowLevelSnoreRMS": thresholds.lowLevelSnoreRMS,
+      "rule.lowLevelSnoreEnergy": thresholds.lowLevelSnoreEnergy,
+      "rule.lowLevelSnoreLowBandRatio": thresholds.lowLevelSnoreLowBandRatio,
+      "rule.snoreRelativeEnergyRatio": thresholds.snoreRelativeEnergyRatio,
       "rule.noiseRMS": thresholds.noiseRMS,
       "rule.suspectedPauseMinimumDuration": thresholds.suspectedPauseMinimumDuration,
     ]

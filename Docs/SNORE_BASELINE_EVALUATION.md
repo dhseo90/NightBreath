@@ -59,7 +59,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 현재 balanced guard:
 
 - RMS threshold: 0.045
-- RMS 0.050 미만 snore 후보의 추가 조건: low-band 0.58 이상, zero-crossing 0.28 이하, high-band 0.22 이하, spectral centroid 1200Hz 이하
+- RMS 0.045 미만 snore 후보의 추가 조건: `rule.lowLevelSnoreRMS` 이상, `rule.lowLevelSnoreEnergy` 이상, low-band 0.64 이상, noise 대비 relative energy 1.35 이상, zero-crossing 0.24 이하, high-band 0.18 이하, spectral centroid 950Hz 이하
 - Release 기본 profile은 `balanced`이며 `sensitive`는 DEBUG 비교용입니다.
 
 ## Output

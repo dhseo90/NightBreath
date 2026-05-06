@@ -24,7 +24,7 @@
 | balanced | Release 기본값 | 0.045 | 0.0020 | 0.35 | 0.20s | 1.00s |
 | sensitive | DEBUG 누락 비교용 | 0.040 | 0.0016 | 0.32 | 0.16s | 1.20s |
 
-현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*` key로 저장됩니다. `balanced`의 낮은 RMS 구간은 별도 texture guard를 통과해야 합니다. RMS 0.050 미만 코골기 후보는 low-band 0.58 이상, zero-crossing 0.28 이하, high-band 0.22 이하, spectral centroid 1200Hz 이하 조건을 함께 만족해야 raw snore 후보가 됩니다.
+현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*`와 `rule.*` key로 저장됩니다. `balanced`의 낮은 RMS 구간은 별도 texture guard를 통과해야 합니다. RMS 0.045 미만 코골기 후보는 `rule.lowLevelSnoreRMS`, `rule.lowLevelSnoreEnergy`, `rule.lowLevelSnoreLowBandRatio`, `rule.snoreRelativeEnergyRatio` guard를 함께 통과해야 raw snore 후보가 됩니다. 기본 `balanced` 기준은 대략 RMS 0.02475 이상, low-band 0.64 이상, noise 대비 relative energy 1.35 이상, zero-crossing 0.24 이하, high-band 0.18 이하, spectral centroid 950Hz 이하입니다.
 
 ## 실제 iPhone zero-event triage
 
@@ -73,6 +73,30 @@ threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregati
 - `balanced` snore energy snapshot을 0.0025에서 0.0020으로 맞췄습니다.
 - RMS 0.050 미만 구간에는 low-band/ZCR/high-band/centroid guard를 추가해 pure silence, quiet/high-frequency negative, broadband-like noise가 snore로 올라오지 않게 했습니다.
 - smoothing threshold와 Release 기본 profile 선택은 바꾸지 않았습니다.
+
+## 2026-05-06 거리/배치 저진폭 guard
+
+실제 침대 배치에서는 iPhone이 충전 중 머리맡에서 조금 떨어질 수 있어, 코골기 소리가 있어도 절대 RMS가 `balanced` snore RMS 0.045 아래로 들어올 수 있습니다. 이번 변경은 Release 기본 profile을 `sensitive`로 올리거나 전체 threshold를 크게 낮추지 않고, 저진폭 전용 guard만 추가했습니다.
+
+추가된 조건:
+
+- `rule.lowLevelSnoreRMS`: `max(silenceRMS * 2.2, snoreRMS * 0.55)` 기반 저진폭 floor
+- `rule.lowLevelSnoreEnergy`: 저진폭 floor에서 계산한 최소 energy
+- `rule.lowLevelSnoreLowBandRatio`: 기본 0.64
+- `rule.snoreRelativeEnergyRatio`: `estimatedNoiseLevel` 대비 energy 비율 기본 1.35
+- 저진폭 후보는 low-band, ZCR, high-band, mid-band, spectral centroid guard를 모두 통과해야 합니다.
+
+Diagnostics 변경:
+
+- `thresholdSnapshot`에 저진폭 guard key가 `rule.*`로 남습니다.
+- `snoreLikeFeatureCandidateCount`는 기존 near-threshold RMS뿐 아니라 저진폭 low-band 후보도 잡습니다.
+- raw 후보로 올라오지 못한 경우 `snoreLikeFeatureRejectReasonCounts`에 RMS/energy/low-band/environmental-noise 계열 이유가 남습니다.
+
+False-positive-like guard:
+
+- noise floor와 같은 수준의 저주파 지속음은 relative energy guard를 통과하지 않아야 합니다.
+- low-amplitude broadband/high-frequency noise는 high-band/ZCR/centroid guard로 snore 후보가 되지 않아야 합니다.
+- 조용한 구간, 주변 소음 negative segment, 실제 코골기 유사 segment를 같은 manifest에서 비교합니다.
 
 False-positive-like guard:
 

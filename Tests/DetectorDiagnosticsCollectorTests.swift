@@ -93,6 +93,56 @@ struct DetectorDiagnosticsCollectorTests {
     }
 
     @Test
+    func collectorKeepsDistantLowLevelSnoreNearMissVisibleBeforeRawCandidate() throws {
+        let collector = makeCollector()
+        let features = makeFeatures(
+            rms: 0.029,
+            energy: 0.00084,
+            startedAt: Date(timeIntervalSince1970: 26),
+            lowBandEnergy: 0.72,
+            midBandEnergy: 0.20,
+            highBandEnergy: 0.08,
+            zeroCrossingRate: 0.08,
+            spectralCentroid: 300,
+            estimatedNoiseLevel: 0.029
+        )
+
+        collector.record(features: features, outputs: [])
+        let diagnostics = try finalized(collector)
+
+        #expect(diagnostics.rawCandidateCount == 0)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectedCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowRmsThreshold] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowEnergyThreshold] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowLowBandRatio] == nil)
+        #expect(diagnostics.snoreRejectReasonTop == .belowEnergyThreshold)
+    }
+
+    @Test
+    func collectorDoesNotTreatBroadbandLowLevelNoiseAsSnoreNearMiss() throws {
+        let collector = makeCollector()
+        let features = makeFeatures(
+            rms: 0.032,
+            energy: 0.0010,
+            startedAt: Date(timeIntervalSince1970: 27),
+            lowBandEnergy: 0.35,
+            midBandEnergy: 0.34,
+            highBandEnergy: 0.31,
+            zeroCrossingRate: 0.48,
+            spectralCentroid: 2_400,
+            estimatedNoiseLevel: 0.016
+        )
+
+        collector.record(features: features, outputs: [])
+        let diagnostics = try finalized(collector)
+
+        #expect(diagnostics.rawCandidateCount == 0)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.likelyEnvironmentalNoise] == 1)
+    }
+
+    @Test
     func smoothingDiagnosticsCountsBeforeAfterAndReasons() {
         let policy = DetectionSmoothingPolicy(
             minimumEventDuration: 0.5,
@@ -310,6 +360,10 @@ struct DetectorDiagnosticsCollectorTests {
             thresholdsSnapshot: [
                 "rule.silenceRMS": 0.01,
                 "rule.snoreRMS": 0.05,
+                "rule.lowLevelSnoreRMS": 0.0275,
+                "rule.lowLevelSnoreEnergy": 0.00049,
+                "rule.lowLevelSnoreLowBandRatio": 0.64,
+                "rule.snoreRelativeEnergyRatio": 1.35,
                 "tuning.snoreEnergyThreshold": 0.0025,
                 "smoothing.confidenceThreshold": 0.35
             ],
@@ -341,7 +395,8 @@ struct DetectorDiagnosticsCollectorTests {
         midBandEnergy: Double = 0.4,
         highBandEnergy: Double = 0.2,
         zeroCrossingRate: Double = 0.2,
-        spectralCentroid: Double = 1_000
+        spectralCentroid: Double = 1_000,
+        estimatedNoiseLevel: Double? = nil
     ) -> AudioFeatures {
         AudioFeatures(
             startedAt: startedAt,
@@ -358,7 +413,7 @@ struct DetectorDiagnosticsCollectorTests {
             lowBandEnergy: lowBandEnergy,
             midBandEnergy: midBandEnergy,
             highBandEnergy: highBandEnergy,
-            estimatedNoiseLevel: rms,
+            estimatedNoiseLevel: estimatedNoiseLevel ?? rms,
             isLikelySilence: rms < 0.01
         )
     }

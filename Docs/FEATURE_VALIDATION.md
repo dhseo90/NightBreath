@@ -86,6 +86,7 @@ pipeline count 필드:
 - raw 후보는 있는데 post-smoothing이 0이면 confidence, duration, merge/drop reason을 봅니다.
 - `snore` raw 후보는 있는데 최종 이벤트가 0이면 `snoreRejectReasonTop`과 confidence histogram을 우선 확인합니다.
 - feature 분포가 threshold보다 낮으면 iPhone 위치, 마이크 방향, 케이스, 주변 소리 영향을 짧은 foreground 테스트로 비교합니다.
+- RMS가 `tuning.snoreRmsThreshold`보다 낮아도 `rule.lowLevelSnoreRMS`, `rule.lowLevelSnoreLowBandRatio`, `rule.snoreRelativeEnergyRatio`를 통과하면 raw snore 후보가 될 수 있습니다. 이 경우 low-band가 충분히 높고 high-band/ZCR/centroid가 낮은지 negative sample과 함께 확인합니다.
 
 ## rule-based detector의 한계
 

@@ -193,6 +193,7 @@
 - stop flow는 idempotent하며 double tap 중에는 기존 finalization을 유지하고 duplicate report 생성을 피합니다.
 - stop 이후 chunk가 들어오면 `chunksReceivedAfterStopRequest`, `secondsReceivingAudioAfterStopRequest`, `lastChunkReceivedAt`, force stop reason으로 남깁니다.
 - detector diagnostics는 raw/pre-smoothing/post-smoothing/final type count, reject reason, RMS/energy/band/zero-crossing/centroid summary, threshold snapshot, backend, tuning profile, model fallback 상태를 리포트에 보존합니다.
+- 코골기 detector는 절대 RMS threshold 외에 저진폭 low-band/relative-energy guard를 사용해 침대 배치 거리로 작게 들어온 snore-like 후보를 raw candidate로 남길 수 있습니다. Release 기본 profile은 계속 `balanced`입니다.
 - 이벤트 오디오 샘플은 opt-in일 때만 짧게 저장되며, 전체 밤 원본 오디오 저장 경로는 추가하지 않았습니다.
 
 ## 실기기 확인이 남은 항목

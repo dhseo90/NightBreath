@@ -121,7 +121,8 @@
 - 수집된 diagnostics로 feature 후보 없음, raw 후보 전 제외, smoothing drop, confidence drop, feature scale mismatch를 분류
 - `snoreLikeFeatureRejectReasonCounts`와 p50/p90 feature 분포를 실제 iPhone 배치별로 비교
 - balanced low-amplitude snore guard 이후 실제 코골이 짧은 DEBUG 샘플과 quiet/noise negative 샘플을 같은 배치에서 replay
-- RMS 0.050 미만 snore 후보는 low-band/ZCR/high-band/centroid guard 통과 여부를 QA 기록에 남김
+- RMS 0.045 미만 snore 후보는 `rule.lowLevelSnore*`/relative-energy/low-band/ZCR/high-band/centroid guard 통과 여부를 QA 기록에 남김
+- 침대 위 충전 상태 거리에서 snore raw 후보가 생기는지, 같은 배치의 조용한 구간/주변 소음 negative에서 snore raw 후보가 늘지 않는지 확인
 - Offline Evaluation으로 conservative / balanced / sensitive profile 비교
 - Offline Evaluation profile 비교 markdown quick summary 보강 완료
 - Offline Evaluation zero-event stage breakdown markdown summary 보강 완료

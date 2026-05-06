@@ -192,7 +192,7 @@ Replay 연결:
 - `balanced` profile에서 threshold snapshot의 `tuning.snoreRmsThreshold`가 0.045인지 확인합니다.
 - 실제 코골이처럼 들린 짧은 DEBUG 샘플에서 `snoreLikeFeatureCandidateCount`, `snoreRawCandidateCount`, `postSmoothingEventCountByType.snore`, `finalEventCountByType.snore`가 어느 단계에서 0이 되는지 기록합니다.
 - 같은 기기 배치에서 조용한 구간 또는 주변 소음 negative sample도 함께 replay해 snore raw/final count가 증가하지 않는지 확인합니다.
-- RMS 0.050 미만인데 snore 후보가 된 경우 low-band p90, zero-crossing p50, high-band p50, spectral centroid p50가 low-amplitude guard에 맞는지 확인합니다.
+- RMS가 `tuning.snoreRmsThreshold` 0.045보다 낮은데 snore 후보가 된 경우 `rule.lowLevelSnoreRMS`, `rule.lowLevelSnoreEnergy`, `rule.lowLevelSnoreLowBandRatio`, `rule.snoreRelativeEnergyRatio`와 low-band p90, zero-crossing p50, high-band p50, spectral centroid p50가 low-amplitude guard에 맞는지 확인합니다.
 - 리포트에는 final snore event가 있으면 `코골기 시간`과 timeline에 표시되고, final event가 0이면 zero-event explanation과 diagnostics만 표시되어야 합니다.
 
 ## 실제 iPhone QA가 필요한 경우

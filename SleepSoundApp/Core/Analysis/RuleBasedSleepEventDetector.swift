@@ -3,6 +3,10 @@ import Foundation
 public struct RuleBasedDetectionThresholds: Equatable, Sendable {
     public var silenceRMS: Double
     public var snoreRMS: Double
+    public var lowLevelSnoreRMS: Double
+    public var lowLevelSnoreEnergy: Double
+    public var lowLevelSnoreLowBandRatio: Double
+    public var snoreRelativeEnergyRatio: Double
     public var noiseRMS: Double
     public var suspectedPauseMinimumDuration: TimeInterval
 
@@ -11,11 +15,21 @@ public struct RuleBasedDetectionThresholds: Equatable, Sendable {
     public init(
         silenceRMS: Double = 0.01,
         snoreRMS: Double = 0.045,
+        lowLevelSnoreRMS: Double? = nil,
+        lowLevelSnoreEnergy: Double? = nil,
+        lowLevelSnoreLowBandRatio: Double = 0.64,
+        snoreRelativeEnergyRatio: Double = 1.35,
         noiseRMS: Double = 0.24,
         suspectedPauseMinimumDuration: TimeInterval = 10
     ) {
         self.silenceRMS = Self.clamp(silenceRMS)
-        self.snoreRMS = Self.clamp(snoreRMS)
+        self.snoreRMS = min(max(Self.clamp(snoreRMS), self.silenceRMS + 0.001), 1)
+        let lowLevelRMS = lowLevelSnoreRMS ?? max(self.silenceRMS * 2.2, self.snoreRMS * 0.55)
+        self.lowLevelSnoreRMS = min(max(Self.clamp(lowLevelRMS), self.silenceRMS), self.snoreRMS)
+        let lowLevelEnergy = lowLevelSnoreEnergy ?? self.lowLevelSnoreRMS * self.lowLevelSnoreRMS * 0.65
+        self.lowLevelSnoreEnergy = Self.clamp(lowLevelEnergy)
+        self.lowLevelSnoreLowBandRatio = Self.clamp(lowLevelSnoreLowBandRatio)
+        self.snoreRelativeEnergyRatio = max(1, snoreRelativeEnergyRatio.isFinite ? snoreRelativeEnergyRatio : 1)
         self.noiseRMS = Self.clamp(noiseRMS)
         self.suspectedPauseMinimumDuration = max(1, suspectedPauseMinimumDuration)
     }
@@ -120,28 +134,31 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
         }
 
         let hasEnvironmentalNoise = outputs.contains { $0.eventType == .environmentalNoise }
-        let isLowLevelSnoreCandidate = features.rms < 0.05
-        let passesLowLevelSnoreGuard =
-            !isLowLevelSnoreCandidate ||
-            (
-                features.lowFrequencyEnergyRatio >= 0.58 &&
-                features.zeroCrossingRate <= 0.28 &&
-                features.highBandEnergy <= 0.22 &&
-                features.spectralCentroid <= 1_200
-            )
+        let snoreTexture = snoreTextureAssessment(for: features)
+        let passesStandardSnoreThreshold = features.rms >= snoreRMS
+        let passesLowLevelSnoreThreshold =
+            features.rms >= thresholds.lowLevelSnoreRMS &&
+            features.energy >= thresholds.lowLevelSnoreEnergy
+        let passesSnoreLevelGate =
+            passesStandardSnoreThreshold ||
+            (passesLowLevelSnoreThreshold && snoreTexture.passesDistanceGuard)
 
-        if features.rms >= snoreRMS,
+        if passesSnoreLevelGate,
            !hasEnvironmentalNoise,
-           features.lowFrequencyEnergyRatio >= 0.45,
-           features.zeroCrossingRate <= 0.45,
-           passesLowLevelSnoreGuard {
+           snoreTexture.passesBasicGuard {
             outputs.append(
                 makeOutput(
                     .snore,
                     features: features,
-                    confidence: 0.50 + min(features.lowFrequencyEnergyRatio * 0.25, 0.25),
-                    intensity: min(features.rms * 2.5, 1),
-                    debugReason: "저주파 에너지, RMS, 저진폭 texture guard 기반 코골기 후보 placeholder"
+                    confidence: snoreConfidence(
+                        features: features,
+                        texture: snoreTexture,
+                        usedLowLevelGuard: !passesStandardSnoreThreshold
+                    ),
+                    intensity: snoreIntensity(features: features, usedLowLevelGuard: !passesStandardSnoreThreshold),
+                    debugReason: !passesStandardSnoreThreshold
+                        ? "저진폭이지만 noise 대비 상대 energy, 저주파 비율, 낮은 ZCR/high-band guard를 통과한 코골기 후보 placeholder"
+                        : "저주파 에너지, RMS, 저진폭 texture guard 기반 코골기 후보 placeholder"
                 )
             )
         }
@@ -261,5 +278,67 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             intensity: intensity,
             debugReason: debugReason
         )
+    }
+
+    private func snoreTextureAssessment(
+        for features: AudioFeatures
+    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, relativeEnergy: Double) {
+        let relativeEnergy = relativeEnergyRatio(for: features)
+        let lowLevelTexture =
+            features.lowFrequencyEnergyRatio >= thresholds.lowLevelSnoreLowBandRatio &&
+            features.zeroCrossingRate <= 0.24 &&
+            features.highBandEnergy <= 0.18 &&
+            features.midBandEnergy <= 0.36 &&
+            features.spectralCentroid <= 950 &&
+            relativeEnergy >= thresholds.snoreRelativeEnergyRatio
+        let basicTexture =
+            features.lowFrequencyEnergyRatio >= 0.45 &&
+            features.zeroCrossingRate <= 0.45 &&
+            (
+                features.rms >= 0.05 ||
+                (
+                    features.lowFrequencyEnergyRatio >= 0.58 &&
+                    features.zeroCrossingRate <= 0.28 &&
+                    features.highBandEnergy <= 0.22 &&
+                    features.spectralCentroid <= 1_200
+                )
+            )
+
+        return (
+            passesBasicGuard: basicTexture,
+            passesDistanceGuard: lowLevelTexture,
+            relativeEnergy: relativeEnergy
+        )
+    }
+
+    private func snoreConfidence(
+        features: AudioFeatures,
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, relativeEnergy: Double),
+        usedLowLevelGuard: Bool
+    ) -> Double {
+        let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.45, 0) * 0.50, 0.22)
+        let relativeSupport = min(max(texture.relativeEnergy - 1, 0) * 0.10, 0.10)
+        let amplitudeSupport = usedLowLevelGuard
+            ? min(max((features.rms - thresholds.lowLevelSnoreRMS) / max(snoreRMS - thresholds.lowLevelSnoreRMS, 0.001), 0) * 0.08, 0.08)
+            : min(features.rms * 1.6, 0.12)
+        let base = usedLowLevelGuard ? 0.36 : 0.50
+        return min(max(base + lowBandSupport + relativeSupport + amplitudeSupport, 0), 1)
+    }
+
+    private func snoreIntensity(
+        features: AudioFeatures,
+        usedLowLevelGuard: Bool
+    ) -> Double {
+        if usedLowLevelGuard {
+            return min(max(features.rms / max(thresholds.lowLevelSnoreRMS, 0.001), features.lowFrequencyEnergyRatio) * 0.45, 1)
+        }
+        return min(features.rms * 2.5, 1)
+    }
+
+    private func relativeEnergyRatio(for features: AudioFeatures) -> Double {
+        let floor = max(features.estimatedNoiseLevel, silenceRMS * 0.75, 0.0001)
+        let floorEnergy = max(floor * floor, 0.000_000_01)
+        guard features.energy.isFinite else { return 0 }
+        return max(0, features.energy / floorEnergy)
     }
 }
