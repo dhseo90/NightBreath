@@ -57,6 +57,16 @@ struct SourceFilterTests {
     }
 
     @Test
+    func sourceFilterMenuOrderKeepsAllFirstThenStableSourceTypeOrder() {
+        let orderedFilters = MetricDetailSourceFilter.allCases
+        let sourceBackedFilters = orderedFilters.dropFirst()
+
+        #expect(orderedFilters.first == .all)
+        #expect(sourceBackedFilters.map(\.sourceType) == HealthMetricSourceType.allCases.map(Optional.some))
+        #expect(sourceBackedFilters.map(\.displayName) == HealthMetricSourceType.allCases.map(\.displayName))
+    }
+
+    @Test
     func viewModelSourceFilterKeepsSummaryRawListAndBreakdownScoped() {
         let samples = [
             sample(.bodyMass, 71.6, daysAgo: 1, sourceType: .healthKit, sourceName: "Apple 건강앱"),

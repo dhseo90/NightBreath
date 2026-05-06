@@ -98,6 +98,63 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func reportLinkedMorningCheckInStaysWithReportDayEvenWhenCreatedAfterMidnight() throws {
+        let reportDay = date(2026, 5, 3)
+        let nextDay = date(2026, 5, 4)
+        let sessionID = UUID(uuidString: "44000000-0000-0000-0000-000000000001")!
+        let linkedCheckIn = MorningCheckIn(
+            sessionId: sessionID,
+            refreshScore: 4,
+            createdAt: nextDay.addingTimeInterval(60 * 60)
+        )
+
+        let detail = builder.detailData(
+            for: reportDay,
+            samples: [],
+            sleepReports: [report(sessionID: sessionID, generatedAt: reportDay)],
+            morningCheckIns: [linkedCheckIn],
+            calendar: calendar
+        )
+
+        #expect(detail.summary.hasSleepReport)
+        #expect(detail.summary.hasMorningCheckIn)
+        #expect(detail.morningCheckIns.map { $0.sessionId } == [sessionID])
+        #expect(detail.morningCheckIns.first?.createdAt == linkedCheckIn.createdAt)
+    }
+
+    @Test
+    func excellentQualityRequiresAllMajorCategoriesAndEnoughSamples() {
+        let targetDate = date(2026, 5, 3)
+        let sessionID = UUID(uuidString: "44000000-0000-0000-0000-000000000002")!
+        let samples = [
+            sample(.systolicBloodPressure, 118, targetDate, sourceType: .healthKit, sourceName: "Omron Connect"),
+            sample(.diastolicBloodPressure, 76, targetDate, sourceType: .healthKit, sourceName: "Omron Connect"),
+            sample(.bodyMass, 71.6, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyMassIndex, 23.1, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyWaterPercentage, 56.8, targetDate, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.stepCount, 6_400, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 310, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.dailyRhythmScore, 84, targetDate, sourceType: .appComputed, sourceName: "밤숨 앱"),
+        ]
+
+        let summary = builder.summary(
+            for: targetDate,
+            samples: samples,
+            sleepReports: [report(sessionID: sessionID, generatedAt: targetDate)],
+            morningCheckIns: [MorningCheckIn(sessionId: sessionID, createdAt: targetDate)],
+            calendar: calendar
+        )
+
+        #expect(summary.sampleCount == 8)
+        #expect(summary.hasSleepReport)
+        #expect(summary.hasBloodPressure)
+        #expect(summary.hasBodyComposition)
+        #expect(summary.hasActivity)
+        #expect(summary.hasMorningCheckIn)
+        #expect(summary.dataQuality == .excellent)
+    }
+
+    @Test
     func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 
@@ -164,6 +221,30 @@ struct HealthCalendarTests {
             sourceType: sourceType,
             sourceName: sourceName,
             createdAt: measuredAt
+        )
+    }
+
+    private func report(sessionID: UUID, generatedAt: Date) -> NightReport {
+        NightReport(
+            sessionId: sessionID,
+            generatedAt: generatedAt,
+            measurementDuration: 8 * 60 * 60,
+            estimatedSleepDuration: 7.2 * 60 * 60,
+            receivedAudioDuration: 7.9 * 60 * 60,
+            audioCoverageRatio: 0.94,
+            sleepSoundScore: 82,
+            snoreTotalSeconds: 18 * 60,
+            snoreRatio: 0.04,
+            bruxismLikeCount: 2,
+            suspectedPauseCount: 1,
+            gaspLikeCount: 0,
+            coughLikeCount: 1,
+            sleepTalkLikeCount: 0,
+            environmentalNoiseCount: 3,
+            awakeningSuspectedCount: 1,
+            longestSuspectedPause: 8,
+            mostDisturbedHourRange: nil,
+            mainDisturbanceReason: "수면 소리 지표가 기록되었습니다."
         )
     }
 

@@ -103,6 +103,36 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func allPeriodRangeDoesNotBorrowDatesFromOtherMetricsOrSources() {
+        let selectedFitdaysSample = sample(
+            .bodyMass,
+            71.8,
+            daysAgo: 14,
+            sourceType: .fitdaysCSV,
+            sourceName: "Fitdays CSV Import"
+        )
+        let samples = [
+            sample(.bodyMass, 70.9, daysAgo: 250, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            selectedFitdaysSample,
+            sample(.bodyWaterPercentage, 56.8, daysAgo: 200, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
+            sample(.bodyMassIndex, 22.8, daysAgo: 1, sourceType: .manual, sourceName: "수동 입력"),
+        ]
+
+        let viewModel = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: samples,
+            period: .all,
+            sourceFilter: .fitdaysCSV,
+            endDate: referenceDate
+        )
+
+        #expect(viewModel.dateRange.start == selectedFitdaysSample.measuredAt)
+        #expect(viewModel.dateRange.end == referenceDate)
+        #expect(viewModel.filteredSamples == [selectedFitdaysSample])
+        #expect(viewModel.summary.sampleCount == 1)
+    }
+
+    @Test
     func rawSampleListIsNewestFirstAndKeepsSourceMetadata() {
         let samples = [
             sample(.bodyWaterPercentage, 56.8, daysAgo: 3, sourceType: .fitdaysCSV, sourceName: "Fitdays CSV Import"),
@@ -121,6 +151,29 @@ struct MetricDetailViewModelTests {
         #expect(viewModel.rawSampleList.map(\.value) == [57.2, 57.0, 56.8])
         #expect(viewModel.rawSampleList.map(\.sourceType) == [.fitdaysCSV, .manual, .fitdaysCSV])
         #expect(viewModel.rawSampleList.map(\.sourceName) == ["Fitdays CSV Import", "수동 입력", "Fitdays CSV Import"])
+    }
+
+    @Test
+    func emptyStateReasonPrioritizesSelectedSourceBeforeSelectedPeriod() {
+        let oldHealthKitSample = sample(.bodyMass, 72.2, daysAgo: 400, sourceType: .healthKit)
+
+        let sourceFiltered = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: [oldHealthKitSample],
+            period: .sevenDays,
+            sourceFilter: .fitdaysCSV,
+            endDate: referenceDate
+        )
+        let periodFiltered = MetricDetailViewModel(
+            metricID: .bodyMass,
+            samples: [oldHealthKitSample],
+            period: .sevenDays,
+            sourceFilter: .healthKit,
+            endDate: referenceDate
+        )
+
+        #expect(sourceFiltered.emptyStateReason == .noSamplesForSource)
+        #expect(periodFiltered.emptyStateReason == .noSamplesForPeriod)
     }
 
     @Test
