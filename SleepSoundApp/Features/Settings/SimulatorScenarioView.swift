@@ -454,6 +454,12 @@ struct ScreenshotScenarioDestinationView: View {
     case .sleepRecording:
       SleepRecordingView()
         .navigationTitle("수면 기록 중")
+    case .onboarding:
+      OnboardingView()
+    case .devicePlacement:
+      DevicePlacementGuideView()
+    case .calibration:
+      CalibrationView()
     case .sleepReport, .zeroEventReport, .lowCoverageReport:
       SleepReportView(report: appState.latestReport, events: appState.latestEvents)
     case .eventTimeline:
@@ -573,6 +579,12 @@ struct ScreenshotScenarioDestinationView: View {
       PrivacySettingsView()
     case .debugTools:
       DetectorTuningView()
+    case .audioDebug:
+      AudioDebugView()
+    case .sampleCapture:
+      SampleCaptureView()
+    case .datasetReplay:
+      DatasetReplayView()
     }
   }
 }

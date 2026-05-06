@@ -5,6 +5,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case homeDashboard
   case sleepStart
   case sleepRecording
+  case onboarding
+  case devicePlacement
+  case calibration
   case sleepReport
   case eventTimeline
   case morningBrief
@@ -30,6 +33,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case lowCoverageReport
   case eventAudioStorageOff
   case debugTools
+  case audioDebug
+  case sampleCapture
+  case datasetReplay
 
   var id: String { rawValue }
 
@@ -85,6 +91,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotSleepStartScenario"
     case .sleepRecording:
       "ScreenshotRecordingScenario"
+    case .onboarding:
+      "ScreenshotOnboardingScenario"
+    case .devicePlacement:
+      "ScreenshotDevicePlacementScenario"
+    case .calibration:
+      "ScreenshotCalibrationScenario"
     case .sleepReport:
       "ScreenshotSleepReportScenario"
     case .eventTimeline:
@@ -135,6 +147,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotEventAudioStorageOffScenario"
     case .debugTools:
       "ScreenshotDebugScenario"
+    case .audioDebug:
+      "ScreenshotAudioDebugScenario"
+    case .sampleCapture:
+      "ScreenshotSampleCaptureScenario"
+    case .datasetReplay:
+      "ScreenshotDatasetReplayScenario"
     }
   }
 
@@ -146,6 +164,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "잠들기 전 준비를 차분하게"
     case .sleepRecording:
       "iPhone 안에서 조용히 분석"
+    case .onboarding:
+      "처음부터 로컬 분석 원칙 확인"
+    case .devicePlacement:
+      "iPhone 배치를 차분하게 안내"
+    case .calibration:
+      "잠들기 전 입력 상태 확인"
     case .sleepReport:
       "아침에 읽기 쉬운 수면 소리 리포트"
     case .eventTimeline:
@@ -196,6 +220,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 샘플 저장은 사용자가 선택"
     case .debugTools:
       "DEBUG에서만 확인하는 검증 화면"
+    case .audioDebug:
+      "DEBUG에서 입력 feature를 확인"
+    case .sampleCapture:
+      "짧은 로컬 샘플만 수동 저장"
+    case .datasetReplay:
+      "로컬 replay로 detector 경로 확인"
     }
   }
 
@@ -207,6 +237,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "수면 시작 CTA, 마이크 권한, 기기 배치, 이벤트 오디오 샘플 저장 상태가 보이게 캡처합니다."
     case .sleepRecording:
       "녹음 중 상태, 실제 오디오 수신 시간, 커버리지, 수면 종료 버튼이 보이게 캡처합니다."
+    case .onboarding:
+      "온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 원칙이 보이게 캡처합니다."
+    case .devicePlacement:
+      "충전, 침대 옆 배치, 마이크 가림 방지, 캘리브레이션 진입이 보이게 캡처합니다."
+    case .calibration:
+      "30초 입력 확인, 수신 시간, 커버리지, 캘리브레이션 시작 CTA가 보이게 캡처합니다."
     case .sleepReport:
       "점수, 주요 이벤트, detector diagnostics 요약, 진단 목적 아님 안내가 보이게 캡처합니다."
     case .eventTimeline:
@@ -257,12 +293,19 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 오디오 샘플 저장 꺼짐, 원본 전체 오디오 미저장 안내가 보이게 캡처합니다."
     case .debugTools:
       "Dataset Replay 또는 Detector Tuning 같은 DEBUG 전용 검증 화면임이 보이게 캡처합니다."
+    case .audioDebug:
+      "RMS, energy, threshold, raw candidate, reject reason 같은 DEBUG 입력 관측 항목이 보이게 캡처합니다."
+    case .sampleCapture:
+      "2초/3초/5초 수동 샘플 버튼, metadata/feature summary, local-only 안내가 보이게 캡처합니다."
+    case .datasetReplay:
+      "local manifest, missing file 안내, raw/final count, reject reason 같은 replay 진단 항목이 보이게 캡처합니다."
     }
   }
 
   var simulatorPreset: SimulatorQAScenarioPreset {
     switch self {
-    case .homeDashboard, .sleepStart, .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard,
+    case .homeDashboard, .sleepStart, .onboarding, .devicePlacement, .calibration,
+         .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard,
          .bloodPressureDashboard, .bodyCompositionDashboard, .crossMetricDashboard,
          .healthMetricsOverview, .healthCalendar, .dailyMeasurementDetail, .metricDetail, .localOnlyMetric:
       .snoreHeavyNight
@@ -278,7 +321,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       .lowAudioCoverageNight
     case .eventAudioStorageOff:
       .eventAudioStorageOff
-    case .debugTools:
+    case .debugTools, .audioDebug, .sampleCapture, .datasetReplay:
       .zeroEventButGoodAudioCoverage
     }
   }
@@ -291,6 +334,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/README/sleep_start_light.png"
     case .sleepRecording:
       "Docs/Screenshots/README/sleep_recording_dark.png"
+    case .onboarding:
+      "Docs/Screenshots/Privacy/onboarding_light.png"
+    case .devicePlacement:
+      "Docs/Screenshots/Privacy/device_placement_guide_light.png"
+    case .calibration:
+      "Docs/Screenshots/Privacy/calibration_light.png"
     case .sleepReport:
       "Docs/Screenshots/README/sleep_report_light.png"
     case .eventTimeline:
@@ -341,6 +390,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
     case .debugTools:
       "Docs/Screenshots/Debug/detector_tuning_light.png"
+    case .audioDebug:
+      "Docs/Screenshots/Debug/audio_debug_light.png"
+    case .sampleCapture:
+      "Docs/Screenshots/Debug/sample_capture_light.png"
+    case .datasetReplay:
+      "Docs/Screenshots/Debug/dataset_replay_light.png"
     }
   }
 }
@@ -349,7 +404,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
 enum ScreenshotScenarioFactory {
   static func makeAppState(for scenario: ScreenshotScenario) -> AppState {
     let settings = ScreenshotUserSettings()
-    settings.hasCompletedOnboarding = true
+    settings.hasCompletedOnboarding = scenario != .onboarding
     settings.isEventAudioSampleStorageEnabled = scenario == .privacySettings || scenario == .sleepRecording
 
     let state = AppState(

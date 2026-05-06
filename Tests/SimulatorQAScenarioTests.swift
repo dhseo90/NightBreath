@@ -140,6 +140,39 @@ struct SimulatorQAScenarioTests {
     #expect(simulatorScenarioView.contains("CrossMetric insufficient"))
   }
 
+  @Test
+  func supportScreenshotScenariosExposeOnboardingPrivacyAndDebugScreens() throws {
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+    let simulatorScenarioView = try sourceContents("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift")
+    let captureScript = try sourceContents("Tools/Screenshots/capture_support_screenshots.sh")
+    let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+    let expectedScenarios = [
+      ("ScreenshotOnboardingScenario", "OnboardingView()", "Privacy/cropped/onboarding_light.png"),
+      ("ScreenshotDevicePlacementScenario", "DevicePlacementGuideView()", "Privacy/cropped/device_placement_guide_light.png"),
+      ("ScreenshotCalibrationScenario", "CalibrationView()", "Privacy/cropped/calibration_light.png"),
+      ("ScreenshotAudioDebugScenario", "AudioDebugView()", "Debug/cropped/audio_debug_light.png"),
+      ("ScreenshotSampleCaptureScenario", "SampleCaptureView()", "Debug/cropped/sample_capture_light.png"),
+      ("ScreenshotDatasetReplayScenario", "DatasetReplayView()", "Debug/cropped/dataset_replay_light.png"),
+    ]
+
+    #expect(captureScript.contains("SUPPORT_SCREENSHOT_SCENARIOS"))
+    #expect(captureScript.contains("--nightbreath-screenshot-scenario"))
+    #expect(captureScript.contains("Docs/Screenshots/Privacy"))
+    #expect(captureScript.contains("Docs/Screenshots/Debug"))
+    #expect(screenshotGuide.contains("capture_support_screenshots.sh"))
+    #expect(uiGallery.contains("DEBUG only"))
+    #expect(uiGallery.contains("실제 개인 오디오 파일명"))
+
+    for (scenarioName, destination, croppedPath) in expectedScenarios {
+      #expect(screenshotScenarios.contains(scenarioName), "\(scenarioName) should exist in ScreenshotScenario.")
+      #expect(simulatorScenarioView.contains(destination), "\(destination) should be reachable from screenshot launch routing.")
+      #expect(captureScript.contains(croppedPath.replacingOccurrences(of: "cropped/", with: "")), "\(croppedPath) raw capture should be scripted.")
+      #expect(screenshotGuide.contains(croppedPath), "\(croppedPath) should be documented in screenshot guide.")
+      #expect(uiGallery.contains(croppedPath), "\(croppedPath) should be linked in UI Gallery.")
+    }
+  }
+
   private func sourceContents(_ relativePath: String) throws -> String {
     let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)

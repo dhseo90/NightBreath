@@ -160,6 +160,38 @@ Tools/Screenshots/capture_ehm_screenshots.sh
 SCREENSHOT_SCENARIOS=bloodPressureDashboard,bodyCompositionDashboard,crossMetricDashboard Tools/Screenshots/capture_ehm_screenshots.sh
 ```
 
+## Onboarding / Privacy / DEBUG Support Screenshot
+
+Onboarding, device placement, calibration, DEBUG-only observability/replay 화면은 별도 script로 캡처합니다. 모든 DEBUG 화면은 synthetic/mock state만 사용하며, 실제 개인 오디오 파일명이나 실제 샘플 내용을 노출하지 않습니다.
+
+```bash
+Tools/Screenshots/capture_support_screenshots.sh
+```
+
+출력 위치:
+
+```text
+Docs/Screenshots/Privacy/
+Docs/Screenshots/Privacy/cropped/
+Docs/Screenshots/Debug/
+Docs/Screenshots/Debug/cropped/
+```
+
+현재 캡처 세트:
+
+- `onboarding`
+- `devicePlacement`
+- `calibration`
+- `audioDebug`
+- `sampleCapture`
+- `datasetReplay`
+
+특정 scenario만 재캡처:
+
+```bash
+SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
+```
+
 ## App Store Marketing Screenshot
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.

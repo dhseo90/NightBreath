@@ -29,7 +29,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 ## 실제 개인 데이터 금지
 
-- 개인 이름, 실제 생년월일, 실제 건강 샘플, 실제 source device serial, 실제 녹음 파일명을 노출하지 않습니다.
+- 개인 이름, 실제 생년월일, 실제 건강 샘플, 실제 source device serial, 실제 개인 오디오 파일명, 실제 녹음 파일명을 노출하지 않습니다.
 - 서버 전송, 자동 공유, 외부 SDK 사용을 암시하지 않습니다.
 - 수면 소리 지표와 건강 지표를 함께 보여도 인과관계를 의미하지 않는다는 안내를 유지합니다.
 - 모든 건강 관련 화면에는 필요 시 “이 앱은 진단 목적의 의료기기가 아닙니다.” 또는 동등한 안전 문구를 포함합니다.
@@ -103,9 +103,9 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `PrivacySettingsView` | 로컬 저장과 개인정보 설정 | 이벤트 오디오 샘플 opt-in, 저장량, orphan 샘플, HealthKit read-only 설명 | 샘플 토글, 삭제, orphan 정리 | 서버 전송 없음, HealthKit 쓰기 없음, 전체 밤 원본 오디오 미저장 | `ScreenshotPrivacyScenario` | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | ![PrivacySettingsView](Screenshots/Privacy/cropped/privacy_settings_light.png) | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
-| `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 배치 원칙, 충전, 마이크 가림 방지, 30초 캘리브레이션 | 캘리브레이션 실행 | 측정 품질을 높이기 위한 안내이며 결과를 단정하지 않음 | `ScreenshotSleepStartScenario` 이후 수동 진입 | `Docs/Screenshots/Privacy/device-placement-guide.png` | screenshot pending | Release | `Docs/QA_GUIDE.md` |
-| `OnboardingView` | 첫 사용 안내 | 온디바이스 분석, 개인정보 원칙, 이벤트 샘플 opt-in | 시작하기 | 초기 안내에서 서버 전송 없음과 원본 전체 오디오 미저장을 명확히 표시 | 수동 onboarding reset | `Docs/Screenshots/Privacy/onboarding.png` | screenshot pending | Release | `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md` |
-| `CalibrationView` | 30초 입력 확인 | 입력 level, ambient baseline, calibration result | 캘리브레이션 시작/완료 | 마이크 입력 품질 확인용이며 건강 상태 해석이 아님 | `ScreenshotSleepStartScenario` 이후 수동 진입 | `Docs/Screenshots/Privacy/calibration.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 배치 원칙, 충전, 마이크 가림 방지, 30초 캘리브레이션 | 캘리브레이션 실행 | 측정 품질을 높이기 위한 안내이며 결과를 단정하지 않음 | `ScreenshotDevicePlacementScenario` | `Docs/Screenshots/Privacy/cropped/device_placement_guide_light.png` | ![DevicePlacementGuideView](Screenshots/Privacy/cropped/device_placement_guide_light.png) | Release | `Docs/QA_GUIDE.md` |
+| `OnboardingView` | 첫 사용 안내 | 온디바이스 분석, 개인정보 원칙, 이벤트 샘플 opt-in | 시작하기 | 초기 안내에서 서버 전송 없음과 원본 전체 오디오 미저장을 명확히 표시 | `ScreenshotOnboardingScenario` | `Docs/Screenshots/Privacy/cropped/onboarding_light.png` | ![OnboardingView](Screenshots/Privacy/cropped/onboarding_light.png) | Release | `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md` |
+| `CalibrationView` | 30초 입력 확인 | 입력 level, ambient baseline, calibration result | 캘리브레이션 시작/완료 | 마이크 입력 품질 확인용이며 건강 상태 해석이 아님 | `ScreenshotCalibrationScenario` | `Docs/Screenshots/Privacy/cropped/calibration_light.png` | ![CalibrationView](Screenshots/Privacy/cropped/calibration_light.png) | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Empty / Edge States
 
@@ -126,8 +126,8 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `DatasetReplayView` | 로컬/synthetic audio replay 검증 | replay 상태, diagnostics, 후보/이벤트 수 | replay 실행 | 개인 오디오 파일은 repo나 screenshot에 포함하지 않음 | `ScreenshotDebugScenario` 이후 수동 진입 | `Docs/Screenshots/Debug/dataset-replay.png` | screenshot pending | DEBUG only | `Docs/DATASET_REPLAY.md` |
+| `DatasetReplayView` | 로컬/synthetic audio replay 검증 | replay 상태, diagnostics, 후보/이벤트 수 | replay 실행 | 개인 오디오 파일은 repo나 screenshot에 포함하지 않음 | `ScreenshotDatasetReplayScenario` | `Docs/Screenshots/Debug/cropped/dataset_replay_light.png` | ![DatasetReplayView](Screenshots/Debug/cropped/dataset_replay_light.png) | DEBUG only | `Docs/DATASET_REPLAY.md` |
 | `DetectorTuningView` | detector profile 확인 | backend, tuning profile, fallback, threshold | profile 선택 | 결과는 개발 검증용이며 사용자 판단 문구로 쓰지 않음 | `ScreenshotDebugScenario` | `Docs/Screenshots/Debug/cropped/detector_tuning_light.png` | ![DetectorTuningView](Screenshots/Debug/cropped/detector_tuning_light.png) | DEBUG only | `Docs/DETECTOR_TUNING.md` |
 | `SimulatorScenarioView` | 예시 scenario 적용 | scenario 목록, screenshot preset, 적용 상태, 화면 진입 링크 | scenario 적용/해제 | screenshot과 UI QA는 예시 데이터 기반 | `ScreenshotDebugScenario` 이후 현재 화면 | `Docs/Screenshots/Debug/simulator-scenario.png` | screenshot pending | DEBUG only | `Docs/QA_GUIDE.md` |
-| `AudioDebugView` | 오디오 입력/debug output 확인 | RMS, energy, detector output | 입력 상태 확인 | 원본 전체 오디오 저장을 암시하지 않음 | `ScreenshotDebugScenario` 이후 수동 진입 | `Docs/Screenshots/Debug/audio-debug.png` | screenshot pending | DEBUG only | `Docs/UI_SCREEN_MAP.md` |
-| `SampleCaptureView` | 짧은 개발용 샘플 캡처 | 샘플 수, 저장 경로, capture 상태 | 짧은 샘플 캡처 | 실제 screenshot에는 개인 오디오 파일명이나 샘플 내용을 노출하지 않음 | `ScreenshotDebugScenario` 이후 수동 진입 | `Docs/Screenshots/Debug/sample-capture.png` | screenshot pending | DEBUG only | `Docs/QA_GUIDE.md` |
+| `AudioDebugView` | 오디오 입력/debug output 확인 | RMS, energy, detector output | 입력 상태 확인 | 원본 전체 오디오 저장을 암시하지 않음 | `ScreenshotAudioDebugScenario` | `Docs/Screenshots/Debug/cropped/audio_debug_light.png` | ![AudioDebugView](Screenshots/Debug/cropped/audio_debug_light.png) | DEBUG only | `Docs/UI_SCREEN_MAP.md` |
+| `SampleCaptureView` | 짧은 개발용 샘플 캡처 | 샘플 수, 저장 경로, capture 상태 | 짧은 샘플 캡처 | 실제 screenshot에는 개인 오디오 파일명이나 샘플 내용을 노출하지 않음 | `ScreenshotSampleCaptureScenario` | `Docs/Screenshots/Debug/cropped/sample_capture_light.png` | ![SampleCaptureView](Screenshots/Debug/cropped/sample_capture_light.png) | DEBUG only | `Docs/QA_GUIDE.md` |

@@ -95,6 +95,12 @@ UI Gallery crop 위치:
 - `EdgeStates/metric_detail_empty_light.png`
 - `EdgeStates/cross_metric_insufficient_light.png`
 - `Debug/detector_tuning_light.png`
+- `Privacy/onboarding_light.png`
+- `Privacy/device_placement_guide_light.png`
+- `Privacy/calibration_light.png`
+- `Debug/audio_debug_light.png`
+- `Debug/sample_capture_light.png`
+- `Debug/dataset_replay_light.png`
 
 UI Gallery crop 위치:
 
@@ -107,6 +113,24 @@ UI Gallery crop 위치:
 - `EdgeStates/cropped/metric_detail_empty_light.png`
 - `EdgeStates/cropped/cross_metric_insufficient_light.png`
 - `Debug/cropped/detector_tuning_light.png`
+- `Privacy/cropped/onboarding_light.png`
+- `Privacy/cropped/device_placement_guide_light.png`
+- `Privacy/cropped/calibration_light.png`
+- `Debug/cropped/audio_debug_light.png`
+- `Debug/cropped/sample_capture_light.png`
+- `Debug/cropped/dataset_replay_light.png`
+
+Release onboarding/privacy와 DEBUG 전용 검증 화면은 다음 스크립트로 직접 캡처합니다.
+
+```bash
+Tools/Screenshots/capture_support_screenshots.sh
+```
+
+특정 scenario만 재캡처할 때:
+
+```bash
+SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
+```
 
 ## App Store Marketing Screenshot
 
