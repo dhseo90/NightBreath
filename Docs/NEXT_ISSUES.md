@@ -50,7 +50,7 @@
 - 실제 Fitdays 앱에서 CSV/export 메뉴가 보이는지 재확인
 - `Docs/QA_GUIDE.md`와 `Docs/HEALTH_DATA_GUIDE.md`의 실기기 export availability runbook 준비 완료
 - export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
-- `FitdaysImportView`의 read-only fallback UX 보강 완료
+- `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인

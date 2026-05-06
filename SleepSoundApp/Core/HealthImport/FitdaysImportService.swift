@@ -119,6 +119,37 @@ public enum FitdaysImportFilePolicy {
     }
 }
 
+public enum FitdaysImportFallbackGuidance {
+    public static let privacyMessages = [
+        "Fitdays 서버나 비공식 API에 연결하지 않습니다.",
+        "선택한 파일은 기기 안에서만 parsing합니다.",
+        "CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다.",
+        "HealthKit에 데이터를 쓰지 않습니다.",
+        "가져온 값은 개인 참고용 보기로만 표시합니다.",
+    ]
+
+    public static let emptyStateMessage = "CSV 또는 text 기반 export 파일을 확보한 경우에만 선택합니다. 파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."
+
+    public static let exportUnavailableTitle = "CSV/export 메뉴를 찾지 못한 경우"
+
+    public static let exportUnavailableSteps = [
+        "Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다.",
+        "Apple 건강앱에 동기화된 표준 지표를 HealthKit read-only로 먼저 봅니다.",
+        "HealthKit에 없는 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 후속 기능으로 분리합니다.",
+        "실제 메뉴 경로, 파일명, 계정 정보는 repository가 아니라 private QA note에만 기록합니다.",
+    ]
+
+    public static let healthDashboardFallbackTitle = "Apple 건강앱 read-only로 계속 보기"
+    public static let localOnlyFollowUpTitle = "Fitdays 고유 지표는 후속 로컬 입력으로 분리"
+    public static let prohibitedApproaches = [
+        "Fitdays 서버/API 직접 연결",
+        "Fitdays 계정 로그인",
+        "자동 동기화",
+        "비공식 연결 방식",
+        "UI scraping",
+    ]
+}
+
 public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
     public var dateColumnNames: [String]
     public var timeColumnNames: [String]

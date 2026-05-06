@@ -18,6 +18,38 @@ struct FitdaysImportServiceTests {
     }
 
     @Test
+    func fallbackGuidanceKeepsExportOptionalAndReadOnly() {
+        let combined = (
+            FitdaysImportFallbackGuidance.privacyMessages
+            + [FitdaysImportFallbackGuidance.emptyStateMessage]
+            + [FitdaysImportFallbackGuidance.exportUnavailableTitle]
+            + FitdaysImportFallbackGuidance.exportUnavailableSteps
+            + [FitdaysImportFallbackGuidance.healthDashboardFallbackTitle]
+            + [FitdaysImportFallbackGuidance.localOnlyFollowUpTitle]
+            + FitdaysImportFallbackGuidance.prohibitedApproaches
+        ).joined(separator: "\n")
+
+        #expect(combined.contains("CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다."))
+        #expect(combined.contains("파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."))
+        #expect(combined.contains("Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다."))
+        #expect(combined.contains("HealthKit에 없는 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 후속 기능으로 분리합니다."))
+        #expect(combined.contains("private QA note"))
+        #expect(FitdaysImportFallbackGuidance.prohibitedApproaches.contains("Fitdays 서버/API 직접 연결"))
+        #expect(FitdaysImportFallbackGuidance.prohibitedApproaches.contains("UI scraping"))
+
+        let forbiddenClaims = [
+            "Fitdays 서버/API에 직접 연결합니다",
+            "비공식 연결 방식을 구현합니다",
+            "자동 동기화를 구현합니다",
+            "HealthKit에 Fitdays import 값을 씁니다",
+        ]
+
+        for claim in forbiddenClaims {
+            #expect(!combined.contains(claim), "Fallback guidance should not promise forbidden behavior: \(claim)")
+        }
+    }
+
+    @Test
     func previewImportDryRunUsesSyntheticFixtureWithoutSaving() throws {
         let repository = InMemoryUnifiedHealthMetricSampleRepository()
         let result = try service.previewImport(from: fixtureURL())

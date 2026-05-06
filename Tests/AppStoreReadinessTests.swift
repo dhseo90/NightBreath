@@ -71,12 +71,13 @@ struct AppStoreReadinessTests {
         #expect(appState.contains("FitdaysImportFilePolicy.isSupportedFileName"))
         #expect(importView.contains("previewInitialFileIfNeeded"))
         #expect(importView.contains("service.previewImport(from: fileURL)"))
-        #expect(importView.contains("CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다."))
-        #expect(importView.contains("파일이 없다면 건강앱 read-only 지표만 사용해도 됩니다."))
+        #expect(importView.contains("FitdaysImportFallbackGuidance.privacyMessages"))
+        #expect(importView.contains("FitdaysImportFallbackGuidance.emptyStateMessage"))
+        #expect(importView.contains("exportUnavailableSection"))
         #expect(importView.contains("파일이 없어도 괜찮습니다"))
-        #expect(importView.contains("Apple 건강앱 read-only로 계속 보기"))
+        #expect(importView.contains("FitdaysImportFallbackGuidance.healthDashboardFallbackTitle"))
         #expect(importView.contains("건강 데이터 대시보드 보기"))
-        #expect(importView.contains("Fitdays 고유 지표는 수동 입력 또는 로컬 입력 기능으로 분리합니다."))
+        #expect(importView.contains("FitdaysImportFallbackGuidance.localOnlyFollowUpTitle"))
         #expect(importView.contains("Fitdays 로그인, 서버/API 연결, 자동 동기화, 비공식 연결 방식을 사용하지 않습니다."))
     }
 

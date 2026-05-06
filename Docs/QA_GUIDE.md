@@ -505,7 +505,7 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 4. Files / iCloud Drive / AirDrop / Mail 등으로 로컬 파일을 저장할 수 있는지 확인합니다.
 5. CSV가 보이지 않으면 Account / Export My Data / Customer Service Center 경로를 확인합니다.
 6. 그래도 export 파일을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 고유 지표는 manual input follow-up으로 남깁니다.
-7. `FitdaysImportView`에 파일이 없어도 괜찮다는 fallback 섹션과 건강 데이터 대시보드 진입이 보이는지 확인합니다.
+7. `FitdaysImportView`에 파일이 없어도 괜찮다는 fallback 섹션, CSV/export 메뉴를 찾지 못한 경우의 안내, 건강 데이터 대시보드 진입이 보이는지 확인합니다.
 8. 사용자가 명시적으로 파일을 선택할 때만 import가 시작되는지 확인합니다.
 9. valid CSV에서 preview, result, 샘플 개수, skipped row, unknown column이 표시되는지 확인합니다.
 10. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.

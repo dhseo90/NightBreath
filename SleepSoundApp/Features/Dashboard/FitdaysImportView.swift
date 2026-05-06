@@ -35,6 +35,7 @@ struct FitdaysImportView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         headerSection
         policySection
+        exportUnavailableSection
         fallbackSection
 
         if let importResult {
@@ -86,13 +87,7 @@ struct FitdaysImportView: View {
   private var policySection: some View {
     NBPrivacyNoticeCard(
       title: "로컬 파일 import",
-      messages: [
-        "Fitdays 서버나 비공식 API에 연결하지 않습니다.",
-        "선택한 파일은 기기 안에서만 parsing합니다.",
-        "CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다.",
-        "HealthKit에 데이터를 쓰지 않습니다.",
-        "가져온 값은 개인 참고용 보기로만 표시합니다.",
-      ],
+      messages: FitdaysImportFallbackGuidance.privacyMessages,
       systemImage: "lock.doc"
     )
   }
@@ -100,7 +95,7 @@ struct FitdaysImportView: View {
   private var emptyState: some View {
     NBEmptyStateView(
       title: "가져온 파일이 없습니다",
-      message: "CSV 또는 text 기반 export 파일을 확보한 경우에만 선택합니다. 파일이 없다면 건강앱 read-only 지표만 사용해도 됩니다.",
+      message: FitdaysImportFallbackGuidance.emptyStateMessage,
       systemImage: "doc.text.magnifyingglass",
       actionTitle: "파일 선택"
     ) {
@@ -108,11 +103,32 @@ struct FitdaysImportView: View {
     }
   }
 
+  private var exportUnavailableSection: some View {
+    NBReportSection(title: FitdaysImportFallbackGuidance.exportUnavailableTitle, systemImage: "questionmark.folder") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        ForEach(FitdaysImportFallbackGuidance.exportUnavailableSteps, id: \.self) { step in
+          HStack(alignment: .top, spacing: NBSpacing.small) {
+            Image(systemName: "checkmark.circle")
+              .foregroundStyle(NBColor.privacyTint)
+              .font(.caption)
+              .padding(.top, 2)
+
+            Text(step)
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
   private var fallbackSection: some View {
     NBReportSection(title: "파일이 없어도 괜찮습니다", systemImage: "heart.text.square") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         NBListRow(
-          title: "Apple 건강앱 read-only로 계속 보기",
+          title: FitdaysImportFallbackGuidance.healthDashboardFallbackTitle,
           value: "표준 지표",
           subtitle: "혈압, 체중, 체지방률처럼 건강앱에 동기화된 표준 지표는 HealthKit read-only 연결로 볼 수 있습니다.",
           systemImage: "heart.text.square",
@@ -122,7 +138,7 @@ struct FitdaysImportView: View {
         Divider().overlay(NBColor.divider)
 
         NBListRow(
-          title: "Fitdays 고유 지표는 후속 로컬 입력으로 분리",
+          title: FitdaysImportFallbackGuidance.localOnlyFollowUpTitle,
           value: "보류",
           subtitle: "CSV/export 파일이 없으면 체수분률, 내장지방 레벨 같은 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 기능으로 분리합니다.",
           systemImage: "square.and.pencil",
