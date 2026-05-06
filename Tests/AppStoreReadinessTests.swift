@@ -474,6 +474,64 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appReviewAuditDocumentsPrivacyHealthKitAndWellnessBoundaries() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let audit = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_REVIEW_AUDIT.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let privacyAudit = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/PRIVACY_STORAGE_AUDIT.md"),
+            encoding: .utf8
+        )
+        let nextIssues = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/NEXT_ISSUES.md"),
+            encoding: .utf8
+        )
+
+        #expect(audit.contains("App Review Notes"))
+        #expect(audit.contains("Privacy / Data Boundary"))
+        #expect(audit.contains("HealthKit Review Checklist"))
+        #expect(audit.contains("Audio / Storage Review Checklist"))
+        #expect(audit.contains("Data Safety Questionnaire Notes"))
+        #expect(audit.contains("Open Manual Gates"))
+        #expect(audit.contains("HealthKit is used only when the user explicitly chooses"))
+        #expect(audit.contains("read access only"))
+        #expect(audit.contains("does not write data to HealthKit"))
+        #expect(audit.contains("does not upload health data or audio to a server"))
+        #expect(audit.contains("does not store full-night raw audio by default"))
+        #expect(audit.contains("Short event audio snippets can be stored locally only when the user explicitly enables"))
+        #expect(audit.contains("No tracking, ads, external analytics SDK, or account login"))
+        #expect(audit.contains("rg -n \"URLSession"))
+        #expect(audit.contains("rg -n \"import HealthKit"))
+        #expect(audit.contains("rg -n \"AVAudioFile"))
+        #expect(releaseGuide.contains("Docs/APP_REVIEW_AUDIT.md"))
+        #expect(privacyAudit.contains("Docs/APP_REVIEW_AUDIT.md"))
+        #expect(nextIssues.contains("App Review 관점"))
+
+        let forbiddenPhrases = [
+            "수면무호흡증 " + "진단",
+            "AHI " + "정확 측정",
+            "이갈이 " + "확진",
+            "질병 " + "판정",
+            "치료 " + "필요",
+            "정상" + "입니다",
+            "코골이가 " + "없었습니다",
+            "HealthKit에 데이터를 씁니다",
+            "서버 업로드를 사용합니다",
+            "전체 밤 원본 오디오를 저장합니다",
+        ]
+
+        for phrase in forbiddenPhrases {
+            #expect(!audit.contains(phrase), "App Review audit should not introduce restricted wording: \(phrase)")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(

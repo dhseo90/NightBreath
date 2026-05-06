@@ -192,6 +192,8 @@ TestFlight blocking gate:
 
 ## App Review Notes 후보
 
+상세 App Review / Legal audit는 `Docs/APP_REVIEW_AUDIT.md`를 기준으로 최종 제출 직전에 다시 확인합니다.
+
 ```text
 NightBreath / 밤숨 uses HealthKit only when the user explicitly chooses to connect health data from the health dashboard. The app requests read access only and does not write data to HealthKit.
 
@@ -208,5 +210,5 @@ Reports are for personal wellness reference and are not intended for medical dia
 - App Store marketing screenshot final
 - App Store product page copy 최종 조정
 - TestFlight 내부 테스트
-- Legal/App Review audit
+- Legal/App Review audit 최종 재확인
 - 실제 iPhone overnight 안정성 확인

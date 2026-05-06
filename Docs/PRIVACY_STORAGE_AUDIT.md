@@ -4,6 +4,8 @@
 
 이 문서는 NightBreath / 밤숨 V1 프로토타입의 개인정보와 로컬 저장소 상태를 점검한 결과입니다.
 
+App Review 제출 전 요약 audit는 `Docs/APP_REVIEW_AUDIT.md`를 함께 확인합니다.
+
 ## 결론
 
 - 전체 밤 원본 오디오를 파일로 저장하는 코드는 없습니다.
