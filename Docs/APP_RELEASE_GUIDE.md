@@ -140,6 +140,8 @@ Capture workflow는 `Tools/Screenshots/README.md`와 `Tools/Screenshots/` script
 
 - `SleepSoundApp/App/Assets.xcassets/AppIcon.appiconset`에 NightBreath 전용 PNG artwork가 들어 있습니다.
 - `Tools/AppIcon/generate_app_icon.swift`로 1024px 원본과 iOS/iPad 슬롯별 PNG를 재생성할 수 있습니다.
+- `Tools/AppIcon/validate_app_icon.swift`로 App Store/iPhone/iPad 슬롯, PNG dimension, opaque source 조건을 검증할 수 있습니다.
+- `Tools/AppIcon/render_app_icon_review_sheet.swift`로 작은 크기 리뷰 시트 `Docs/AppIcon/app_icon_review_sheet.png`를 재생성할 수 있습니다.
 - Xcode target은 `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`으로 이 asset을 사용합니다.
 
 아이콘 방향:
@@ -156,8 +158,18 @@ Capture workflow는 `Tools/Screenshots/README.md`와 `Tools/Screenshots/` script
 - iOS 홈 화면에서 너무 복잡하지 않은가
 - 앱의 “수면 소리 리포트 + 하루 건강 리듬” 방향과 어울리는가
 - 과도하게 의료/진단 앱처럼 보이지 않는가
+- App Store 1024px source가 alpha channel 없이 opaque PNG인가
+- iPhone `60@3x`, `60@2x`, Settings/Search 작은 크기에서도 호흡 파형과 달 형태가 구분되는가
 
-App Store 제출 전에는 실제 기기 홈 화면, Settings 앱 목록, TestFlight install 화면에서 작은 크기 식별성을 다시 확인합니다.
+로컬 검증:
+
+```sh
+xcrun swift Tools/AppIcon/generate_app_icon.swift
+xcrun swift Tools/AppIcon/validate_app_icon.swift
+xcrun swift Tools/AppIcon/render_app_icon_review_sheet.swift
+```
+
+생성된 `Docs/AppIcon/app_icon_review_sheet.png`는 App Store, Home Screen, Settings, Search, smallest size를 한 번에 보는 내부 리뷰용입니다. App Store 제출 전에는 실제 기기 홈 화면, Settings 앱 목록, TestFlight install 화면에서 작은 크기 식별성을 다시 확인합니다.
 
 ## TestFlight Checklist
 
@@ -206,7 +218,7 @@ Reports are for personal wellness reference and are not intended for medical dia
 
 ## 남은 release 작업
 
-- 최종 앱 아이콘 고품질 artwork
+- 실제 기기 홈 화면/Settings/TestFlight 표면에서 최종 앱 아이콘 작은 크기 확인
 - App Store marketing screenshot final
 - App Store product page copy 최종 조정
 - TestFlight 내부 테스트

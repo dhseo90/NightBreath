@@ -114,6 +114,7 @@
 - Daily Health Card README/App Store display profile 분리
 - 실제 iPhone QA runbook과 기록 템플릿
 - Health/QA/App Release 문서 통합 정리
+- App Icon generate/validate/review sheet 로컬 도구
 
 ## 현재 개발 전략
 
@@ -143,7 +144,7 @@
 - 이벤트와 무관한 연속 오디오 보관
 - sleep talk 텍스트 변환
 - App Store 제출
-- 최종 앱 아이콘 고품질 아트워크
+- 실제 기기 홈 화면/Settings/TestFlight 표면의 최종 앱 아이콘 확인
 - App Store screenshot marketing final visual/export version
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export

@@ -51,6 +51,46 @@ struct AppIconAssetTests {
         #expect(!script.contains("diagnosis"))
     }
 
+    @Test
+    func appIconReleaseWorkflowHasValidationAndReviewSheet() throws {
+        let toolReadme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/AppIcon/README.md"),
+            encoding: .utf8
+        )
+        let validationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/AppIcon/validate_app_icon.swift"),
+            encoding: .utf8
+        )
+        let reviewScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/AppIcon/render_app_icon_review_sheet.swift"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let designSystem = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/DESIGN_SYSTEM.md"),
+            encoding: .utf8
+        )
+        let reviewSheetURL = repositoryRoot.appendingPathComponent("Docs/AppIcon/app_icon_review_sheet.png")
+        let reviewSheetSize = try pngPixelSize(at: reviewSheetURL)
+
+        #expect(toolReadme.contains("validate_app_icon.swift"))
+        #expect(toolReadme.contains("render_app_icon_review_sheet.swift"))
+        #expect(validationScript.contains("alpha channel"))
+        #expect(validationScript.contains("AppIcon-1024.png"))
+        #expect(validationScript.contains("ios-marketing"))
+        #expect(reviewScript.contains("Home Screen"))
+        #expect(reviewScript.contains("Settings"))
+        #expect(reviewScript.contains("Smallest"))
+        #expect(releaseGuide.contains("validate_app_icon.swift"))
+        #expect(releaseGuide.contains("app_icon_review_sheet.png"))
+        #expect(designSystem.contains("generate/validate/review sheet"))
+        #expect(reviewSheetSize.width == 1600)
+        #expect(reviewSheetSize.height == 1200)
+    }
+
     private var repositoryRoot: URL {
         URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     }

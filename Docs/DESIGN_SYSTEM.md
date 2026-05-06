@@ -372,7 +372,7 @@ Illustration은 onboarding, device placement guide, privacy notice, empty report
 위치: `SleepSoundApp/App/Assets.xcassets`
 
 - `AccentColor`: NightBreath accent 색상
-- `AppIcon.appiconset`: NightBreath 앱 아이콘 PNG 세트. `Tools/AppIcon/generate_app_icon.swift`로 재생성합니다.
+- `AppIcon.appiconset`: NightBreath 앱 아이콘 PNG 세트. `Tools/AppIcon/`의 generate/validate/review sheet 도구로 재생성하고 검증합니다.
 - `Illustrations/`: future bitmap illustration export를 위한 placeholder namespace
 - `Illustrations/onboarding_privacy_placeholder.imageset`
 - `Illustrations/onboarding_breath_placeholder.imageset`
@@ -393,7 +393,7 @@ Screenshots image set은 실제 App Store Connect 업로드용 screenshot 저장
 
 README와 UI Gallery용 문서 screenshot은 `Docs/Screenshots/`에서 관리합니다. 현재 README 대표 screenshot은 `Docs/Screenshots/README/`에 두고, App Store marketing final screenshot은 별도 검토 후 준비합니다.
 
-이번 작업에서는 고품질 앱 아이콘 이미지를 만들지 않습니다. 실제 아이콘 제작은 별도 디자인 작업으로 남깁니다.
+앱 아이콘은 현재 project-owned PNG 세트를 사용하며, 최종 제출 전에는 `Docs/AppIcon/app_icon_review_sheet.png`와 실제 기기 홈 화면/TestFlight 표면에서 작은 크기 식별성을 다시 확인합니다.
 
 앱 아이콘 제작 가이드는 `Docs/APP_RELEASE_GUIDE.md`를 기준으로 합니다.
 

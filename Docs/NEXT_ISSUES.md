@@ -4,22 +4,18 @@
 
 ## 우선순위 후보
 
-1. 최종 앱 아이콘 고품질 아트워크 제작 완료
-2. App Store screenshot marketing version 준비
-3. Fitdays export availability 실기기 재확인 실행 및 private evidence 기록
-4. EHM regression test 강화 완료
-5. onboarding/device/calibration/debug 상세 screenshot 추가
-6. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
-7. App Store screenshot final export 절차 정리
-8. 실제 iPhone smoke test
-9. TestFlight 내부 테스트 실행
-10. Legal/App Review 최종 재확인
-11. detector threshold tuning with real data
-12. Core ML model 실제 앱 target 적용
+1. App Store product page copy 최종 점검
+2. Fitdays export availability 실기기 재확인 실행 및 private evidence 기록
+3. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
+4. 실제 iPhone smoke test
+5. TestFlight 내부 테스트 실행
+6. Legal/App Review 최종 재확인
+7. detector threshold tuning with real data
+8. Core ML model 실제 앱 target 적용
 
 ## Release / App Store 준비
 
-- 최종 앱 아이콘 제작과 device별 asset 확인
+- 최종 앱 아이콘 asset 검증 도구와 review sheet 준비 완료. 제출 전 실제 기기 홈 화면/TestFlight 표면 확인 필요
 - App Store screenshot headline copy와 mock scenario plan은 정리 완료
 - App Store screenshot marketing visual 재캡처와 App Store Connect size export
 - App Store Connect용 screenshot size/export 절차 정리
