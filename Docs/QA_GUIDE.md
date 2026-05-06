@@ -439,6 +439,17 @@ Simulator 결과가 좋아도 실제 iPhone의 background audio 정책, 발열, 
 6. 앱이 HealthKit에 데이터를 쓰지 않는지 코드 scan과 실제 동작으로 확인합니다.
 7. 수면 기능은 HealthKit 권한 거부 후에도 정상 동작해야 합니다.
 
+실기기 permission flow smoke:
+
+1. 앱을 새로 설치하거나 Health 권한을 초기화한 뒤 첫 실행에서 HealthKit sheet가 뜨지 않는지 확인합니다.
+2. 수면 시작/종료 smoke를 먼저 실행하고, 이 흐름에서도 HealthKit sheet가 뜨지 않는지 확인합니다.
+3. 건강 데이터 대시보드에서 `건강 데이터 연결` 버튼을 누를 때만 HealthKit read 권한 sheet가 표시되는지 확인합니다.
+4. 권한 sheet에서 share/write 항목이 없고 read 항목만 보이는지 확인합니다. iOS 표시 항목은 기기/OS/데이터 가용성에 따라 달라질 수 있습니다.
+5. 전체 허용 시 허용된 표준 지표가 sourceName과 측정 시각을 포함해 표시되는지 확인합니다.
+6. 일부 허용 시 허용하지 않은 항목은 비어 있고, 허용한 항목만 표시되는지 확인합니다.
+7. 거부 또는 데이터 없음 상태에서도 수면 소리 기능, Fitdays CSV fallback, mock/empty 화면이 crash 없이 유지되는지 확인합니다.
+8. iOS 건강앱 또는 설정의 앱 접근 화면에서 NightBreath가 쓰기 권한을 갖지 않는지 확인합니다.
+
 Simulator-first mock state 확인:
 
 | 상태 | 확인 화면 | 기대 표시 |
@@ -454,11 +465,22 @@ Simulator-first mock state 확인:
 기록 시 실제 수치 대신 다음처럼 요약합니다.
 
 ```text
+Commit:
+Device model:
+iOS version:
+Build configuration:
+Fresh install or reset permissions: yes / no
+HealthKit sheet appeared on first launch: no
+HealthKit sheet appeared on sleep start: no
+HealthKit sheet appeared after health connect tap: yes / no
 HealthKit permission: allowed / denied / partial
 Metrics visible: blood pressure / body mass / body fat / activity
 Source labels visible: yes / no
+Write categories visible: no
 Write attempt observed: no
 Server transfer observed: no
+Sleep flow after denial works: yes / no
+Sensitive data included in repo: No
 ```
 
 ## Fitdays CSV Import QA

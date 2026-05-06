@@ -9,7 +9,7 @@
 3. Fitdays export availability 실기기 재확인 실행 및 private evidence 기록
 4. EHM regression test 강화 완료
 5. onboarding/device/calibration/debug 상세 screenshot 추가
-6. 실제 HealthKit permission flow manual QA
+6. 실제 HealthKit permission flow manual QA 실행 및 private evidence 기록
 7. App Store screenshot final export 절차 정리
 8. 실제 iPhone smoke test
 9. TestFlight 준비
@@ -37,6 +37,7 @@
 ## Daily Rhythm / Health Dashboard
 
 - 실제 HealthKit permission flow를 iPhone에서 manual QA
+- `Docs/QA_GUIDE.md`의 HealthKit permission flow smoke와 evidence template 준비 완료
 - 권한 없음/일부 허용/데이터 없음 상태를 실제 기기에서 확인
 - Omron Connect 혈압 source와 Fitdays 체중/체성분 source 표시를 실제 Apple 건강앱 데이터로 장기 검증
 - 혈압/체성분 dashboard의 7일/30일/90일 추세 copy와 empty state 재점검

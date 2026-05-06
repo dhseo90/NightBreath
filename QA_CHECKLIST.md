@@ -198,8 +198,11 @@ rg -n "URLSession|http://|https://|NWConnection|Alamofire|Firebase|Analytics|AdM
 - [ ] Daily Rhythm 확장은 mock/protocol 기반 상태에서도 화면이 정상 동작한다.
 - [ ] 실제 HealthKit 연동 단계에서는 사용자가 “건강 데이터 연결”을 누를 때만 HealthKit read 권한을 요청한다.
 - [ ] 실제 HealthKit 연동 단계에서는 HealthKit share/write 대상이 비어 있다.
+- [ ] HealthKit 권한 sheet에서 쓰기 항목이 보이지 않고, 허용/일부 허용/거부 결과를 private note에만 기록한다.
+- [ ] 일부 허용 상태에서는 허용된 항목만 표시되고, 제한된 항목은 empty/limited state로 남는다.
 - [ ] HealthKit save/delete API를 사용하지 않는다.
 - [ ] 권한 거부 또는 데이터 없음 상태에서 앱이 정상 동작한다.
+- [ ] HealthKit 권한 거부 후에도 수면 시작/종료와 리포트 화면이 정상 동작한다.
 - [ ] 수면 소리 점수, 이벤트, 리포트, 피드백을 HealthKit에 쓰지 않는다.
 
 코드 스캔 예시:

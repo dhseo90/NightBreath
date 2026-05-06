@@ -47,6 +47,55 @@ struct HealthKitReadOnlyPolicyTests {
     }
 
     @Test
+    func healthKitPermissionRequestStaysBehindHealthDashboardConnectAction() throws {
+        let expectedPaths: Set<String> = [
+            "SleepSoundApp/Core/FutureHealth/HealthKitService.swift",
+            "SleepSoundApp/Core/FutureHealth/HealthKitServiceProtocol.swift",
+            "SleepSoundApp/Core/FutureHealth/MockHealthKitService.swift",
+            "SleepSoundApp/Features/Dashboard/HealthDashboardView.swift",
+        ]
+        let actualPaths = try swiftFiles(containing: "requestReadPermission", under: "SleepSoundApp")
+        let dashboard = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
+        let appEntry = try sourceContents("SleepSoundApp/App/SleepSoundApp.swift")
+        let sleepStart = try sourceContents("SleepSoundApp/Features/Sleep/SleepStartView.swift")
+
+        #expect(actualPaths == expectedPaths)
+        #expect(dashboard.contains("Button {\n          connectHealthData()"))
+        #expect(dashboard.contains("let nextPermissionState = await service.requestReadPermission()"))
+        #expect(dashboard.contains("버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다"))
+        #expect(!appEntry.contains("requestReadPermission"))
+        #expect(!sleepStart.contains("requestReadPermission"))
+    }
+
+    @Test
+    func healthKitManualQARunbookCoversPermissionEvidenceAndNoWritePolicy() throws {
+        let qaGuide = try sourceContents("Docs/QA_GUIDE.md")
+        let checklist = try sourceContents("QA_CHECKLIST.md")
+        let combined = qaGuide + "\n" + checklist
+
+        #expect(qaGuide.contains("실기기 permission flow smoke"))
+        #expect(qaGuide.contains("HealthKit sheet appeared on first launch: no"))
+        #expect(qaGuide.contains("HealthKit sheet appeared on sleep start: no"))
+        #expect(qaGuide.contains("HealthKit sheet appeared after health connect tap: yes / no"))
+        #expect(qaGuide.contains("Write categories visible: no"))
+        #expect(qaGuide.contains("Sensitive data included in repo: No"))
+        #expect(checklist.contains("일부 허용 상태에서는 허용된 항목만 표시"))
+        #expect(checklist.contains("HealthKit 권한 거부 후에도 수면 시작/종료"))
+        #expect(combined.contains("HealthKit에 데이터를 쓰지 않습니다") || combined.contains("HealthKit save/delete API"))
+
+        let forbiddenClaims = [
+            "건강 데이터에 씁니다",
+            "HealthKit write를 사용합니다",
+            "첫 실행에서 HealthKit 권한을 요청합니다",
+            "수면 시작 시 HealthKit 권한을 요청합니다",
+        ]
+
+        for claim in forbiddenClaims {
+            #expect(!combined.contains(claim), "HealthKit QA runbook should not contain forbidden claim: \(claim)")
+        }
+    }
+
+    @Test
     func readOnlyMetricsCoverBloodPressureBodyCompositionAndActivity() {
         let metrics = Set(HealthMetricType.readOnlyHealthKitMetrics)
 
@@ -178,6 +227,32 @@ struct HealthKitReadOnlyPolicyTests {
     private func sourceContents(_ relativePath: String) throws -> String {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
+    }
+
+    private func swiftFiles(containing needle: String, under relativePath: String) throws -> Set<String> {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let searchRoot = root.appendingPathComponent(relativePath)
+        let resourceKeys: [URLResourceKey] = [.isRegularFileKey]
+        let enumerator = try #require(
+            FileManager.default.enumerator(
+                at: searchRoot,
+                includingPropertiesForKeys: resourceKeys
+            )
+        )
+        var matches: Set<String> = []
+
+        for case let fileURL as URL in enumerator {
+            guard fileURL.pathExtension == "swift" else { continue }
+            let values = try fileURL.resourceValues(forKeys: Set(resourceKeys))
+            guard values.isRegularFile == true else { continue }
+
+            let contents = try String(contentsOf: fileURL, encoding: .utf8)
+            if contents.contains(needle) {
+                matches.insert(fileURL.path.replacingOccurrences(of: root.path + "/", with: ""))
+            }
+        }
+
+        return matches
     }
 
     private struct DeniedHealthKitService: HealthKitServiceProtocol {
