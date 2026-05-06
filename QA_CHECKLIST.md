@@ -211,10 +211,12 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 ## 13. Extended Health Metrics / Fitdays import 확인
 
 - [ ] `HealthDashboardView`에서 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
-- [ ] `FitdaysImportView`에서 사용자가 명시적으로 CSV/export 파일을 선택할 때만 import 흐름이 시작된다.
+- [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택할 때만 import 흐름이 시작된다.
+- [ ] 실제 Fitdays 앱에서 CSV/export 메뉴가 보이지 않으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 서버/API나 비공식 연결을 시도하지 않는다.
 - [ ] valid synthetic CSV로 import preview와 import result가 표시된다.
 - [ ] invalid CSV row는 앱을 멈추지 않고 skipped row로 표시된다.
 - [ ] 알 수 없는 column은 unknown column으로 표시되고 전체 import를 막지 않는다.
+- [ ] 지원 지표 column 없음 또는 import 가능한 sample 0개인 파일이 저장 전에 거부된다.
 - [ ] import result에서 생성 sample 수, skipped row, error count, sourceName이 명확히 보인다.
 - [ ] import batch 삭제가 가능한 경우 해당 batch의 sample도 함께 삭제되는지 확인한다.
 - [ ] extended metric sample 삭제가 가능한 경우 삭제 후 overview, calendar, metric detail에서 사라지는지 확인한다.

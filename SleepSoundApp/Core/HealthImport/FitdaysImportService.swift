@@ -76,6 +76,8 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
     case unreadableFile
     case emptyFile
     case missingDateColumn
+    case noSupportedMetricColumns
+    case noImportableSamples
 
     public var errorDescription: String? {
         switch self {
@@ -87,6 +89,10 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
             "가져올 CSV 데이터가 없습니다."
         case .missingDateColumn:
             "측정일 column을 찾을 수 없습니다."
+        case .noSupportedMetricColumns:
+            "가져올 수 있는 건강 지표 column을 찾을 수 없습니다."
+        case .noImportableSamples:
+            "저장할 수 있는 건강 지표 샘플이 없습니다."
         }
     }
 }
@@ -285,6 +291,9 @@ public struct FitdaysImportService: Sendable {
         repository: UnifiedHealthMetricSampleRepositoryProtocol
     ) throws -> FitdaysImportResult {
         let result = try previewImport(from: fileURL)
+        guard !result.samples.isEmpty else {
+            throw FitdaysImportError.noImportableSamples
+        }
         try repository.save(batch: result.batch, samples: result.samples)
         return result
     }
@@ -310,6 +319,9 @@ public struct FitdaysImportService: Sendable {
         let metricColumns = header.enumerated().compactMap { index, columnName -> MetricColumn? in
             guard let metricID = mapping.metricID(for: columnName) else { return nil }
             return MetricColumn(index: index, name: columnName, metricID: metricID)
+        }
+        guard !metricColumns.isEmpty else {
+            throw FitdaysImportError.noSupportedMetricColumns
         }
         let knownIndexes = Set(([dateIndex] + [timeIndex].compactMap { $0 } + metricColumns.map(\.index)))
         let unknownColumns = header.enumerated()

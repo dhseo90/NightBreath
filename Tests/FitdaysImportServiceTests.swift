@@ -12,6 +12,8 @@ struct FitdaysImportServiceTests {
         #expect(FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("public.plain-text"))
         #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.pdf"))
         #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.json"))
+        #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.xlsx"))
+        #expect(!FitdaysImportFilePolicy.isSupportedFileName("fitdays_export.zip"))
         #expect(!FitdaysImportFilePolicy.isSupportedContentTypeIdentifier("com.adobe.pdf"))
     }
 
@@ -131,6 +133,43 @@ struct FitdaysImportServiceTests {
         #expect(throws: FitdaysImportError.missingDateColumn) {
             try service.previewImport(from: url)
         }
+    }
+
+    @Test
+    func dateOnlyTextWithoutMappedMetricsIsRejectedBeforeSaving() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let csv = """
+        Date,Time,Comment
+        2026-05-04,07:00,Export menu not available
+        """
+        let url = temporaryFileURL(fileName: "synthetic_fitdays_history.txt")
+        try csv.write(to: url, atomically: true, encoding: .utf8)
+
+        #expect(throws: FitdaysImportError.noSupportedMetricColumns) {
+            try service.importFile(from: url, repository: repository)
+        }
+        #expect(repository.fetchBatches().isEmpty)
+        #expect(repository.fetchSamples().isEmpty)
+    }
+
+    @Test
+    func importFileDoesNotPersistEmptyPreviewResult() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let csv = """
+        Date,Time,Weight,Body Water
+        2026-05-04,07:00,,
+        """
+        let url = temporaryFileURL(fileName: "synthetic_fitdays_empty_metrics.csv")
+        try csv.write(to: url, atomically: true, encoding: .utf8)
+
+        let preview = try service.previewImport(from: url)
+        #expect(preview.samples.isEmpty)
+        #expect(preview.skippedRowCount == 1)
+        #expect(throws: FitdaysImportError.noImportableSamples) {
+            try service.importFile(from: url, repository: repository)
+        }
+        #expect(repository.fetchBatches().isEmpty)
+        #expect(repository.fetchSamples().isEmpty)
     }
 
     private var service: FitdaysImportService {

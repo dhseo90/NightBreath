@@ -12,7 +12,8 @@
 - HealthKit 권한 요청은 사용자가 건강 데이터 연결을 명시적으로 선택한 경우에만 시작합니다.
 - HealthKit 데이터를 서버로 전송하지 않습니다.
 - Fitdays 서버/API 직접 연결, 비공식 연결 방식, reverse engineering은 하지 않습니다.
-- Fitdays CSV 또는 structured export file은 사용자가 직접 선택한 로컬 파일만 처리합니다.
+- Fitdays CSV 또는 structured export file은 사용자가 직접 확보하고 선택한 로컬 파일만 처리합니다.
+- Fitdays 앱 안에서 CSV/export 경로가 보이지 않는 경우에는 Apple 건강앱 read-only 표준 지표만 사용합니다.
 - 실제 개인 CSV 파일은 repository에 포함하지 않습니다.
 - 건강 데이터는 개인 참고용으로만 표시하며, 상태를 단정하거나 지표 사이의 원인과 결과를 주장하지 않습니다.
 
@@ -101,7 +102,7 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 
 ## Fitdays CSV Import
 
-기능명은 V1에서 `Fitdays CSV Import`로 유지합니다. 다만 제품 설명과 importer 설계는 Fitdays 앱에서 사용자가 직접 저장하거나 공유한 CSV 또는 CSV-compatible structured export file을 로컬에서 가져오는 흐름으로 둡니다.
+기능명은 V1에서 `Fitdays CSV Import`로 유지합니다. 다만 제품 설명과 importer 설계는 Fitdays 앱에서 사용자가 직접 확보한 CSV 또는 CSV-compatible structured export file을 로컬에서 가져오는 흐름으로 둡니다. 실제 앱에서 export 경로가 보이지 않을 수 있으므로 이 기능은 선택적 보조 경로이며, 파일이 없을 때도 NightBreath의 HealthKit read-only 건강 대시보드는 동작해야 합니다.
 
 2026-05-04 기준 조사 메모:
 
@@ -109,6 +110,7 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 - Fitdays privacy 문서에는 앱 데이터가 CSV 형식으로 저장되며, History Records / Data Reports 같은 앱 기능에서 CSV export를 지원한다고 설명되어 있습니다. 참고: [Fitdays App Privacy Policy](https://fitdays.org/app-privacy)
 - Fitdays+ privacy 문서에는 사용자가 personal data를 CSV 형식으로 export 요청할 권리가 있다고 설명되어 있습니다. 참고: [Fitdays+ Privacy Policy](https://plus.fitdays.cn/app/privacy?language=en&source=0)
 - 실제 메뉴명과 export 위치는 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태, 연결된 scale 모델에 따라 다를 수 있습니다. NightBreath 문서는 특정 메뉴명을 단정하지 않고 사용자가 직접 확보한 로컬 export 파일만 다룹니다.
+- 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 따라서 QA와 제품 copy는 export 가능성을 단정하지 않고, 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표를 우선 사용합니다.
 
 ### Fitdays 데이터 유입 경로
 
@@ -120,6 +122,7 @@ NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세
    - HealthKit에 없는 Fitdays 고유 지표는 이 경로로 읽으려 하지 않습니다.
 2. Fitdays CSV/export -> 앱 내부 file import
    - 사용자가 Files, iCloud Drive, AirDrop, Mail 등으로 확보한 CSV 또는 structured export file을 `FitdaysImportView`에서 직접 선택합니다.
+   - CSV/export 파일이 없다면 이 경로는 사용하지 않습니다.
    - `fileImporter`는 CSV/text 기반 type을 열 수 있지만, preview validation을 통과한 structured export만 저장할 수 있습니다.
    - unknown column은 warning, invalid row는 skipped row로 처리합니다.
 3. Fitdays share/export -> Open in NightBreath
@@ -190,6 +193,8 @@ Importer 설계 원칙:
 - unknown column은 전체 실패가 아니라 warning으로 남깁니다.
 - invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
 - date column이 없거나 structured export로 해석할 수 없는 text 파일은 저장 전에 실패합니다.
+- 측정일 column은 있지만 지원 지표 column이 없는 text 파일은 저장 전에 실패합니다.
+- 지원 지표 column이 있어도 import 가능한 샘플이 0개인 파일은 저장하지 않습니다.
 - CSV delimiter, decimal separator, 날짜/시간 format, localized column name, 단위 suffix 차이를 regression test로 점검합니다.
 - 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
 - 다른 file에서 같은 metric/source/external record key가 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.

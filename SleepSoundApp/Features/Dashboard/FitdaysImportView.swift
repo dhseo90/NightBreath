@@ -60,7 +60,7 @@ struct FitdaysImportView: View {
   private var headerSection: some View {
     NBReportSection(title: "Fitdays CSV 가져오기", systemImage: "square.and.arrow.down") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("사용자가 직접 선택한 Fitdays CSV 또는 structured export 파일을 로컬에서 읽어 체성분 지표를 정리합니다.")
+        Text("사용자가 직접 확보한 Fitdays CSV 또는 text 기반 export 파일이 있을 때만 로컬에서 체성분 지표를 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
@@ -88,6 +88,7 @@ struct FitdaysImportView: View {
       messages: [
         "Fitdays 서버나 비공식 API에 연결하지 않습니다.",
         "선택한 파일은 기기 안에서만 parsing합니다.",
+        "CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다.",
         "HealthKit에 데이터를 쓰지 않습니다.",
         "가져온 값은 개인 참고용 보기로만 표시합니다.",
       ],
@@ -98,7 +99,7 @@ struct FitdaysImportView: View {
   private var emptyState: some View {
     NBEmptyStateView(
       title: "가져온 파일이 없습니다",
-      message: "Fitdays에서 export/share한 CSV 또는 text 기반 structured export 파일을 선택하면 저장 전 미리보기를 확인할 수 있습니다.",
+      message: "CSV 또는 text 기반 export 파일을 확보한 경우에만 선택합니다. 파일이 없다면 건강앱 read-only 지표만 사용해도 됩니다.",
       systemImage: "doc.text.magnifyingglass",
       actionTitle: "파일 선택"
     ) {

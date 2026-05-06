@@ -6,7 +6,7 @@
 
 1. 최종 앱 아이콘 고품질 아트워크 제작
 2. App Store screenshot marketing version 준비
-3. 실제 Fitdays CSV 수동 import QA
+3. Fitdays export availability 재확인 및 fallback UX 보강
 4. EHM regression test 강화
 5. 혈압/체성분/교차 보기/edge screenshot 추가
 6. 실제 HealthKit permission flow manual QA
@@ -51,10 +51,14 @@
 
 ## Extended Health Metrics / Fitdays Import
 
-- 실제 Fitdays CSV/export file을 사용한 수동 import QA
+- 실제 Fitdays 앱에서 CSV/export 메뉴가 보이는지 재확인
+- export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
+- Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
+- 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
-- Share Extension 필요 여부 결정
+- Share Extension 필요 여부는 실제 export/share 경로가 확인된 뒤 결정
 - invalid CSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
+- 지원 지표 column 없음, import 가능한 sample 0개인 파일을 저장 전에 거부하는지 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름 확인
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시 재점검
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료

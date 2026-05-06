@@ -148,6 +148,8 @@
 - 혈압/체성분/교차 보기/onboarding/device/calibration/replay/audio/sample capture screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증
 - 실제 Fitdays CSV import manual QA
+- 실제 Fitdays 앱 내 CSV/export 메뉴 확인
+- Fitdays 고유 지표 로컬 수동 입력 기능
 - 실제 `.mlmodel` 앱 bundle 적용
 - detector 성능 확정 검증
 - 실제 iPhone 장시간 overnight 안정성 검증
@@ -165,7 +167,8 @@
 - 공개/개인 오디오 파일은 git에 포함하지 않습니다.
 - HealthKit 권한 요청은 건강 데이터 연결 버튼을 선택한 경우에만 수행합니다.
 - HealthKit은 read-only로만 사용합니다.
-- Fitdays import는 사용자가 직접 선택한 로컬 CSV/export file만 처리합니다.
+- Fitdays import는 사용자가 직접 확보하고 선택한 로컬 CSV/export file만 처리합니다.
+- Fitdays 앱에서 CSV/export 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표만 사용합니다.
 - Fitdays 서버/API 연결과 비공식 연결 방식은 없습니다.
 - 실제 개인 CSV 파일은 git에 포함하지 않습니다.
 - 서버 전송, HealthKit 쓰기, 외부 SDK는 없습니다.

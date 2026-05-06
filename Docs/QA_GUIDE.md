@@ -463,7 +463,7 @@ Server transfer observed: no
 
 ## Fitdays CSV Import QA
 
-Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
+Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 다만 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
 
 1. 실제 개인 CSV 또는 structured export file은 repository 밖에 둡니다.
 2. screenshot이나 public review에는 synthetic CSV만 사용합니다.
@@ -480,8 +480,10 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 13. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
 14. Files 앱에서 `.csv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
 15. unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
-16. Open in flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
-17. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
+16. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
+17. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
+18. Open in flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
+19. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
 
@@ -490,6 +492,8 @@ Export type: private Fitdays CSV or structured export / synthetic fixture
 App path checked: Reports / Data Reports / Chart / History Records / More Data / Customer Service Center
 NightBreath entry point: file picker / Open in NightBreath / Apple Health read-only fallback
 Fallback used: CSV export / data request / Apple Health read-only / manual follow-up
+Export menu visible: yes / no
+If no export menu: Apple Health read-only fallback / manual input follow-up
 Rows parsed:
 Samples created:
 Skipped rows:

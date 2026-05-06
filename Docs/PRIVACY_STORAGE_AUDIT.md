@@ -189,7 +189,7 @@ HealthKit 관련 adapter 경계는 read-only 방향으로 제한합니다. 권�
 
 ## Fitdays import 점검
 
-Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사용자가 직접 선택한 CSV 또는 structured export 파일에서 로컬 `UnifiedHealthMetricSample`로 변환합니다.
+Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사용자가 직접 확보하고 선택한 CSV 또는 structured export 파일에서 로컬 `UnifiedHealthMetricSample`로 변환합니다. 실제 앱에서 CSV/export 경로가 보이지 않으면 이 import 경로는 사용하지 않고 Apple 건강앱 read-only 표준 지표만 사용합니다.
 
 2026-05-04 조사 기준으로 Fitdays 공식 도움말은 Progress Report 공유 시 CSV 형식 선택을 언급하고, Fitdays privacy 문서는 History Records / Data Reports를 통한 CSV export를 설명합니다. Fitdays+ privacy 문서도 personal data를 CSV로 export 요청할 권리를 설명합니다. 다만 실제 메뉴명과 export 방식은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 NightBreath는 사용자가 직접 확보한 로컬 파일만 입력으로 받습니다.
 
@@ -201,7 +201,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - `ImportBatch`와 `UnifiedHealthMetricSample` 저장
 - HealthKit 표준 지표가 CSV에 포함된 경우에도 `sourceType == fitdaysCSV`로 저장
 - synthetic fixture와 mock scenario를 이용한 테스트와 screenshot
-- unknown column warning, invalid row skip, unsupported extension 실패, missing date 실패, duplicate import replacement
+- unknown column warning, invalid row skip, unsupported extension 실패, missing date 실패, 지원 지표 column 없음 실패, import 가능한 sample 없음 실패, duplicate import replacement
 
 제한 사항:
 
@@ -221,6 +221,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - file picker와 open-in document URL은 같은 preview validation을 통과해야 저장할 수 있습니다.
 - 앱은 `.csv`, `.txt` 외의 파일을 Fitdays import 입력으로 처리하지 않습니다.
 - CSV 구조가 맞지 않는 plain text file은 저장 전에 실패합니다.
+- 측정일 column은 있지만 지원 지표 column이 없는 text 파일과 import 가능한 sample이 0개인 파일은 저장하지 않습니다.
 - import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.
 - batch 단위 삭제가 필요한 경우 `importBatchId`로 관련 sample을 함께 삭제할 수 있게 설계합니다.
 - extended metric sample은 sourceType/sourceName/importBatchId를 함께 저장해 HealthKit read-only sample과 구분합니다.

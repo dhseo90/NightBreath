@@ -71,6 +71,8 @@ struct AppStoreReadinessTests {
         #expect(appState.contains("FitdaysImportFilePolicy.isSupportedFileName"))
         #expect(importView.contains("previewInitialFileIfNeeded"))
         #expect(importView.contains("service.previewImport(from: fileURL)"))
+        #expect(importView.contains("CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다."))
+        #expect(importView.contains("파일이 없다면 건강앱 read-only 지표만 사용해도 됩니다."))
     }
 
     @Test
