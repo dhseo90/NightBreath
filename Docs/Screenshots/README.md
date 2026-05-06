@@ -137,6 +137,14 @@ APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/captu
 
 모든 App Store screenshot은 DEBUG simulator scenario와 synthetic/mock data만 사용합니다. 실제 HealthKit 데이터, 실제 Fitdays CSV, 실제 오디오 파일, 실제 이벤트 오디오 샘플은 사용하지 않습니다.
 
+App Store Connect size별 export:
+
+```bash
+Tools/Screenshots/export_app_store_connect_screenshots.sh
+```
+
+Export 결과는 `Docs/Screenshots/AppStore/export/`에 생성되며, raw source에서 재생성 가능한 산출물이므로 repository에 커밋하지 않습니다. `manifest.tsv`에는 source file, target size label, width/height, fit mode가 남습니다.
+
 ## 주의
 
 Screenshot은 앱의 제품 방향을 보여주는 문서 자료입니다. 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하는 copy를 사용하지 않습니다.

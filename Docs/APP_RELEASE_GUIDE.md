@@ -107,8 +107,16 @@ App Store marketing capture source:
 - raw source: `Docs/Screenshots/AppStore/raw/`
 - review crop: `Docs/Screenshots/AppStore/review-cropped/`
 - capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
+- App Store Connect size export script: `Tools/Screenshots/export_app_store_connect_screenshots.sh`
 
 Raw source는 App Store Connect size export 입력으로 사용하고, review crop은 내부 검토용으로만 사용합니다. 모든 파일은 DEBUG simulator scenario와 synthetic/mock data 기반이어야 합니다.
+
+Size export 기준:
+
+- Apple Developer의 App Store Connect `Screenshot specifications`에서 iPhone portrait size를 확인합니다: https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/
+- `Docs/Screenshots/AppStore/export/`는 raw source에서 재생성 가능한 산출물이므로 커밋하지 않습니다.
+- `manifest.tsv`로 source file, target size, fit mode를 확인합니다.
+- 기본 `contain` export는 화면 잘림을 피하기 위한 검토용 fallback입니다. 제출 전에는 각 PNG를 눈으로 확인하고, 가능하면 대상 simulator에서 직접 capture한 raw screenshot을 우선합니다.
 
 Headline copy 원칙:
 

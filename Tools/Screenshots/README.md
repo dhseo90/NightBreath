@@ -194,6 +194,46 @@ APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/captu
 
 App Store Connect에 올릴 size별 파일은 raw source에서 별도 export합니다. review-cropped 파일은 README/UI Gallery 검토용 crop과 같은 성격이며, App Store Connect 업로드 원본으로 쓰지 않습니다.
 
+### App Store Connect size export
+
+Apple App Store Connect의 screenshot 규격은 Apple Developer의 `Screenshot specifications` 문서를 기준으로 확인합니다: https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/
+
+```bash
+Tools/Screenshots/export_app_store_connect_screenshots.sh
+```
+
+기본 출력 위치:
+
+```text
+Docs/Screenshots/AppStore/export/
+Docs/Screenshots/AppStore/export/manifest.tsv
+```
+
+기본 export는 `Docs/Screenshots/AppStore/raw/`에 있는 PNG를 App Store Connect에서 허용하는 iPhone portrait size 후보별로 재생성합니다. 이 출력 폴더는 raw capture에서 재생성 가능한 산출물이므로 gitignore 대상입니다.
+
+지원 size label:
+
+- `iphone_6_9_1260x2736`
+- `iphone_6_9_1290x2796`
+- `iphone_6_9_1320x2868`
+- `iphone_6_5_1284x2778`
+- `iphone_6_5_1242x2688`
+- `iphone_6_3_1206x2622`
+- `iphone_6_3_1179x2556`
+- `iphone_6_1_1170x2532`
+- `iphone_6_1_1125x2436`
+- `iphone_6_1_1080x2340`
+- `iphone_5_5_1242x2208`
+
+특정 size나 screenshot만 export할 때:
+
+```bash
+APP_STORE_EXPORT_SIZES=iphone_6_9_1290x2796,iphone_6_5_1284x2778 Tools/Screenshots/export_app_store_connect_screenshots.sh
+APP_STORE_EXPORT_FILES=01_home_dashboard_light.png Tools/Screenshots/export_app_store_connect_screenshots.sh
+```
+
+기본 fit mode는 `contain`입니다. 이 모드는 화면 내용을 자르지 않고 남는 영역을 앱 배경색 계열로 pad합니다. 업로드 전에는 반드시 생성 PNG를 눈으로 확인하고, 잘림 없는 실제 기기별 simulator capture가 가능하면 해당 raw capture를 우선 사용합니다.
+
 ## 금지
 
 - fake screenshot을 만들지 않습니다.

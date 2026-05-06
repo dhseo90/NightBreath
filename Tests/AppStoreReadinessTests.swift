@@ -312,6 +312,58 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appStoreConnectScreenshotExportWorkflowUsesRawSourceAndIgnoredDerivedOutput() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let exportScriptPath = repositoryRoot.appendingPathComponent("Tools/Screenshots/export_app_store_connect_screenshots.sh")
+        let exportScript = try String(contentsOf: exportScriptPath, encoding: .utf8)
+        let screenshotGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let toolGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let gitignore = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".gitignore"),
+            encoding: .utf8
+        )
+        let expectedSizeLabels = [
+            "iphone_6_9_1290x2796",
+            "iphone_6_5_1284x2778",
+            "iphone_6_3_1206x2622",
+            "iphone_6_1_1170x2532",
+            "iphone_5_5_1242x2208",
+        ]
+
+        #expect(FileManager.default.fileExists(atPath: exportScriptPath.path))
+        #expect(exportScript.contains("Docs/Screenshots/AppStore/raw"))
+        #expect(exportScript.contains("Docs/Screenshots/AppStore/export"))
+        #expect(exportScript.contains("manifest.tsv"))
+        #expect(exportScript.contains("APP_STORE_EXPORT_SIZES"))
+        #expect(exportScript.contains("APP_STORE_EXPORT_FILES"))
+        #expect(exportScript.contains("APP_STORE_EXPORT_FIT_MODE"))
+        #expect(exportScript.contains("force_original_aspect_ratio=decrease"))
+        #expect(exportScript.contains("force_original_aspect_ratio=increase"))
+        #expect(gitignore.contains("Docs/Screenshots/AppStore/export/"))
+        #expect(screenshotGuide.contains("App Store Connect size별 export"))
+        #expect(toolGuide.contains("App Store Connect size export"))
+        #expect(toolGuide.contains("https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/"))
+        #expect(releaseGuide.contains("App Store Connect size export script"))
+        #expect(releaseGuide.contains("manifest.tsv"))
+        #expect(releaseGuide.contains("커밋하지 않습니다"))
+
+        for label in expectedSizeLabels {
+            #expect(exportScript.contains(label), "\(label) should be supported by the export script.")
+            #expect(toolGuide.contains(label), "\(label) should be documented.")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(
