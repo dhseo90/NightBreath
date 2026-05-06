@@ -12,6 +12,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case dailyHealthCard
   case privacySettings
   case healthDashboard
+  case bloodPressureDashboard
+  case bodyCompositionDashboard
+  case crossMetricDashboard
   case fitdaysImport
   case fitdaysImportResult
   case healthMetricsOverview
@@ -20,6 +23,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case metricDetail
   case importError
   case localOnlyMetric
+  case healthPermissionEmpty
+  case metricDetailEmpty
+  case crossMetricInsufficient
   case zeroEventReport
   case lowCoverageReport
   case eventAudioStorageOff
@@ -93,6 +99,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotPrivacyScenario"
     case .healthDashboard:
       "ScreenshotHealthDashboardScenario"
+    case .bloodPressureDashboard:
+      "ScreenshotBloodPressureDashboardScenario"
+    case .bodyCompositionDashboard:
+      "ScreenshotBodyCompositionDashboardScenario"
+    case .crossMetricDashboard:
+      "ScreenshotCrossMetricDashboardScenario"
     case .fitdaysImport:
       "ScreenshotFitdaysImportScenario"
     case .fitdaysImportResult:
@@ -109,6 +121,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotImportErrorScenario"
     case .localOnlyMetric:
       "ScreenshotLocalOnlyMetricScenario"
+    case .healthPermissionEmpty:
+      "ScreenshotHealthPermissionEmptyScenario"
+    case .metricDetailEmpty:
+      "ScreenshotMetricDetailEmptyScenario"
+    case .crossMetricInsufficient:
+      "ScreenshotCrossMetricInsufficientScenario"
     case .zeroEventReport:
       "ScreenshotZeroEventScenario"
     case .lowCoverageReport:
@@ -142,6 +160,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "전체 밤 오디오는 저장하지 않습니다"
     case .healthDashboard:
       "혈압/체성분 대시보드 준비"
+    case .bloodPressureDashboard:
+      "혈압 기록을 기간별로 차분하게"
+    case .bodyCompositionDashboard:
+      "체중과 체성분 흐름을 한곳에서"
+    case .crossMetricDashboard:
+      "수면 소리와 건강 지표를 나란히"
     case .fitdaysImport:
       "Fitdays CSV를 로컬에서 가져오기"
     case .fitdaysImportResult:
@@ -158,6 +182,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "가져오기 오류도 차분하게 안내"
     case .localOnlyMetric:
       "Fitdays 로컬 전용 지표 구분"
+    case .healthPermissionEmpty:
+      "권한이 없어도 수면 기능은 유지"
+    case .metricDetailEmpty:
+      "데이터가 비어도 안전하게 안내"
+    case .crossMetricInsufficient:
+      "비교 데이터가 부족하면 제한 표시"
     case .zeroEventReport:
       "이벤트가 적은 밤도 측정 맥락과 함께"
     case .lowCoverageReport:
@@ -191,6 +221,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 샘플 opt-in, 저장 용량, 삭제 가능성, 서버 전송 없음 안내가 보이게 캡처합니다."
     case .healthDashboard:
       "HealthKit read-only 방향과 혈압/체성분/CrossMetric 진입이 보이게 캡처합니다."
+    case .bloodPressureDashboard:
+      "최근 수축기/이완기 혈압, 기간 선택, trend chart, source 안내가 보이게 캡처합니다."
+    case .bodyCompositionDashboard:
+      "체중/체지방률/BMI/제지방량, 기간별 chart, source 안내가 보이게 캡처합니다."
+    case .crossMetricDashboard:
+      "수면 소리 지표와 건강 지표의 날짜 매칭, 산점도, 인과관계 아님 안내가 보이게 캡처합니다."
     case .fitdaysImport:
       "파일 선택 CTA, 로컬 import 원칙, HealthKit write 없음 안내가 보이게 캡처합니다."
     case .fitdaysImportResult:
@@ -207,6 +243,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "invalid CSV와 unknown column을 안내하는 import edge state를 캡처합니다."
     case .localOnlyMetric:
       "기초대사량 같은 Fitdays 로컬 전용 지표 설명과 샘플 목록이 보이게 캡처합니다."
+    case .healthPermissionEmpty:
+      "건강 데이터 권한이 없거나 샘플이 없을 때 read-only/로컬 import 안내가 보이게 캡처합니다."
+    case .metricDetailEmpty:
+      "특정 metric에 표시할 샘플이 없을 때 기간/source 변경 안내가 보이게 캡처합니다."
+    case .crossMetricInsufficient:
+      "비교 가능한 수면 리포트와 건강 샘플이 부족할 때 제한 안내가 보이게 캡처합니다."
     case .zeroEventReport:
       "이벤트 0개 상태, zero-event 분석, 측정 품질 안내가 보이게 캡처합니다."
     case .lowCoverageReport:
@@ -221,11 +263,14 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   var simulatorPreset: SimulatorQAScenarioPreset {
     switch self {
     case .homeDashboard, .sleepStart, .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard,
+         .bloodPressureDashboard, .bodyCompositionDashboard, .crossMetricDashboard,
          .healthMetricsOverview, .healthCalendar, .dailyMeasurementDetail, .metricDetail, .localOnlyMetric:
       .snoreHeavyNight
     case .sleepRecording, .privacySettings:
       .eventAudioStorageOnWithSamples
     case .healthDashboard, .fitdaysImport, .fitdaysImportResult, .importError:
+      .quietNight
+    case .healthPermissionEmpty, .metricDetailEmpty, .crossMetricInsufficient:
       .quietNight
     case .zeroEventReport:
       .zeroEventButGoodAudioCoverage
@@ -260,6 +305,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/README/privacy_settings_light.png"
     case .healthDashboard:
       "Docs/Screenshots/README/health_dashboard_light.png"
+    case .bloodPressureDashboard:
+      "Docs/Screenshots/Health/blood_pressure_dashboard_light.png"
+    case .bodyCompositionDashboard:
+      "Docs/Screenshots/Health/body_composition_dashboard_light.png"
+    case .crossMetricDashboard:
+      "Docs/Screenshots/Health/cross_metric_dashboard_light.png"
     case .fitdaysImport:
       "Docs/Screenshots/Health/fitdays_import_light.png"
     case .fitdaysImportResult:
@@ -276,6 +327,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/Health/fitdays_import_error_light.png"
     case .localOnlyMetric:
       "Docs/Screenshots/Health/metric_detail_basal_metabolic_rate_light.png"
+    case .healthPermissionEmpty:
+      "Docs/Screenshots/EdgeStates/health_permission_empty_light.png"
+    case .metricDetailEmpty:
+      "Docs/Screenshots/EdgeStates/metric_detail_empty_light.png"
+    case .crossMetricInsufficient:
+      "Docs/Screenshots/EdgeStates/cross_metric_insufficient_light.png"
     case .zeroEventReport:
       "Docs/Screenshots/EdgeStates/zero_event_report_light.png"
     case .lowCoverageReport:
@@ -430,6 +487,54 @@ enum ScreenshotScenarioFactory {
     ]
 
     return mockHealthSamples + fitdaysSamples
+  }
+
+  static func makeScreenshotStandardHealthSamples(referenceDate: Date = Date()) -> [HealthMetricSample] {
+    let calendar = Calendar.current
+    return MockHealthDataService.makeDefaultSamples(referenceDate: calendar.startOfDay(for: referenceDate))
+  }
+
+  static func makeScreenshotCrossMetricReports(referenceDate: Date = Date()) -> [NightReport] {
+    let calendar = Calendar.current
+    let referenceDayStart = calendar.startOfDay(for: referenceDate)
+    let sleepSoundScores = [86, 82, 79, 84, 77, 81]
+    let snoreMinutes = [8.0, 15.0, 21.0, 11.0, 24.0, 18.0]
+    let audioCoverageRatios = [0.96, 0.94, 0.62, 0.97, 0.92, 0.95]
+
+    return sleepSoundScores.indices.map { index in
+      let dayOffset = -(6 - index)
+      let dayStart = calendar.date(
+        byAdding: .day,
+        value: dayOffset,
+        to: referenceDayStart
+      ) ?? referenceDayStart.addingTimeInterval(Double(dayOffset) * 24 * 60 * 60)
+      let generatedAt = dayStart.addingTimeInterval(7 * 60 * 60)
+      let measurementDuration = 7 * 60 * 60.0
+      let coverage = audioCoverageRatios[index]
+      let snoreSeconds = snoreMinutes[index] * 60
+
+      return NightReport(
+        sessionId: UUID(uuidString: "20000000-0000-0000-0000-00000000030\(index)") ?? UUID(),
+        generatedAt: generatedAt,
+        measurementDuration: measurementDuration,
+        estimatedSleepDuration: measurementDuration - 32 * 60,
+        receivedAudioDuration: measurementDuration * coverage,
+        audioCoverageRatio: coverage,
+        sleepSoundScore: sleepSoundScores[index],
+        snoreTotalSeconds: snoreSeconds,
+        snoreRatio: snoreSeconds / measurementDuration,
+        bruxismLikeCount: index == 2 ? 1 : 0,
+        suspectedPauseCount: 0,
+        gaspLikeCount: index == 4 ? 1 : 0,
+        coughLikeCount: index == 1 ? 1 : 0,
+        sleepTalkLikeCount: 0,
+        environmentalNoiseCount: index == 3 ? 2 : 1,
+        awakeningSuspectedCount: index == 2 ? 1 : 0,
+        longestSuspectedPause: 0,
+        mostDisturbedHourRange: nil,
+        mainDisturbanceReason: "Simulator 예시 수면 소리 리포트입니다."
+      )
+    }
   }
 
   static func makeScreenshotFitdaysImportResult(referenceDate: Date = Date()) -> FitdaysImportResult {

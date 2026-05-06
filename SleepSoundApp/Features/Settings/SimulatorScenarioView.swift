@@ -196,6 +196,37 @@ struct SimulatorScenarioView: View {
         }
 
         NavigationLink {
+          BloodPressureDashboardView(
+            samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: ehmReferenceDate),
+            permissionState: .mockDataOnly,
+            isPreviewData: true
+          )
+        } label: {
+          Label("BloodPressure dashboard", systemImage: "heart")
+        }
+
+        NavigationLink {
+          BodyCompositionDashboardView(
+            samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: ehmReferenceDate),
+            permissionState: .mockDataOnly,
+            isPreviewData: true
+          )
+        } label: {
+          Label("BodyComposition dashboard", systemImage: "scalemass")
+        }
+
+        NavigationLink {
+          CrossMetricDashboardView(
+            reports: ScreenshotScenarioFactory.makeScreenshotCrossMetricReports(referenceDate: ehmReferenceDate),
+            samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: ehmReferenceDate),
+            permissionState: .mockDataOnly,
+            isPreviewData: true
+          )
+        } label: {
+          Label("CrossMetric dashboard", systemImage: "chart.dots.scatter")
+        }
+
+        NavigationLink {
           HealthCalendarView(
             samples: ehmMixedSourceSamples,
             sleepReports: [appState.latestReport],
@@ -250,6 +281,37 @@ struct SimulatorScenarioView: View {
           )
         } label: {
           Label("MetricDetail 로컬 전용", systemImage: "chart.xyaxis.line")
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: [],
+            permissionState: .denied,
+            isPreviewData: false
+          )
+        } label: {
+          Label("Health permission empty", systemImage: "lock.slash")
+        }
+
+        NavigationLink {
+          MetricDetailView(
+            metricID: .bodyWaterPercentage,
+            samples: [],
+            selectedPeriod: .thirtyDays
+          )
+        } label: {
+          Label("MetricDetail empty", systemImage: "tray")
+        }
+
+        NavigationLink {
+          CrossMetricDashboardView(
+            reports: Array(ScreenshotScenarioFactory.makeScreenshotCrossMetricReports(referenceDate: ehmReferenceDate).prefix(2)),
+            samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: ehmReferenceDate),
+            permissionState: .mockDataOnly,
+            isPreviewData: true
+          )
+        } label: {
+          Label("CrossMetric insufficient", systemImage: "chart.dots.scatter")
         }
 
         Text("이 섹션은 DEBUG 전용이며 mock HealthKit 상태, synthetic Fitdays CSV 결과, 앱 계산 샘플만 사용합니다. Release 사용자에게 노출되지 않습니다.")
@@ -419,6 +481,25 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .healthDashboard:
       HealthDashboardView()
+    case .bloodPressureDashboard:
+      BloodPressureDashboardView(
+        samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        permissionState: .mockDataOnly,
+        isPreviewData: true
+      )
+    case .bodyCompositionDashboard:
+      BodyCompositionDashboardView(
+        samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        permissionState: .mockDataOnly,
+        isPreviewData: true
+      )
+    case .crossMetricDashboard:
+      CrossMetricDashboardView(
+        reports: ScreenshotScenarioFactory.makeScreenshotCrossMetricReports(referenceDate: appState.latestReport.generatedAt),
+        samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        permissionState: .mockDataOnly,
+        isPreviewData: true
+      )
     case .fitdaysImport:
       FitdaysImportView(repository: InMemoryUnifiedHealthMetricSampleRepository())
     case .fitdaysImportResult:
@@ -468,6 +549,25 @@ struct ScreenshotScenarioDestinationView: View {
         metricID: .basalMetabolicRate,
         samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
         selectedPeriod: .all
+      )
+    case .healthPermissionEmpty:
+      HealthMetricsOverviewView(
+        samples: [],
+        permissionState: .denied,
+        isPreviewData: false
+      )
+    case .metricDetailEmpty:
+      MetricDetailView(
+        metricID: .bodyWaterPercentage,
+        samples: [],
+        selectedPeriod: .thirtyDays
+      )
+    case .crossMetricInsufficient:
+      CrossMetricDashboardView(
+        reports: Array(ScreenshotScenarioFactory.makeScreenshotCrossMetricReports(referenceDate: appState.latestReport.generatedAt).prefix(2)),
+        samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        permissionState: .mockDataOnly,
+        isPreviewData: true
       )
     case .privacySettings, .eventAudioStorageOff:
       PrivacySettingsView()

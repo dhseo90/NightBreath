@@ -117,6 +117,12 @@ struct SimulatorQAScenarioTests {
       "ScreenshotMetricDetailScenario",
       "ScreenshotImportErrorScenario",
       "ScreenshotLocalOnlyMetricScenario",
+      "ScreenshotBloodPressureDashboardScenario",
+      "ScreenshotBodyCompositionDashboardScenario",
+      "ScreenshotCrossMetricDashboardScenario",
+      "ScreenshotHealthPermissionEmptyScenario",
+      "ScreenshotMetricDetailEmptyScenario",
+      "ScreenshotCrossMetricInsufficientScenario",
     ]
 
     #expect(screenshotScenarios.contains("#if DEBUG\nenum ScreenshotScenario"))
@@ -129,6 +135,9 @@ struct SimulatorQAScenarioTests {
     #expect(simulatorScenarioView.contains("출처 혼합"))
     #expect(simulatorScenarioView.contains("HealthCalendar 빈 날짜"))
     #expect(simulatorScenarioView.contains("MetricDetail HealthKit 기반"))
+    #expect(simulatorScenarioView.contains("BloodPressure dashboard"))
+    #expect(simulatorScenarioView.contains("BodyComposition dashboard"))
+    #expect(simulatorScenarioView.contains("CrossMetric insufficient"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

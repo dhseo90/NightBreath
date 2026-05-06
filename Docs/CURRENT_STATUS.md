@@ -103,6 +103,7 @@
 - README 대표 cropped screenshot 8개
 - UI Gallery screenshot/pending 연결
 - UI Gallery direct simulator screenshot 6개
+- 혈압/체성분/교차 보기와 health/metric/cross edge screenshot 6개
 - App Store screenshot mock scenario/headline plan
 - Daily Health Card 미리보기의 명시 액션 기반 로컬 PNG 생성/시스템 공유 sheet 연결
 - Daily Health Card 민감 수치 export confirmation sheet
@@ -146,7 +147,7 @@
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export
 - UI Gallery 수동 진입 상세 screenshot 전체 캡처
-- 혈압/체성분/교차 보기/onboarding/device/calibration/replay/audio/sample capture screenshot 전체 캡처
+- onboarding/device/calibration/replay/audio/sample capture screenshot 전체 캡처
 - 실제 개인 Fitdays CSV 장기 검증
 - 실제 Fitdays CSV import manual QA
 - 실제 Fitdays 앱 내 CSV/export 메뉴 확인

@@ -63,6 +63,9 @@ Tools/Screenshots/crop_readme_screenshots.sh
 - `Health/metric_detail_body_water_light.png`
 - `Health/metric_detail_basal_metabolic_rate_light.png`
 - `Health/fitdays_import_error_light.png`
+- `Health/blood_pressure_dashboard_light.png`
+- `Health/body_composition_dashboard_light.png`
+- `Health/cross_metric_dashboard_light.png`
 
 UI Gallery crop 위치:
 
@@ -74,6 +77,9 @@ UI Gallery crop 위치:
 - `Health/cropped/metric_detail_body_water_light.png`
 - `Health/cropped/metric_detail_basal_metabolic_rate_light.png`
 - `Health/cropped/fitdays_import_error_light.png`
+- `Health/cropped/blood_pressure_dashboard_light.png`
+- `Health/cropped/body_composition_dashboard_light.png`
+- `Health/cropped/cross_metric_dashboard_light.png`
 
 ## UI Gallery 직접 캡처 screenshot
 
@@ -84,6 +90,9 @@ UI Gallery crop 위치:
 - `EdgeStates/zero_event_report_light.png`
 - `EdgeStates/low_coverage_report_light.png`
 - `EdgeStates/event_audio_storage_off_light.png`
+- `EdgeStates/health_permission_empty_light.png`
+- `EdgeStates/metric_detail_empty_light.png`
+- `EdgeStates/cross_metric_insufficient_light.png`
 - `Debug/detector_tuning_light.png`
 
 UI Gallery crop 위치:
@@ -93,6 +102,9 @@ UI Gallery crop 위치:
 - `EdgeStates/cropped/zero_event_report_light.png`
 - `EdgeStates/cropped/low_coverage_report_light.png`
 - `EdgeStates/cropped/event_audio_storage_off_light.png`
+- `EdgeStates/cropped/health_permission_empty_light.png`
+- `EdgeStates/cropped/metric_detail_empty_light.png`
+- `EdgeStates/cropped/cross_metric_insufficient_light.png`
 - `Debug/cropped/detector_tuning_light.png`
 
 ## 주의
