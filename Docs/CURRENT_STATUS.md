@@ -116,6 +116,7 @@
 - Health/QA/App Release 문서 통합 정리
 - App Icon generate/validate/review sheet 로컬 도구
 - App Store product page ko-KR/en-US 후보 copy 정리
+- Release readiness 자동 gate 테스트
 
 ## 현재 개발 전략
 

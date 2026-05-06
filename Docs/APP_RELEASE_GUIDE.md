@@ -210,6 +210,24 @@ TestFlight blocking gate:
 
 실제 iPhone manual QA 절차는 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`를 따릅니다.
 
+## Automated Release Readiness Gate
+
+실기기 QA와 별도로, release branch나 TestFlight 후보를 만들기 전에는 아래 자동 점검을 실행합니다.
+
+```sh
+xcrun swift test --filter ReleaseReadiness --filter AppStoreReadiness --filter Privacy --filter HealthKitReadOnlyPolicy
+```
+
+이 gate는 다음 항목을 한 번에 확인합니다.
+
+- App Store product page copy와 release 문서가 개인정보/HealthKit/read-only 경계를 유지하는지 확인합니다.
+- 금지 의료 표현, 건강 상태 단정, 원인과 결과 단정 문구가 release 문서에 들어가지 않았는지 확인합니다.
+- 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
+- `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
+- 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
+
+이 자동 gate는 실제 iPhone stop/background/overnight QA를 대체하지 않습니다. 자동 gate 통과 후에도 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 manual evidence를 별도로 기록합니다.
+
 ## App Review Notes 후보
 
 상세 App Review / Legal audit는 `Docs/APP_REVIEW_AUDIT.md`를 기준으로 최종 제출 직전에 다시 확인합니다.

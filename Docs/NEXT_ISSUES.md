@@ -20,6 +20,7 @@
 - App Store Connect용 screenshot size/export 절차 정리
 - App Store product page copy 후보 정리 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
+- Release readiness 자동 gate 테스트 추가 완료. TestFlight 후보 전 반복 실행 필요
 - TestFlight 내부 테스트 체크리스트 정리 완료, 실제 내부 테스트 실행은 TestFlight build와 실기기 필요
 - App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 audit 문서화 완료, 제출 직전 최종 재확인 필요
 
