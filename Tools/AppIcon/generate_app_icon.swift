@@ -135,7 +135,7 @@ func renderIcon(pixels: Int) throws -> CGImage {
         options: [.drawsAfterEndLocation]
     )
 
-    // Subtle shield silhouette: privacy without looking like a medical mark.
+    // Subtle shield silhouette: privacy without looking like a clinical symbol.
     let shield = CGMutablePath()
     shield.move(to: point(512, 205, scale: scale))
     shield.addCurve(
@@ -164,13 +164,32 @@ func renderIcon(pixels: Int) throws -> CGImage {
     context.fillPath()
     strokePath(context, path: shield, color: rgba(177, 255, 243, 0.34), lineWidth: 18 * scale)
 
-    // Crescent moon.
-    drawEllipse(context, rect(206, 575, 286, 286, scale: scale), color: rgba(255, 245, 202))
-    drawEllipse(context, rect(314, 615, 275, 275, scale: scale), color: rgba(23, 83, 136))
-    drawEllipse(context, rect(238, 625, 34, 34, scale: scale), color: rgba(255, 252, 224, 0.9))
-    drawEllipse(context, rect(200, 526, 16, 16, scale: scale), color: rgba(210, 255, 248, 0.9))
-    drawEllipse(context, rect(686, 740, 18, 18, scale: scale), color: rgba(255, 239, 191, 0.92))
-    drawEllipse(context, rect(764, 612, 12, 12, scale: scale), color: rgba(212, 255, 248, 0.8))
+    // Crescent moon. Draw the crescent directly so the cutout follows the real background.
+    let crescent = CGMutablePath()
+    crescent.move(to: point(456, 590, scale: scale))
+    crescent.addCurve(
+        to: point(208, 718, scale: scale),
+        control1: point(344, 556, scale: scale),
+        control2: point(229, 613, scale: scale)
+    )
+    crescent.addCurve(
+        to: point(358, 858, scale: scale),
+        control1: point(187, 811, scale: scale),
+        control2: point(259, 884, scale: scale)
+    )
+    crescent.addCurve(
+        to: point(456, 590, scale: scale),
+        control1: point(289, 805, scale: scale),
+        control2: point(296, 648, scale: scale)
+    )
+    crescent.closeSubpath()
+    context.addPath(crescent)
+    context.setFillColor(rgba(255, 245, 202))
+    context.fillPath()
+    drawEllipse(context, rect(238, 625, 34, 34, scale: scale), color: rgba(255, 252, 224, 0.86))
+    drawEllipse(context, rect(202, 526, 16, 16, scale: scale), color: rgba(210, 255, 248, 0.9))
+    drawEllipse(context, rect(685, 740, 18, 18, scale: scale), color: rgba(255, 239, 191, 0.92))
+    drawEllipse(context, rect(765, 612, 12, 12, scale: scale), color: rgba(212, 255, 248, 0.8))
     drawEllipse(context, rect(614, 830, 10, 10, scale: scale), color: rgba(255, 255, 255, 0.72))
 
     // Breathing rhythm: two calm sound waves, no clinical ECG sharpness.
