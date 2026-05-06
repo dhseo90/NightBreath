@@ -192,6 +192,63 @@ struct DailyHealthCardContentTests {
     }
 
     @Test
+    func templatePrivacyMatrixKeepsMinimalExportsFreeOfSensitiveValuesAndSources() {
+        let fixture = makeFixture()
+        let sensitiveFragments = [
+            "mmHg",
+            "kg",
+            "%",
+            "Omron",
+            "Fitdays",
+            "Apple 건강앱 예시",
+            "혈압",
+            "체중",
+            "체지방률",
+        ]
+        let internalFragments = [
+            "importBatch",
+            "externalRecordId",
+            "file://",
+            "/" + "Users/",
+            "Samples/" + "Personal",
+        ]
+
+        for template in DailyHealthCardTemplate.allCases {
+            for requestedPrivacyLevel in DailyHealthCardPrivacyLevel.allCases {
+                let content = DailyHealthCardContent.make(
+                    date: referenceDate,
+                    report: MockDailyRhythmData.sampleReport,
+                    nightReport: fixture.nightReport,
+                    healthMetricSamples: fixture.samples,
+                    template: template,
+                    privacyLevel: requestedPrivacyLevel,
+                    calendar: calendar
+                )
+                let snapshot = exportSnapshot(for: content)
+
+                for fragment in internalFragments {
+                    #expect(!snapshot.contains(fragment), "\(template.rawValue)/\(requestedPrivacyLevel.rawValue) leaked internal fragment \(fragment)")
+                }
+
+                if content.privacyLevel == .minimal {
+                    #expect(!content.requiresSensitiveExportConfirmation)
+                    #expect(!content.containsSensitiveHealthValues)
+                    #expect(content.keyMetrics.allSatisfy { $0.sensitivity != .sensitiveHealth })
+
+                    for fragment in sensitiveFragments {
+                        #expect(!snapshot.contains(fragment), "\(template.rawValue)/minimal leaked sensitive fragment \(fragment)")
+                    }
+                }
+
+                if content.containsSensitiveHealthValues {
+                    #expect(content.requiresSensitiveExportConfirmation)
+                    #expect(content.exportPrivacyNoticeMessages.contains { $0.contains("건강 관련 수치") })
+                }
+            }
+        }
+    }
+
+    @Test
     func readmeAndAppStoreDisplayProfilesUseSeparatedSafeCardData() {
         let readme = MockDailyRhythmData.dailyHealthCardContent(
             profile: .readmeRepresentative,
@@ -224,6 +281,10 @@ struct DailyHealthCardContentTests {
         #expect(!appStoreCopy.contains("Omron"))
         #expect(!appStoreCopy.contains("Fitdays"))
         #expect(!appStoreCopy.contains("HealthKit"))
+        #expect(!appStoreCopy.contains("혈압"))
+        #expect(!appStoreCopy.contains("체중"))
+        #expect(!appStoreCopy.contains("체지방률"))
+        #expect(!appStoreCopy.contains("걸음"))
         #expect(MockDailyRhythmData.DailyHealthCardDisplayProfile.appStoreMarketing.publicDataNotice.contains("민감 수치"))
     }
 
@@ -310,6 +371,23 @@ struct DailyHealthCardContentTests {
         #expect(!contents.contains("URLSession"))
         #expect(!contents.contains("http://"))
         #expect(!contents.contains("https://"))
+    }
+
+    @Test
+    func previewSharePhotoAndFileActionsStayDisabledUntilLocalImageIsReady() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/DailyRhythm/DailyHealthCardPreviewView.swift")
+
+        #expect(contents.contains("if exportResult?.imageData != nil"))
+        #expect(contents.contains("if shareURL != nil"))
+        #expect(contents.contains(".disabled(true)"))
+        #expect(contents.contains("이미지를 만든 뒤 공유할 수 있습니다"))
+        #expect(contents.contains("이미지를 만든 뒤 사진 앱에 저장할 수 있습니다"))
+        #expect(contents.contains("이미지를 만든 뒤 파일 앱에 저장할 수 있습니다"))
+        #expect(contents.contains(".onChange(of: template)"))
+        #expect(contents.contains(".onChange(of: privacyLevel)"))
+        #expect(contents.contains("resetExportState()"))
+        #expect(contents.contains("FileManager.default.removeItem(at: shareURL)"))
+        #expect(!contents.contains(".onAppear {\n      Task { await renderImageForSharing() }"))
     }
 
     @Test

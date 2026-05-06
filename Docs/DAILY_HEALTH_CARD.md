@@ -142,6 +142,14 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 
 `privacyMinimal` template은 항상 `minimal` 표시 수준으로 export합니다.
 
+Regression 기준:
+
+- 모든 template/privacy level 조합은 `DailyHealthCardContentTests`의 matrix test로 확인합니다.
+- `minimal` 또는 `privacyMinimal` export snapshot에는 혈압, 체중, 체성분, source 이름, 측정 시간, 파일명, local path, import batch id가 들어가면 안 됩니다.
+- `standard` 또는 `detailed`에서 민감 건강 수치가 포함되면 export confirmation이 필요하고, 공유 전 표시 항목 확인 문구가 함께 표시되어야 합니다.
+- 공유, 사진 앱 저장, 파일 앱 저장 버튼은 로컬 PNG가 준비된 뒤에만 활성화됩니다.
+- template 또는 privacy level을 변경하면 기존 임시 PNG/share URL/export state를 초기화합니다.
+
 세부 표시 기준:
 
 | 항목 | `minimal` | `standard` | `detailed` |

@@ -81,6 +81,7 @@
 - 공유 취소/completed state UI 보강 완료
 - 사진 앱 또는 파일 저장 전용 흐름 구현 완료
 - privacy level별 export snapshot/regression test 추가 완료
+- template/privacy matrix 기반 민감 수치/source 노출 회귀 테스트 보강 완료
 - 서버 업로드, 외부 SDK, 자동 공유가 없음을 확인하는 privacy test 유지/확장
 - README용 대표 카드와 App Store용 카드의 표시 데이터 분리 완료
 - App Store 후보 카드가 `appStoreMarketing` display profile과 minimal privacy를 사용하는지 screenshot 재캡처 때 확인

@@ -111,6 +111,7 @@
 - Daily Health Card 공유 완료/취소 상태 UI
 - Daily Health Card 사진 앱/파일 앱 저장 전용 흐름
 - Daily Health Card privacy level별 export snapshot regression test
+- Daily Health Card template/privacy matrix export safety regression test
 - Daily Health Card README/App Store display profile 분리
 - 실제 iPhone QA runbook과 기록 템플릿
 - Health/QA/App Release 문서 통합 정리
