@@ -32,6 +32,8 @@ struct DailyHealthCardPreviewView: View {
 
   init(bundle: DailyRhythmMockBundle) {
     self.bundle = bundle
+    _template = State(initialValue: bundle.cardContent.template)
+    _privacyLevel = State(initialValue: bundle.cardContent.privacyLevel)
   }
 
   var body: some View {

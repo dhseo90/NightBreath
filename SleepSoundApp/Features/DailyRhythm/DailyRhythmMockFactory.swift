@@ -84,4 +84,58 @@ enum DailyRhythmMockFactory {
       eveningCheckIn: eveningCheckIn
     )
   }
+
+  static func makeDailyHealthCardDisplayBundle(
+    profile: MockDailyRhythmData.DailyHealthCardDisplayProfile,
+    referenceDate: Date = MockDailyRhythmData.referenceDate,
+    nightReport: NightReport? = nil,
+    morningCheckIn: MorningCheckIn? = nil,
+    calendar: Calendar = .current
+  ) -> DailyRhythmMockBundle {
+    let healthSamples = MockDailyRhythmData.dailyHealthCardSamples(
+      profile: profile,
+      referenceDate: referenceDate
+    )
+    let report = MockDailyRhythmData.dailyHealthCardReport(
+      profile: profile,
+      referenceDate: referenceDate
+    )
+    let eveningCheckIn = EveningCheckIn(
+      date: referenceDate,
+      fatigueScore: 3,
+      stressScore: 2,
+      moodScore: 4,
+      caffeine: profile == .readmeRepresentative,
+      exercise: true,
+      memo: "공개 자료용 synthetic card fixture"
+    )
+    let snapshot = DailyHealthSnapshotBuilder(calendar: calendar).build(
+      date: referenceDate,
+      sleepReport: nightReport,
+      morningCheckIn: morningCheckIn,
+      eveningCheckIn: eveningCheckIn,
+      healthMetricSamples: healthSamples,
+      createdAt: referenceDate
+    )
+    let cardContent = DailyHealthCardContent.make(
+      date: referenceDate,
+      report: report,
+      nightReport: nightReport,
+      healthMetricSamples: healthSamples,
+      template: profile.template,
+      privacyLevel: profile.privacyLevel,
+      calendar: calendar
+    )
+
+    return DailyRhythmMockBundle(
+      date: referenceDate,
+      nightReport: nightReport,
+      morningCheckIn: morningCheckIn,
+      eveningCheckIn: eveningCheckIn,
+      healthSamples: healthSamples,
+      snapshot: snapshot,
+      report: report,
+      cardContent: cardContent
+    )
+  }
 }

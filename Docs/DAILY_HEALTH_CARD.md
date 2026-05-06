@@ -24,6 +24,17 @@ NightBreath / 밤숨의 Daily Health Card는 하루 리듬 리포트를 한 장�
 
 `privacyMinimal` 템플릿은 사용자가 `standard`나 `detailed`를 선택해도 `minimal` 표시 수준으로 처리합니다.
 
+## 공개 자료용 표시 데이터
+
+README 대표 카드와 App Store 후보 카드는 같은 사용자 데이터처럼 보이지 않도록 별도 display profile을 사용합니다.
+
+| Profile | 용도 | Template | Privacy | 표시 데이터 원칙 |
+| --- | --- | --- | --- | --- |
+| `readmeRepresentative` | README/UI Gallery 대표 screenshot | `healthSummary` | `standard` | synthetic representative card data만 사용하고 실제 source/path/device 식별자를 쓰지 않음 |
+| `appStoreMarketing` | App Store screenshot 후보 | `privacyMinimal` | `minimal` | 실제 HealthKit/Fitdays source와 민감 수치를 표시하지 않음 |
+
+두 profile은 `MockDailyRhythmData.DailyHealthCardDisplayProfile`에서 관리합니다. App Store용 카드에서는 혈압, 체중, 체성분 같은 민감 수치를 기본으로 숨기며, screenshot이나 product page copy에 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 local path를 쓰지 않습니다.
+
 ## 민감 데이터 주의
 
 Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건강 데이터가 포함될 수 있습니다. 따라서 이미지 export 또는 공유는 사용자가 명시적으로 선택한 경우에만 수행하는 방향으로 설계합니다.
@@ -202,9 +213,6 @@ Daily Health Card에는 혈압, 체중, 체성분처럼 민감할 수 있는 건
 - 사진 앱 저장 전용 버튼과 Photos add-only 권한 copy
 - 파일 앱 저장 전용 버튼과 iOS file exporter
 - privacy level별 export snapshot test
-
-남은 구현:
-
 - README용 대표 카드와 App Store용 카드의 표시 데이터 분리
 
 ## 의료 진단 아님

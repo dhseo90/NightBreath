@@ -192,6 +192,42 @@ struct DailyHealthCardContentTests {
     }
 
     @Test
+    func readmeAndAppStoreDisplayProfilesUseSeparatedSafeCardData() {
+        let readme = MockDailyRhythmData.dailyHealthCardContent(
+            profile: .readmeRepresentative,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        let appStore = MockDailyRhythmData.dailyHealthCardContent(
+            profile: .appStoreMarketing,
+            referenceDate: referenceDate,
+            calendar: calendar
+        )
+        let appStoreCopy = ([appStore.summaryText, appStore.referenceText] + appStore.keyMetrics.flatMap {
+            [$0.title, $0.value, $0.subtitle]
+        }).joined(separator: " ")
+
+        #expect(readme.template == .healthSummary)
+        #expect(readme.privacyLevel == .standard)
+        #expect(readme.keyMetrics.contains { $0.title == "아침 혈압" })
+        #expect(readme.keyMetrics.contains { $0.title == "체중" })
+        #expect(readme.keyMetrics.contains { $0.title == "체지방률" })
+        #expect(readme.requiresSensitiveExportConfirmation)
+
+        #expect(appStore.template == .privacyMinimal)
+        #expect(appStore.privacyLevel == .minimal)
+        #expect(appStore.keyMetrics.map(\.title) == ["오늘의 리듬 점수"])
+        #expect(!appStore.requiresSensitiveExportConfirmation)
+        #expect(!appStoreCopy.contains("mmHg"))
+        #expect(!appStoreCopy.contains("kg"))
+        #expect(!appStoreCopy.contains("%"))
+        #expect(!appStoreCopy.contains("Omron"))
+        #expect(!appStoreCopy.contains("Fitdays"))
+        #expect(!appStoreCopy.contains("HealthKit"))
+        #expect(MockDailyRhythmData.DailyHealthCardDisplayProfile.appStoreMarketing.publicDataNotice.contains("민감 수치"))
+    }
+
+    @Test
     func sensitiveHealthValuesRequireExportConfirmation() {
         let fixture = makeFixture()
         let content = DailyHealthCardContent.make(

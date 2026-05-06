@@ -195,6 +195,9 @@ struct AppStoreReadinessTests {
         #expect(guide.contains("실제 오디오 파일명"))
         #expect(guide.contains("서버 미전송"))
         #expect(guide.contains("opt-in 샘플 정책"))
+        #expect(guide.contains("readmeRepresentative"))
+        #expect(guide.contains("appStoreMarketing"))
+        #expect(guide.contains("민감 수치를 노출하지 않습니다"))
 
         for (scenario, headline, screenshotPath) in expectedRows {
             #expect(guide.contains(scenario), "\(scenario) should be documented in the App Store screenshot plan.")

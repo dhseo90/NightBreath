@@ -11,6 +11,49 @@ public enum MockDailyRhythmData {
     private static let systolicSampleID = UUID(uuidString: "10000000-0000-0000-0000-000000000102")!
     private static let diastolicSampleID = UUID(uuidString: "10000000-0000-0000-0000-000000000103")!
 
+    public enum DailyHealthCardDisplayProfile: String, CaseIterable, Codable, Identifiable, Sendable {
+        case readmeRepresentative
+        case appStoreMarketing
+
+        public var id: String { rawValue }
+
+        public var displayName: String {
+            switch self {
+            case .readmeRepresentative:
+                "README 대표 카드"
+            case .appStoreMarketing:
+                "App Store 후보 카드"
+            }
+        }
+
+        public var template: DailyHealthCardTemplate {
+            switch self {
+            case .readmeRepresentative:
+                .healthSummary
+            case .appStoreMarketing:
+                .privacyMinimal
+            }
+        }
+
+        public var privacyLevel: DailyHealthCardPrivacyLevel {
+            switch self {
+            case .readmeRepresentative:
+                .standard
+            case .appStoreMarketing:
+                .minimal
+            }
+        }
+
+        public var publicDataNotice: String {
+            switch self {
+            case .readmeRepresentative:
+                "README에는 synthetic representative card data만 사용합니다."
+            case .appStoreMarketing:
+                "App Store 후보 카드에는 실제 HealthKit/Fitdays source나 민감 수치를 표시하지 않습니다."
+            }
+        }
+    }
+
     public static var sampleEveningCheckIn: EveningCheckIn {
         EveningCheckIn(
             id: eveningCheckInID,
@@ -125,6 +168,116 @@ public enum MockDailyRhythmData {
             dailyRhythmScore: sampleScore,
             insights: sampleInsights
         )
+    }
+
+    public static func dailyHealthCardContent(
+        profile: DailyHealthCardDisplayProfile,
+        referenceDate: Date = Self.referenceDate,
+        calendar: Calendar = .current
+    ) -> DailyHealthCardContent {
+        DailyHealthCardContent.make(
+            date: referenceDate,
+            report: dailyHealthCardReport(profile: profile, referenceDate: referenceDate),
+            nightReport: nil,
+            healthMetricSamples: dailyHealthCardSamples(profile: profile, referenceDate: referenceDate),
+            template: profile.template,
+            privacyLevel: profile.privacyLevel,
+            calendar: calendar
+        )
+    }
+
+    public static func dailyHealthCardReport(
+        profile: DailyHealthCardDisplayProfile,
+        referenceDate: Date = Self.referenceDate
+    ) -> DailyRhythmReport {
+        let score: DailyRhythmScore
+        switch profile {
+        case .readmeRepresentative:
+            score = DailyRhythmScore(
+                totalScore: 84,
+                sleepComponent: 86,
+                recoveryComponent: 82,
+                activityComponent: 80,
+                bloodPressureComponent: 85,
+                bodyMetricComponent: 83,
+                dataCompleteness: 0.82,
+                computedAt: referenceDate.addingTimeInterval(21 * 60 * 60)
+            )
+        case .appStoreMarketing:
+            score = DailyRhythmScore(
+                totalScore: 82,
+                sleepComponent: 84,
+                recoveryComponent: 81,
+                activityComponent: 80,
+                bloodPressureComponent: 0,
+                bodyMetricComponent: 0,
+                dataCompleteness: 0.64,
+                computedAt: referenceDate.addingTimeInterval(21 * 60 * 60)
+            )
+        }
+
+        return DailyRhythmReport(
+            id: UUID(uuidString: profile == .readmeRepresentative
+                ? "10000000-0000-0000-0000-000000000301"
+                : "10000000-0000-0000-0000-000000000302"
+            )!,
+            date: referenceDate,
+            dailyRhythmScore: score,
+            insights: []
+        )
+    }
+
+    public static func dailyHealthCardSamples(
+        profile: DailyHealthCardDisplayProfile,
+        referenceDate: Date = Self.referenceDate
+    ) -> [HealthMetricSample] {
+        switch profile {
+        case .readmeRepresentative:
+            return [
+                HealthMetricSample(
+                    metricType: .systolicBloodPressure,
+                    value: 118,
+                    unit: HealthMetricType.systolicBloodPressure.unitLabel,
+                    measuredAt: referenceDate.addingTimeInterval(8 * 60 * 60),
+                    sourceName: "README 예시 혈압",
+                    sourceBundleIdentifier: "local.mock.readme.blood-pressure"
+                ),
+                HealthMetricSample(
+                    metricType: .diastolicBloodPressure,
+                    value: 76,
+                    unit: HealthMetricType.diastolicBloodPressure.unitLabel,
+                    measuredAt: referenceDate.addingTimeInterval(8 * 60 * 60 + 60),
+                    sourceName: "README 예시 혈압",
+                    sourceBundleIdentifier: "local.mock.readme.blood-pressure"
+                ),
+                HealthMetricSample(
+                    metricType: .bodyMass,
+                    value: 72.1,
+                    unit: HealthMetricType.bodyMass.unitLabel,
+                    measuredAt: referenceDate.addingTimeInterval(7 * 60 * 60),
+                    sourceName: "README 예시 체성분",
+                    sourceBundleIdentifier: "local.mock.readme.body"
+                ),
+                HealthMetricSample(
+                    metricType: .bodyFatPercentage,
+                    value: 21.2,
+                    unit: HealthMetricType.bodyFatPercentage.unitLabel,
+                    measuredAt: referenceDate.addingTimeInterval(7 * 60 * 60 + 60),
+                    sourceName: "README 예시 체성분",
+                    sourceBundleIdentifier: "local.mock.readme.body"
+                ),
+                HealthMetricSample(
+                    metricType: .stepCount,
+                    value: 7_200,
+                    unit: HealthMetricType.stepCount.unitLabel,
+                    measuredAt: referenceDate.addingTimeInterval(21 * 60 * 60),
+                    sourceName: "README 예시 활동",
+                    sourceBundleIdentifier: "local.mock.readme.activity"
+                ),
+            ]
+        case .appStoreMarketing:
+            return []
+        }
     }
 
     public static func healthMetricSamplesForLastThreeDays() -> [HealthMetricSample] {

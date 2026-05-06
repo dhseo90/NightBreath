@@ -127,7 +127,7 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 - 아침 리포트: 수면 소리 요약, 아침 컨디션, 예시 혈압/체중/체성분 데이터, 데이터 품질을 함께 보여줍니다.
 - 오늘의 리듬 리포트: 오늘의 리듬 점수, component score, data quality, Daily Insight 목록을 참고용으로 보여줍니다.
 - 저녁 체크인: 하루 피로도, 스트레스, optional 기분, 생활 태그, 메모를 `EveningCheckIn` 형태로 기록할 준비를 합니다.
-- 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다.
+- 하루 리듬 카드: template과 privacy level에 따라 오늘의 리듬 점수와 핵심 지표를 이미지 카드 형태로 미리 봅니다. README 대표 카드와 App Store 후보 카드는 별도 synthetic display profile로 분리합니다.
 - 개인정보 설정: 이벤트 오디오 샘플 opt-in, 저장 용량, orphan 샘플 정리, 전체 삭제, 서버 전송 없음 안내를 제공합니다.
 - 기기 배치 가이드: 침대 옆 iPhone 배치, 마이크 가림 방지, 충전 연결, 30초 캘리브레이션 진입을 안내합니다.
 - 건강 대시보드: 예시 미리보기와 HealthKit read-only adapter, Fitdays CSV/structured export import, 전체 건강 지표, 월 캘린더, 혈압/체성분/교차 보기 진입점을 제공합니다.

@@ -410,9 +410,12 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .dailyHealthCard:
       DailyHealthCardPreviewView(
-        nightReport: appState.latestReport,
-        morningCheckIn: appState.morningCheckIn,
-        referenceDate: appState.latestReport.generatedAt
+        bundle: DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
+          profile: .readmeRepresentative,
+          referenceDate: appState.latestReport.generatedAt,
+          nightReport: appState.latestReport,
+          morningCheckIn: appState.morningCheckIn
+        )
       )
     case .healthDashboard:
       HealthDashboardView()
