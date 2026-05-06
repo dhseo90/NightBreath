@@ -4,7 +4,7 @@
 
 ## 목적
 
-`오늘의 리듬 점수`는 하루 동안 사용할 수 있는 데이터를 한눈에 보기 위한 요약입니다. 수면 소리 리포트, 아침/저녁 컨디션, mock 건강 데이터, 활동 데이터를 하나의 리포트 안에서 살펴볼 수 있게 합니다.
+`오늘의 리듬 점수`는 하루 동안 사용할 수 있는 데이터를 한눈에 보기 위한 요약입니다. 수면 소리 리포트, 아침/저녁 컨디션, mock 또는 HealthKit read-only 건강 데이터, 활동 데이터를 하나의 리포트 안에서 살펴볼 수 있게 합니다.
 
 점수의 역할:
 
@@ -19,9 +19,9 @@
 
 - `sleepComponent`: 수면 소리 점수와 오디오 커버리지를 참고합니다.
 - `recoveryComponent`: 아침 체크인과 저녁 체크인의 피로도/스트레스/기분 기록을 참고합니다.
-- `activityComponent`: mock 걸음 수와 활동량 데이터를 참고합니다.
-- `bloodPressureComponent`: mock 수축기/이완기 혈압 sample 존재 여부와 데이터 품질을 참고합니다.
-- `bodyMetricComponent`: mock 체중, 체지방률, BMI, 제지방량 sample 존재 여부와 데이터 품질을 참고합니다.
+- `activityComponent`: mock 또는 read-only 걸음 수와 활동량 데이터를 참고합니다.
+- `bloodPressureComponent`: mock 또는 HealthKit read-only 수축기/이완기 혈압 sample 존재 여부와 데이터 품질을 참고합니다.
+- `bodyMetricComponent`: mock, HealthKit read-only, Fitdays CSV 로컬 전용 sample 존재 여부와 데이터 품질을 참고합니다.
 - `dataCompleteness`: 하루 snapshot에 연결된 수면, 체크인, 건강 데이터의 완성도를 0...1 범위로 저장합니다.
 
 각 component는 0...100 범위로 clamp합니다. 혈압이나 체성분 수치 자체를 평가하지 않고, 리포트에 사용할 수 있는 데이터가 있는지와 품질을 중심으로 다룹니다.
@@ -85,15 +85,16 @@
 - 수면 소리 이벤트를 건강 지표 변화의 이유로 설명하는 문장
 - 특정 건강 상태를 앱이 판단한다는 문장
 
-## Mock 기반 단계
+## HealthKit Read-only 단계
 
-현재 Daily Rhythm Score는 실제 HealthKit 연결 전 단계의 mock architecture를 기준으로 합니다.
+현재 Daily Rhythm Score는 `HealthDataServiceProtocol` 기반 snapshot을 입력으로 사용하므로 mock data와 `RealHealthKitService` read-only adapter 결과를 같은 계산 경로에서 다룹니다.
 
 - `HealthDataServiceProtocol`로 건강 데이터 접근을 추상화합니다.
 - `MockHealthDataService`가 Omron Connect, Fitdays, Apple Health Mock source를 제공합니다.
-- 실제 HealthKit 권한 요청은 이번 단계에서 수행하지 않습니다.
-- `HKHealthStore` 기반 query는 별도 후속 작업에서만 검토합니다.
-- HealthKit은 향후 read-only 방향으로만 다룹니다.
+- `RealHealthKitService`는 HealthKit read-only 권한 요청과 quantity sample query를 담당합니다.
+- 권한 요청은 사용자가 건강 데이터 대시보드에서 연결을 선택한 경우에만 수행합니다.
+- HealthKit share/write 대상은 비워 두고 read-only로만 사용합니다.
+- 실제 HealthKit source data와 권한 허용/거부/일부 허용 흐름은 실제 iPhone manual QA가 필요합니다.
 - 건강 데이터는 서버로 전송하지 않습니다.
 
 ## 관련 파일
