@@ -417,6 +417,63 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func realDeviceSmokeRunbookDocumentsSafeResultTemplate() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/REAL_DEVICE_QA_RUNBOOK.md"),
+            encoding: .utf8
+        )
+        let qaGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/QA_GUIDE.md"),
+            encoding: .utf8
+        )
+        let testFlightPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"),
+            encoding: .utf8
+        )
+        let nextIssues = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/NEXT_ISSUES.md"),
+            encoding: .utf8
+        )
+
+        #expect(runbook.contains("Codex가 이 테스트를 자동 실행하지 않습니다"))
+        #expect(runbook.contains("Result Template"))
+        #expect(runbook.contains("Foreground stop smoke"))
+        #expect(runbook.contains("Lock/background short stop"))
+        #expect(runbook.contains("Snore signal smoke"))
+        #expect(runbook.contains("Zero-event explanation"))
+        #expect(runbook.contains("stopButtonTappedAt"))
+        #expect(runbook.contains("chunksReceivedAfterStopRequest"))
+        #expect(runbook.contains("secondsReceivingAudioAfterStopRequest"))
+        #expect(runbook.contains("rawCandidateCountByType"))
+        #expect(runbook.contains("postSmoothingEventCountByType"))
+        #expect(runbook.contains("finalEventCountByType"))
+        #expect(runbook.contains("full-night raw audio observed: No"))
+        #expect(runbook.contains("real personal audio committed: No"))
+        #expect(runbook.contains("real personal CSV committed: No"))
+        #expect(runbook.contains("server/network transfer observed: No"))
+        #expect(runbook.contains("HealthKit write observed: No"))
+        #expect(runbook.contains("diagnosis wording observed: No"))
+        #expect(qaGuide.contains("Docs/REAL_DEVICE_QA_RUNBOOK.md"))
+        #expect(testFlightPlan.contains("Docs/REAL_DEVICE_QA_RUNBOOK.md"))
+        #expect(nextIssues.contains("실제 iPhone smoke result template"))
+
+        let forbiddenPhrases = [
+            "sleep talk 내용을 기록합니다",
+            "실제 개인 오디오 파일을 repository에 기록",
+            "HealthKit write를 허용",
+            "서버로 전송합니다",
+            "정상입니다",
+            "코골이가 없었습니다",
+            "수면무호흡증 " + "없음",
+        ]
+
+        for phrase in forbiddenPhrases {
+            #expect(!runbook.contains(phrase), "Real-device runbook should not introduce restricted wording: \(phrase)")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(

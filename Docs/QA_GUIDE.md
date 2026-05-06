@@ -236,6 +236,8 @@ xcrun xctrace list devices
 
 이 절차는 P0 stop capture fix와 코골기 zero-event diagnostics/recall 보정 이후 overnight 전에 수행하는 짧은 실제 iPhone smoke test입니다. 실제 개인 오디오 파일, 실제 오디오 파일명, local path, 개인 정보는 repository에 기록하지 않습니다. 테스트는 수동으로 실행하며 자동화하지 않습니다.
 
+결과 기록은 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 `Result Template`을 우선 사용합니다.
+
 사전 조건:
 
 - 테스트 대상 commit hash를 기록합니다.
