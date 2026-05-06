@@ -102,6 +102,14 @@ Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드�
 | 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
 | 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
 
+App Store marketing capture source:
+
+- raw source: `Docs/Screenshots/AppStore/raw/`
+- review crop: `Docs/Screenshots/AppStore/review-cropped/`
+- capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
+
+Raw source는 App Store Connect size export 입력으로 사용하고, review crop은 내부 검토용으로만 사용합니다. 모든 파일은 DEBUG simulator scenario와 synthetic/mock data 기반이어야 합니다.
+
 Headline copy 원칙:
 
 - 제품명을 가리는 과장 headline보다 화면의 실제 가치와 제한을 짧게 설명합니다.

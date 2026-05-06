@@ -2,6 +2,7 @@
 .swiftpm/
 DerivedData/
 .derivedData/
+.derivedData-sim/
 *.xcuserdata/
 *.xcuserstate
 .DS_Store

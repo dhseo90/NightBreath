@@ -160,6 +160,40 @@ Tools/Screenshots/capture_ehm_screenshots.sh
 SCREENSHOT_SCENARIOS=bloodPressureDashboard,bodyCompositionDashboard,crossMetricDashboard Tools/Screenshots/capture_ehm_screenshots.sh
 ```
 
+## App Store Marketing Screenshot
+
+App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.
+
+```bash
+Tools/Screenshots/capture_app_store_screenshots.sh
+```
+
+출력 위치:
+
+```text
+Docs/Screenshots/AppStore/raw/
+Docs/Screenshots/AppStore/review-cropped/
+```
+
+현재 캡처 세트:
+
+- `homeDashboard`
+- `sleepReport`
+- `eventTimeline`
+- `dailyRhythmReport`
+- `dailyHealthCard`
+- `healthMetricsOverview`
+- `privacySettings`
+- `zeroEventReport`
+
+특정 scenario만 재캡처:
+
+```bash
+APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/capture_app_store_screenshots.sh
+```
+
+App Store Connect에 올릴 size별 파일은 raw source에서 별도 export합니다. review-cropped 파일은 README/UI Gallery 검토용 crop과 같은 성격이며, App Store Connect 업로드 원본으로 쓰지 않습니다.
+
 ## 금지
 
 - fake screenshot을 만들지 않습니다.

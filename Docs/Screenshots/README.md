@@ -22,6 +22,7 @@
 - `Privacy/`: 개인정보 설정, 배치 가이드, 온보딩
 - `EdgeStates/`: empty, 권한 없음, 데이터 부족, 낮은 측정 품질
 - `Debug/`: DEBUG 전용 검증 화면
+- `AppStore/`: App Store marketing screenshot raw source, review crop, App Store Connect export 후보
 
 ## 현재 README 대표 screenshot
 
@@ -106,6 +107,35 @@ UI Gallery crop 위치:
 - `EdgeStates/cropped/metric_detail_empty_light.png`
 - `EdgeStates/cropped/cross_metric_insufficient_light.png`
 - `Debug/cropped/detector_tuning_light.png`
+
+## App Store Marketing Screenshot
+
+App Store screenshot은 README 대표 screenshot과 별도로 `Docs/Screenshots/AppStore/`에서 관리합니다. 실제 App Store Connect upload source는 status bar를 포함한 raw capture를 기준으로 하고, review-cropped 이미지는 내부 문서 검토용으로만 사용합니다.
+
+현재 marketing 후보:
+
+- `AppStore/raw/01_home_dashboard_light.png`
+- `AppStore/raw/02_sleep_report_light.png`
+- `AppStore/raw/03_sleep_timeline_light.png`
+- `AppStore/raw/04_daily_rhythm_report_light.png`
+- `AppStore/raw/05_daily_health_card_light.png`
+- `AppStore/raw/06_health_metrics_overview_light.png`
+- `AppStore/raw/07_privacy_settings_light.png`
+- `AppStore/raw/08_zero_event_report_light.png`
+
+캡처 명령:
+
+```bash
+Tools/Screenshots/capture_app_store_screenshots.sh
+```
+
+특정 scenario만 재캡처할 때:
+
+```bash
+APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/capture_app_store_screenshots.sh
+```
+
+모든 App Store screenshot은 DEBUG simulator scenario와 synthetic/mock data만 사용합니다. 실제 HealthKit 데이터, 실제 Fitdays CSV, 실제 오디오 파일, 실제 이벤트 오디오 샘플은 사용하지 않습니다.
 
 ## 주의
 

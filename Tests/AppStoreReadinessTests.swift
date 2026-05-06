@@ -266,6 +266,52 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func appStoreMarketingScreenshotCaptureWorkflowIsDocumentedAndMockOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let captureScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/capture_app_store_screenshots.sh"),
+            encoding: .utf8
+        )
+        let screenshotGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let toolGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let expectedRawFiles = [
+            "01_home_dashboard_light.png",
+            "02_sleep_report_light.png",
+            "03_sleep_timeline_light.png",
+            "04_daily_rhythm_report_light.png",
+            "05_daily_health_card_light.png",
+            "06_health_metrics_overview_light.png",
+            "07_privacy_settings_light.png",
+            "08_zero_event_report_light.png",
+        ]
+
+        #expect(captureScript.contains("--nightbreath-screenshot-scenario"))
+        #expect(captureScript.contains("Docs/Screenshots/AppStore/raw"))
+        #expect(captureScript.contains("Docs/Screenshots/AppStore/review-cropped"))
+        #expect(captureScript.contains("APP_STORE_SCREENSHOT_SCENARIOS"))
+        #expect(screenshotGuide.contains("App Store Marketing Screenshot"))
+        #expect(toolGuide.contains("App Store Marketing Screenshot"))
+        #expect(releaseGuide.contains("App Store marketing capture source"))
+        #expect(releaseGuide.contains("DEBUG simulator scenario"))
+        #expect(releaseGuide.contains("synthetic/mock data"))
+
+        for filename in expectedRawFiles {
+            #expect(captureScript.contains(filename), "\(filename) should be part of the App Store capture script.")
+            #expect(screenshotGuide.contains("AppStore/raw/\(filename)"), "\(filename) should be documented.")
+        }
+    }
+
+    @Test
     func debugOnlyScreensStayBehindDebugCompilation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let homeDashboard = try String(
