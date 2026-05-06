@@ -6,7 +6,7 @@ Snore Baseline Evaluation은 NightBreath / 밤숨의 코골기 detector를 manif
 
 ## 목적
 
-- 현재 detector가 `conservative`, `balanced`, `sensitive` profile에서 어떤 코골기 이벤트를 만드는지 비교합니다.
+- 현재 detector가 `verySensitive`, `sensitive`, `balanced`, `conservative`, `veryConservative` profile에서 어떤 코골기 이벤트를 만드는지 비교합니다.
 - `zero-event`, possible false-positive-like, possible false-negative-like 후보를 찾습니다.
 - 다음 threshold 조정 후보를 자동 적용하지 않고 report로 남깁니다.
 
@@ -23,7 +23,7 @@ Snore Baseline Evaluation은 NightBreath / 밤숨의 코골기 detector를 manif
 swift run OfflineSnoreBaseline \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 ```
 
 단일 profile만 확인할 때는 다음처럼 실행할 수 있습니다.
@@ -43,7 +43,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 
 - `snore` expected segment: 사용자가 직접 들은 2초/3초/5초 DEBUG 샘플
 - negative segment: 같은 기기 배치의 `silence`, `unknown`, `environmentalNoise` 짧은 샘플
-- profile: `conservative`, `balanced`, `sensitive` 모두 비교
+- profile: `verySensitive`, `sensitive`, `balanced`, `conservative`, `veryConservative` 모두 비교
 - 확인 값: `rawCandidateCount`, `preSmoothingCandidateCount`, `postSmoothingEventCount`, `finalSnoreEventCount`, `rejectReasonTop`, `rmsSummary`, `energySummary`, `confidenceSummary`
 
 샘플 파일은 `Samples/Personal/` 또는 repo 밖 경로에 두고, manifest에는 파일명과 local path만 기록합니다. sleep talk 내용은 기록하지 않으며, 이 baseline은 detector 개발용 참고 자료입니다.
@@ -60,7 +60,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 
 - RMS threshold: 0.045
 - RMS 0.045 미만 snore 후보의 추가 조건: `rule.lowLevelSnoreRMS` 이상, `rule.lowLevelSnoreEnergy` 이상, low-band 0.64 이상, noise 대비 relative energy 1.35 이상, zero-crossing 0.24 이하, high-band 0.18 이하, spectral centroid 950Hz 이하
-- Release 기본 profile은 `balanced`이며 `sensitive`는 DEBUG 비교용입니다.
+- Release 기본 profile은 `balanced`이며 `verySensitive`/`sensitive`는 DEBUG 비교용입니다.
 
 ## Output
 

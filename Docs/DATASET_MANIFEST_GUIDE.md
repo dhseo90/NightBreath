@@ -169,7 +169,7 @@ Offline Evaluation은 실행 전에 manifest를 validation하고 다음 요약�
 swift run OfflineEvaluation \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 ```
 
 예시 manifest의 `localFilePath`는 실제 파일을 가리키지 않을 수 있습니다. 사용자는 공개 데이터셋 또는 개인 디버그 샘플을 직접 준비한 뒤 경로를 자신의 로컬 환경에 맞게 수정해야 합니다.

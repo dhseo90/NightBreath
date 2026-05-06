@@ -1,9 +1,11 @@
 import Foundation
 
 public enum DetectorTuningProfile: String, CaseIterable, Codable, Identifiable, Sendable {
-    case conservative
-    case balanced
+    case verySensitive
     case sensitive
+    case balanced
+    case conservative
+    case veryConservative
     case customDebug
 
     public var id: String { rawValue }
@@ -11,17 +13,38 @@ public enum DetectorTuningProfile: String, CaseIterable, Codable, Identifiable, 
     public static var releaseDefault: DetectorTuningProfile { .balanced }
 
     public static var debugSelectableProfiles: [DetectorTuningProfile] {
-        [.conservative, .balanced, .sensitive]
+        [.verySensitive, .sensitive, .balanced, .conservative, .veryConservative]
     }
 
     public var displayName: String {
         switch self {
-        case .conservative:
-            "Conservative"
+        case .verySensitive:
+            "많이 민감"
+        case .sensitive:
+            "민감"
         case .balanced:
-            "Balanced"
+            "보통"
+        case .conservative:
+            "둔감"
+        case .veryConservative:
+            "많이 둔감"
+        case .customDebug:
+            "DEBUG 직접 조정"
+        }
+    }
+
+    public var englishDisplayName: String {
+        switch self {
+        case .verySensitive:
+            "Very Sensitive"
         case .sensitive:
             "Sensitive"
+        case .balanced:
+            "Balanced"
+        case .conservative:
+            "Conservative"
+        case .veryConservative:
+            "Very Conservative"
         case .customDebug:
             "Custom Debug"
         }
@@ -29,12 +52,16 @@ public enum DetectorTuningProfile: String, CaseIterable, Codable, Identifiable, 
 
     public var koreanDescription: String {
         switch self {
-        case .conservative:
-            "후보를 더 신중하게 남기는 개발용 profile입니다."
-        case .balanced:
-            "Release 기본값으로 사용할 균형형 profile입니다."
+        case .verySensitive:
+            "침대에서 기기가 멀어 입력이 작게 들어오는 짧은 DEBUG 비교용입니다. 조용한 방/공조음 false-positive를 반드시 함께 확인하세요."
         case .sensitive:
-            "짧은 테스트에서 후보 누락 여부를 비교하기 위한 DEBUG profile입니다."
+            "코골기 후보 누락 여부를 확인하기 위한 민감한 DEBUG profile입니다."
+        case .balanced:
+            "Release 기본값으로 사용할 보통 profile입니다."
+        case .conservative:
+            "후보를 더 신중하게 남기는 둔감한 DEBUG profile입니다."
+        case .veryConservative:
+            "소음이 많은 환경에서 과검출 여부를 비교하기 위한 많이 둔감한 DEBUG profile입니다."
         case .customDebug:
             "개별 threshold 실험을 위한 예약 profile입니다. 현재 앱에서는 읽기 전용으로 둡니다."
         }
@@ -46,14 +73,18 @@ public enum DetectorTuningProfile: String, CaseIterable, Codable, Identifiable, 
 
     public var snapshotIndex: Double {
         switch self {
-        case .conservative:
+        case .veryConservative:
             0
-        case .balanced:
+        case .conservative:
             1
-        case .sensitive:
+        case .balanced:
             2
-        case .customDebug:
+        case .sensitive:
             3
+        case .verySensitive:
+            4
+        case .customDebug:
+            5
         }
     }
 }
@@ -103,20 +134,35 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
     public static func profile(_ profile: DetectorTuningProfile) -> DetectorThresholdConfiguration {
         // 임시 profile 값이며, 실제 overnight 데이터와 detector diagnostics를 바탕으로 조정할 예정입니다.
         switch profile {
-        case .conservative:
+        case .verySensitive:
             return DetectorThresholdConfiguration(
-                profile: .conservative,
-                silenceRmsThreshold: 0.012,
-                snoreRmsThreshold: 0.060,
-                snoreEnergyThreshold: 0.0036,
-                coughEnergyThreshold: 0.0048,
-                gaspEnergyThreshold: 0.0028,
-                bruxismHighBandThreshold: 0.30,
-                environmentalNoiseThreshold: 0.28,
-                suspectedPauseMinimumDuration: 12,
-                minimumConfidence: 0.42,
-                minimumEventDuration: 0.30,
-                mergeGapSeconds: 0.80
+                profile: .verySensitive,
+                silenceRmsThreshold: 0.007,
+                snoreRmsThreshold: 0.036,
+                snoreEnergyThreshold: 0.0013,
+                coughEnergyThreshold: 0.0018,
+                gaspEnergyThreshold: 0.0008,
+                bruxismHighBandThreshold: 0.18,
+                environmentalNoiseThreshold: 0.18,
+                suspectedPauseMinimumDuration: 7,
+                minimumConfidence: 0.30,
+                minimumEventDuration: 0.12,
+                mergeGapSeconds: 1.35
+            )
+        case .sensitive:
+            return DetectorThresholdConfiguration(
+                profile: .sensitive,
+                silenceRmsThreshold: 0.008,
+                snoreRmsThreshold: 0.040,
+                snoreEnergyThreshold: 0.0016,
+                coughEnergyThreshold: 0.0020,
+                gaspEnergyThreshold: 0.0010,
+                bruxismHighBandThreshold: 0.20,
+                environmentalNoiseThreshold: 0.20,
+                suspectedPauseMinimumDuration: 8,
+                minimumConfidence: 0.32,
+                minimumEventDuration: 0.16,
+                mergeGapSeconds: 1.20
             )
         case .balanced:
             return DetectorThresholdConfiguration(
@@ -133,20 +179,35 @@ public struct DetectorThresholdConfiguration: Codable, Equatable, Sendable {
                 minimumEventDuration: 0.20,
                 mergeGapSeconds: 1.00
             )
-        case .sensitive:
+        case .conservative:
             return DetectorThresholdConfiguration(
-                profile: .sensitive,
-                silenceRmsThreshold: 0.008,
-                snoreRmsThreshold: 0.040,
-                snoreEnergyThreshold: 0.0016,
-                coughEnergyThreshold: 0.0020,
-                gaspEnergyThreshold: 0.0010,
-                bruxismHighBandThreshold: 0.20,
-                environmentalNoiseThreshold: 0.20,
-                suspectedPauseMinimumDuration: 8,
-                minimumConfidence: 0.32,
-                minimumEventDuration: 0.16,
-                mergeGapSeconds: 1.20
+                profile: .conservative,
+                silenceRmsThreshold: 0.012,
+                snoreRmsThreshold: 0.060,
+                snoreEnergyThreshold: 0.0036,
+                coughEnergyThreshold: 0.0048,
+                gaspEnergyThreshold: 0.0028,
+                bruxismHighBandThreshold: 0.30,
+                environmentalNoiseThreshold: 0.28,
+                suspectedPauseMinimumDuration: 12,
+                minimumConfidence: 0.42,
+                minimumEventDuration: 0.30,
+                mergeGapSeconds: 0.80
+            )
+        case .veryConservative:
+            return DetectorThresholdConfiguration(
+                profile: .veryConservative,
+                silenceRmsThreshold: 0.014,
+                snoreRmsThreshold: 0.070,
+                snoreEnergyThreshold: 0.0049,
+                coughEnergyThreshold: 0.0060,
+                gaspEnergyThreshold: 0.0034,
+                bruxismHighBandThreshold: 0.34,
+                environmentalNoiseThreshold: 0.32,
+                suspectedPauseMinimumDuration: 14,
+                minimumConfidence: 0.48,
+                minimumEventDuration: 0.40,
+                mergeGapSeconds: 0.60
             )
         case .customDebug:
             var configuration = DetectorThresholdConfiguration.profile(.balanced)

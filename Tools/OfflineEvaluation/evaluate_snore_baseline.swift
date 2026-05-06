@@ -44,12 +44,12 @@ struct SnoreBaselineEvaluationCLI {
 
   private static let usage = """
     Usage:
-      swift run OfflineSnoreBaseline --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles conservative,balanced,sensitive
+      swift run OfflineSnoreBaseline --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 
     Options:
       --manifest PATH     Dataset manifest JSON path.
       --output PATH       Output directory. Default: Tools/OfflineEvaluation/output
-      --profiles LIST     Comma-separated profiles: conservative,balanced,sensitive
+      --profiles LIST     Comma-separated profiles: verySensitive,sensitive,balanced,conservative,veryConservative
       --profile NAME      Single profile alias for --profiles.
 
     No data / missing manifest:
@@ -68,7 +68,7 @@ private struct SnoreBaselineOptions {
   init(arguments: [String]) throws {
     var manifestPath: String?
     var outputPath = "Tools/OfflineEvaluation/output"
-    var profileText = "conservative,balanced,sensitive"
+    var profileText = "verySensitive,sensitive,balanced,conservative,veryConservative"
     var index = 0
 
     while index < arguments.count {

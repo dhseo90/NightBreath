@@ -49,7 +49,7 @@ struct OfflineEvaluationCLI {
 
   private static let usage = """
     Usage:
-      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles conservative,balanced,sensitive --backends ruleBased,coreML,hybrid
+      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles verySensitive,sensitive,balanced,conservative,veryConservative --backends ruleBased,coreML,hybrid
 
     Notes:
       - 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
@@ -67,7 +67,7 @@ private struct OfflineEvaluationOptions {
   init(arguments: [String]) throws {
     var manifestPath: String?
     var outputPath = "Tools/OfflineEvaluation/output"
-    var profileText = "conservative,balanced,sensitive"
+    var profileText = "verySensitive,sensitive,balanced,conservative,veryConservative"
     var backendText = "hybrid"
     var index = 0
 

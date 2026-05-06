@@ -7,22 +7,24 @@
 - threshold는 자동으로 변경하지 않습니다.
 - `suggested_changes.json`은 수동 검토용입니다.
 - false positive-like 이벤트가 늘어날 위험을 항상 함께 봅니다.
-- Release 기본 profile은 `balanced`입니다.
-- `conservative`는 크게 바꾸지 않고, `balanced`는 충분한 baseline 근거가 있을 때만 보수적으로 조정합니다.
-- `sensitive`는 DEBUG/비교용으로 더 민감하게 둘 수 있지만 Release 기본값으로 바로 올리지 않습니다.
+- Release 기본 profile은 `balanced`(앱 표시: `보통`)입니다.
+- `verySensitive`/`sensitive`는 DEBUG/비교용으로 더 민감하게 둘 수 있지만 Release 기본값으로 바로 올리지 않습니다.
+- `conservative`/`veryConservative`는 소음 과검출 비교용 둔감 profile입니다.
 - 공개/개인 오디오 파일은 repo에 넣지 않습니다.
 - 서버 전송, 클라우드 처리, 외부 API 호출은 사용하지 않습니다.
 - 이 비교는 detector 개발용이며 의학적 성능 검증이 아닙니다.
 
 ## 현재 Profile 상태
 
-`DetectorTuningProfile.releaseDefault`는 `balanced`입니다. DEBUG 선택 profile은 `conservative`, `balanced`, `sensitive`를 유지합니다.
+`DetectorTuningProfile.releaseDefault`는 `balanced`입니다. DEBUG 선택 profile은 앱에서 `많이 민감`, `민감`, `보통`, `둔감`, `많이 둔감` 5단계로 표시합니다. 숫자를 직접 조절하지 않고, 미리 정의한 preset만 선택합니다.
 
-| Profile | 용도 | snore RMS | snore energy | minimum confidence | minimum duration | merge gap |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| conservative | 더 신중한 후보 확인용 | 0.060 | 0.0036 | 0.42 | 0.30s | 0.80s |
-| balanced | Release 기본값 | 0.045 | 0.0020 | 0.35 | 0.20s | 1.00s |
-| sensitive | DEBUG 누락 비교용 | 0.040 | 0.0016 | 0.32 | 0.16s | 1.20s |
+| 앱 표시 | raw profile | 용도 | snore RMS | snore energy | minimum confidence | minimum duration | merge gap |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 많이 민감 | verySensitive | 침대 거리에서 작은 입력 누락 확인용 | 0.036 | 0.0013 | 0.30 | 0.12s | 1.35s |
+| 민감 | sensitive | DEBUG 누락 비교용 | 0.040 | 0.0016 | 0.32 | 0.16s | 1.20s |
+| 보통 | balanced | Release 기본값 | 0.045 | 0.0020 | 0.35 | 0.20s | 1.00s |
+| 둔감 | conservative | 더 신중한 후보 확인용 | 0.060 | 0.0036 | 0.42 | 0.30s | 0.80s |
+| 많이 둔감 | veryConservative | 소음 과검출 비교용 | 0.070 | 0.0049 | 0.48 | 0.40s | 0.60s |
 
 현재 값은 `RuleBasedDetectionThresholds`와 `DetectionSmoothingPolicy`로 전달되고, diagnostics의 `thresholdSnapshot`에 `tuning.*`와 `rule.*` key로 저장됩니다. `balanced`의 낮은 RMS 구간은 별도 texture guard를 통과해야 합니다. RMS 0.045 미만 코골기 후보는 `rule.lowLevelSnoreRMS`, `rule.lowLevelSnoreEnergy`, `rule.lowLevelSnoreLowBandRatio`, `rule.snoreRelativeEnergyRatio` guard를 함께 통과해야 raw snore 후보가 됩니다. 기본 `balanced` 기준은 대략 RMS 0.02475 이상, low-band 0.64 이상, noise 대비 relative energy 1.35 이상, zero-crossing 0.24 이하, high-band 0.18 이하, spectral centroid 950Hz 이하입니다.
 
@@ -65,7 +67,7 @@ threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregati
 | smoothing | 1초 이상 snore-like 후보는 balanced smoothing을 통과하도록 regression test를 추가했습니다. |
 | final/report | 최종 snore 이벤트가 `NightReport.snoreTotalSeconds`와 `SleepReportView`에 연결되는 contract를 테스트했습니다. |
 | UI | zero-event 문구는 detector 기준을 통과한 이벤트가 없었다는 설명과 diagnostics 분리 표시를 유지합니다. |
-| backend | Release 기본 profile은 계속 `balanced`이며, `sensitive`는 DEBUG 비교용으로 유지합니다. |
+| backend | Release 기본 profile은 계속 `balanced`이며, `verySensitive`/`sensitive`는 DEBUG 비교용으로 유지합니다. |
 
 적용한 보정:
 
@@ -76,7 +78,7 @@ threshold 후보는 feature 후보, raw 후보, smoothing drop, report aggregati
 
 ## 2026-05-06 거리/배치 저진폭 guard
 
-실제 침대 배치에서는 iPhone이 충전 중 머리맡에서 조금 떨어질 수 있어, 코골기 소리가 있어도 절대 RMS가 `balanced` snore RMS 0.045 아래로 들어올 수 있습니다. 이번 변경은 Release 기본 profile을 `sensitive`로 올리거나 전체 threshold를 크게 낮추지 않고, 저진폭 전용 guard만 추가했습니다.
+실제 침대 배치에서는 iPhone이 충전 중 머리맡에서 조금 떨어질 수 있어, 코골기 소리가 있어도 절대 RMS가 `balanced` snore RMS 0.045 아래로 들어올 수 있습니다. 이번 변경은 Release 기본 profile을 `sensitive`/`verySensitive`로 올리거나 전체 threshold를 크게 낮추지 않고, 저진폭 전용 guard만 추가했습니다.
 
 추가된 조건:
 
@@ -123,7 +125,7 @@ False-positive-like guard:
 
 - 실제 존재하는 로컬 오디오 segment가 있는 manifest
 - `snore`, `silence` 또는 `unknown`, `environmentalNoise` segment가 함께 포함된 baseline
-- `conservative`, `balanced`, `sensitive` 세 profile 모두 실행한 `OfflineEvaluation` 또는 `OfflineSnoreBaseline` 결과
+- `verySensitive`, `sensitive`, `balanced`, `conservative`, `veryConservative` 다섯 profile 모두 실행한 `OfflineEvaluation` 또는 `OfflineSnoreBaseline` 결과
 - missing file/failed record가 아닌 정상 analyzed record
 - false positive-like 증가 여부를 볼 수 있는 quiet/noise negative segment
 
@@ -137,7 +139,7 @@ False-positive-like guard:
 swift run OfflineEvaluation \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 ```
 
 결과는 다음 위치에 생성됩니다.
@@ -178,7 +180,7 @@ swift run OfflineProfileCompare \
 swift run OfflineSnoreBaseline \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 ```
 
 생성 파일:
@@ -218,8 +220,8 @@ manifest에 `expectedLabels`가 있으면 도구가 간단한 mismatch 후보를
 도구는 다음과 같은 경우 수동 검토 후보를 만듭니다.
 
 - balanced에서 zero-event가 많고 expected event가 누락되는 경우
-- sensitive에서 후보는 늘지만 quiet/unknown segment 이벤트가 과도하게 늘어나는 경우
-- conservative에서 raw 후보가 거의 없고 zero-event가 많은 경우
+- verySensitive/sensitive에서 후보는 늘지만 quiet/unknown segment 이벤트가 과도하게 늘어나는 경우
+- conservative/veryConservative에서 raw 후보가 거의 없고 zero-event가 많은 경우
 
 제안 파일에는 다음이 포함됩니다.
 
@@ -264,7 +266,7 @@ threshold 후보를 Release 기본값으로 바꾸기 전에는 짧은 foregroun
 ## 7. 권장 반복 흐름
 
 1. labeled segment를 manifest에 추가합니다.
-2. `OfflineEvaluation`을 conservative/balanced/sensitive로 실행합니다.
+2. `OfflineEvaluation`을 verySensitive/sensitive/balanced/conservative/veryConservative로 실행합니다.
 3. `OfflineProfileCompare`로 `tuning_report.md`와 `suggested_changes.json`을 생성합니다.
 4. possible false-positive-like와 possible false-negative-like를 함께 확인합니다.
 5. 작은 threshold 변경 후보만 수동으로 검토합니다.

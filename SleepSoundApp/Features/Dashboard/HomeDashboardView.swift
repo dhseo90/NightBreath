@@ -493,6 +493,62 @@ struct HomeDashboardView: View {
   }
 }
 
+private struct DetectorSensitivitySettingsView: View {
+  @EnvironmentObject private var appState: AppState
+
+  var body: some View {
+    List {
+      Section("코골기 감지 민감도") {
+        ForEach(DetectorTuningProfile.debugSelectableProfiles) { profile in
+          Button {
+            appState.setDetectorTuningProfile(profile)
+          } label: {
+            HStack(spacing: NBSpacing.sm) {
+              VStack(alignment: .leading, spacing: 4) {
+                Text(profile.displayName)
+                  .font(NBTypography.body)
+                  .foregroundStyle(NBColor.primaryText)
+                Text(profile.koreanDescription)
+                  .font(NBTypography.caption)
+                  .foregroundStyle(NBColor.secondaryText)
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+
+              Spacer(minLength: NBSpacing.sm)
+
+              if appState.detectorTuningProfile == profile {
+                Image(systemName: "checkmark.circle.fill")
+                  .foregroundStyle(NBColor.success)
+                  .accessibilityHidden(true)
+              }
+            }
+          }
+          .disabled(appState.isRecording)
+          .accessibilityLabel("\(profile.displayName) 민감도")
+          .accessibilityValue(appState.detectorTuningProfile == profile ? "현재 선택됨" : "선택 가능")
+        }
+      }
+
+      Section("적용 기준") {
+        Text(
+          appState.isRecording
+            ? "측정 중에는 민감도를 바꾸지 않습니다. 수면 종료 후 다음 측정 전에 변경하세요."
+            : "선택한 민감도는 다음 측정부터 적용됩니다. 기본값은 보통입니다."
+        )
+        .font(NBTypography.footnote)
+        .foregroundStyle(NBColor.secondaryText)
+
+        Text("민감도를 높이면 작은 코골기 후보를 더 잘 남길 수 있지만, 주변 소음 후보도 함께 늘 수 있어 조용한 구간과 함께 비교하세요.")
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+    }
+    .navigationTitle("감지 민감도")
+    .scrollContentBackground(.hidden)
+    .background(NBColor.pageBackground)
+  }
+}
+
 private struct SettingsListView: View {
   @EnvironmentObject private var appState: AppState
 
@@ -520,6 +576,12 @@ private struct SettingsListView: View {
       }
 
       Section("측정 준비") {
+        NavigationLink {
+          DetectorSensitivitySettingsView()
+        } label: {
+          Label("코골기 감지 민감도", systemImage: "slider.horizontal.3")
+        }
+
         NavigationLink {
           DevicePlacementGuideView()
         } label: {

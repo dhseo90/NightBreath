@@ -119,7 +119,7 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
         if topReason == .belowConfidenceThreshold || topReason == .belowConfidence {
             return ZeroEventAnalysis(
                 probableReason: .candidatesRejectedByConfidence,
-                recommendedDebugAction: "대부분의 후보가 confidence 기준에서 제외되었습니다. DEBUG에서 Sensitive profile로 짧은 비교 테스트를 해볼 수 있습니다.",
+                recommendedDebugAction: "대부분의 후보가 confidence 기준에서 제외되었습니다. DEBUG에서 ‘민감’ 또는 ‘많이 민감’ 레벨로 짧은 비교 테스트를 해볼 수 있습니다.",
                 confidence: 0.82
             )
         }
@@ -171,7 +171,7 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
             energyP95 >= configuration.snoreEnergyThreshold * 0.80 {
             return ZeroEventAnalysis(
                 probableReason: .detectorTooConservative,
-                recommendedDebugAction: "feature 값이 기준 근처까지 올라왔지만 후보가 없었습니다. DEBUG에서 Sensitive profile로 다음 짧은 테스트를 비교하세요.",
+                recommendedDebugAction: "feature 값이 기준 근처까지 올라왔지만 후보가 없었습니다. DEBUG에서 ‘민감’ 또는 ‘많이 민감’ 레벨로 다음 짧은 테스트를 비교하세요.",
                 confidence: 0.74
             )
         }

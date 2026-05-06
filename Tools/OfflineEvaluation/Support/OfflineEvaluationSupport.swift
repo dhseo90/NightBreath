@@ -1801,7 +1801,7 @@ public struct OfflineProfileComparisonRunner {
           currentValue: configuration.minimumConfidence,
           suggestedDirection: "review-raise-or-keep-debug-only",
           reason: "sensitive profile에서 quiet/unknown segment의 possible false-positive-like finding이 많습니다.",
-          falsePositiveRisk: "sensitive profile은 DEBUG 비교용으로 유지하고 Release 기본값으로 바로 올리지 않는 편이 안전합니다."
+          falsePositiveRisk: "sensitive/verySensitive profile은 DEBUG 비교용으로 유지하고 Release 기본값으로 바로 올리지 않는 편이 안전합니다."
         )
       )
     }
@@ -1817,7 +1817,7 @@ public struct OfflineProfileComparisonRunner {
           currentValue: configuration.snoreRmsThreshold,
           suggestedDirection: "review-too-conservative",
           reason: "conservative profile에서 raw 후보가 거의 없고 zero-event가 많습니다.",
-          falsePositiveRisk: "conservative 값을 완화하면 false-positive-like 이벤트가 늘 수 있으므로 balanced/sensitive와 비교 후 수동 반영하세요."
+          falsePositiveRisk: "conservative 값을 완화하면 false-positive-like 이벤트가 늘 수 있으므로 verySensitive/sensitive/balanced와 비교 후 수동 반영하세요."
         )
       )
     }
@@ -2890,7 +2890,7 @@ public struct OfflineEvaluationRunner {
     let profiles = rawValue.split(separator: ",").map {
       String($0).trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    guard !profiles.isEmpty else { return [.conservative, .balanced, .sensitive] }
+    guard !profiles.isEmpty else { return DetectorTuningProfile.debugSelectableProfiles }
 
     return try profiles.map { profile in
       guard let parsed = DetectorTuningProfile(rawValue: profile) else {

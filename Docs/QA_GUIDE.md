@@ -119,7 +119,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 용도:
 
 - detector 변경 전후 비교
-- conservative / balanced / sensitive profile 비교
+- verySensitive / sensitive / balanced / conservative / veryConservative profile 비교
 - zero-event 원인 비교
 - reject reason, raw 후보 수, 최종 이벤트 수 확인
 - threshold 변경 후보를 수동 검토용 보고서로 생성
@@ -189,7 +189,8 @@ Replay 연결:
 
 2026-05-05 detector smoke 항목:
 
-- `balanced` profile에서 threshold snapshot의 `tuning.snoreRmsThreshold`가 0.045인지 확인합니다.
+- 앱 `설정` 탭 → `측정 준비` → `코골기 감지 민감도`에서 preset이 `많이 민감`, `민감`, `보통`, `둔감`, `많이 둔감` 5단계로 표시되는지 확인합니다.
+- Release 기본값인 `보통`/`balanced` profile에서 threshold snapshot의 `tuning.snoreRmsThreshold`가 0.045인지 확인합니다.
 - 실제 코골이처럼 들린 짧은 DEBUG 샘플에서 `snoreLikeFeatureCandidateCount`, `snoreRawCandidateCount`, `postSmoothingEventCountByType.snore`, `finalEventCountByType.snore`가 어느 단계에서 0이 되는지 기록합니다.
 - 같은 기기 배치에서 조용한 구간 또는 주변 소음 negative sample도 함께 replay해 snore raw/final count가 증가하지 않는지 확인합니다.
 - RMS가 `tuning.snoreRmsThreshold` 0.045보다 낮은데 snore 후보가 된 경우 `rule.lowLevelSnoreRMS`, `rule.lowLevelSnoreEnergy`, `rule.lowLevelSnoreLowBandRatio`, `rule.snoreRelativeEnergyRatio`와 low-band p90, zero-crossing p50, high-band p50, spectral centroid p50가 low-amplitude guard에 맞는지 확인합니다.

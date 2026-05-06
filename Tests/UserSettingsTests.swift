@@ -41,6 +41,29 @@ struct UserSettingsTests {
     }
 
     @Test
+    func detectorTuningProfileDefaultsToBalancedAndPersistsSelectableLevel() throws {
+        let userDefaults = try makeIsolatedUserDefaults()
+        let settings = UserSettings(userDefaults: userDefaults)
+
+        #expect(settings.detectorTuningProfile == .releaseDefault)
+
+        settings.detectorTuningProfile = .verySensitive
+        let reloadedSettings = UserSettings(userDefaults: userDefaults)
+
+        #expect(reloadedSettings.detectorTuningProfile == .verySensitive)
+    }
+
+    @Test
+    func detectorTuningProfileRejectsHiddenCustomDebugPersistence() throws {
+        let userDefaults = try makeIsolatedUserDefaults()
+        let settings = UserSettings(userDefaults: userDefaults)
+
+        settings.detectorTuningProfile = .customDebug
+
+        #expect(settings.detectorTuningProfile == .releaseDefault)
+    }
+
+    @Test
     func storageRulesBlockEventSamplesWhenSettingIsOff() {
         let shouldStore = EventAudioSampleStorageRules.shouldAttemptStorage(
             isEnabled: false,

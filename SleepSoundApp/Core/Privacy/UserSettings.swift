@@ -3,11 +3,13 @@ import Foundation
 public protocol UserSettingsProviding: AnyObject {
     var isEventAudioSampleStorageEnabled: Bool { get set }
     var hasCompletedOnboarding: Bool { get set }
+    var detectorTuningProfile: DetectorTuningProfile { get set }
 }
 
 public final class UserSettings: UserSettingsProviding {
     public static let eventAudioSampleStorageKey = "isEventAudioSampleStorageEnabled"
     public static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    public static let detectorTuningProfileKey = "detectorTuningProfile"
 
     private let userDefaults: UserDefaults
 
@@ -30,6 +32,21 @@ public final class UserSettings: UserSettingsProviding {
         }
         set {
             userDefaults.set(newValue, forKey: Self.hasCompletedOnboardingKey)
+        }
+    }
+
+    public var detectorTuningProfile: DetectorTuningProfile {
+        get {
+            guard let rawValue = userDefaults.string(forKey: Self.detectorTuningProfileKey),
+                  let profile = DetectorTuningProfile(rawValue: rawValue)
+            else {
+                return .releaseDefault
+            }
+            return DetectorTuningProfile.debugSelectableProfiles.contains(profile) ? profile : .releaseDefault
+        }
+        set {
+            let profile = DetectorTuningProfile.debugSelectableProfiles.contains(newValue) ? newValue : .releaseDefault
+            userDefaults.set(profile.rawValue, forKey: Self.detectorTuningProfileKey)
         }
     }
 }

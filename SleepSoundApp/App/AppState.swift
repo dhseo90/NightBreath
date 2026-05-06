@@ -142,8 +142,9 @@ final class AppState: ObservableObject {
         eventAudioSnippetStore: EventAudioSnippetStore = EventAudioSnippetStore(),
         eventFeedbackStore: SleepEventFeedbackStore = SleepEventFeedbackStore(),
         userSettings: UserSettingsProviding = UserSettings(),
-        detectorTuningProfile: DetectorTuningProfile = .releaseDefault
+        detectorTuningProfile: DetectorTuningProfile? = nil
     ) {
+        let initialDetectorTuningProfile = detectorTuningProfile ?? userSettings.detectorTuningProfile
         let sampleBundle = MockSleepDataFactory.latestBundle()
         let storedReport = repository.latestReport()
         let storedSession = storedReport.flatMap { repository.session(for: $0.sessionId) }
@@ -157,11 +158,11 @@ final class AppState: ObservableObject {
         self.repository = repository
         self.audioSessionManager = audioSessionManager
         self.audioCaptureService = audioCaptureService ?? AudioCaptureService(sessionManager: audioSessionManager)
-        self.sleepAnalyzer = sleepAnalyzer ?? detectorTuningProfile.configuration.makeSleepAnalyzer()
+        self.sleepAnalyzer = sleepAnalyzer ?? initialDetectorTuningProfile.configuration.makeSleepAnalyzer()
         self.eventAudioSnippetStore = eventAudioSnippetStore
         self.eventFeedbackStore = eventFeedbackStore
         self.userSettings = userSettings
-        self.detectorTuningProfile = detectorTuningProfile
+        self.detectorTuningProfile = initialDetectorTuningProfile
         self.latestSession = initialSession
         self.latestEvents = initialEvents
         self.latestReport = initialReport
@@ -296,8 +297,9 @@ final class AppState: ObservableObject {
         }
 
         detectorTuningProfile = profile
+        userSettings.detectorTuningProfile = profile
         sleepAnalyzer = profile.configuration.makeSleepAnalyzer()
-        audioCaptureMessage = "다음 측정부터 \(profile.displayName) profile을 사용합니다."
+        audioCaptureMessage = "다음 측정부터 detector 민감도 ‘\(profile.displayName)’를 사용합니다."
     }
 
     func handleOpenURL(_ url: URL) {

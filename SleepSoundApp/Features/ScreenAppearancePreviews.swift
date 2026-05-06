@@ -31,6 +31,7 @@ private enum NBPreviewFactory {
 private final class PreviewUserSettings: UserSettingsProviding {
   var isEventAudioSampleStorageEnabled = false
   var hasCompletedOnboarding = false
+  var detectorTuningProfile: DetectorTuningProfile = .releaseDefault
 }
 
 @MainActor

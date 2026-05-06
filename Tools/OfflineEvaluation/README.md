@@ -56,15 +56,17 @@ Segment 필드:
 swift run OfflineEvaluation \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive \
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative \
   --backends hybrid
 ```
 
 프로필은 쉼표로 나열합니다.
 
-- `conservative`
-- `balanced`
+- `verySensitive`
 - `sensitive`
+- `balanced`
+- `conservative`
+- `veryConservative`
 
 backend도 쉼표로 나열할 수 있습니다.
 
@@ -122,7 +124,7 @@ JSON은 summary와 record 전체를 보존합니다. CSV는 spreadsheet 비교�
 
 ## Profile 비교
 
-evaluation JSON을 만든 뒤 profile 비교 도구로 conservative, balanced, sensitive 결과를 비교할 수 있습니다.
+evaluation JSON을 만든 뒤 profile 비교 도구로 verySensitive, sensitive, balanced, conservative, veryConservative 결과를 비교할 수 있습니다.
 
 ```bash
 swift run OfflineProfileCompare \
@@ -148,7 +150,7 @@ Zero Event Stage Breakdown은 이벤트 0개 record를 `No Raw Candidate`, `Raw 
 swift run OfflineSnoreBaseline \
   --manifest Tools/OfflineEvaluation/sample_manifest.example.json \
   --output Tools/OfflineEvaluation/output \
-  --profiles conservative,balanced,sensitive
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative
 ```
 
 생성 파일:

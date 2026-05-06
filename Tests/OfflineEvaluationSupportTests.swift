@@ -115,12 +115,12 @@ struct OfflineEvaluationSupportTests {
     let records = OfflineEvaluationRunner().evaluateRecords(
       manifest: manifest,
       manifestDirectory: FileManager.default.temporaryDirectory,
-      profiles: [.conservative, .balanced, .sensitive],
+      profiles: DetectorTuningProfile.debugSelectableProfiles,
       evaluatedAt: Date(timeIntervalSince1970: 1_800_000_000)
     )
 
-    #expect(records.count == 3)
-    #expect(Set(records.map(\.tuningProfile)) == ["conservative", "balanced", "sensitive"])
+    #expect(records.count == DetectorTuningProfile.debugSelectableProfiles.count)
+    #expect(records.map(\.tuningProfile) == DetectorTuningProfile.debugSelectableProfiles.map(\.rawValue))
     #expect(records.allSatisfy { $0.errorMessage == nil })
   }
 

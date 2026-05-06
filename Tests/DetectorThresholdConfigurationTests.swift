@@ -6,23 +6,39 @@ struct DetectorThresholdConfigurationTests {
     @Test
     func releaseDefaultAndDebugProfilesStayStable() {
         #expect(DetectorTuningProfile.releaseDefault == .balanced)
-        #expect(DetectorTuningProfile.debugSelectableProfiles == [.conservative, .balanced, .sensitive])
+        #expect(DetectorTuningProfile.debugSelectableProfiles == [
+            .verySensitive,
+            .sensitive,
+            .balanced,
+            .conservative,
+            .veryConservative
+        ])
     }
 
     @Test
     func profileThresholdsStayOrderedBySensitivity() {
-        let conservative = DetectorTuningProfile.conservative.configuration
-        let balanced = DetectorTuningProfile.balanced.configuration
+        let verySensitive = DetectorTuningProfile.verySensitive.configuration
         let sensitive = DetectorTuningProfile.sensitive.configuration
+        let balanced = DetectorTuningProfile.balanced.configuration
+        let conservative = DetectorTuningProfile.conservative.configuration
+        let veryConservative = DetectorTuningProfile.veryConservative.configuration
 
+        #expect(veryConservative.snoreRmsThreshold > conservative.snoreRmsThreshold)
         #expect(conservative.snoreRmsThreshold > balanced.snoreRmsThreshold)
         #expect(balanced.snoreRmsThreshold > sensitive.snoreRmsThreshold)
+        #expect(sensitive.snoreRmsThreshold > verySensitive.snoreRmsThreshold)
+        #expect(veryConservative.snoreEnergyThreshold > conservative.snoreEnergyThreshold)
         #expect(conservative.snoreEnergyThreshold > balanced.snoreEnergyThreshold)
         #expect(balanced.snoreEnergyThreshold > sensitive.snoreEnergyThreshold)
+        #expect(sensitive.snoreEnergyThreshold > verySensitive.snoreEnergyThreshold)
+        #expect(veryConservative.minimumConfidence > conservative.minimumConfidence)
         #expect(conservative.minimumConfidence > balanced.minimumConfidence)
         #expect(balanced.minimumConfidence > sensitive.minimumConfidence)
+        #expect(sensitive.minimumConfidence > verySensitive.minimumConfidence)
+        #expect(veryConservative.minimumEventDuration > conservative.minimumEventDuration)
         #expect(conservative.minimumEventDuration > balanced.minimumEventDuration)
         #expect(balanced.minimumEventDuration > sensitive.minimumEventDuration)
+        #expect(sensitive.minimumEventDuration > verySensitive.minimumEventDuration)
     }
 
     @Test

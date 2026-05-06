@@ -20,25 +20,25 @@
     }
 
     private var profileSection: some View {
-      Section("Profile") {
-        Picker("현재 profile", selection: profileBinding) {
+      Section("민감도 레벨") {
+        Picker("현재 민감도", selection: profileBinding) {
           ForEach(DetectorTuningProfile.debugSelectableProfiles) { profile in
             Text(profile.displayName).tag(profile)
           }
         }
-        .pickerStyle(.segmented)
+        .pickerStyle(.menu)
         .disabled(appState.isRecording)
 
         Text(appState.detectorTuningProfile.koreanDescription)
           .font(.footnote)
-          .foregroundStyle(NBColor.secondaryText)
+        .foregroundStyle(NBColor.secondaryText)
 
         if appState.isRecording {
-          Text("측정 중에는 profile을 바꾸지 않습니다. 변경값은 다음 세션 전에 선택하세요.")
+          Text("측정 중에는 민감도를 바꾸지 않습니다. 변경값은 다음 세션 전에 선택하세요.")
             .font(.footnote)
             .foregroundStyle(NBColor.secondaryText)
         } else {
-          Text("선택한 profile은 다음 측정 세션부터 적용되고, 세션 종료 후 thresholdsSnapshot에 저장됩니다.")
+          Text("선택한 민감도는 다음 측정 세션부터 적용되고, 세션 종료 후 thresholdsSnapshot에 저장됩니다.")
             .font(.footnote)
             .foregroundStyle(NBColor.secondaryText)
         }
