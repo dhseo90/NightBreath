@@ -449,6 +449,8 @@ struct ScreenshotScenarioDestinationView: View {
     switch scenario {
     case .homeDashboard:
       HomeDashboardView()
+    case .trendDashboard:
+      TrendDashboardView()
     case .sleepStart:
       SleepStartView()
     case .sleepRecording:
@@ -464,6 +466,8 @@ struct ScreenshotScenarioDestinationView: View {
       SleepReportView(report: appState.latestReport, events: appState.latestEvents)
     case .eventTimeline:
       SleepTimelineView(report: appState.latestReport, events: appState.latestEvents)
+    case .morningCheckIn:
+      MorningCheckInView(sessionId: appState.latestSession.id)
     case .morningBrief:
       MorningBriefView(
         nightReport: appState.latestReport,
@@ -476,6 +480,8 @@ struct ScreenshotScenarioDestinationView: View {
         morningCheckIn: appState.morningCheckIn,
         referenceDate: appState.latestReport.generatedAt
       )
+    case .eveningCheckIn:
+      EveningCheckInView()
     case .dailyHealthCard:
       DailyHealthCardPreviewView(
         bundle: DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
@@ -484,6 +490,16 @@ struct ScreenshotScenarioDestinationView: View {
           nightReport: appState.latestReport,
           morningCheckIn: appState.morningCheckIn
         )
+      )
+    case .dailyHealthCardExport:
+      DailyHealthCardPreviewView(
+        bundle: DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
+          profile: .readmeRepresentative,
+          referenceDate: appState.latestReport.generatedAt,
+          nightReport: appState.latestReport,
+          morningCheckIn: appState.morningCheckIn
+        ),
+        initialExportPreview: true
       )
     case .healthDashboard:
       HealthDashboardView()
@@ -577,8 +593,12 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .privacySettings, .eventAudioStorageOff:
       PrivacySettingsView()
+    case .reportEmpty:
+      ScreenshotReportEmptyStateView()
     case .debugTools:
       DetectorTuningView()
+    case .simulatorScenario:
+      SimulatorScenarioView()
     case .audioDebug:
       AudioDebugView()
     case .sampleCapture:
@@ -586,6 +606,37 @@ struct ScreenshotScenarioDestinationView: View {
     case .datasetReplay:
       DatasetReplayView()
     }
+  }
+}
+
+private struct ScreenshotReportEmptyStateView: View {
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        NBCard {
+          NBEmptyStateView(
+            title: "아직 수면 리포트가 없습니다",
+            message: "오늘 밤 수면을 기록하면 아침에 수면 소리 리포트와 측정 품질을 확인할 수 있습니다.",
+            systemImage: "doc.text.magnifyingglass",
+            illustration: .emptyReport
+          )
+        }
+
+        NBPrivacyNoticeCard(
+          title: "리포트 생성 전 안내",
+          messages: [
+            "수면 시작 전에는 실제 개인 오디오나 건강 데이터를 표시하지 않습니다.",
+            "전체 밤 원본 오디오를 기본 저장하지 않습니다.",
+            "수면 중 소리 기반 지표는 개인 참고용 보기입니다.",
+          ],
+          systemImage: "lock.shield"
+        )
+      }
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
+    }
+    .background(NBColor.pageBackground)
+    .navigationTitle("수면 리포트")
   }
 }
 

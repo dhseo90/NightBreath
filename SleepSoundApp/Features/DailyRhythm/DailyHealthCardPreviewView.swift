@@ -30,10 +30,20 @@ struct DailyHealthCardPreviewView: View {
     )
   }
 
-  init(bundle: DailyRhythmMockBundle) {
+  init(bundle: DailyRhythmMockBundle, initialExportPreview: Bool = false) {
     self.bundle = bundle
     _template = State(initialValue: bundle.cardContent.template)
     _privacyLevel = State(initialValue: bundle.cardContent.privacyLevel)
+    if initialExportPreview {
+      _exportResult = State(initialValue: DailyHealthCardImageResult(
+        reportId: bundle.report.id,
+        template: bundle.cardContent.template,
+        privacyLevel: bundle.cardContent.privacyLevel,
+        fileName: "nightbreath-daily-health-card-preview.png",
+        imageData: Data("screenshot-preview-only".utf8)
+      ))
+      _exportState = State(initialValue: .imageReady)
+    }
   }
 
   var body: some View {

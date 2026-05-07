@@ -10,18 +10,15 @@ APPEARANCE="${APPEARANCE:-light}"
 WAIT_SECONDS="${SCREENSHOT_WAIT_SECONDS:-2}"
 
 CAPTURES=(
-  "onboarding:Docs/Screenshots/Privacy/onboarding_light.png"
-  "devicePlacement:Docs/Screenshots/Privacy/device_placement_guide_light.png"
-  "calibration:Docs/Screenshots/Privacy/calibration_light.png"
-  "audioDebug:Docs/Screenshots/Debug/audio_debug_light.png"
-  "sampleCapture:Docs/Screenshots/Debug/sample_capture_light.png"
-  "datasetReplay:Docs/Screenshots/Debug/dataset_replay_light.png"
-  "debugTools:Docs/Screenshots/Debug/detector_tuning_light.png"
-  "simulatorScenario:Docs/Screenshots/Debug/simulator-scenario.png"
+  "trendDashboard:Docs/Screenshots/Home/trend-dashboard.png"
+  "morningCheckIn:Docs/Screenshots/Sleep/morning-check-in.png"
+  "eveningCheckIn:Docs/Screenshots/DailyRhythm/evening-check-in.png"
+  "dailyHealthCardExport:Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png"
+  "reportEmpty:Docs/Screenshots/EdgeStates/report-empty.png"
 )
 
-if [[ -n "${SUPPORT_SCREENSHOT_SCENARIOS:-}" ]]; then
-  IFS=',' read -r -a requested_scenarios <<< "$SUPPORT_SCREENSHOT_SCENARIOS"
+if [[ -n "${DETAIL_SCREENSHOT_SCENARIOS:-}" ]]; then
+  IFS=',' read -r -a requested_scenarios <<< "$DETAIL_SCREENSHOT_SCENARIOS"
   filtered_captures=()
 
   for item in "${CAPTURES[@]}"; do
@@ -54,26 +51,20 @@ for item in "${CAPTURES[@]}"; do
   output="$REPO_ROOT/$output_rel"
 
   mkdir -p "$(dirname "$output")"
-  echo "Launching $BUNDLE_ID with support screenshot scenario: $scenario"
+  echo "Launching $BUNDLE_ID with detail screenshot scenario: $scenario"
   "$XCRUN_BIN" simctl launch --terminate-running-process "$DEVICE" "$BUNDLE_ID" \
     --nightbreath-screenshot-scenario "$scenario" >/dev/null
   sleep "$WAIT_SECONDS"
   "$XCRUN_BIN" simctl io "$DEVICE" screenshot "$output"
   echo "Saved $output_rel"
-
-  output_name="$(basename "$output_rel")"
-  output_dir="$(dirname "$output_rel")"
-  crop_dir="$REPO_ROOT/$output_dir/cropped"
-  mkdir -p "$crop_dir"
-  "$SCRIPT_DIR/crop_screenshot_top.sh" "$output" "$crop_dir/$output_name"
 done
 
 cat <<EOF
-Support screenshot capture complete.
+Detail screenshot capture complete.
 
-Release/support screenshots:
-  Docs/Screenshots/Privacy
-
-DEBUG-only screenshots:
-  Docs/Screenshots/Debug
+Generated candidates remain screenshot pending until visual QA approves them:
+  Docs/Screenshots/Home
+  Docs/Screenshots/Sleep
+  Docs/Screenshots/DailyRhythm
+  Docs/Screenshots/EdgeStates
 EOF

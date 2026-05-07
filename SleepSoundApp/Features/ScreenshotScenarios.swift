@@ -3,6 +3,7 @@ import Foundation
 #if DEBUG
 enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case homeDashboard
+  case trendDashboard
   case sleepStart
   case sleepRecording
   case onboarding
@@ -10,9 +11,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case calibration
   case sleepReport
   case eventTimeline
+  case morningCheckIn
   case morningBrief
   case dailyRhythmReport
+  case eveningCheckIn
   case dailyHealthCard
+  case dailyHealthCardExport
   case privacySettings
   case healthDashboard
   case bloodPressureDashboard
@@ -32,7 +36,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case zeroEventReport
   case lowCoverageReport
   case eventAudioStorageOff
+  case reportEmpty
   case debugTools
+  case simulatorScenario
   case audioDebug
   case sampleCapture
   case datasetReplay
@@ -87,6 +93,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     switch self {
     case .homeDashboard:
       "ScreenshotHomeScenario"
+    case .trendDashboard:
+      "ScreenshotTrendDashboardScenario"
     case .sleepStart:
       "ScreenshotSleepStartScenario"
     case .sleepRecording:
@@ -101,12 +109,18 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotSleepReportScenario"
     case .eventTimeline:
       "ScreenshotTimelineScenario"
+    case .morningCheckIn:
+      "ScreenshotMorningCheckInScenario"
     case .morningBrief:
       "ScreenshotMorningBriefScenario"
     case .dailyRhythmReport:
       "ScreenshotDailyRhythmScenario"
+    case .eveningCheckIn:
+      "ScreenshotEveningCheckInScenario"
     case .dailyHealthCard:
       "ScreenshotDailyHealthCardScenario"
+    case .dailyHealthCardExport:
+      "ScreenshotDailyHealthCardExportScenario"
     case .privacySettings:
       "ScreenshotPrivacyScenario"
     case .healthDashboard:
@@ -145,8 +159,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotLowCoverageScenario"
     case .eventAudioStorageOff:
       "ScreenshotEventAudioStorageOffScenario"
+    case .reportEmpty:
+      "ScreenshotReportEmptyScenario"
     case .debugTools:
       "ScreenshotDebugScenario"
+    case .simulatorScenario:
+      "ScreenshotSimulatorScenario"
     case .audioDebug:
       "ScreenshotAudioDebugScenario"
     case .sampleCapture:
@@ -160,6 +178,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     switch self {
     case .homeDashboard:
       "수면 중 소리 기반 지표를 한눈에"
+    case .trendDashboard:
+      "최근 수면 소리 흐름을 기간별로"
     case .sleepStart:
       "잠들기 전 준비를 차분하게"
     case .sleepRecording:
@@ -174,12 +194,18 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "아침에 읽기 쉬운 수면 소리 리포트"
     case .eventTimeline:
       "코골기와 환경 소음 흐름 확인"
+    case .morningCheckIn:
+      "아침 컨디션을 직접 기록"
     case .morningBrief:
       "아침에 시작하는 하루 건강 리듬"
     case .dailyRhythmReport:
       "오늘의 리듬 점수를 참고용으로"
+    case .eveningCheckIn:
+      "저녁 컨디션과 생활 태그 기록"
     case .dailyHealthCard:
       "하루 리듬을 카드 한 장으로"
+    case .dailyHealthCardExport:
+      "하루 리듬 카드 공유 전 확인"
     case .privacySettings:
       "전체 밤 오디오는 저장하지 않습니다"
     case .healthDashboard:
@@ -218,8 +244,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "측정 품질이 낮은 날은 제한적으로"
     case .eventAudioStorageOff:
       "이벤트 샘플 저장은 사용자가 선택"
+    case .reportEmpty:
+      "리포트가 없어도 시작 흐름은 명확하게"
     case .debugTools:
       "DEBUG에서만 확인하는 검증 화면"
+    case .simulatorScenario:
+      "DEBUG scenario를 한곳에서 적용"
     case .audioDebug:
       "DEBUG에서 입력 feature를 확인"
     case .sampleCapture:
@@ -233,6 +263,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     switch self {
     case .homeDashboard:
       "최근 리포트, 수면 소리 점수, 측정 품질, 온디바이스 안내가 보이게 캡처합니다."
+    case .trendDashboard:
+      "7일/30일/90일 기간 선택, 수면 소리 점수와 측정 품질 trend가 보이게 캡처합니다."
     case .sleepStart:
       "수면 시작 CTA, 마이크 권한, 기기 배치, 이벤트 오디오 샘플 저장 상태가 보이게 캡처합니다."
     case .sleepRecording:
@@ -247,12 +279,18 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "점수, 주요 이벤트, detector diagnostics 요약, 진단 목적 아님 안내가 보이게 캡처합니다."
     case .eventTimeline:
       "이벤트 시간, 타입, duration, 오디오 샘플 상태가 보이게 캡처합니다."
+    case .morningCheckIn:
+      "개운함, 피로감, 기억나는 각성, 주관적 기록 안내가 보이게 캡처합니다."
     case .morningBrief:
       "수면 요약, 아침 컨디션, 예시 혈압/체성분, 데이터 품질이 보이게 캡처합니다."
     case .dailyRhythmReport:
       "오늘의 리듬 점수, component score, Daily Insight, 인과관계 아님 안내가 보이게 캡처합니다."
+    case .eveningCheckIn:
+      "하루 피로도, 스트레스, 생활 태그, 저녁 체크인 저장 안내가 보이게 캡처합니다."
     case .dailyHealthCard:
       "카드 template, privacy level, 오늘의 리듬 카드 preview가 보이게 캡처합니다."
+    case .dailyHealthCardExport:
+      "이미지 내보내기 section, 공유 전 확인, 사진/파일 저장 버튼 상태가 보이게 캡처합니다."
     case .privacySettings:
       "이벤트 샘플 opt-in, 저장 용량, 삭제 가능성, 서버 전송 없음 안내가 보이게 캡처합니다."
     case .healthDashboard:
@@ -291,8 +329,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "낮은 오디오 커버리지, 제한 안내, 측정 품질 배지가 보이게 캡처합니다."
     case .eventAudioStorageOff:
       "이벤트 오디오 샘플 저장 꺼짐, 원본 전체 오디오 미저장 안내가 보이게 캡처합니다."
+    case .reportEmpty:
+      "수면 리포트가 아직 없는 초기 상태와 수면 시작 안내가 보이게 캡처합니다."
     case .debugTools:
       "Dataset Replay 또는 Detector Tuning 같은 DEBUG 전용 검증 화면임이 보이게 캡처합니다."
+    case .simulatorScenario:
+      "Simulator QA preset, screenshot preset, 직접 화면 진입 링크가 보이게 캡처합니다."
     case .audioDebug:
       "RMS, energy, threshold, raw candidate, reject reason 같은 DEBUG 입력 관측 항목이 보이게 캡처합니다."
     case .sampleCapture:
@@ -304,8 +346,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
 
   var simulatorPreset: SimulatorQAScenarioPreset {
     switch self {
-    case .homeDashboard, .sleepStart, .onboarding, .devicePlacement, .calibration,
-         .sleepReport, .eventTimeline, .morningBrief, .dailyRhythmReport, .dailyHealthCard,
+    case .homeDashboard, .trendDashboard, .sleepStart, .onboarding, .devicePlacement, .calibration,
+         .sleepReport, .eventTimeline, .morningCheckIn, .morningBrief,
+         .dailyRhythmReport, .eveningCheckIn, .dailyHealthCard, .dailyHealthCardExport,
          .bloodPressureDashboard, .bodyCompositionDashboard, .crossMetricDashboard,
          .healthMetricsOverview, .healthCalendar, .dailyMeasurementDetail, .metricDetail, .localOnlyMetric:
       .snoreHeavyNight
@@ -319,9 +362,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       .zeroEventButGoodAudioCoverage
     case .lowCoverageReport:
       .lowAudioCoverageNight
-    case .eventAudioStorageOff:
+    case .eventAudioStorageOff, .reportEmpty:
       .eventAudioStorageOff
-    case .debugTools, .audioDebug, .sampleCapture, .datasetReplay:
+    case .debugTools, .simulatorScenario, .audioDebug, .sampleCapture, .datasetReplay:
       .zeroEventButGoodAudioCoverage
     }
   }
@@ -330,6 +373,8 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     switch self {
     case .homeDashboard:
       "Docs/Screenshots/README/home_dashboard_light.png"
+    case .trendDashboard:
+      "Docs/Screenshots/Home/trend-dashboard.png"
     case .sleepStart:
       "Docs/Screenshots/README/sleep_start_light.png"
     case .sleepRecording:
@@ -344,12 +389,18 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/README/sleep_report_light.png"
     case .eventTimeline:
       "Docs/Screenshots/README/sleep_timeline_light.png"
+    case .morningCheckIn:
+      "Docs/Screenshots/Sleep/morning-check-in.png"
     case .morningBrief:
       "Docs/Screenshots/README/morning_brief_light.png"
     case .dailyRhythmReport:
       "Docs/Screenshots/README/daily_rhythm_report_light.png"
+    case .eveningCheckIn:
+      "Docs/Screenshots/DailyRhythm/evening-check-in.png"
     case .dailyHealthCard:
       "Docs/Screenshots/README/daily_health_card_light.png"
+    case .dailyHealthCardExport:
+      "Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png"
     case .privacySettings:
       "Docs/Screenshots/README/privacy_settings_light.png"
     case .healthDashboard:
@@ -388,8 +439,12 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/EdgeStates/low_coverage_report_light.png"
     case .eventAudioStorageOff:
       "Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
+    case .reportEmpty:
+      "Docs/Screenshots/EdgeStates/report-empty.png"
     case .debugTools:
       "Docs/Screenshots/Debug/detector_tuning_light.png"
+    case .simulatorScenario:
+      "Docs/Screenshots/Debug/simulator-scenario.png"
     case .audioDebug:
       "Docs/Screenshots/Debug/audio_debug_light.png"
     case .sampleCapture:

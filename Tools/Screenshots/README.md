@@ -18,13 +18,17 @@ Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
 ## Scenario
 
 - `ScreenshotHomeScenario`
+- `ScreenshotTrendDashboardScenario`
 - `ScreenshotSleepStartScenario`
 - `ScreenshotRecordingScenario`
 - `ScreenshotSleepReportScenario`
 - `ScreenshotTimelineScenario`
+- `ScreenshotMorningCheckInScenario`
 - `ScreenshotMorningBriefScenario`
 - `ScreenshotDailyRhythmScenario`
+- `ScreenshotEveningCheckInScenario`
 - `ScreenshotDailyHealthCardScenario`
+- `ScreenshotDailyHealthCardExportScenario`
 - `ScreenshotHealthDashboardScenario`
 - `ScreenshotBloodPressureDashboardScenario`
 - `ScreenshotBodyCompositionDashboardScenario`
@@ -44,7 +48,9 @@ Release 빌드에는 screenshot/debug mode가 노출되지 않아야 합니다.
 - `ScreenshotZeroEventScenario`
 - `ScreenshotLowCoverageScenario`
 - `ScreenshotEventAudioStorageOffScenario`
+- `ScreenshotReportEmptyScenario`
 - `ScreenshotDebugScenario`
+- `ScreenshotSimulatorScenario`
 
 ## Light / Dark
 
@@ -215,11 +221,34 @@ Docs/Screenshots/Debug/cropped/
 - `sampleCapture`
 - `datasetReplay`
 - `debugTools`
+- `simulatorScenario`
 
 특정 scenario만 재캡처:
 
 ```bash
 SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,debugTools Tools/Screenshots/capture_support_screenshots.sh
+```
+
+## Detail / Pending Screenshot
+
+수동 navigation이 필요했던 상세 화면은 별도 launch scenario로 직접 열 수 있습니다. 파일이 생성되어도 visual QA 전에는 `screenshot pending` 상태로 유지합니다.
+
+```bash
+Tools/Screenshots/capture_detail_screenshots.sh
+```
+
+현재 캡처 세트:
+
+- `trendDashboard`
+- `morningCheckIn`
+- `eveningCheckIn`
+- `dailyHealthCardExport`
+- `reportEmpty`
+
+특정 scenario만 재캡처:
+
+```bash
+DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture_detail_screenshots.sh
 ```
 
 ## App Store Marketing Screenshot

@@ -113,6 +113,12 @@ UI Gallery crop 위치:
 - `Debug/audio_debug_light.png`
 - `Debug/sample_capture_light.png`
 - `Debug/dataset_replay_light.png`
+- `Debug/simulator-scenario.png`
+- `Home/trend-dashboard.png`
+- `Sleep/morning-check-in.png`
+- `DailyRhythm/evening-check-in.png`
+- `DailyRhythm/daily-health-card-export-preview.png`
+- `EdgeStates/report-empty.png`
 
 UI Gallery crop 위치:
 
@@ -131,6 +137,7 @@ UI Gallery crop 위치:
 - `Debug/cropped/audio_debug_light.png`
 - `Debug/cropped/sample_capture_light.png`
 - `Debug/cropped/dataset_replay_light.png`
+- `Debug/cropped/simulator-scenario.png`
 
 Release onboarding/privacy와 DEBUG 전용 검증 화면은 다음 스크립트로 직접 캡처합니다.
 
@@ -142,6 +149,18 @@ Tools/Screenshots/capture_support_screenshots.sh
 
 ```bash
 SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
+```
+
+수동 navigation이 필요했던 상세/pending 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다.
+
+```bash
+Tools/Screenshots/capture_detail_screenshots.sh
+```
+
+특정 scenario만 재캡처할 때:
+
+```bash
+DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture_detail_screenshots.sh
 ```
 
 ## App Store Marketing Screenshot

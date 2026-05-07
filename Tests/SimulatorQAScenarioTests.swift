@@ -176,6 +176,42 @@ struct SimulatorQAScenarioTests {
   }
 
   @Test
+  func pendingScreenshotScreensHaveDirectLaunchScenarios() throws {
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+    let simulatorScenarioView = try sourceContents("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift")
+    let detailCaptureScript = try sourceContents("Tools/Screenshots/capture_detail_screenshots.sh")
+    let supportCaptureScript = try sourceContents("Tools/Screenshots/capture_support_screenshots.sh")
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+    let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
+    let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
+    let expectedReleaseScenarios = [
+      ("trendDashboard", "ScreenshotTrendDashboardScenario", "TrendDashboardView()", "Docs/Screenshots/Home/trend-dashboard.png"),
+      ("morningCheckIn", "ScreenshotMorningCheckInScenario", "MorningCheckInView(sessionId:", "Docs/Screenshots/Sleep/morning-check-in.png"),
+      ("eveningCheckIn", "ScreenshotEveningCheckInScenario", "EveningCheckInView()", "Docs/Screenshots/DailyRhythm/evening-check-in.png"),
+      ("dailyHealthCardExport", "ScreenshotDailyHealthCardExportScenario", "initialExportPreview: true", "Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png"),
+      ("reportEmpty", "ScreenshotReportEmptyScenario", "ScreenshotReportEmptyStateView()", "Docs/Screenshots/EdgeStates/report-empty.png"),
+    ]
+
+    #expect(screenshotGuide.contains("capture_detail_screenshots.sh"))
+    #expect(uiGallery.contains("직접 scenario 추가, 캡처 대기"))
+    #expect(uiGallery.contains("simulator 직접 launch scenario는 준비"))
+
+    for (rawValue, scenarioName, destination, screenshotPath) in expectedReleaseScenarios {
+      #expect(screenshotScenarios.contains("case \(rawValue)"), "\(scenarioName) should be a screenshot launch case.")
+      #expect(screenshotScenarios.contains(scenarioName), "\(scenarioName) should expose stable display name.")
+      #expect(simulatorScenarioView.contains(destination), "\(scenarioName) should route directly to its destination view.")
+      #expect(detailCaptureScript.contains("\(rawValue):\(screenshotPath)"), "\(scenarioName) should be scripted for capture.")
+      #expect(uiGallery.contains(scenarioName), "\(scenarioName) should replace manual navigation wording in UI Gallery.")
+      #expect(manifest.contains("\(scenarioName)\t\(screenshotPath)"), "\(screenshotPath) should be tracked with the direct scenario.")
+    }
+
+    #expect(screenshotScenarios.contains("ScreenshotSimulatorScenario"))
+    #expect(simulatorScenarioView.contains("SimulatorScenarioView()"))
+    #expect(supportCaptureScript.contains("simulatorScenario:Docs/Screenshots/Debug/simulator-scenario.png"))
+    #expect(manifest.contains("ScreenshotSimulatorScenario\tDocs/Screenshots/Debug/simulator-scenario.png"))
+  }
+
+  @Test
   func screenshotScenariosDoNotExposeInternalQASourceInUserFacingData() throws {
     let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
     let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
