@@ -224,7 +224,7 @@ Share Extension 후보:
 - 단점: App Group, extension target, extension UI, QA matrix가 늘어납니다.
 - 결정 기준: 실제 Fitdays share/export UX를 iPhone에서 확인한 뒤, document type/open-in만으로 충분한지 판단합니다.
 
-호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV, BOM이 포함된 TSV short export를 포함합니다.
+호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV, BOM이 포함된 TSV short export, 월별 복사 텍스트에 가까운 익명화 pasted text를 포함합니다. pasted text regression은 월 헤더, 축약 날짜, 한국어 오전/오후, label/value 분리 줄, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급` alias를 확인합니다.
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 

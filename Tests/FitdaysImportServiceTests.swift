@@ -159,6 +159,62 @@ struct FitdaysImportServiceTests {
     }
 
     @Test
+    func previewImportFromActualLikeMonthlyClipboardTextHandlesCompactDatesAndAliases() throws {
+        let pastedText = """
+        2026년 5월
+        5/1 07:20
+        몸무게：71.8kg
+        수분 56.4%
+        골격근 29.2kg
+        내장지방등급 8
+        기초대사 1540kcal
+        신체점수 82
+        체나이 43
+        비만등급 2
+        5.2 오후 9:05
+        몸무게 71.6kg
+        체지방 18.2%
+        피하지방 12.4%
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.batch.fileName == "fitdays_pasted_monthly_text.tsv")
+        #expect(result.batch.sourceName == "Fitdays 붙여넣기")
+        #expect(result.rowErrors.isEmpty)
+        #expect(result.samples.count == 11)
+        #expect(Set(result.samples.map(\.metricID)) == [
+            .bodyMass,
+            .bodyWaterPercentage,
+            .skeletalMuscleMass,
+            .visceralFatLevel,
+            .basalMetabolicRate,
+            .bodyScore,
+            .metabolicAge,
+            .obesityLevel,
+            .bodyFatPercentage,
+            .subcutaneousFatPercentage,
+        ])
+        #expect(result.samples.allSatisfy { $0.sourceType == .fitdaysCSV })
+        #expect(result.samples.allSatisfy { $0.sourceName == "Fitdays 붙여넣기" })
+    }
+
+    @Test
+    func looseDateParserDoesNotTreatMetricDecimalsAsMeasurementDates() throws {
+        let pastedText = """
+        BMI 23.1
+        5/1 07:20
+        몸무게 71.8kg
+        BMI 23.1
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.rowErrors.map(\.rowNumber) == [1])
+        #expect(result.samples.map(\.metricID) == [.bodyMass, .bodyMassIndex])
+    }
+
+    @Test
     func importPastedTextPersistsSamplesAndRejectsEmptyPaste() throws {
         let repository = InMemoryUnifiedHealthMetricSampleRepository()
         let pastedText = """

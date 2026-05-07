@@ -209,19 +209,19 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             .bodyMass: ["Weight", "Body Weight", "Wt", "WT", "Weight kg", "Weight(kg)", "체중", "몸무게", "몸무게 kg"],
             .bodyMassIndex: ["BMI", "Body Mass Index"],
             .bodyFatPercentage: ["Body Fat", "Body Fat %", "Body Fat Percentage", "BF", "BF%", "Fat %", "체지방률", "체지방율", "체지방"],
-            .muscleMass: ["Muscle Mass", "Muscle", "Muscle kg", "Muscle(kg)", "MM", "근육량", "근육"],
-            .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "SMM", "Skeletal Muscle kg", "Skeletal Muscle(kg)", "골격근량"],
-            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "BW%", "Water", "Water %", "체수분", "체수분률", "체수분율", "수분율"],
-            .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "Visceral Fat Rating", "Visceral Fat Index", "VF", "VFL", "내장지방", "내장 지방", "내장지방 레벨", "내장 지방 레벨", "내장지방 지수"],
+            .muscleMass: ["Muscle Mass", "Muscle", "Muscle kg", "Muscle(kg)", "MM", "근육량", "근육량 kg", "근육량(kg)", "근육"],
+            .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "SMM", "Skeletal Muscle kg", "Skeletal Muscle(kg)", "골격근량", "골격근", "골격근 kg", "골격근(kg)"],
+            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "BW%", "Water", "Water %", "체수분", "체수분률", "체수분율", "수분", "수분률", "수분율"],
+            .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "Visceral Fat Rating", "Visceral Fat Index", "VF", "VFL", "내장지방", "내장 지방", "내장지방 레벨", "내장 지방 레벨", "내장지방 지수", "내장 지방 지수", "내장지방등급", "내장 지방 등급"],
             .visceralFatPercentage: ["Visceral Fat %", "Visceral Fat Percentage", "복부지방률", "복부지방율"],
             .boneMass: ["Bone Mass", "Bone", "Bone kg", "Bone(kg)", "골량"],
             .mineralMass: ["Mineral", "Mineral Mass", "Minerals", "Mineral kg", "Mineral(kg)", "무기질"],
-            .basalMetabolicRate: ["BMR", "BMR kcal", "BMR(kcal)", "Basal Metabolic Rate", "기초대사량"],
+            .basalMetabolicRate: ["BMR", "BMR kcal", "BMR(kcal)", "Basal Metabolic Rate", "기초대사량", "기초 대사량", "기초대사", "기초 대사"],
             .proteinPercentage: ["Protein", "Protein %", "Protein Percentage", "Protein%", "Protein Rate", "단백질률", "단백질율", "단백질"],
-            .subcutaneousFatPercentage: ["Subcutaneous Fat", "Subcutaneous Fat %", "Subcutaneous Fat Percentage", "SubQ Fat", "Subcutaneous Fat Rate", "피하지방률", "피하지방율", "피하 지방률", "피하 지방율"],
-            .metabolicAge: ["Body Age", "BodyAge", "Metabolic Age", "Age of Body", "대사 나이", "신체 나이", "신체나이", "몸 나이", "몸나이"],
-            .bodyScore: ["Body Score", "Fitdays Body Score", "바디 점수", "몸 점수", "신체 점수"],
-            .obesityLevel: ["Obesity Level", "Body Type Level", "체형 레벨", "비만 레벨", "비만도"],
+            .subcutaneousFatPercentage: ["Subcutaneous Fat", "Subcutaneous Fat %", "Subcutaneous Fat Percentage", "SubQ Fat", "Subcutaneous Fat Rate", "피하지방", "피하 지방", "피하지방률", "피하지방율", "피하 지방률", "피하 지방율"],
+            .metabolicAge: ["Body Age", "BodyAge", "Metabolic Age", "Age of Body", "대사 나이", "신체 나이", "신체나이", "몸 나이", "몸나이", "체나이"],
+            .bodyScore: ["Body Score", "Fitdays Body Score", "바디 점수", "몸 점수", "신체 점수", "신체점수"],
+            .obesityLevel: ["Obesity Level", "Body Type Level", "체형 레벨", "비만 레벨", "비만도", "비만등급", "비만 등급"],
             .systolicBloodPressure: ["Systolic", "Systolic BP", "SYS", "수축기 혈압"],
             .diastolicBloodPressure: ["Diastolic", "Diastolic BP", "DIA", "이완기 혈압"],
             .heartRate: ["Heart Rate", "Pulse", "심박수"],
@@ -789,7 +789,11 @@ public struct FitdaysImportService: Sendable {
             return date
         }
 
-        return parseLooseMonthDay(in: text, defaultYear: defaultYear)
+        if let date = parseLooseMonthDay(in: text, defaultYear: defaultYear) {
+            return date
+        }
+
+        return parseLooseNumericMonthDay(in: text, defaultYear: defaultYear)
     }
 
     private func parseLooseYearMonthDay(in text: String) -> Date? {
@@ -821,6 +825,20 @@ public struct FitdaysImportService: Sendable {
         return date(year: defaultYear, month: month, day: day, meridiem: meridiem, hour: hour, minute: minute, second: second)
     }
 
+    private func parseLooseNumericMonthDay(in text: String, defaultYear: Int) -> Date? {
+        let pattern = #"(?<!\d)(\d{1,2})[./-](\d{1,2})(?!\d)(?:\s*(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})[:시]\s*(\d{2})(?:[:분]\s*(\d{2}))?)?"#
+        guard let match = firstMatch(pattern: pattern, in: text),
+              let month = intCapture(1, in: match, text: text),
+              let day = intCapture(2, in: match, text: text) else {
+            return nil
+        }
+        let meridiem = stringCapture(3, in: match, text: text)
+        let hour = intCapture(4, in: match, text: text)
+        let minute = intCapture(5, in: match, text: text)
+        let second = intCapture(6, in: match, text: text)
+        return date(year: defaultYear, month: month, day: day, meridiem: meridiem, hour: hour, minute: minute, second: second)
+    }
+
     private func date(
         year: Int,
         month: Int,
@@ -830,6 +848,23 @@ public struct FitdaysImportService: Sendable {
         minute: Int?,
         second: Int?
     ) -> Date? {
+        guard (1...12).contains(month), (1...31).contains(day) else {
+            return nil
+        }
+        if let hour {
+            if meridiem == nil {
+                guard (0...23).contains(hour) else { return nil }
+            } else {
+                guard (1...12).contains(hour) else { return nil }
+            }
+        }
+        if let minute {
+            guard (0...59).contains(minute) else { return nil }
+        }
+        if let second {
+            guard (0...59).contains(second) else { return nil }
+        }
+
         var components = DateComponents()
         components.calendar = calendar
         components.timeZone = timeZone
