@@ -2,6 +2,15 @@
 
 이 문서는 NightBreath / 밤숨 V1 프로토타입의 현재 구현 상태와 의도적으로 남겨둔 범위를 정리합니다.
 
+## 2026-05-07 Simulator-first Batch
+
+실기기 없이 진행 가능한 후속 개발 batch는 privacy/export, Fitdays local import, health dashboard edge state, detector diagnostics, event audio snippet guard, real-device QA runbook, screenshot 문서 상태 정렬까지 완료했습니다.
+
+- 실제 iPhone이 필요한 항목은 capture/background/overnight, 실제 HealthKit 권한 조합, 실제 Fitdays export/share 노출, 실제 코골기 배치별 detector evidence로 남겼습니다.
+- README/App Store screenshot 후보는 파일이 있어도 `release-approved`가 아니며, README 대표 8개와 App Store 후보 8개는 `blocked, recapture required`로 관리합니다.
+- 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 실제 개인 오디오/CSV fixture 추가는 하지 않았습니다.
+- 현재 안정화 기준은 `git diff --check`, `swift test --no-parallel`, generic iOS Debug build입니다.
+
 ## 완료
 
 - SwiftUI 앱 구조

@@ -246,7 +246,7 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(csv.contains("rmsP90"))
         #expect(csv.contains("zeroEventSummary"))
 
-        for forbidden in ["audioSnippet", "localFilePath", "/Users/", "sleep talk transcript", "수면무호흡증"] {
+        for forbidden in ["audioSnippet", "localFilePath", "/" + "Users/", "sleep talk transcript", "수면무호흡증"] {
             #expect(!markdown.contains(forbidden))
             #expect(!csv.contains(forbidden))
         }

@@ -1,6 +1,8 @@
 # Next Issues
 
-이 문서는 Daily Rhythm 전환, Extended Health Metrics, Fitdays CSV import, README/UI Gallery screenshot 반영 이후의 후속 작업 후보를 정리합니다.
+이 문서는 Daily Rhythm 전환, Extended Health Metrics, Fitdays CSV/text import, detector diagnostics, README/UI Gallery screenshot 상태 정리 이후의 후속 작업 후보를 정리합니다.
+
+실기기 없이 진행 가능한 simulator-first batch는 2026-05-07 기준 대부분 완료했습니다. 이제 가장 중요한 evidence는 실제 iPhone에서만 얻을 수 있는 capture/background/overnight, 실제 HealthKit 권한 조합, 실제 Fitdays export/share 노출, 실제 침대 배치 detector 결과입니다.
 
 ## 우선순위 후보
 
