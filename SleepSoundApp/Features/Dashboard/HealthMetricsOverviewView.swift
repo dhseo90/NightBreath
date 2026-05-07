@@ -535,20 +535,33 @@ struct MetricChartView: View {
         )
       } else {
         VStack(alignment: .leading, spacing: NBSpacing.medium) {
-          Chart(points) { point in
-            LineMark(
-              x: .value("날짜", point.date),
-              y: .value(metric.displayNameKo, point.value)
-            )
-            .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
-            .interpolationMethod(.catmullRom)
+          Chart {
+            ForEach(points) { point in
+              LineMark(
+                x: .value("날짜", point.date),
+                y: .value(metric.displayNameKo, point.value)
+              )
+              .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
+              .interpolationMethod(.catmullRom)
 
-            PointMark(
-              x: .value("날짜", point.date),
-              y: .value(metric.displayNameKo, point.value)
-            )
-            .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
-            .symbolSize(48)
+              PointMark(
+                x: .value("날짜", point.date),
+                y: .value(metric.displayNameKo, point.value)
+              )
+              .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
+              .symbolSize(48)
+            }
+
+            if let averageValue {
+              RuleMark(y: .value("평균선", averageValue))
+                .foregroundStyle(NBColor.secondaryText.opacity(0.65))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                .annotation(position: .top, alignment: .trailing) {
+                  Text("평균 \(formattedValue(averageValue))")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(NBColor.secondaryText)
+                }
+            }
           }
           .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 4)) {
@@ -567,12 +580,31 @@ struct MetricChartView: View {
             }
           }
           .chartYScale(domain: yDomain)
+          .chartForegroundStyleScale(domain: uniqueSourceLabels, range: uniqueSourceColors)
           .frame(height: 190)
           .accessibilityLabel("\(metric.displayNameKo) 추세 그래프")
 
+          chartSummaryStrip
           sourceLegend
         }
       }
+    }
+  }
+
+  private var chartSummaryStrip: some View {
+    HStack(spacing: NBSpacing.small) {
+      MetricChartSummaryPill(
+        title: "최근",
+        value: latestPoint.map { formattedValue($0.value) } ?? "--"
+      )
+      MetricChartSummaryPill(
+        title: "평균",
+        value: averageValue.map(formattedValue) ?? "--"
+      )
+      MetricChartSummaryPill(
+        title: "범위",
+        value: rangeText
+      )
     }
   }
 
@@ -580,10 +612,15 @@ struct MetricChartView: View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 8) {
         ForEach(uniqueSourceLabels, id: \.self) { source in
-          Label(source, systemImage: "circle.fill")
-            .font(.caption)
-            .foregroundStyle(tint)
-            .lineLimit(1)
+          HStack(spacing: 5) {
+            Circle()
+              .fill(sourceColor(for: source))
+              .frame(width: 7, height: 7)
+            Text(source)
+              .font(.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .lineLimit(1)
+          }
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -597,8 +634,39 @@ struct MetricChartView: View {
       .filter { seen.insert($0).inserted }
   }
 
+  private var uniqueSourceColors: [Color] {
+    uniqueSourceLabels.map(sourceColor)
+  }
+
+  private var averageValue: Double? {
+    guard !points.isEmpty else { return nil }
+    return points.map(\.value).reduce(0, +) / Double(points.count)
+  }
+
+  private var latestPoint: MetricTrendDataPoint? {
+    points.max { $0.date < $1.date }
+  }
+
+  private var rangeText: String {
+    let values = points.map(\.value)
+    guard let minimum = values.min(), let maximum = values.max() else {
+      return "--"
+    }
+    return "\(formattedValue(minimum))~\(formattedValue(maximum))"
+  }
+
   private func sourceLabel(_ point: MetricTrendDataPoint) -> String {
     "\(point.sourceType.displayName) · \(point.sourceName)"
+  }
+
+  private func sourceColor(for source: String) -> Color {
+    points
+      .first { sourceLabel($0) == source }
+      .map { sourceTint(for: $0.sourceType) } ?? tint
+  }
+
+  private func formattedValue(_ value: Double) -> String {
+    UnifiedMetricFormatting.valueString(value, unit: metric.unit)
   }
 
   private var yDomain: ClosedRange<Double> {
@@ -640,6 +708,33 @@ struct MetricChartView: View {
     case .visceralFatLevel, .metabolicAge, .bodyScore, .obesityLevel,
          .sleepSoundScore, .dailyRhythmScore:
       2
+    }
+  }
+}
+
+private struct MetricChartSummaryPill: View {
+  var title: String
+  var value: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(title)
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(NBColor.secondaryText)
+      Text(value)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, 8)
+    .padding(.horizontal, 10)
+    .background(NBColor.cardBackground)
+    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .stroke(NBColor.divider.opacity(0.7), lineWidth: 0.8)
     }
   }
 }

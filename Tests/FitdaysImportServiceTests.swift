@@ -200,6 +200,54 @@ struct FitdaysImportServiceTests {
     }
 
     @Test
+    func previewImportFromActualCommaClipboardTextHandlesTimeFirstDateAndAnnotatedHeaders() throws {
+        let pastedText = """
+        짜,체중,BMI,체지방률,피하지방,심박수,심박수 지표,내장 지방지수,체내수분량,골격근량 (클릭필수),근육량(클릭필수),골질량,단백질,기초대사량 (BMR),신체나이,
+        05:37 2026/06/010,72.40kg,24.6,18.2%,12.8%,--,--,7.0,56.1%,29.3%,50.2kg,3.10kg,18.4%,1520kcal,39
+        05:36 2026/06/06,72.10kg,24.5,18.0%,12.6%,--,--,7.0,56.3%,29.4%,50.4kg,3.10kg,18.5%,1524kcal,39,
+        07:39 2026/06/04,72.60kg,24.7,18.4%,12.9%,--,--,7.1,55.9%,29.2%,50.0kg,3.10kg,18.3%,1517kcal,39,
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.batch.fileName == "fitdays_pasted_monthly_text.tsv")
+        #expect(result.batch.sourceName == "Fitdays 붙여넣기")
+        #expect(result.batch.rowCount == 3)
+        #expect(result.batch.sampleCount == 36)
+        #expect(result.skippedRowCount == 0)
+        #expect(result.samples.count == 36)
+        #expect(result.rowErrors.isEmpty)
+        #expect(result.unknownColumns == ["심박수 지표"])
+        #expect(Set(result.samples.map(\.metricID)) == [
+            .bodyMass,
+            .bodyMassIndex,
+            .bodyFatPercentage,
+            .subcutaneousFatPercentage,
+            .visceralFatLevel,
+            .bodyWaterPercentage,
+            .skeletalMuscleMass,
+            .muscleMass,
+            .boneMass,
+            .proteinPercentage,
+            .basalMetabolicRate,
+            .metabolicAge,
+        ])
+        #expect(!result.samples.contains { $0.metricID == .heartRate })
+
+        let bodyMassDates = result.samples
+            .filter { $0.metricID == .bodyMass }
+            .map(\.measuredAt)
+        let firstDate = try #require(bodyMassDates.first)
+        #expect(calendar.component(.year, from: firstDate) == 2026)
+        #expect(calendar.component(.month, from: firstDate) == 6)
+        #expect(calendar.component(.day, from: firstDate) == 1)
+        #expect(calendar.component(.hour, from: firstDate) == 5)
+        #expect(calendar.component(.minute, from: firstDate) == 37)
+        #expect(result.samples.allSatisfy { $0.sourceType == .fitdaysCSV })
+        #expect(result.samples.allSatisfy { $0.sourceName == "Fitdays 붙여넣기" })
+    }
+
+    @Test
     func looseDateParserDoesNotTreatMetricDecimalsAsMeasurementDates() throws {
         let pastedText = """
         BMI 23.1
@@ -376,13 +424,20 @@ struct FitdaysImportServiceTests {
         #expect(source.contains("TextEditor(text: pastedTextBinding)"))
         #expect(source.contains("previewPastedText"))
         #expect(source.contains("pasteClipboardTextAndPreview"))
+        #expect(source.contains("FitdaysPastedTextSummary"))
+        #expect(source.contains("isPreviewingPaste"))
         #expect(source.contains("clearPastedPreviewState"))
         #expect(source.contains("importResult = nil"))
         #expect(source.contains("UIPasteboard.general.string"))
+        #expect(source.contains("클립보드에서 바로 미리보기"))
         #expect(source.contains("클립보드 붙여넣고 미리보기"))
         #expect(source.contains("월별 데이터 붙여넣기"))
         #expect(source.contains("FitdaysImportFallbackGuidance.noImportablePreviewMessage"))
         #expect(source.contains("previewDiagnosticsSection"))
+        #expect(source.contains("저장 전 미리보기"))
+        #expect(source.contains("lastSaveConfirmation"))
+        #expect(source.contains("FitdaysSaveConfirmation"))
+        #expect(source.contains("lastSaveConfirmation.displayMessage"))
         #expect(source.contains("미리보기 판단"))
         #expect(source.contains("처리한 row"))
         #expect(source.contains("저장 가능"))
@@ -392,6 +447,9 @@ struct FitdaysImportServiceTests {
         #expect(source.contains("저장된 가져오기"))
         #expect(source.contains("저장 샘플"))
         #expect(source.contains("가져오기 기록 삭제"))
+        #expect(source.contains("UnifiedHealthMetricImportDuplicateSummary"))
+        #expect(source.contains("값이 다른 중복"))
+        #expect(source.contains("새 붙여넣기 기준으로 교체"))
         #expect(source.contains("repository.deleteBatch"))
         #expect(source.contains("reloadSavedImports"))
         #expect(source.contains("실제 파일명이나 local path를 표시하지 않습니다"))

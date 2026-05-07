@@ -15,6 +15,13 @@ struct FitdaysImportView: View {
   @State private var statusMessage: String?
   @State private var errorMessage: String?
   @State private var pastedExportText = ""
+  @State private var visiblePastedExportText = ""
+  @State private var pastedTextSummary: FitdaysPastedTextSummary?
+  @State private var isPreviewingPaste = false
+  @State private var pastePreviewTask: Task<Void, Never>?
+  @State private var duplicateSummary: UnifiedHealthMetricImportDuplicateSummary?
+  @State private var allowsChangedDuplicateOverwrite = false
+  @State private var lastSaveConfirmation: FitdaysSaveConfirmation?
   @State private var didPreviewInitialFile = false
   @State private var savedBatches: [ImportBatch] = []
   @State private var savedSampleCountsByBatchID: [UUID: Int] = [:]
@@ -43,9 +50,6 @@ struct FitdaysImportView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         headerSection
         pastedTextSection
-        policySection
-        exportUnavailableSection
-        fallbackSection
 
         if let importResult {
           resultSection(importResult)
@@ -56,6 +60,9 @@ struct FitdaysImportView: View {
         }
 
         savedBatchesSection
+        policySection
+        exportUnavailableSection
+        fallbackSection
       }
       .padding(NBSpacing.screenHorizontal)
     }
@@ -72,6 +79,9 @@ struct FitdaysImportView: View {
       previewInitialFileIfNeeded()
       reloadSavedImports()
     }
+    .onDisappear {
+      pastePreviewTask?.cancel()
+    }
     .alert("가져오기 기록 삭제", isPresented: $isDeleteBatchAlertPresented) {
       Button("삭제", role: .destructive) {
         deletePendingBatch()
@@ -85,18 +95,30 @@ struct FitdaysImportView: View {
   }
 
   private var headerSection: some View {
-    NBReportSection(title: "Fitdays CSV 가져오기", systemImage: "square.and.arrow.down") {
+    NBReportSection(title: "Fitdays 데이터 가져오기", systemImage: "square.and.arrow.down") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("사용자가 직접 확보한 Fitdays CSV 또는 text 기반 export 파일이 있을 때만 로컬에서 체성분 지표를 정리합니다.")
+        Text("월별 데이터 복사 텍스트나 사용자가 직접 확보한 CSV/text export 파일을 로컬에서만 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
+
+        #if os(iOS)
+        Button {
+          pasteClipboardTextAndPreview()
+        } label: {
+          Label(isPreviewingPaste ? "미리보기 생성 중" : "클립보드에서 바로 미리보기", systemImage: "doc.on.clipboard")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+        .disabled(isPreviewingPaste)
+        #endif
 
         Button {
           isFileImporterPresented = true
         } label: {
           Label("파일 선택", systemImage: "doc.badge.plus")
+            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+        .buttonStyle(.nbSecondary)
 
         Text(FitdaysImportFallbackGuidance.supportedFileSummary)
           .font(NBTypography.caption)
@@ -125,10 +147,14 @@ struct FitdaysImportView: View {
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
 
+        if let pastedTextSummary {
+          pastedTextSummaryView(pastedTextSummary)
+        }
+
         ZStack(alignment: .topLeading) {
           TextEditor(text: pastedTextBinding)
             .font(.system(.footnote, design: .monospaced))
-            .frame(minHeight: 150)
+            .frame(minHeight: 96, maxHeight: 150)
             .padding(NBSpacing.small)
             .background(NBColor.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.medium, style: .continuous))
@@ -138,7 +164,7 @@ struct FitdaysImportView: View {
             )
             .accessibilityLabel("Fitdays 월별 데이터 붙여넣기 입력")
 
-          if pastedExportText.isEmpty {
+          if visiblePastedExportText.isEmpty {
             Text("Fitdays에서 복사한 월별 데이터 표를 붙여넣거나 아래 버튼을 누르세요.")
               .font(NBTypography.footnote)
               .foregroundStyle(NBColor.secondaryText)
@@ -153,10 +179,11 @@ struct FitdaysImportView: View {
           Button {
             pasteClipboardTextAndPreview()
           } label: {
-            Label("클립보드 붙여넣고 미리보기", systemImage: "doc.on.clipboard")
+            Label(isPreviewingPaste ? "미리보기 생성 중" : "클립보드 붙여넣고 미리보기", systemImage: "doc.on.clipboard")
               .frame(maxWidth: .infinity)
           }
           .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+          .disabled(isPreviewingPaste)
           #endif
 
           HStack(spacing: NBSpacing.small) {
@@ -167,7 +194,7 @@ struct FitdaysImportView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.nbSecondary)
-            .disabled(trimmedPastedText.isEmpty)
+            .disabled(trimmedPastedText.isEmpty || isPreviewingPaste)
 
             Button {
               clearPastedText()
@@ -176,7 +203,16 @@ struct FitdaysImportView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.nbSecondary)
-            .disabled(pastedExportText.isEmpty)
+            .disabled(pastedExportText.isEmpty || isPreviewingPaste)
+          }
+        }
+
+        if isPreviewingPaste {
+          HStack(spacing: NBSpacing.small) {
+            ProgressView()
+            Text("붙여넣은 데이터를 분석하는 중입니다.")
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
           }
         }
 
@@ -266,7 +302,7 @@ struct FitdaysImportView: View {
   }
 
   private func resultSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "가져오기 결과", systemImage: "list.bullet.rectangle") {
+    NBReportSection(title: "저장 전 미리보기", systemImage: "list.bullet.rectangle") {
       VStack(spacing: NBSpacing.medium) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           NBMetricCard(
@@ -320,13 +356,26 @@ struct FitdaysImportView: View {
           )
         }
 
+        if let duplicateSummary, duplicateSummary.hasDuplicates {
+          duplicateSummarySection(duplicateSummary)
+        }
+
         Button {
           save(result)
         } label: {
-          Label("로컬에 저장", systemImage: "tray.and.arrow.down")
+          Label(saveButtonTitle(for: duplicateSummary), systemImage: "tray.and.arrow.down")
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.sleepTint))
-        .disabled(result.samples.isEmpty)
+        .disabled(result.samples.isEmpty || isPreviewingPaste || requiresChangedDuplicateConfirmation)
+
+        if let lastSaveConfirmation {
+          NBStatusBadge(
+            lastSaveConfirmation.displayMessage,
+            kind: .good,
+            systemImage: "checkmark.circle.fill"
+          )
+        }
       }
     }
   }
@@ -544,6 +593,86 @@ struct FitdaysImportView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
+  private func pastedTextSummaryView(_ summary: FitdaysPastedTextSummary) -> some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+      NBStatusBadge(
+        "붙여넣음 · \(summary.lineCount)행 · \(summary.characterCount)자",
+        kind: .good,
+        systemImage: "checkmark.circle"
+      )
+
+      Text(summary.previewText)
+        .font(.system(.caption, design: .monospaced))
+        .foregroundStyle(NBColor.secondaryText)
+        .lineLimit(3)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      if summary.isTruncatedForDisplay {
+        Text("입력창에는 앞부분만 표시하고, 미리보기와 저장은 전체 붙여넣기 원문으로 처리합니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func duplicateSummarySection(_ summary: UnifiedHealthMetricImportDuplicateSummary) -> some View {
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      NBStatusBadge(
+        duplicateSummaryMessage(summary),
+        kind: summary.hasChangedDuplicates ? .caution : .neutral,
+        systemImage: summary.hasChangedDuplicates ? "exclamationmark.triangle" : "arrow.triangle.2.circlepath"
+      )
+
+      if summary.hasChangedDuplicates {
+        Toggle(isOn: $allowsChangedDuplicateOverwrite) {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("값이 다른 중복은 새 붙여넣기 기준으로 교체")
+              .font(NBTypography.footnote.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+            Text("끄면 저장하지 않습니다. 켜면 기존 같은 날짜/시간 지표를 이번 값으로 바꿉니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+          }
+        }
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func duplicateSummaryMessage(_ summary: UnifiedHealthMetricImportDuplicateSummary) -> String {
+    if summary.hasChangedDuplicates {
+      return "중복 \(summary.duplicateSampleCount)개 중 \(summary.changedDuplicateCount)개는 기존 값과 다릅니다."
+    }
+    return "중복 \(summary.duplicateSampleCount)개는 기존 값과 같습니다. 새 항목 \(summary.newSampleCount)개를 함께 저장합니다."
+  }
+
+  private func saveButtonTitle(for summary: UnifiedHealthMetricImportDuplicateSummary?) -> String {
+    guard let summary, summary.hasDuplicates else {
+      return "로컬에 저장"
+    }
+    if summary.hasChangedDuplicates {
+      return "중복 확인 후 저장"
+    }
+    return "중복 정리하고 저장"
+  }
+
+  private func saveSuccessMessage(
+    result: FitdaysImportResult,
+    duplicateSummary: UnifiedHealthMetricImportDuplicateSummary?
+  ) -> String {
+    guard let duplicateSummary, duplicateSummary.hasDuplicates else {
+      return "로컬 저장소에 \(result.importedSampleCount)개 샘플을 저장했습니다."
+    }
+
+    if duplicateSummary.hasChangedDuplicates {
+      return "새 샘플 \(duplicateSummary.newSampleCount)개를 저장하고 값이 다른 중복 \(duplicateSummary.changedDuplicateCount)개를 새 데이터 기준으로 교체했습니다."
+    }
+
+    return "새 샘플 \(duplicateSummary.newSampleCount)개를 저장하고 같은 중복 \(duplicateSummary.unchangedDuplicateCount)개를 정리했습니다."
+  }
+
   private func handleFileImporterResult(_ result: Result<[URL], Error>) {
     errorMessage = nil
     statusMessage = nil
@@ -565,24 +694,52 @@ struct FitdaysImportView: View {
 
   private var pastedTextBinding: Binding<String> {
     Binding(
-      get: { pastedExportText },
+      get: { visiblePastedExportText },
       set: { newValue in
-        guard newValue != pastedExportText else { return }
-        pastedExportText = newValue
-        clearPastedPreviewState()
+        guard newValue != visiblePastedExportText else { return }
+        stagePastedText(newValue, statusPrefix: nil)
       }
     )
   }
 
+  private var requiresChangedDuplicateConfirmation: Bool {
+    duplicateSummary?.hasChangedDuplicates == true && !allowsChangedDuplicateOverwrite
+  }
+
   private func clearPastedText() {
     pastedExportText = ""
+    visiblePastedExportText = ""
+    pastedTextSummary = nil
     clearPastedPreviewState()
   }
 
   private func clearPastedPreviewState() {
+    pastePreviewTask?.cancel()
+    isPreviewingPaste = false
     importResult = nil
+    duplicateSummary = nil
+    allowsChangedDuplicateOverwrite = false
+    lastSaveConfirmation = nil
     statusMessage = nil
     errorMessage = nil
+  }
+
+  private func stagePastedText(_ text: String, statusPrefix: String?) {
+    pastePreviewTask?.cancel()
+    let summary = FitdaysPastedTextSummary(text: text)
+    pastedExportText = text
+    visiblePastedExportText = summary.visibleText
+    pastedTextSummary = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : summary
+    importResult = nil
+    duplicateSummary = nil
+    allowsChangedDuplicateOverwrite = false
+    lastSaveConfirmation = nil
+    errorMessage = nil
+    if let statusPrefix, let pastedTextSummary {
+      statusMessage = "\(statusPrefix) · \(pastedTextSummary.lineCount)행 · \(pastedTextSummary.characterCount)자"
+    } else {
+      statusMessage = nil
+    }
   }
 
   private func userFacingImportErrorMessage(_ error: Error) -> String {
@@ -606,6 +763,7 @@ struct FitdaysImportView: View {
   private func preview(fileURL: URL, successMessage: String) {
     errorMessage = nil
     statusMessage = nil
+    lastSaveConfirmation = nil
 
     do {
       let didStartAccessing = fileURL.startAccessingSecurityScopedResource()
@@ -635,31 +793,72 @@ struct FitdaysImportView: View {
       return
     }
 
-    pastedExportText = clipboardText
+    stagePastedText(clipboardText, statusPrefix: "클립보드 텍스트를 받았습니다")
     previewPastedText(clipboardText)
   }
   #endif
 
   private func previewPastedText(_ textOverride: String? = nil) {
+    pastePreviewTask?.cancel()
     errorMessage = nil
-    statusMessage = nil
+    statusMessage = "붙여넣은 데이터 미리보기를 준비하고 있습니다."
+    importResult = nil
+    duplicateSummary = nil
+    allowsChangedDuplicateOverwrite = false
+    lastSaveConfirmation = nil
+    isPreviewingPaste = true
 
-    do {
-      importResult = try service.previewImport(fromPastedText: textOverride ?? pastedExportText)
-      statusMessage = "붙여넣은 월별 데이터에서 저장 전 미리보기를 만들었습니다."
-    } catch {
-      importResult = nil
-      errorMessage = userFacingImportErrorMessage(error)
+    let text = textOverride ?? pastedExportText
+    let service = service
+
+    pastePreviewTask = Task {
+      let previewResult = await Task.detached(priority: .userInitiated) {
+        Result {
+          try service.previewImport(fromPastedText: text)
+        }
+      }.value
+
+      await MainActor.run {
+        guard !Task.isCancelled else { return }
+        isPreviewingPaste = false
+
+        switch previewResult {
+        case .success(let result):
+          importResult = result
+          duplicateSummary = UnifiedHealthMetricImportDuplicateSummary(
+            existingSamples: repository.fetchSamples(),
+            incomingSamples: result.samples
+          )
+          statusMessage = "붙여넣은 월별 데이터에서 저장 전 미리보기를 만들었습니다."
+        case .failure(let error):
+          importResult = nil
+          duplicateSummary = nil
+          errorMessage = userFacingImportErrorMessage(error)
+        }
+      }
     }
   }
 
   private func save(_ result: FitdaysImportResult) {
+    guard !requiresChangedDuplicateConfirmation else {
+      errorMessage = "값이 다른 중복 데이터가 있습니다. 새 붙여넣기 기준으로 교체할지 먼저 선택해 주세요."
+      return
+    }
+
     do {
       try repository.save(batch: result.batch, samples: result.samples)
-      statusMessage = "로컬 저장소에 \(result.importedSampleCount)개 샘플을 저장했습니다."
+      let confirmation = FitdaysSaveConfirmation(
+        message: saveSuccessMessage(result: result, duplicateSummary: duplicateSummary),
+        savedAt: Date()
+      )
+      lastSaveConfirmation = confirmation
+      statusMessage = confirmation.message
       errorMessage = nil
+      duplicateSummary = nil
+      allowsChangedDuplicateOverwrite = false
       reloadSavedImports()
     } catch {
+      lastSaveConfirmation = nil
       errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"
     }
   }
@@ -726,6 +925,45 @@ struct FitdaysImportView: View {
     case .app:
       NBColor.dawn
     }
+  }
+}
+
+private struct FitdaysPastedTextSummary: Equatable {
+  private static let displayCharacterLimit = 1_600
+
+  var lineCount: Int
+  var characterCount: Int
+  var visibleText: String
+  var previewText: String
+  var isTruncatedForDisplay: Bool
+
+  init(text: String) {
+    let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    let lines = trimmedText
+      .split(whereSeparator: \.isNewline)
+      .map(String.init)
+
+    lineCount = lines.count
+    characterCount = text.count
+    previewText = lines.prefix(3).joined(separator: "\n")
+
+    if text.count > Self.displayCharacterLimit {
+      let prefix = String(text.prefix(Self.displayCharacterLimit))
+      visibleText = "\(prefix)\n…"
+      isTruncatedForDisplay = true
+    } else {
+      visibleText = text
+      isTruncatedForDisplay = false
+    }
+  }
+}
+
+private struct FitdaysSaveConfirmation: Equatable {
+  var message: String
+  var savedAt: Date
+
+  var displayMessage: String {
+    "\(message) · \(SleepFormatters.shortTime(savedAt))"
   }
 }
 

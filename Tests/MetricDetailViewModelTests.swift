@@ -275,10 +275,16 @@ struct MetricDetailViewModelTests {
     @Test
     func metricDetailViewsExposeBadgeFiltersGraphStatisticsAndRawList() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift")
+        let healthMetricChart = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricChartView.swift")
 
         #expect(contents.contains("MetricDetailPeriodPicker"))
         #expect(contents.contains("MetricDetailSourceFilterMenu"))
         #expect(contents.contains("MetricChartView"))
+        #expect(contents.contains("RuleMark(y: .value(\"평균선\""))
+        #expect(contents.contains("chartSummaryStrip"))
+        #expect(contents.contains("MetricChartSummaryPill"))
+        #expect(contents.contains("chartForegroundStyleScale(domain: uniqueSourceLabels, range: uniqueSourceColors)"))
+        #expect(contents.contains("sourceTint(for: $0.sourceType)"))
         #expect(contents.contains("MetricSummaryCard"))
         #expect(contents.contains("rawSampleListSection"))
         #expect(contents.contains("MetricSourceBadgeStrip"))
@@ -289,6 +295,9 @@ struct MetricDetailViewModelTests {
         #expect(contents.contains("HealthKit 기반"))
         #expect(contents.contains("로컬 전용"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
+        #expect(healthMetricChart.contains("RuleMark(y: .value(\"평균선\""))
+        #expect(healthMetricChart.contains("chartSummaryStrip(points: chartPoints)"))
+        #expect(healthMetricChart.contains("HealthChartSummaryPill"))
         #expect(!contents.contains("Import batch:"))
     }
 

@@ -191,6 +191,8 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             "측정일시",
             "측정 일시",
             "날짜",
+            "짜",
+            "일자",
             "기록일",
         ],
         timeColumnNames: [
@@ -211,10 +213,11 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             .bodyFatPercentage: ["Body Fat", "Body Fat %", "Body Fat Percentage", "BF", "BF%", "Fat %", "체지방률", "체지방율", "체지방"],
             .muscleMass: ["Muscle Mass", "Muscle", "Muscle kg", "Muscle(kg)", "MM", "근육량", "근육량 kg", "근육량(kg)", "근육"],
             .skeletalMuscleMass: ["Skeletal Muscle", "Skeletal Muscle Mass", "SMM", "Skeletal Muscle kg", "Skeletal Muscle(kg)", "골격근량", "골격근", "골격근 kg", "골격근(kg)"],
-            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "BW%", "Water", "Water %", "체수분", "체수분률", "체수분율", "수분", "수분률", "수분율"],
+            .bodyWaterPercentage: ["Body Water", "Body Water %", "Body Water Percentage", "Body Water Rate", "BW%", "Water", "Water %", "체수분", "체수분률", "체수분율", "체내수분", "체내 수분", "체내수분량", "체내 수분량", "수분", "수분률", "수분율"],
             .visceralFatLevel: ["Visceral Fat", "Visceral Fat Level", "Visceral Fat Rating", "Visceral Fat Index", "VF", "VFL", "내장지방", "내장 지방", "내장지방 레벨", "내장 지방 레벨", "내장지방 지수", "내장 지방 지수", "내장지방등급", "내장 지방 등급"],
             .visceralFatPercentage: ["Visceral Fat %", "Visceral Fat Percentage", "복부지방률", "복부지방율"],
-            .boneMass: ["Bone Mass", "Bone", "Bone kg", "Bone(kg)", "골량"],
+            .boneMass: ["Bone Mass", "Bone", "Bone kg", "Bone(kg)", "골량", "골질량", "뼈질량"],
+            .leanBodyMass: ["Lean Body Mass", "Lean Mass", "Fat Free Mass", "Fat-Free Body Weight", "Fat Free Body Weight", "FFM", "제지방량", "제지방", "제지방 체중"],
             .mineralMass: ["Mineral", "Mineral Mass", "Minerals", "Mineral kg", "Mineral(kg)", "무기질"],
             .basalMetabolicRate: ["BMR", "BMR kcal", "BMR(kcal)", "Basal Metabolic Rate", "기초대사량", "기초 대사량", "기초대사", "기초 대사"],
             .proteinPercentage: ["Protein", "Protein %", "Protein Percentage", "Protein%", "Protein Rate", "단백질률", "단백질율", "단백질"],
@@ -235,14 +238,15 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
     )
 
     public func metricID(for columnName: String) -> UnifiedHealthMetricID? {
-        let trimmedColumn = columnName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let comparableColumn = Self.headerComparableText(columnName)
+        let trimmedColumn = comparableColumn.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         for (metricID, aliases) in metricColumnAliases {
             if aliases.contains(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == trimmedColumn }) {
                 return metricID
             }
         }
 
-        let normalizedColumn = Self.normalized(columnName)
+        let normalizedColumn = Self.normalized(comparableColumn)
         for (metricID, aliases) in metricColumnAliases {
             if aliases.contains(where: { Self.normalized($0) == normalizedColumn }) {
                 return metricID
@@ -274,7 +278,7 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
     }
 
     private func contains(_ columnName: String, in aliases: [String]) -> Bool {
-        let normalizedColumn = Self.normalized(columnName)
+        let normalizedColumn = Self.normalized(Self.headerComparableText(columnName))
         return aliases.contains { Self.normalized($0) == normalizedColumn }
     }
 
@@ -283,6 +287,24 @@ public struct FitdaysCSVColumnMapping: Codable, Equatable, Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
             .filter { $0.isLetter || $0.isNumber }
+    }
+
+    public static func headerComparableText(_ value: String) -> String {
+        var text = value
+            .replacingOccurrences(of: "（", with: "(")
+            .replacingOccurrences(of: "）", with: ")")
+            .replacingOccurrences(of: "：", with: ":")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let regex = try? NSRegularExpression(pattern: #"\([^)]*\)"#) {
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            text = regex.stringByReplacingMatches(in: text, range: range, withTemplate: "")
+        }
+
+        return text
+            .replacingOccurrences(of: "클릭필수", with: "")
+            .replacingOccurrences(of: "클릭 필수", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
@@ -349,11 +371,21 @@ public struct FitdaysImportService: Sendable {
                 return tableResult
             }
 
+            let whitespaceTableResult = parseWhitespaceTablePastedText(trimmedText, context: pasteContext)
+            if !whitespaceTableResult.samples.isEmpty {
+                return whitespaceTableResult
+            }
+
             let looseResult = parseLoosePastedText(trimmedText, context: pasteContext)
             return looseResult.samples.isEmpty ? tableResult : looseResult
         } catch FitdaysImportError.emptyFile {
             throw FitdaysImportError.emptyFile
         } catch {
+            let whitespaceTableResult = parseWhitespaceTablePastedText(trimmedText, context: pasteContext)
+            if !whitespaceTableResult.samples.isEmpty {
+                return whitespaceTableResult
+            }
+
             let looseResult = parseLoosePastedText(trimmedText, context: pasteContext)
             if looseResult.samples.isEmpty {
                 throw error
@@ -448,6 +480,9 @@ public struct FitdaysImportService: Sendable {
                 guard !rawValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     continue
                 }
+                if isMissingMetricPlaceholder(rawValue) {
+                    continue
+                }
                 guard let parsedValue = parseMetricValue(rawValue) else {
                     rowErrors.append(FitdaysImportRowError(rowNumber: rowNumber, message: "\(metricColumn.name) 값을 숫자로 해석할 수 없습니다."))
                     continue
@@ -514,6 +549,10 @@ public struct FitdaysImportService: Sendable {
             return date
         }
 
+        if let date = parseReversedTimeLooseDate(in: combined) {
+            return date
+        }
+
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = calendar
@@ -542,6 +581,14 @@ public struct FitdaysImportService: Sendable {
             "dd-MM-yyyy HH:mm",
             "yyyyMMdd HHmmss",
             "yyyyMMdd HHmm",
+            "HH:mm:ss yyyy-MM-dd",
+            "HH:mm yyyy-MM-dd",
+            "HH:mm:ss yyyy/M/d",
+            "HH:mm yyyy/M/d",
+            "HH:mm:ss yyyy/MM/dd",
+            "HH:mm yyyy/MM/dd",
+            "HH:mm:ss yyyy.M.d",
+            "HH:mm yyyy.M.d",
             "yyyy-MM-dd a h:mm:ss",
             "yyyy-MM-dd a h:mm",
             "yyyy/M/d a h:mm:ss",
@@ -575,7 +622,7 @@ public struct FitdaysImportService: Sendable {
             }
         }
 
-        return nil
+        return parseLooseYearMonthDay(in: combined)
     }
 
     private func parseISO8601Date(_ text: String) -> Date? {
@@ -609,6 +656,23 @@ public struct FitdaysImportService: Sendable {
 
         guard !cleaned.isEmpty else { return nil }
         return Double(normalizedDecimalText(cleaned))
+    }
+
+    private func isMissingMetricPlaceholder(_ rawValue: String) -> Bool {
+        let normalized = rawValue
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return [
+            "",
+            "-",
+            "--",
+            "---",
+            "n/a",
+            "na",
+            "null",
+            "없음",
+            "미측정",
+        ].contains(normalized)
     }
 
     private func normalizedDecimalText(_ text: String) -> String {
@@ -659,38 +723,108 @@ public struct FitdaysImportService: Sendable {
             .filter { !$0.text.isEmpty }
 
         var currentMeasuredAt: Date?
+        var monthContext: LooseMonthContext?
         var pendingMetric: PendingLooseMetric?
         var samples: [UnifiedHealthMetricSample] = []
         var rowErrors: [FitdaysImportRowError] = []
         var skippedRows = 0
+        var didUseImportDateFallback = false
+        let allowsImportDateFallback = !containsAnyLooseMeasurementDate(lines, defaultYear: defaultYear)
 
         for line in lines {
-            let measuredAtInLine = parseLooseMeasuredAt(line.text, defaultYear: defaultYear)
+            if let parsedMonthContext = parseLooseMonthContext(line.text, defaultYear: defaultYear) {
+                monthContext = parsedMonthContext
+                pendingMetric = nil
+                continue
+            }
+
+            let measuredAtInLine = parseLooseMeasuredAt(
+                line.text,
+                defaultYear: defaultYear,
+                monthContext: monthContext
+            )
             if let measuredAtInLine {
                 currentMeasuredAt = measuredAtInLine
                 pendingMetric = nil
             }
 
-            if let pair = looseMetricPair(in: line.text),
-               let measuredAt = currentMeasuredAt {
-                samples.append(
-                    looseSample(
-                        metricID: pair.metricID,
-                        label: pair.label,
-                        value: pair.value,
-                        measuredAt: measuredAt,
-                        lineNumber: line.number,
-                        batchID: importBatchId,
-                        context: context
+            let pairs = looseMetricPairs(in: line.text)
+            if !pairs.isEmpty {
+                if let measuredAt = currentMeasuredAt {
+                    for pair in pairs {
+                        samples.append(
+                            looseSample(
+                                metricID: pair.metricID,
+                                label: pair.label,
+                                value: pair.value,
+                                measuredAt: measuredAt,
+                                lineNumber: line.number,
+                                batchID: importBatchId,
+                                context: context
+                            )
+                        )
+                    }
+                    continue
+                }
+
+                if allowsImportDateFallback {
+                    if !didUseImportDateFallback {
+                        rowErrors.append(
+                            FitdaysImportRowError(
+                                rowNumber: line.number,
+                                message: "측정일을 찾지 못해 가져오기 시각으로 임시 미리보기했습니다."
+                            )
+                        )
+                        didUseImportDateFallback = true
+                    }
+                    for pair in pairs {
+                        samples.append(
+                            looseSample(
+                                metricID: pair.metricID,
+                                label: pair.label,
+                                value: pair.value,
+                                measuredAt: context.importedAt,
+                                lineNumber: line.number,
+                                batchID: importBatchId,
+                                context: context
+                            )
+                        )
+                    }
+                    continue
+                }
+
+                rowErrors.append(
+                    FitdaysImportRowError(
+                        rowNumber: line.number,
+                        message: "측정일을 먼저 찾지 못해 지표 값을 건너뛰었습니다."
                     )
                 )
                 continue
             }
 
             if let pendingMetricValue = pendingMetric,
-               let measuredAt = currentMeasuredAt,
                let valueText = firstNumericToken(in: line.text),
                let value = parseMetricValue(valueText) {
+                let measuredAt = currentMeasuredAt ?? (allowsImportDateFallback ? context.importedAt : nil)
+                guard let measuredAt else {
+                    rowErrors.append(
+                        FitdaysImportRowError(
+                            rowNumber: line.number,
+                            message: "측정일을 먼저 찾지 못해 지표 값을 건너뛰었습니다."
+                        )
+                    )
+                    pendingMetric = nil
+                    continue
+                }
+                if currentMeasuredAt == nil, !didUseImportDateFallback {
+                    rowErrors.append(
+                        FitdaysImportRowError(
+                            rowNumber: pendingMetricValue.lineNumber,
+                            message: "측정일을 찾지 못해 가져오기 시각으로 임시 미리보기했습니다."
+                        )
+                    )
+                    didUseImportDateFallback = true
+                }
                 samples.append(
                     looseSample(
                         metricID: pendingMetricValue.metricID,
@@ -780,7 +914,125 @@ public struct FitdaysImportService: Sendable {
         )
     }
 
-    private func parseLooseMeasuredAt(_ text: String, defaultYear: Int) -> Date? {
+    private func parseWhitespaceTablePastedText(
+        _ text: String,
+        context: FitdaysPasteImportContext
+    ) -> FitdaysImportResult {
+        let batchID = UUID()
+        let importBatchId = batchID.uuidString
+        let defaultYear = calendar.component(.year, from: context.importedAt)
+        let lines = text
+            .split(whereSeparator: \.isNewline)
+            .enumerated()
+            .map { index, line in
+                LoosePasteLine(
+                    number: index + 1,
+                    text: String(line).trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            }
+            .filter { !$0.text.isEmpty }
+
+        var monthContext: LooseMonthContext?
+        var schema: WhitespaceTableSchema?
+        var samples: [UnifiedHealthMetricSample] = []
+        var rowErrors: [FitdaysImportRowError] = []
+        var skippedRows = 0
+
+        for line in lines {
+            if let parsedMonthContext = parseLooseMonthContext(line.text, defaultYear: defaultYear) {
+                monthContext = parsedMonthContext
+                continue
+            }
+
+            let tokens = whitespaceTokens(in: line.text)
+            guard tokens.count >= 2 else {
+                skippedRows += 1
+                continue
+            }
+
+            if let parsedSchema = whitespaceTableSchema(from: tokens) {
+                schema = parsedSchema
+                continue
+            }
+
+            guard let schema else {
+                skippedRows += 1
+                continue
+            }
+
+            let dateText = value(at: schema.dateIndex, in: tokens)
+            let timeText = schema.timeIndex.map { value(at: $0, in: tokens) }
+            let combinedDateText = [dateText, timeText].compactMap { $0 }.joined(separator: " ")
+            guard let measuredAt = parseMeasuredAt(dateText: dateText, timeText: timeText)
+                    ?? parseLooseMeasuredAt(
+                        combinedDateText,
+                        defaultYear: defaultYear,
+                        monthContext: monthContext
+                    ) else {
+                skippedRows += 1
+                rowErrors.append(
+                    FitdaysImportRowError(rowNumber: line.number, message: "측정일/시간을 해석할 수 없습니다.")
+                )
+                continue
+            }
+
+            let sampleStartCount = samples.count
+            for metricColumn in schema.metricColumns {
+                let rawValue = value(at: metricColumn.index, in: tokens)
+                guard !rawValue.isEmpty,
+                      !isMissingMetricPlaceholder(rawValue),
+                      let value = parseMetricValue(rawValue) else {
+                    continue
+                }
+                samples.append(
+                    looseSample(
+                        metricID: metricColumn.metricID,
+                        label: metricColumn.name,
+                        value: value,
+                        measuredAt: measuredAt,
+                        lineNumber: line.number,
+                        batchID: importBatchId,
+                        context: context
+                    )
+                )
+            }
+
+            if samples.count == sampleStartCount {
+                skippedRows += 1
+            }
+        }
+
+        let batch = ImportBatch(
+            id: batchID,
+            sourceName: context.sourceName,
+            sourceType: .fitdaysCSV,
+            importedAt: context.importedAt,
+            fileName: context.fileName,
+            rowCount: lines.count,
+            sampleCount: samples.count,
+            skippedRowCount: skippedRows,
+            errorCount: rowErrors.count,
+            notes: context.batchNotes
+        )
+
+        return FitdaysImportResult(
+            batch: batch,
+            samples: samples.sorted { lhs, rhs in
+                if lhs.measuredAt == rhs.measuredAt {
+                    return lhs.metricID.rawValue < rhs.metricID.rawValue
+                }
+                return lhs.measuredAt < rhs.measuredAt
+            },
+            unknownColumns: [],
+            rowErrors: rowErrors
+        )
+    }
+
+    private func parseLooseMeasuredAt(
+        _ text: String,
+        defaultYear: Int,
+        monthContext: LooseMonthContext?
+    ) -> Date? {
         if let date = parseMeasuredAt(dateText: text, timeText: nil) {
             return date
         }
@@ -793,15 +1045,80 @@ public struct FitdaysImportService: Sendable {
             return date
         }
 
+        if let monthContext,
+           let date = parseLooseDayOnly(in: text, monthContext: monthContext) {
+            return date
+        }
+
         return parseLooseNumericMonthDay(in: text, defaultYear: defaultYear)
     }
 
+    private func parseReversedTimeLooseDate(in text: String) -> Date? {
+        let pattern = #"(?<!\d)(\d{1,2}):(\d{2})(?::(\d{2}))?\s+(20\d{2})[./-](\d{1,2})[./-](\d{1,3})(?!\d)"#
+        guard let match = firstMatch(pattern: pattern, in: text),
+              let hour = intCapture(1, in: match, text: text),
+              let minute = intCapture(2, in: match, text: text),
+              let year = intCapture(4, in: match, text: text),
+              let month = intCapture(5, in: match, text: text),
+              let dayText = stringCapture(6, in: match, text: text),
+              let day = normalizedDay(from: dayText) else {
+            return nil
+        }
+        let second = intCapture(3, in: match, text: text)
+        return date(year: year, month: month, day: day, meridiem: nil, hour: hour, minute: minute, second: second)
+    }
+
+    private func containsAnyLooseMeasurementDate(_ lines: [LoosePasteLine], defaultYear: Int) -> Bool {
+        var monthContext: LooseMonthContext?
+        for line in lines {
+            if let parsedMonthContext = parseLooseMonthContext(line.text, defaultYear: defaultYear) {
+                monthContext = parsedMonthContext
+                continue
+            }
+            if parseLooseMeasuredAt(line.text, defaultYear: defaultYear, monthContext: monthContext) != nil {
+                return true
+            }
+        }
+        return false
+    }
+
+    private func parseLooseMonthContext(_ text: String, defaultYear: Int) -> LooseMonthContext? {
+        let patterns = [
+            #"(?<!\d)(20\d{2})\s*년\s*(\d{1,2})\s*월(?!\s*\d{1,2}\s*일)"#,
+            #"(?<!\d)(20\d{2})[./-](\d{1,2})(?![./-]\d{1,2})"#,
+            #"(?<!\d)(\d{1,2})\s*월(?!\s*\d{1,2}\s*일)"#,
+        ]
+
+        for pattern in patterns {
+            guard let match = firstMatch(pattern: pattern, in: text) else { continue }
+            let year: Int
+            let month: Int
+            if match.numberOfRanges >= 3,
+               let first = intCapture(1, in: match, text: text),
+               let second = intCapture(2, in: match, text: text) {
+                year = first > 1900 ? first : defaultYear
+                month = first > 1900 ? second : first
+            } else if let monthOnly = intCapture(1, in: match, text: text) {
+                year = defaultYear
+                month = monthOnly
+            } else {
+                continue
+            }
+
+            guard (1...12).contains(month) else { continue }
+            return LooseMonthContext(year: year, month: month)
+        }
+
+        return nil
+    }
+
     private func parseLooseYearMonthDay(in text: String) -> Date? {
-        let pattern = #"(?<!\d)(20\d{2})\s*[년./-]?\s*(\d{1,2})\s*[월./-]?\s*(\d{1,2})\s*[일.]?(?:\s*(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})[:시]\s*(\d{2})(?:[:분]\s*(\d{2}))?)?"#
+        let pattern = #"(?<!\d)(20\d{2})\s*[년./-]?\s*(\d{1,2})\s*[월./-]?\s*(\d{1,3})\s*[일.]?(?:\s*(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})[:시]\s*(\d{2})(?:[:분]\s*(\d{2}))?)?"#
         guard let match = firstMatch(pattern: pattern, in: text),
               let year = intCapture(1, in: match, text: text),
               let month = intCapture(2, in: match, text: text),
-              let day = intCapture(3, in: match, text: text) else {
+              let dayText = stringCapture(3, in: match, text: text),
+              let day = normalizedDay(from: dayText) else {
             return nil
         }
         let meridiem = stringCapture(4, in: match, text: text)
@@ -825,6 +1142,20 @@ public struct FitdaysImportService: Sendable {
         return date(year: defaultYear, month: month, day: day, meridiem: meridiem, hour: hour, minute: minute, second: second)
     }
 
+    private func normalizedDay(from text: String) -> Int? {
+        let digits = text.filter { $0.isNumber }
+        if digits.count == 3, digits.first == "0" {
+            let twoDigitPrefix = String(digits.prefix(2))
+            if let day = Int(twoDigitPrefix), (1...31).contains(day) {
+                return day
+            }
+        }
+        guard let day = Int(digits), (1...31).contains(day) else {
+            return nil
+        }
+        return day
+    }
+
     private func parseLooseNumericMonthDay(in text: String, defaultYear: Int) -> Date? {
         let pattern = #"(?<!\d)(\d{1,2})[./-](\d{1,2})(?!\d)(?:\s*(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})[:시]\s*(\d{2})(?:[:분]\s*(\d{2}))?)?"#
         guard let match = firstMatch(pattern: pattern, in: text),
@@ -837,6 +1168,27 @@ public struct FitdaysImportService: Sendable {
         let minute = intCapture(5, in: match, text: text)
         let second = intCapture(6, in: match, text: text)
         return date(year: defaultYear, month: month, day: day, meridiem: meridiem, hour: hour, minute: minute, second: second)
+    }
+
+    private func parseLooseDayOnly(in text: String, monthContext: LooseMonthContext) -> Date? {
+        let pattern = #"^\s*(\d{1,2})(?:일|[.)])?(?![.,]\d)(?:\s+(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})[:시]\s*(\d{2})(?:[:분]\s*(\d{2}))?)?"#
+        guard let match = firstMatch(pattern: pattern, in: text),
+              let day = intCapture(1, in: match, text: text) else {
+            return nil
+        }
+        let meridiem = stringCapture(2, in: match, text: text)
+        let hour = intCapture(3, in: match, text: text)
+        let minute = intCapture(4, in: match, text: text)
+        let second = intCapture(5, in: match, text: text)
+        return date(
+            year: monthContext.year,
+            month: monthContext.month,
+            day: day,
+            meridiem: meridiem,
+            hour: hour,
+            minute: minute,
+            second: second
+        )
     }
 
     private func date(
@@ -889,15 +1241,19 @@ public struct FitdaysImportService: Sendable {
         return calendar.date(from: components)
     }
 
-    private func looseMetricPair(in text: String) -> LooseMetricPair? {
+    private func looseMetricPairs(in text: String) -> [LooseMetricPair] {
+        var pairs: [LooseMetricPair] = []
+        var seenMetricIDs = Set<UnifiedHealthMetricID>()
         for alias in metricAliasesSortedByLength() {
             guard let valueText = valueText(near: alias.label, in: text),
                   let value = parseMetricValue(valueText) else {
                 continue
             }
-            return LooseMetricPair(metricID: alias.metricID, label: alias.label, value: value)
+            guard !seenMetricIDs.contains(alias.metricID) else { continue }
+            seenMetricIDs.insert(alias.metricID)
+            pairs.append(LooseMetricPair(metricID: alias.metricID, label: alias.label, value: value))
         }
-        return nil
+        return pairs
     }
 
     private func looseMetricLabel(in text: String) -> (metricID: UnifiedHealthMetricID, label: String)? {
@@ -951,6 +1307,34 @@ public struct FitdaysImportService: Sendable {
         return stringCapture(0, in: match, text: text)
     }
 
+    private func whitespaceTokens(in text: String) -> [String] {
+        text
+            .replacingOccurrences(of: "：", with: ":")
+            .split(whereSeparator: \.isWhitespace)
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private func whitespaceTableSchema(from tokens: [String]) -> WhitespaceTableSchema? {
+        let dateIndex = tokens.firstIndex { token in
+            mapping.isDateColumn(token) || ["일", "일자", "Day", "day"].contains(token)
+        }
+        guard let dateIndex else { return nil }
+
+        let timeIndex = tokens.firstIndex(where: mapping.isTimeColumn)
+        let metricColumns = tokens.enumerated().compactMap { index, token -> MetricColumn? in
+            guard index != dateIndex,
+                  index != timeIndex,
+                  let metricID = mapping.metricID(for: token) else {
+                return nil
+            }
+            return MetricColumn(index: index, name: token, metricID: metricID)
+        }
+
+        guard !metricColumns.isEmpty else { return nil }
+        return WhitespaceTableSchema(dateIndex: dateIndex, timeIndex: timeIndex, metricColumns: metricColumns)
+    }
+
     private func firstMatch(pattern: String, in text: String) -> NSTextCheckingResult? {
         guard let regex = try? NSRegularExpression(pattern: pattern) else {
             return nil
@@ -994,6 +1378,17 @@ private struct FitdaysPasteImportContext {
 private struct LoosePasteLine {
     var number: Int
     var text: String
+}
+
+private struct LooseMonthContext {
+    var year: Int
+    var month: Int
+}
+
+private struct WhitespaceTableSchema {
+    var dateIndex: Int
+    var timeIndex: Int?
+    var metricColumns: [MetricColumn]
 }
 
 private struct PendingLooseMetric {

@@ -56,8 +56,11 @@
 - export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
 - `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
 - `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
-- 월별 붙여넣기 parser는 compact date와 주요 한국어 alias regression을 포함합니다. 실제 앱에서 새 구조가 확인되면 개인값 제거 후 fixture만 추가합니다.
+- 월별 붙여넣기 parser는 compact date, 주요 한국어 alias, `짜` date column, time-first date, annotated header, `--` placeholder regression을 포함합니다. 새 구조가 확인되면 개인값을 제거한 synthetic fixture만 추가합니다.
 - import preview는 처리 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여줍니다.
+- 큰 월별 붙여넣기는 화면에 전체 원문을 계속 렌더링하지 않고 요약/앞부분 preview만 표시하며, parsing은 UI thread 밖에서 수행합니다.
+- 붙여넣기 입력, 미리보기, 저장 버튼은 가까운 위치로 정리했고 저장 완료 메시지는 저장 버튼 근처에 표시합니다. 실제 Fitdays 월별 텍스트로 manual QA 필요
+- 중복 import는 같은 source type, metric, measuredAt 기준으로 정리하고, 값이 다른 중복은 새 붙여넣기 기준 교체를 사용자가 명시해야 저장합니다.
 - 저장된 가져오기 기록은 현재 저장소 기준 샘플 수와 삭제 흐름을 제공하며, 실제 파일명/local path는 표시하지 않습니다.
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
@@ -69,7 +72,8 @@
 - import result, batch 삭제, extended metric sample 삭제 흐름은 구현되어 있으며 실제 Fitdays 파일/붙여넣기 데이터로 manual QA 필요
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시는 `Fitdays CSV · 로컬`과 내부 ID 숨김 기준으로 보강 완료. 실제 데이터로 manual QA 필요
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
-- Health Dashboard는 권한 없음/HealthKit 샘플 없음/로컬 import만 있음/mixed source edge state를 분리 표시합니다. 실제 HealthKit 권한 조합과 Fitdays import 결과로 manual QA 필요
+- Health Dashboard는 권한 없음/HealthKit 샘플 없음/로컬 import만 있음/mixed source edge state를 분리 표시하고, Apple 건강앱 read-only 조회 범위와 원본 앱 동기화 확인 안내를 최근 1년 기준으로 제공합니다. 실제 HealthKit 권한 조합과 Fitdays import 결과로 manual QA 필요
+- 건강 캘린더 월 이동 계산 재사용과 metric 그래프 평균선/요약/출처 범례는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 체감 성능과 가독성 QA 필요
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강
 - `Docs/HEALTH_DATA_GUIDE.md`의 Fitdays CSV/export 차이 추적

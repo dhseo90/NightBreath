@@ -95,6 +95,87 @@ struct ImportBatchTests {
         #expect(repository.fetchSamples(importBatchId: firstBatch.id.uuidString).isEmpty)
     }
 
+    @Test
+    func sameMetricAndTimestampDuplicateReplacesEvenWhenExternalRecordIdChanges() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let firstBatch = ImportBatch(
+            sourceName: "Fitdays CSV",
+            sourceType: .fitdaysCSV,
+            importedAt: referenceDate,
+            fileName: "synthetic_fitdays_first.csv",
+            rowCount: 1,
+            sampleCount: 1,
+            skippedRowCount: 0,
+            errorCount: 0
+        )
+        let secondBatch = ImportBatch(
+            sourceName: "Fitdays CSV",
+            sourceType: .fitdaysCSV,
+            importedAt: referenceDate.addingTimeInterval(60),
+            fileName: "synthetic_fitdays_second.csv",
+            rowCount: 1,
+            sampleCount: 1,
+            skippedRowCount: 0,
+            errorCount: 0
+        )
+
+        try repository.save(
+            batch: firstBatch,
+            samples: [
+                importedSample(value: 71.8, batchID: firstBatch.id, externalRecordId: "first-row-body-mass"),
+            ]
+        )
+        try repository.save(
+            batch: secondBatch,
+            samples: [
+                importedSample(value: 71.6, batchID: secondBatch.id, externalRecordId: "second-row-body-mass"),
+            ]
+        )
+
+        #expect(repository.fetchSamples().map(\.value) == [71.6])
+        #expect(repository.fetchSamples().map(\.importBatchId) == [secondBatch.id.uuidString])
+    }
+
+    @Test
+    func duplicateSummarySeparatesSameValueAndChangedValueOverlaps() throws {
+        let existingBodyMass = importedSample(value: 71.8, batchID: UUID(), externalRecordId: "existing-body-mass")
+        let existingBodyFat = importedSample(
+            metricID: .bodyFatPercentage,
+            value: 21.4,
+            unit: "%",
+            batchID: UUID(),
+            externalRecordId: "existing-body-fat"
+        )
+        let incomingSameBodyMass = importedSample(value: 71.8, batchID: UUID(), externalRecordId: "incoming-body-mass")
+        let incomingChangedBodyFat = importedSample(
+            metricID: .bodyFatPercentage,
+            value: 21.1,
+            unit: "%",
+            batchID: UUID(),
+            externalRecordId: "incoming-body-fat"
+        )
+        let incomingNewWater = importedSample(
+            metricID: .bodyWaterPercentage,
+            value: 56.8,
+            unit: "%",
+            batchID: UUID(),
+            externalRecordId: "incoming-body-water"
+        )
+
+        let summary = UnifiedHealthMetricImportDuplicateSummary(
+            existingSamples: [existingBodyMass, existingBodyFat],
+            incomingSamples: [incomingSameBodyMass, incomingChangedBodyFat, incomingNewWater]
+        )
+
+        #expect(summary.incomingSampleCount == 3)
+        #expect(summary.newSampleCount == 1)
+        #expect(summary.duplicateSampleCount == 2)
+        #expect(summary.unchangedDuplicateCount == 1)
+        #expect(summary.changedDuplicateCount == 1)
+        #expect(summary.hasDuplicates)
+        #expect(summary.hasChangedDuplicates)
+    }
+
     private var service: FitdaysImportService {
         FitdaysImportService(
             calendar: calendar,
@@ -122,14 +203,16 @@ struct ImportBatchTests {
     }
 
     private func importedSample(
+        metricID: UnifiedHealthMetricID = .bodyMass,
         value: Double,
+        unit: String = "kg",
         batchID: UUID,
         externalRecordId: String
     ) -> UnifiedHealthMetricSample {
         UnifiedHealthMetricSample(
-            metricID: .bodyMass,
+            metricID: metricID,
             value: value,
-            unit: "kg",
+            unit: unit,
             measuredAt: referenceDate,
             sourceType: .fitdaysCSV,
             sourceName: "Fitdays CSV",

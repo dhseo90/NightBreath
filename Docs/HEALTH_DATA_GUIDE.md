@@ -111,10 +111,11 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 - Fitdays+ privacy 문서에는 사용자가 personal data를 CSV 형식으로 export 요청할 권리가 있다고 설명되어 있습니다. 참고: [Fitdays+ Privacy Policy](https://plus.fitdays.cn/app/privacy?language=en&source=0)
 - 실제 메뉴명과 export 위치는 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태, 연결된 scale 모델에 따라 다를 수 있습니다. NightBreath 문서는 특정 메뉴명을 단정하지 않고 사용자가 직접 확보한 로컬 export 파일만 다룹니다.
 - 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 따라서 QA와 제품 copy는 export 가능성을 단정하지 않고, 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표를 우선 사용합니다.
+- 2026-05-07 실제 사용 확인에서는 월별 데이터 복사 텍스트가 comma-separated table 형태로 확보될 수 있음을 확인했습니다. 이 구조는 첫 column이 `짜`이고 값이 `HH:mm yyyy/MM/dd`처럼 시간이 앞에 오는 날짜이며, `골격근량 (클릭필수)`, `기초대사량 (BMR)` 같은 header annotation과 `--` placeholder를 포함할 수 있습니다. 실제 수치와 원문은 repository에 기록하지 않습니다.
 
 ### Fitdays 데이터 유입 경로
 
-NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세 가지입니다.
+NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 네 가지입니다.
 
 1. Apple Health -> HealthKit read-only
    - Fitdays가 Apple 건강앱에 동기화한 target data 중 HealthKit 표준 지표만 읽습니다.
@@ -125,7 +126,11 @@ NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 세
    - CSV/export 파일이 없다면 이 경로는 사용하지 않습니다.
    - `fileImporter`는 CSV/text 기반 type을 열 수 있지만, preview validation을 통과한 structured export만 저장할 수 있습니다.
    - unknown column은 warning, invalid row는 skipped row로 처리합니다.
-3. Fitdays share/export -> Open in NightBreath
+3. Fitdays 월별 데이터 복사 -> 앱 내부 붙여넣기 import
+   - 사용자가 Fitdays에서 직접 복사한 월별 데이터 텍스트를 `FitdaysImportView`의 붙여넣기 입력칸에 넣고 미리봅니다.
+   - parser는 `짜` date column, `HH:mm yyyy/MM/dd` time-first date, 단위 suffix, header annotation, `--` placeholder를 로컬에서만 처리합니다.
+   - 붙여넣은 원문 자체, 실제 개인 수치, 실제 메뉴 path는 repository와 screenshot에 남기지 않습니다.
+4. Fitdays share/export -> Open in NightBreath
    - iOS document type/open-in 등록으로 CSV 또는 plain text export 파일을 NightBreath로 열 수 있게 합니다.
    - 받은 file URL은 read-only 입력으로만 사용하고, 같은 preview/import validation을 통과해야 저장합니다.
    - 실제 개인 파일명이나 local path는 screenshot과 public 문서에 노출하지 않습니다.
@@ -195,6 +200,9 @@ Importer 설계 원칙:
 - `.csv`, `.tsv`, `.txt` 외의 파일은 preview parsing 전에 unsupported file type으로 거부합니다.
 - CSV-compatible text를 우선 지원하고, 향후 structured export file이 확인되면 같은 privacy boundary 안에서 parser를 추가합니다.
 - column mapping은 영어, 한국어, 축약 column, punctuation/space/case 차이를 유연하게 받아들입니다.
+- 붙여넣기 mapping은 `짜`, `체내수분량`, `골질량`, `골격근량 (클릭필수)`, `근육량(클릭필수)`, `기초대사량 (BMR)` 같은 실제 월별 복사 header 변형을 synthetic regression으로 확인합니다.
+- `--`처럼 측정되지 않은 값은 오류가 아니라 빈 metric으로 건너뜁니다.
+- 큰 월별 붙여넣기 텍스트는 전체 원문을 TextEditor에 계속 렌더링하지 않고, 화면에는 행/문자 수와 앞부분 preview만 표시합니다. 미리보기 parsing은 UI thread 밖에서 수행해 붙여넣기 직후 화면이 멈추지 않게 합니다.
 - unknown column은 전체 실패가 아니라 warning으로 남깁니다.
 - invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
 - date column이 없거나 structured export로 해석할 수 없는 text 파일은 저장 전에 실패합니다.
@@ -202,7 +210,8 @@ Importer 설계 원칙:
 - 지원 지표 column이 있어도 import 가능한 샘플이 0개인 파일은 저장하지 않습니다.
 - CSV/TSV delimiter, decimal separator, 날짜/시간 format, localized column name, UTF-8 BOM, 단위 suffix 차이를 regression test로 점검합니다.
 - 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
-- 다른 file에서 같은 metric/source/external record key가 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
+- 다른 file 또는 다시 붙여넣은 월별 데이터에서 같은 source type, metric, measuredAt이 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
+- 저장 전 preview에서 같은 값 중복과 값이 다른 중복을 분리해 표시합니다. 값이 다른 중복이 있으면 사용자가 새 붙여넣기 기준으로 교체할지 명시적으로 선택해야 저장할 수 있습니다.
 - 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
 - import batch는 삭제 가능해야 하며, 삭제 시 해당 `importBatchId`를 가진 sample도 함께 정리할 수 있어야 합니다.
 - UI에는 실제 local path를 표시하지 않고, screenshot에는 실제 개인 파일명도 사용하지 않습니다.
@@ -226,11 +235,13 @@ Share Extension 후보:
 - 단점: App Group, extension target, extension UI, QA matrix가 늘어납니다.
 - 결정 기준: 실제 Fitdays share/export UX를 iPhone에서 확인한 뒤, document type/open-in만으로 충분한지 판단합니다.
 
-호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV, BOM이 포함된 TSV short export, 월별 복사 텍스트에 가까운 익명화 pasted text를 포함합니다. pasted text regression은 월 헤더, 축약 날짜, 한국어 오전/오후, label/value 분리 줄, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급` alias를 확인합니다.
+호환성 fixture는 synthetic data만 사용합니다. 현재 regression은 기본 영어 CSV, 한국어/세미콜론 CSV, 축약 column/탭 delimiter/decimal comma CSV, BOM이 포함된 TSV short export, 월별 복사 텍스트에 가까운 익명화 pasted text를 포함합니다. pasted text regression은 월 헤더, 축약 날짜, 한국어 오전/오후, label/value 분리 줄, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급` alias와 실제 월별 복사 구조의 `짜` date column, time-first date, annotated header, `--` placeholder를 확인합니다.
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 
 `FitdaysImportView`의 미리보기는 저장 전 단계입니다. `미리보기 판단` 섹션에서 처리한 row, 저장 가능한 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여주고, 사용자가 `로컬에 저장`을 누르기 전에는 저장소에 쓰지 않습니다.
+
+붙여넣기 flow에서는 월별 텍스트 입력 바로 아래에 저장 전 미리보기와 저장 버튼을 배치합니다. 저장이 끝나면 저장 버튼 근처에 저장 완료 메시지와 처리 시각을 표시해, 사용자가 저장 여부를 헤더나 다른 섹션에서 다시 찾지 않아도 되게 합니다.
 
 저장된 가져오기 기록은 같은 화면의 `저장된 가져오기` 섹션에서 확인합니다. 이 섹션은 현재 저장소 기준 샘플 수, 처리 row, 건너뜀/오류 count를 보여주고, 삭제 시 해당 `importBatchId`를 가진 로컬 샘플을 함께 제거합니다. 실제 파일명과 local path는 개인 정보가 섞일 수 있으므로 목록에 표시하지 않습니다.
 
@@ -248,6 +259,8 @@ Share Extension 후보:
 `HealthDashboardView`는 건강 데이터 흐름의 허브입니다.
 
 대시보드는 `데이터 상태` 섹션에서 Apple 건강앱/예시 샘플, Fitdays CSV 로컬 import 샘플, 밤숨 앱 계산 지표 수를 분리해 보여줍니다. Apple 건강앱 권한이 없거나 표시할 HealthKit 샘플이 없어도 로컬 import 샘플이 있으면 전체 건강 지표와 건강 캘린더 진입은 계속 유효합니다.
+
+Apple 건강앱 read-only 조회 범위는 대시보드 기준 최근 1년입니다. 이전 달 데이터가 비어 보이면 먼저 항목별 HealthKit 권한, Apple 건강앱 안의 실제 샘플 존재 여부, Omron/Fitdays 같은 원본 앱의 Apple 건강앱 동기화 상태를 확인합니다. 이 확인은 HealthKit write, Fitdays 서버/API 연결, 비공식 동기화 구현으로 이어지면 안 됩니다.
 
 진입점:
 
@@ -285,9 +298,13 @@ Share Extension 후보:
 
 `MetricStatisticsCalculator`와 `HealthMetricTrendCalculator`는 SwiftUI View 밖에서 계산합니다. 차트는 Swift Charts를 사용하고 외부 chart SDK는 추가하지 않습니다.
 
+그래프는 선/점만 표시하지 않고 평균선, 최근값, 평균, 범위, 출처별 색상 범례를 함께 보여줍니다. 사용자는 값의 방향뿐 아니라 현재 값이 선택 기간의 분포 안에서 어느 정도인지, HealthKit/Fitdays/앱 계산 중 어느 출처인지 같이 확인할 수 있어야 합니다.
+
 ## Health Calendar
 
 `HealthCalendarView`는 월 단위로 데이터가 있는 날짜를 표시합니다.
+
+월 이동은 월 grid와 날짜별 요약을 한 번 계산한 뒤 셀과 선택 패널에서 재사용합니다. 실제 데이터가 많아진 상태에서도 이전/다음 달 버튼을 누를 때 SwiftUI body 안에서 같은 월 요약을 셀마다 반복 생성하지 않아야 합니다.
 
 `CalendarDaySummary`는 다음 상태를 요약합니다.
 

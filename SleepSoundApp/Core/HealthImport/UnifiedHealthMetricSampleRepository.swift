@@ -177,7 +177,7 @@ public struct UnifiedHealthMetricArchive: Codable, Equatable, Sendable {
                 .filter { $0.id == batch.id || ($0.sourceName == batch.sourceName && $0.fileName == batch.fileName) }
                 .map { $0.id.uuidString }
         )
-        let incomingDuplicateKeys = Set(newSamples.map(Self.duplicateKey(for:)))
+        let incomingDuplicateKeys = Set(newSamples.map(Self.importDuplicateKey(for:)))
 
         importBatches.removeAll { existingBatch in
             existingBatch.id == batch.id
@@ -187,7 +187,7 @@ public struct UnifiedHealthMetricArchive: Codable, Equatable, Sendable {
             if let importBatchId = sample.importBatchId, replacementBatchIds.contains(importBatchId) {
                 return true
             }
-            return incomingDuplicateKeys.contains(Self.duplicateKey(for: sample))
+            return incomingDuplicateKeys.contains(Self.importDuplicateKey(for: sample))
         }
 
         importBatches.append(batch)
@@ -201,13 +201,80 @@ public struct UnifiedHealthMetricArchive: Codable, Equatable, Sendable {
         samples.removeAll { $0.importBatchId == id.uuidString }
     }
 
-    private static func duplicateKey(for sample: UnifiedHealthMetricSample) -> String {
+    static func importDuplicateKey(for sample: UnifiedHealthMetricSample) -> String {
         [
             sample.metricID.rawValue,
             sample.sourceType.rawValue,
-            sample.sourceName,
-            sample.externalRecordId ?? "\(sample.measuredAt.timeIntervalSince1970)",
+            String(Int((sample.measuredAt.timeIntervalSince1970 * 1_000).rounded())),
         ].joined(separator: "|")
+    }
+}
+
+public struct UnifiedHealthMetricImportDuplicateSummary: Equatable, Sendable {
+    public var incomingSampleCount: Int
+    public var newSampleCount: Int
+    public var duplicateSampleCount: Int
+    public var unchangedDuplicateCount: Int
+    public var changedDuplicateCount: Int
+
+    public var hasDuplicates: Bool {
+        duplicateSampleCount > 0
+    }
+
+    public var hasChangedDuplicates: Bool {
+        changedDuplicateCount > 0
+    }
+
+    public init(
+        incomingSampleCount: Int = 0,
+        newSampleCount: Int = 0,
+        duplicateSampleCount: Int = 0,
+        unchangedDuplicateCount: Int = 0,
+        changedDuplicateCount: Int = 0
+    ) {
+        self.incomingSampleCount = incomingSampleCount
+        self.newSampleCount = newSampleCount
+        self.duplicateSampleCount = duplicateSampleCount
+        self.unchangedDuplicateCount = unchangedDuplicateCount
+        self.changedDuplicateCount = changedDuplicateCount
+    }
+
+    public init(
+        existingSamples: [UnifiedHealthMetricSample],
+        incomingSamples: [UnifiedHealthMetricSample]
+    ) {
+        let existingByKey = Dictionary(grouping: existingSamples, by: UnifiedHealthMetricArchive.importDuplicateKey(for:))
+        var duplicateCount = 0
+        var unchangedCount = 0
+        var changedCount = 0
+
+        for incomingSample in incomingSamples {
+            let key = UnifiedHealthMetricArchive.importDuplicateKey(for: incomingSample)
+            guard let matchingExistingSamples = existingByKey[key],
+                  !matchingExistingSamples.isEmpty else {
+                continue
+            }
+
+            duplicateCount += 1
+            if matchingExistingSamples.contains(where: { Self.isSameValue($0, incomingSample) }) {
+                unchangedCount += 1
+            } else {
+                changedCount += 1
+            }
+        }
+
+        incomingSampleCount = incomingSamples.count
+        duplicateSampleCount = duplicateCount
+        unchangedDuplicateCount = unchangedCount
+        changedDuplicateCount = changedCount
+        newSampleCount = max(0, incomingSamples.count - duplicateCount)
+    }
+
+    private static func isSameValue(
+        _ lhs: UnifiedHealthMetricSample,
+        _ rhs: UnifiedHealthMetricSample
+    ) -> Bool {
+        lhs.unit == rhs.unit && abs(lhs.value - rhs.value) < 0.000_001
     }
 }
 

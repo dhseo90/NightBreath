@@ -265,6 +265,9 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(contents.contains("localImportOverviewSection"))
         #expect(contents.contains("로컬 import 최근 값"))
         #expect(contents.contains("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고"))
+        #expect(contents.contains("healthKitDashboardLookbackDays = 370"))
+        #expect(contents.contains("최근 1년 범위"))
+        #expect(contents.contains("원본 앱의 Apple 건강앱 동기화 상태"))
         #expect(contents.contains("sampleCount: importedUnifiedSamples.count"))
         #expect(contents.contains("latestImportedUnifiedDate"))
     }

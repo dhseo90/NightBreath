@@ -545,13 +545,28 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 19. `FitdaysImportView`의 `월별 데이터 붙여넣기`에서 `클립보드 붙여넣고 미리보기`를 눌러 synthetic TSV/text table preview가 생성되는지 확인합니다.
 20. 직접 입력칸에 붙여넣은 뒤 `입력 내용 미리보기`를 눌러도 같은 preview가 생성되는지 확인합니다.
 21. 월 헤더, `5/1 07:20`, `5.2 오후 9:05`, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급`처럼 실제 복사 텍스트에 가까운 익명화 구조가 sample로 변환되는지 확인합니다.
-22. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
-23. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
-24. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
-25. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
-26. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
+22. comma-separated 월별 복사 텍스트에서 `짜` date column, `HH:mm yyyy/MM/dd` time-first date, `골격근량 (클릭필수)`, `근육량(클릭필수)`, `기초대사량 (BMR)` header annotation, `체내수분량`, `골질량`, `--` placeholder가 저장 가능한 sample로 처리되거나 빈 metric으로 안전하게 건너뛰는지 확인합니다.
+23. 큰 월별 텍스트를 붙여넣었을 때 입력창에는 앞부분만 표시되고, `붙여넣음 · N행 · N자` 상태와 미리보기 progress가 보이는지 확인합니다.
+24. 붙여넣기 입력 바로 아래에 저장 전 미리보기와 저장 버튼이 보여, 긴 fallback 안내를 지나치지 않아도 저장할 수 있는지 확인합니다.
+25. 저장 버튼을 누른 직후 버튼 근처에 저장 완료 메시지와 처리 시각이 표시되는지 확인합니다.
+26. 같은 월 전체 데이터를 다시 붙여넣었을 때 중복 샘플 수, 새 샘플 수, 값이 다른 중복 수가 저장 전 화면에 표시되는지 확인합니다.
+27. 값이 다른 중복이 있으면 `값이 다른 중복은 새 붙여넣기 기준으로 교체` 선택 전에는 저장 버튼이 비활성 또는 저장 차단되는지 확인합니다.
+28. 중복 교체 저장 후 같은 metric과 측정시각의 기존 샘플이 중복으로 남지 않고 최신 import 값 하나만 남는지 확인합니다.
+29. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
+30. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
+31. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
+32. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
+33. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
+
+## Health Dashboard / Graph QA
+
+1. 건강 데이터 연결 후 Apple 건강앱 read-only 상태 메시지가 최근 1년 범위임을 설명하는지 확인합니다.
+2. 4월처럼 이전 달 데이터가 비어 있으면 앱이 먼저 항목별 권한, Apple 건강앱 실제 샘플, 원본 앱의 Apple 건강앱 동기화 상태를 확인하라고 안내하는지 확인합니다.
+3. 건강 캘린더에서 이전/다음 달을 여러 번 눌러도 셀 표시와 선택 날짜 패널이 눈에 띄게 늦지 않은지 확인합니다.
+4. 그래프에 평균선, 최근값, 평균, 범위, 출처별 색상 범례가 표시되는지 확인합니다.
+5. 그래프와 캘린더 copy가 건강 상태를 단정하거나 치료/진단 표현을 사용하지 않는지 확인합니다.
 
 ```text
 Export type: private Fitdays CSV or structured export / synthetic fixture
@@ -567,6 +582,9 @@ Rows parsed:
 Samples created:
 Skipped rows:
 Unknown columns:
+Duplicate samples:
+Changed duplicate samples:
+Duplicate overwrite explicitly confirmed: yes / no
 로컬 전용 지표 표시: yes / no
 Actual file name recorded in repo: no
 Actual path recorded in screenshot: no

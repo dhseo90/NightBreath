@@ -5,6 +5,7 @@ struct HealthDashboardView: View {
   private let unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
+  private let healthKitDashboardLookbackDays = 370
 
   @EnvironmentObject private var appState: AppState
   @State private var permissionState: HealthMetricPermissionState = .notRequested
@@ -133,7 +134,7 @@ struct HealthDashboardView: View {
   private var header: some View {
     NBReportSection(title: "건강 데이터 대시보드", systemImage: "heart.text.square") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-          Text("Apple 건강앱에서 혈압, 체중, 체성분, 활동, 심박수, 호흡수 데이터를 읽어 보기 쉽게 정리합니다.")
+        Text("Apple 건강앱에서 혈압, 체중, 체성분, 활동, 심박수, 호흡수 데이터를 최근 1년 범위로 읽어 보기 쉽게 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
@@ -156,6 +157,10 @@ struct HealthDashboardView: View {
           Text("버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다. 첫 실행이나 수면 측정 시작 시에는 요청하지 않습니다.")
             .font(NBTypography.footnote)
             .foregroundStyle(NBColor.secondaryText)
+          Text("이전 달 데이터가 비어 있으면 항목별 HealthKit 권한, Apple 건강앱에 실제 샘플이 있는지, Omron/Fitdays 같은 원본 앱의 Apple 건강앱 동기화 상태를 확인하세요.")
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.tertiaryText)
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
     }
@@ -179,13 +184,13 @@ struct HealthDashboardView: View {
     case .readRequestCompleted:
       if healthSamples.isEmpty {
         NBStatusBadge(
-          "읽을 수 있는 건강 데이터가 아직 없습니다.",
+          "최근 1년 범위에서 읽을 수 있는 건강 데이터가 아직 없습니다.",
           kind: .caution,
           systemImage: "tray"
         )
       } else {
         NBStatusBadge(
-          "Apple 건강앱에서 읽은 데이터입니다.",
+          "Apple 건강앱에서 최근 1년 데이터를 읽었습니다.",
           kind: .good,
           systemImage: "checkmark.circle"
         )
@@ -293,8 +298,8 @@ struct HealthDashboardView: View {
           FitdaysImportView()
         } label: {
           HealthDashboardEntryCard(
-            title: "Fitdays CSV 가져오기",
-            subtitle: "HealthKit에 없는 체성분 지표를 로컬 파일로 추가",
+            title: "Fitdays 붙여넣기/CSV",
+            subtitle: "월별 데이터 복사 텍스트와 로컬 파일 가져오기",
             systemImage: "square.and.arrow.down",
             tint: NBColor.mistTeal,
             sampleCount: importedUnifiedSamples.count,
@@ -430,7 +435,7 @@ struct HealthDashboardView: View {
   }
 
   private func fetchDashboardSamples() async -> [HealthMetricSample] {
-    let dateRange = HealthMetricDateRange.days(90, endingAt: Date())
+    let dateRange = HealthMetricDateRange.days(healthKitDashboardLookbackDays, endingAt: Date())
     var fetchedSamples: [HealthMetricSample] = []
 
     for metricType in HealthMetricType.readOnlyHealthKitMetrics {
@@ -453,8 +458,8 @@ struct HealthDashboardView: View {
       "아직 건강 데이터 연결을 요청하지 않았습니다."
     case .readRequestCompleted:
       sampleCount > 0
-        ? "건강앱 샘플 \(sampleCount)개를 로컬에서 읽었습니다. 허용된 항목만 표시됩니다."
-        : "권한이 허용되었더라도 항목별 권한 또는 데이터 유무에 따라 값이 비어 있을 수 있습니다."
+        ? "건강앱 샘플 \(sampleCount)개를 최근 1년 범위에서 로컬로 읽었습니다. 허용된 항목만 표시됩니다."
+        : "권한이 허용되었더라도 항목별 권한, 실제 데이터 유무, 원본 앱의 Apple 건강앱 동기화 상태에 따라 값이 비어 있을 수 있습니다."
     case .denied:
       "건강 데이터 권한이 허용되지 않았습니다. 앱은 기존 수면 소리 기능을 계속 사용할 수 있습니다."
     case .unavailable:

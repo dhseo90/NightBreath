@@ -166,9 +166,12 @@ struct HealthCalendarView: View {
   }
 
   private var calendarGrid: some View {
-    LazyVGrid(columns: calendarColumns, spacing: 8) {
-      ForEach(monthDates, id: \.self) { date in
-        let summary = summariesByDay[calendar.startOfDay(for: date)] ?? emptySummary(for: date)
+    let dates = monthDates
+    let summaries = summariesByDay
+
+    return LazyVGrid(columns: calendarColumns, spacing: 8) {
+      ForEach(dates, id: \.self) { date in
+        let summary = summaries[calendar.startOfDay(for: date)] ?? emptySummary(for: date)
 
         Button {
           selectDate(date)
@@ -187,7 +190,9 @@ struct HealthCalendarView: View {
   }
 
   private var selectedDatePanel: some View {
-    NBReportSection(title: "선택 날짜", systemImage: "calendar.badge.clock") {
+    let summary = selectedDaySummary
+
+    return NBReportSection(title: "선택 날짜", systemImage: "calendar.badge.clock") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         HStack(alignment: .top, spacing: NBSpacing.small) {
           VStack(alignment: .leading, spacing: 4) {
@@ -195,7 +200,7 @@ struct HealthCalendarView: View {
               .font(NBTypography.headline)
               .foregroundStyle(NBColor.primaryText)
 
-            Text(selectedDaySummary.hasAnyData ? "이 날짜의 데이터를 카테고리와 출처별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
+            Text(summary.hasAnyData ? "이 날짜의 데이터를 카테고리와 출처별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
               .font(NBTypography.caption)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
@@ -204,16 +209,16 @@ struct HealthCalendarView: View {
           Spacer(minLength: NBSpacing.small)
 
           NBStatusBadge(
-            selectedDaySummary.dataQuality.displayName,
-            kind: qualityBadgeKind(selectedDaySummary.dataQuality),
+            summary.dataQuality.displayName,
+            kind: qualityBadgeKind(summary.dataQuality),
             systemImage: "checkmark.seal"
           )
         }
 
-        if selectedDaySummary.hasAnyData {
+        if summary.hasAnyData {
           VStack(alignment: .leading, spacing: NBSpacing.small) {
-            CalendarSelectedCategoryStrip(summary: selectedDaySummary)
-            CalendarSelectedSourceStrip(sourceTypes: selectedDaySummary.sourceTypes)
+            CalendarSelectedCategoryStrip(summary: summary)
+            CalendarSelectedSourceStrip(sourceTypes: summary.sourceTypes)
           }
         } else {
           NBEmptyStateView(

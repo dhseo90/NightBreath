@@ -160,6 +160,9 @@ struct HealthCalendarTests {
 
         #expect(contents.contains("selectedDatePanel"))
         #expect(contents.contains("selectDate(date)"))
+        #expect(contents.contains("let dates = monthDates"))
+        #expect(contents.contains("let summaries = summariesByDay"))
+        #expect(contents.contains("let summary = selectedDaySummary"))
         #expect(contents.contains("이 날짜 자세히 보기"))
         #expect(contents.contains("CalendarDaySourceDotStrip"))
         #expect(contents.contains("CalendarSelectedSourceStrip"))
