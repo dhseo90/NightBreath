@@ -26,6 +26,7 @@ struct CrossMetricDashboardView: View {
           HealthMetricPeriodPicker(selection: $selectedPeriod)
           metricSelectionSection
           matchingGuideSection
+          matchingStateSection
 
           if summary.hasEnoughData {
             chartSection
@@ -33,6 +34,9 @@ struct CrossMetricDashboardView: View {
             summarySection
             HealthSourceSummarySection(sourceSummaries: summary.sourceSummaries)
           } else {
+            if !matchedPoints.isEmpty {
+              matchedPointSection
+            }
             insufficientDataSection
           }
         }
@@ -169,6 +173,31 @@ struct CrossMetricDashboardView: View {
     }
   }
 
+  private var matchingStateSection: some View {
+    NBReportSection(title: "매칭 상태", systemImage: "point.3.connected.trianglepath.dotted") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        VStack(alignment: .leading, spacing: NBSpacing.xs) {
+          Text(summary.hasEnoughData ? summary.trendDescription : summary.insufficientReasonTitle)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Text(summary.hasEnoughData ? summary.cautionText : summary.insufficientReasonMessage)
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+          summaryTile("날짜 매칭", "\(summary.totalMatchedSampleCount)개", "link", .neutral)
+          summaryTile("요약 포함", "\(summary.matchedSampleCount)개", "checkmark.circle", summaryStatusKind)
+          summaryTile("구분 제외", "\(summary.lowQualityExcludedCount)개", "exclamationmark.triangle", summary.lowQualityExcludedCount > 0 ? .caution : .neutral)
+          summaryTile("필요 샘플", requiredSampleText, "number", summary.hasEnoughData ? .good : .warning)
+        }
+      }
+    }
+  }
+
   private var chartSection: some View {
     NBReportSection(title: "산점도", systemImage: "chart.dots.scatter") {
       Chart {
@@ -243,9 +272,13 @@ struct CrossMetricDashboardView: View {
 
   private var insufficientDataSection: some View {
     HealthDataEmptyStateView(
-      title: "비교 가능한 데이터가 아직 부족합니다.",
-      message: "같은 기간에 매칭되는 수면 리포트와 건강 샘플이 3개 이상 모이면 그래프와 요약을 표시합니다. 측정 품질 낮음으로 표시된 수면 리포트는 요약 계산에서 제외합니다."
+      title: summary.insufficientReasonTitle,
+      message: "\(summary.insufficientReasonMessage) 측정 품질 낮음으로 표시된 수면 리포트는 요약 계산에서 제외합니다."
     )
+  }
+
+  private var requiredSampleText: String {
+    summary.hasEnoughData ? "충족" : "\(summary.includedSampleShortfall)개 더"
   }
 
   private var sourceNamesText: String {

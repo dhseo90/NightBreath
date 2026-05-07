@@ -83,6 +83,7 @@
 - 건강 지표 통계/그래프
 - HealthMetricsOverviewView
 - HealthMetricsOverviewView recovery metric grouping
+- Cross Metric matched sample / low coverage edge state 설명
 - 월 건강 캘린더
 - HealthCalendarView
 - DailyMeasurementDetailView

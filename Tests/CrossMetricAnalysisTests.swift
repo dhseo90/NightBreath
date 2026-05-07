@@ -68,7 +68,60 @@ struct CrossMetricAnalysisTests {
         #expect(summary.dataQuality == .insufficientData)
         #expect(!summary.hasEnoughData)
         #expect(summary.matchedSampleCount == 2)
+        #expect(summary.totalMatchedSampleCount == 2)
+        #expect(summary.includedSampleShortfall == 1)
         #expect(summary.trendDescription == "비교 가능한 데이터가 아직 부족합니다.")
+        #expect(summary.insufficientReasonTitle == "요약 포함 샘플이 부족합니다")
+        #expect(summary.insufficientReasonMessage.contains("요약 포함 샘플 2개"))
+        #expect(summary.insufficientReasonMessage.contains("기준 3개"))
+    }
+
+    @Test
+    func noMatchedSamplesExplainsDateMatchingGap() {
+        let analyzer = CrossMetricAnalyzer(calendar: calendar)
+        let summary = analyzer.summary(
+            reports: [makeReport(generatedAt: date(2026, 5, 1, 7, 0))],
+            samples: [],
+            sleepMetric: .snoreTotalSeconds,
+            healthMetric: .systolicBloodPressure,
+            period: .sevenDays,
+            endingAt: date(2026, 5, 4, 12, 0)
+        )
+
+        #expect(summary.dataQuality == .insufficientData)
+        #expect(!summary.hasAnyMatchedSamples)
+        #expect(summary.includedSampleShortfall == 3)
+        #expect(summary.insufficientReasonTitle == "날짜 매칭 샘플이 없습니다")
+        #expect(summary.insufficientReasonMessage.contains("선택한 기간과 항목"))
+    }
+
+    @Test
+    func allLowCoverageMatchesExplainSummaryExclusion() {
+        let analyzer = CrossMetricAnalyzer(calendar: calendar, minimumMatchedSampleCount: 2)
+        let reports = [
+            makeReport(generatedAt: date(2026, 5, 1, 7, 0), audioCoverageRatio: 0.44),
+            makeReport(generatedAt: date(2026, 5, 2, 7, 0), audioCoverageRatio: 0.52),
+        ]
+        let samples = [
+            sample(.bodyMass, 71.0, at: date(2026, 5, 1, 8, 0)),
+            sample(.bodyMass, 71.1, at: date(2026, 5, 2, 8, 0)),
+        ]
+
+        let summary = analyzer.summary(
+            reports: reports,
+            samples: samples,
+            sleepMetric: .sleepSoundScore,
+            healthMetric: .bodyMass,
+            period: .sevenDays,
+            endingAt: date(2026, 5, 4, 12, 0)
+        )
+
+        #expect(summary.totalMatchedSampleCount == 2)
+        #expect(summary.matchedSampleCount == 0)
+        #expect(summary.lowQualityExcludedCount == 2)
+        #expect(summary.hasOnlyLowQualityMatches)
+        #expect(summary.insufficientReasonTitle == "매칭은 있지만 요약에서 제외되었습니다")
+        #expect(summary.insufficientReasonMessage.contains("오디오 커버리지가 낮아"))
     }
 
     @Test
@@ -193,6 +246,23 @@ struct CrossMetricAnalysisTests {
                 #expect(!contents.contains(phrase), "\(relativePath) contains restricted wording: \(phrase)")
             }
         }
+    }
+
+    @Test
+    func crossMetricViewShowsMatchingStateAndSparseMatchDetails() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let contents = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "SleepSoundApp/Features/Dashboard/CrossMetricDashboardView.swift"
+            ),
+            encoding: .utf8
+        )
+
+        #expect(contents.contains("matchingStateSection"))
+        #expect(contents.contains("summary.insufficientReasonTitle"))
+        #expect(contents.contains("summary.insufficientReasonMessage"))
+        #expect(contents.contains("if !matchedPoints.isEmpty"))
+        #expect(contents.contains("필요 샘플"))
     }
 
     private var calendar: Calendar {

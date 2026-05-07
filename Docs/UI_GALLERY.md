@@ -162,7 +162,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | `FitdaysImportView` | Fitdays CSV/structured export file 가져오기 | 파일 선택 상태, preview, imported/skipped/error row count, unknown column | 파일 선택, preview 확인, 로컬 저장 | 사용자가 직접 선택한 로컬 파일만 읽고 원격 연결 없음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 측정 시각, sourceName, 7일/30일/90일 추세 | 기간 선택 | 수치를 상태 판정으로 표현하지 않음 | `ScreenshotBloodPressureDashboardScenario` | `Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, sourceName, 추세 | 기간 선택 | 개인 참고용 데이터로만 표시 | `ScreenshotBodyCompositionDashboardScenario` | `Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 날짜별 매칭, 샘플 수, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 분석하지 않고 인과관계를 의미하지 않는다고 안내 | `ScreenshotCrossMetricDashboardScenario` | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 매칭 상태, 날짜별 매칭, 샘플 수, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 no-match/low-coverage/shortfall을 분리하고 인과관계를 의미하지 않는다고 안내 | `ScreenshotCrossMetricDashboardScenario` | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 
 ## Privacy / Settings
 

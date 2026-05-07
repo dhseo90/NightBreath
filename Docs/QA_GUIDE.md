@@ -44,6 +44,7 @@ xcodebuild \
 - HealthKit read-only policy
 - Fitdays CSV import
 - EHM metric catalog / trend / calendar / detail
+- Cross Metric matched sample / low audio coverage edge states
 - privacy copy safety
 - simulator QA scenarios
 

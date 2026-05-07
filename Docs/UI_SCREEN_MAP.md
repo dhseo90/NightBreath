@@ -28,7 +28,7 @@
 | `FitdaysImportView` | 사용자가 선택한 Fitdays CSV/export 파일 또는 월별 데이터 복사 텍스트 import 화면 | 파일 선택 상태, 붙여넣기 입력, import preview/result, 저장된 가져오기 기록, 생성 샘플 수, skipped row, unknown column, errors | 파일 선택, 월별 데이터 붙여넣기, preview 확인, import result 확인, 저장된 기록 삭제 |
 | `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 최근 측정 시각, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
 | `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, 데이터 출처, 기간별 추세, 데이터 없음/권한 없음 상태 | 기간 선택 |
-| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, 날짜별 매칭 목록, 매칭 샘플 수, 낮은 측정 품질 구분, 데이터 부족 상태, 인과관계 아님 안내 | 비교 항목/기간 선택 |
+| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 선택한 수면 소리 지표, 선택한 건강 지표, 매칭 상태, 날짜별 매칭 목록, 낮은 측정 품질 구분, 데이터 부족 이유, 인과관계 아님 안내 | 비교 항목/기간 선택 |
 
 ## Screenshot 문서 상태
 

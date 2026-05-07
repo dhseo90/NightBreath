@@ -98,6 +98,7 @@ public struct CrossMetricSummary: Equatable, Sendable {
     public var cautionText: String
     public var totalMatchedSampleCount: Int
     public var lowQualityExcludedCount: Int
+    public var minimumMatchedSampleCount: Int
     public var matchingStrategy: CrossMetricMatchingStrategy
     public var healthSourceNames: [String]
     public var sourceSummaries: [HealthMetricSourceSummary]
@@ -112,6 +113,7 @@ public struct CrossMetricSummary: Equatable, Sendable {
         cautionText: String,
         totalMatchedSampleCount: Int,
         lowQualityExcludedCount: Int,
+        minimumMatchedSampleCount: Int,
         matchingStrategy: CrossMetricMatchingStrategy,
         healthSourceNames: [String],
         sourceSummaries: [HealthMetricSourceSummary],
@@ -125,6 +127,7 @@ public struct CrossMetricSummary: Equatable, Sendable {
         self.cautionText = cautionText
         self.totalMatchedSampleCount = max(0, totalMatchedSampleCount)
         self.lowQualityExcludedCount = max(0, lowQualityExcludedCount)
+        self.minimumMatchedSampleCount = max(1, minimumMatchedSampleCount)
         self.matchingStrategy = matchingStrategy
         self.healthSourceNames = healthSourceNames
         self.sourceSummaries = sourceSummaries
@@ -133,6 +136,50 @@ public struct CrossMetricSummary: Equatable, Sendable {
 
     public var hasEnoughData: Bool {
         dataQuality != .insufficientData
+    }
+
+    public var includedSampleShortfall: Int {
+        max(0, minimumMatchedSampleCount - matchedSampleCount)
+    }
+
+    public var hasAnyMatchedSamples: Bool {
+        totalMatchedSampleCount > 0
+    }
+
+    public var hasOnlyLowQualityMatches: Bool {
+        totalMatchedSampleCount > 0 && matchedSampleCount == 0 && lowQualityExcludedCount > 0
+    }
+
+    public var insufficientReasonTitle: String {
+        guard !hasEnoughData else {
+            return "비교 가능한 데이터가 준비되었습니다"
+        }
+
+        if !hasAnyMatchedSamples {
+            return "날짜 매칭 샘플이 없습니다"
+        }
+
+        if hasOnlyLowQualityMatches {
+            return "매칭은 있지만 요약에서 제외되었습니다"
+        }
+
+        return "요약 포함 샘플이 부족합니다"
+    }
+
+    public var insufficientReasonMessage: String {
+        guard !hasEnoughData else {
+            return "요약에 포함한 샘플을 기준으로 그래프와 출처를 표시합니다."
+        }
+
+        if !hasAnyMatchedSamples {
+            return "선택한 기간과 항목에서 같은 기준으로 연결되는 수면 리포트와 건강 샘플이 없습니다."
+        }
+
+        if hasOnlyLowQualityMatches {
+            return "날짜 매칭은 되었지만 오디오 커버리지가 낮아 요약 계산에서는 제외했습니다."
+        }
+
+        return "요약 포함 샘플 \(matchedSampleCount)개가 기준 \(minimumMatchedSampleCount)개보다 적어 그래프와 요약을 제한합니다."
     }
 }
 
@@ -255,6 +302,7 @@ public struct CrossMetricAnalyzer: Equatable, Sendable {
             cautionText: Self.cautionText,
             totalMatchedSampleCount: points.count,
             lowQualityExcludedCount: excludedCount,
+            minimumMatchedSampleCount: minimumMatchedSampleCount,
             matchingStrategy: matchingStrategy(for: healthMetric),
             healthSourceNames: sourceSummaries.map(\.sourceName),
             sourceSummaries: sourceSummaries,
