@@ -260,6 +260,8 @@ Share Extension 후보:
 
 대시보드는 `데이터 상태` 섹션에서 Apple 건강앱/예시 샘플, Fitdays CSV 로컬 import 샘플, 밤숨 앱 계산 지표 수를 분리해 보여줍니다. Apple 건강앱 권한이 없거나 표시할 HealthKit 샘플이 없어도 로컬 import 샘플이 있으면 전체 건강 지표와 건강 캘린더 진입은 계속 유효합니다.
 
+홈 화면은 건강 데이터가 보조 기능처럼 너무 깊게 숨지 않도록 `건강 기록 바로가기`를 제공합니다. 이 카드에서는 최근 날짜의 로컬 Fitdays import sample과 밤숨 앱 계산 지표를 기반으로 `DailyMeasurementDetailView`에 바로 진입할 수 있고, `건강 캘린더 바로 보기`로 월 캘린더도 대시보드를 거치지 않고 열 수 있습니다. 홈의 바로가기는 HealthKit permission sheet를 띄우지 않으며, Apple 건강앱 read-only 재조회는 사용자가 이전에 연결한 뒤 건강 대시보드에 진입했을 때 수행합니다.
+
 Apple 건강앱 read-only 조회 범위는 대시보드 기준 최근 1년입니다. 이전 달 데이터가 비어 보이면 먼저 항목별 HealthKit 권한, Apple 건강앱 안의 실제 샘플 존재 여부, Omron/Fitdays 같은 원본 앱의 Apple 건강앱 동기화 상태를 확인합니다. 이 확인은 HealthKit write, Fitdays 서버/API 연결, 비공식 동기화 구현으로 이어지면 안 됩니다.
 
 HealthKit read-only sample은 앱 로컬 저장소에 복제해 보관하지 않고, 사용자가 건강 데이터 연결을 선택한 뒤 현재 세션에서 읽은 결과를 화면에 표시합니다. 사용자가 한 번 연결한 뒤에는 `hasRequestedHealthKitReadAccess` flag를 로컬 설정에 남기고, 건강 대시보드 진입 시 permission sheet 없이 최근 1년 HealthKit sample을 다시 읽습니다. 이 자동 재조회는 이전에 사용자가 연결을 선택한 경우에만 동작합니다.
@@ -277,6 +279,7 @@ Fitdays import sample은 로컬 저장소에 저장되는 데이터이고, Apple
 - 전체 건강 지표
 - 월 건강 캘린더
 - Fitdays CSV 가져오기
+- 홈의 최근 건강 기록 상세 직행
 
 혈압/체성분 대시보드는 최근 값, 측정 시각, sourceName, 7일/30일/90일 추세를 보여줍니다. 수치를 상태 판정으로 표현하지 않고, 개인 참고용 데이터와 출처를 함께 표시합니다.
 
@@ -323,7 +326,7 @@ Fitdays import sample은 로컬 저장소에 저장되는 데이터이고, Apple
 - source types
 - data quality
 
-날짜를 선택하면 `DailyMeasurementDetailView`에서 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 카테고리별로 보여줍니다.
+날짜를 선택하면 캘린더 화면 안에서 `DailyMeasurementDetailContent`가 바로 펼쳐져 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 카테고리별로 보여줍니다. 별도의 상세 화면인 `DailyMeasurementDetailView`도 같은 content를 재사용하므로 홈의 최근 건강 기록 직행과 캘린더 inline 상세가 같은 기준으로 보입니다.
 
 ## Metric Detail
 
