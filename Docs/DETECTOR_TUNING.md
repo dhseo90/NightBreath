@@ -43,6 +43,8 @@
 7. `rejectedCountByReason`, `snoreRejectedCount`, `snoreRejectReasonTop`으로 confidence, duration, low-band ratio, 환경 소음 후보 영향 중 어떤 이유가 큰지 확인합니다.
 8. `latestFeatureDebugSummary`, `latestRawCandidateDebugSummary`, `detectorBackend`, `tuningProfile`, `modelInstalled`, `modelFallbackCount`, `fallbackUsed`를 함께 기록합니다.
 
+DEBUG 빌드에서는 `SleepReportView`, `DetectorTuningView`, `DatasetReplayView`의 `QA readout 공유` 버튼으로 같은 diagnostics를 markdown 텍스트로 뽑을 수 있습니다. 이 readout은 raw/pre/post/final count, snore feature/raw/reject path, RMS/energy/band p50/p90, threshold snapshot, backend/fallback 상태만 포함하며 원본 오디오, 이벤트 오디오 샘플 파일 경로, 개인 오디오 파일 경로는 포함하지 않습니다.
+
 zero-event 해석 문구는 다음 범위를 넘지 않습니다.
 
 - “오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다.”

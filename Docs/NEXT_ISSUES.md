@@ -133,6 +133,7 @@
 - Offline Evaluation profile 비교 markdown quick summary 보강 완료
 - Offline Evaluation snore/negative snapshot과 balanced delta markdown summary 보강 완료
 - Offline Evaluation zero-event stage breakdown markdown summary 보강 완료
+- DEBUG detector diagnostics QA readout 공유 보강 완료
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리
 - Core ML 변환 결과를 앱 target에 추가하는 절차 검증

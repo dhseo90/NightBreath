@@ -155,7 +155,9 @@ DEBUG 확인:
 - `AudioDebugView`에서 live RMS / energy, current threshold, last raw candidate, last reject reason을 봅니다.
 - feature 분포 p50/p90, 코골기 feature 후보/제외 수, raw candidate count by type과 smoothing 전/후 count가 증가하는지 봅니다.
 - `DatasetReplayView`에서는 synthetic 또는 사용자가 준비한 로컬 짧은 segment로 같은 pipeline count를 비교합니다.
+- DEBUG의 `SleepReportView`, `DetectorTuningView`, `DatasetReplayView`에서 `QA readout 공유`를 눌러 detector diagnostics 텍스트를 private QA note에 붙여 넣을 수 있습니다.
 - 이 과정은 원본 전체 오디오 저장이나 서버 전송 없이 수행합니다.
+- QA readout에는 원본 오디오, 이벤트 오디오 파일 경로, 개인 오디오 파일 경로를 포함하지 않습니다.
 
 zero-event 판독:
 

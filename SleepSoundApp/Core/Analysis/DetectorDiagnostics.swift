@@ -609,6 +609,217 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     }
 }
 
+public struct DetectorDiagnosticsQAReadout: Sendable {
+    public static func makeMarkdown(
+        diagnostics: DetectorDiagnostics,
+        report: NightReport? = nil
+    ) -> String {
+        let rows = makeRows(diagnostics: diagnostics, report: report)
+        var lines: [String] = [
+            "# Detector Diagnostics QA Readout",
+            "",
+            "DEBUG/local QA용 detector 요약입니다. 원본 오디오, 이벤트 오디오 샘플 파일 경로, 개인 오디오 파일 경로는 포함하지 않습니다.",
+            "",
+            "## Session",
+            "",
+            "- sessionId: \(diagnostics.sessionId.uuidString)",
+            "- startedAt: \(dateText(diagnostics.startedAt))",
+            "- endedAt: \(diagnostics.endedAt.map(dateText) ?? "")",
+            "- detectorBackend: \(diagnostics.activeDetectorBackend)",
+            "- tuningProfile: \(diagnostics.tuningProfile ?? "")",
+            "- modelInstalled: \(diagnostics.modelInstalled)",
+            "- fallbackUsed: \(diagnostics.fallbackUsed)",
+            "",
+            "## Capture / Analysis",
+            "",
+            "| Metric | Value |",
+            "| --- | ---: |",
+        ]
+
+        for key in [
+            "audioChunkCount",
+            "analyzedChunkCount",
+            "receivedAudioSeconds",
+            "analyzedAudioSeconds",
+            "audioCoverageRatio",
+            "reportFinalEventCount",
+        ] {
+            lines.append("| \(key) | \(rows[key] ?? "") |")
+        }
+
+        lines.append(contentsOf: [
+            "",
+            "## Detector Path",
+            "",
+            "| Metric | Value |",
+            "| --- | --- |",
+        ])
+        for key in [
+            "rawCandidateCountByType",
+            "preSmoothingCandidateCountByType",
+            "postSmoothingEventCountByType",
+            "finalEventCountByType",
+            "snoreLikeFeatureCandidateCount",
+            "snoreRawCandidateCount",
+            "snoreRejectedCount",
+            "snoreRejectReasonTop",
+            "rejectReasonTop",
+            "zeroEventSummary",
+        ] {
+            lines.append("| \(key) | \(rows[key] ?? "") |")
+        }
+
+        lines.append(contentsOf: [
+            "",
+            "## Feature Distribution",
+            "",
+            "| Metric | p50 | p90 |",
+            "| --- | ---: | ---: |",
+            "| RMS | \(number(diagnostics.rmsP50)) | \(number(diagnostics.rmsP90)) |",
+            "| Energy | \(number(diagnostics.energyP50)) | \(number(diagnostics.energyP90)) |",
+            "| Low band | \(number(diagnostics.lowBandEnergyP50)) | \(number(diagnostics.lowBandEnergyP90)) |",
+            "| Zero crossing | \(number(diagnostics.zeroCrossingRateP50)) |  |",
+            "| Spectral centroid | \(number(diagnostics.spectralCentroidP50)) |  |",
+            "",
+            "## Threshold Snapshot",
+            "",
+            thresholdText(diagnostics.thresholdsSnapshot),
+            "",
+            "## Notes",
+            "",
+        ])
+        if diagnostics.notes.isEmpty {
+            lines.append("- none")
+        } else {
+            lines.append(contentsOf: diagnostics.notes.map { "- \($0)" })
+        }
+        lines.append("")
+        return lines.joined(separator: "\n")
+    }
+
+    public static func makeCSV(
+        diagnostics: DetectorDiagnostics,
+        report: NightReport? = nil
+    ) -> String {
+        let rows = makeRows(diagnostics: diagnostics, report: report)
+        let columns = csvColumns
+        let header = columns.joined(separator: ",")
+        let values = columns.map { csvEscape(rows[$0] ?? "") }.joined(separator: ",")
+        return "\(header)\n\(values)\n"
+    }
+
+    private static func makeRows(
+        diagnostics: DetectorDiagnostics,
+        report: NightReport?
+    ) -> [String: String] {
+        [
+            "sessionId": diagnostics.sessionId.uuidString,
+            "startedAt": dateText(diagnostics.startedAt),
+            "endedAt": diagnostics.endedAt.map(dateText) ?? "",
+            "detectorBackend": diagnostics.activeDetectorBackend,
+            "tuningProfile": diagnostics.tuningProfile ?? "",
+            "modelInstalled": "\(diagnostics.modelInstalled)",
+            "fallbackUsed": "\(diagnostics.fallbackUsed)",
+            "audioChunkCount": "\(diagnostics.audioChunkCount)",
+            "analyzedChunkCount": "\(diagnostics.analyzedChunkCount)",
+            "receivedAudioSeconds": number(diagnostics.receivedAudioSeconds),
+            "analyzedAudioSeconds": number(diagnostics.analyzedAudioSeconds),
+            "audioCoverageRatio": number(diagnostics.audioCoverageRatio),
+            "reportFinalEventCount": "\(report?.detectorDiagnostics?.finalEventCountByType.values.reduce(0, +) ?? diagnostics.finalEventCountByType.values.reduce(0, +))",
+            "rawCandidateCount": "\(diagnostics.rawCandidateCount)",
+            "rawCandidateCountByType": eventCountText(diagnostics.rawCandidateCountByType),
+            "preSmoothingCandidateCountByType": eventCountText(diagnostics.preSmoothingCandidateCountByType),
+            "postSmoothingCandidateCountByType": eventCountText(diagnostics.postSmoothingEventCountByType),
+            "finalEventCountByType": eventCountText(diagnostics.finalEventCountByType),
+            "snoreLikeFeatureCandidateCount": "\(diagnostics.snoreLikeFeatureCandidateCount)",
+            "snoreRawCandidateCount": "\(diagnostics.snoreRawCandidateCount)",
+            "snoreRejectedCount": "\(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)",
+            "snoreRejectReasonTop": diagnostics.snoreRejectReasonTop?.rawValue ?? "",
+            "rejectReasonTop": diagnostics.topRejectReasons.prefix(5).map { "\($0.0.rawValue):\($0.1)" }.joined(separator: ";"),
+            "rmsP50": number(diagnostics.rmsP50),
+            "rmsP90": number(diagnostics.rmsP90),
+            "energyP50": number(diagnostics.energyP50),
+            "energyP90": number(diagnostics.energyP90),
+            "lowBandEnergyP50": number(diagnostics.lowBandEnergyP50),
+            "lowBandEnergyP90": number(diagnostics.lowBandEnergyP90),
+            "zeroCrossingRateP50": number(diagnostics.zeroCrossingRateP50),
+            "spectralCentroidP50": number(diagnostics.spectralCentroidP50),
+            "thresholdSnapshot": thresholdText(diagnostics.thresholdsSnapshot),
+            "zeroEventSummary": diagnostics.summaryTextForZeroEvents ?? "",
+            "notes": diagnostics.notes.joined(separator: ";"),
+        ]
+    }
+
+    private static var csvColumns: [String] {
+        [
+            "sessionId",
+            "startedAt",
+            "endedAt",
+            "detectorBackend",
+            "tuningProfile",
+            "modelInstalled",
+            "fallbackUsed",
+            "audioChunkCount",
+            "analyzedChunkCount",
+            "receivedAudioSeconds",
+            "analyzedAudioSeconds",
+            "audioCoverageRatio",
+            "reportFinalEventCount",
+            "rawCandidateCount",
+            "rawCandidateCountByType",
+            "preSmoothingCandidateCountByType",
+            "postSmoothingCandidateCountByType",
+            "finalEventCountByType",
+            "snoreLikeFeatureCandidateCount",
+            "snoreRawCandidateCount",
+            "snoreRejectedCount",
+            "snoreRejectReasonTop",
+            "rejectReasonTop",
+            "rmsP50",
+            "rmsP90",
+            "energyP50",
+            "energyP90",
+            "lowBandEnergyP50",
+            "lowBandEnergyP90",
+            "zeroCrossingRateP50",
+            "spectralCentroidP50",
+            "thresholdSnapshot",
+            "zeroEventSummary",
+            "notes",
+        ]
+    }
+
+    private static func eventCountText(_ counts: [SleepEventType: Int]) -> String {
+        counts
+            .sorted { lhs, rhs in lhs.key.rawValue < rhs.key.rawValue }
+            .map { "\($0.key.rawValue):\($0.value)" }
+            .joined(separator: ";")
+    }
+
+    private static func thresholdText(_ snapshot: [String: Double]) -> String {
+        snapshot
+            .sorted { lhs, rhs in lhs.key < rhs.key }
+            .map { "\($0.key)=\(number($0.value))" }
+            .joined(separator: ";")
+    }
+
+    private static func dateText(_ date: Date) -> String {
+        ISO8601DateFormatter().string(from: date)
+    }
+
+    private static func number(_ value: Double) -> String {
+        guard value.isFinite else { return "0.000000" }
+        return String(format: "%.6f", value)
+    }
+
+    private static func csvEscape(_ value: String) -> String {
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+        }
+        return value
+    }
+}
+
 public final class DetectorDiagnosticsCollector {
     private var sessionId: UUID?
     private var startedAt: Date?

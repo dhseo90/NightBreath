@@ -216,6 +216,43 @@ struct DetectorDiagnosticsCollectorTests {
     }
 
     @Test
+    func qaReadoutSummarizesDetectorPathWithoutAudioPaths() throws {
+        let collector = makeCollector()
+        let start = Date(timeIntervalSince1970: 85)
+        let snoreOutput = makeOutput(type: .snore, start: start, duration: 0.1, confidence: 0.20)
+
+        collector.record(features: makeFeatures(rms: 0.06, energy: 0.0036, startedAt: start), outputs: [snoreOutput])
+        collector.record(smoothingDiagnostics: DetectionSmoothingDiagnostics(
+            preSmoothingCandidateCount: 1,
+            postSmoothingEventCount: 0,
+            preSmoothingCandidateCountByType: [.snore: 1],
+            postSmoothingEventCountByType: [:],
+            rejectedCountByReason: [.belowConfidenceThreshold: 1]
+        ))
+        collector.record(finalEvents: [])
+        collector.addNote("private QA note id only")
+        let diagnostics = try finalized(collector)
+
+        let markdown = DetectorDiagnosticsQAReadout.makeMarkdown(diagnostics: diagnostics)
+        let csv = DetectorDiagnosticsQAReadout.makeCSV(diagnostics: diagnostics)
+
+        #expect(markdown.contains("Detector Diagnostics QA Readout"))
+        #expect(markdown.contains("rawCandidateCountByType"))
+        #expect(markdown.contains("snore:1"))
+        #expect(markdown.contains("belowConfidenceThreshold"))
+        #expect(markdown.contains("Threshold Snapshot"))
+        #expect(markdown.contains("원본 오디오"))
+        #expect(csv.contains("snoreRawCandidateCount"))
+        #expect(csv.contains("rmsP90"))
+        #expect(csv.contains("zeroEventSummary"))
+
+        for forbidden in ["audioSnippet", "localFilePath", "/Users/", "sleep talk transcript", "수면무호흡증"] {
+            #expect(!markdown.contains(forbidden))
+            #expect(!csv.contains(forbidden))
+        }
+    }
+
+    @Test
     func legacyDiagnosticsDecodeDefaultsNewObservabilityFields() throws {
         let legacyJSON = """
         {

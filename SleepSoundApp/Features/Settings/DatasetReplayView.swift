@@ -384,6 +384,16 @@
             }
           }
         }
+
+        ShareLink(item: DetectorDiagnosticsQAReadout.makeMarkdown(diagnostics: diagnostics)) {
+          Label("Replay QA readout 공유", systemImage: "square.and.arrow.up")
+        }
+        .buttonStyle(.nbSecondary)
+
+        Text("공유 텍스트에는 replay한 원본 오디오 파일 경로나 오디오 payload를 포함하지 않습니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
 

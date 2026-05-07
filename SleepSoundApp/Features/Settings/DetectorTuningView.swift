@@ -92,6 +92,16 @@
               .font(NBTypography.footnote)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
+
+            ShareLink(item: DetectorDiagnosticsQAReadout.makeMarkdown(diagnostics: diagnostics)) {
+              Label("QA readout 공유", systemImage: "square.and.arrow.up")
+            }
+            .buttonStyle(.nbSecondary)
+
+            Text("공유 텍스트에는 원본 오디오, 이벤트 오디오 파일 경로, 개인 오디오 파일 경로를 포함하지 않습니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
           }
           .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
           .listRowBackground(Color.clear)

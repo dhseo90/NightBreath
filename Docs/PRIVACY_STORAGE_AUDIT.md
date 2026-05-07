@@ -150,6 +150,8 @@ orphan cleanup:
 - 이벤트별 사용자 feedback
 - opt-in 상태에서만 짧은 이벤트 오디오 샘플
 
+DEBUG detector QA readout은 `DetectorDiagnostics`의 count, feature summary, threshold snapshot, backend/fallback 상태만 텍스트/CSV로 정리합니다. 원본 오디오, 이벤트 오디오 샘플 파일 경로, 개인 오디오 파일 경로, sleep talk transcript는 포함하지 않습니다.
+
 저장하지 않는 것:
 
 - 전체 밤 원본 오디오 파일
