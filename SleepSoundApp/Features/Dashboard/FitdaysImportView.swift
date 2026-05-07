@@ -45,6 +45,7 @@ struct FitdaysImportView: View {
 
         if let importResult {
           resultSection(importResult)
+          previewDiagnosticsSection(importResult)
           previewSection(importResult)
         } else {
           emptyState
@@ -334,6 +335,95 @@ struct FitdaysImportView: View {
         }
       }
     }
+  }
+
+  private func previewDiagnosticsSection(_ result: FitdaysImportResult) -> some View {
+    NBReportSection(title: "미리보기 판단", systemImage: "checklist") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+          NBMetricCard(
+            title: "처리한 row",
+            value: "\(result.batch.rowCount)",
+            systemImage: "tablecells",
+            tint: NBColor.mistTeal,
+            footnote: result.batch.sourceName
+          )
+
+          NBMetricCard(
+            title: "저장 가능",
+            value: "\(result.samples.count)",
+            systemImage: "checkmark.circle",
+            tint: result.samples.isEmpty ? NBColor.warning : NBColor.success,
+            footnote: "샘플"
+          )
+        }
+
+        if result.samples.isEmpty {
+          NBStatusBadge(
+            FitdaysImportFallbackGuidance.noImportablePreviewMessage,
+            kind: .caution,
+            systemImage: "exclamationmark.circle"
+          )
+        }
+
+        if result.skippedRowCount > 0 {
+          diagnosticTextBlock(
+            title: "건너뛴 row 해석",
+            messages: [
+              "\(result.skippedRowCount)개 row는 저장 가능한 지표 샘플로 바뀌지 않았습니다.",
+              "빈 값, 측정일 누락, 지원하지 않는 지표명, 숫자 해석 실패 가능성을 확인해 주세요.",
+            ]
+          )
+        }
+
+        if !result.rowErrors.isEmpty {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("확인 필요 row")
+              .font(NBTypography.caption.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+
+            ForEach(Array(result.rowErrors.prefix(6))) { error in
+              Text("Row \(error.rowNumber): \(error.message)")
+                .font(NBTypography.footnote)
+                .foregroundStyle(NBColor.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if result.rowErrors.count > 6 {
+              Text("외 \(result.rowErrors.count - 6)개 row")
+                .font(NBTypography.caption)
+                .foregroundStyle(NBColor.secondaryText)
+            }
+          }
+        }
+
+        if !result.unknownColumns.isEmpty {
+          diagnosticTextBlock(
+            title: "지원하지 않는 column",
+            messages: [
+              result.unknownColumns.joined(separator: ", "),
+              "이 column은 저장하지 않고, 지원 지표만 로컬 샘플로 변환합니다.",
+            ]
+          )
+        }
+      }
+    }
+  }
+
+  private func diagnosticTextBlock(title: String, messages: [String]) -> some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+      Text(title)
+        .font(NBTypography.caption.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
+
+      ForEach(messages, id: \.self) { message in
+        Text(message)
+          .font(NBTypography.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private func handleFileImporterResult(_ result: Result<[URL], Error>) {

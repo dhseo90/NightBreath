@@ -55,6 +55,7 @@
 - `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
 - `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
 - 월별 붙여넣기 parser는 compact date와 주요 한국어 alias regression을 포함합니다. 실제 앱에서 새 구조가 확인되면 개인값 제거 후 fixture만 추가합니다.
+- import preview는 처리 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여줍니다.
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays 월별 데이터 복사 텍스트를 확보한 경우 붙여넣기 preview/import QA

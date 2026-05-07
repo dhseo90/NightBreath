@@ -70,6 +70,7 @@
 - Fitdays CSV/TSV/text import compatibility guard
 - Fitdays 월별 데이터 복사 텍스트 붙여넣기 import preview
 - Fitdays 월별 붙여넣기 compact date / Korean alias parser regression
+- Fitdays import 미리보기 판단 섹션
 - Fitdays CSV/export 미확보 시 HealthKit read-only fallback UX
 - `ImportBatch`
 - synthetic Fitdays CSV fixture

@@ -228,6 +228,8 @@ Share Extension 후보:
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 
+`FitdaysImportView`의 미리보기는 저장 전 단계입니다. `미리보기 판단` 섹션에서 처리한 row, 저장 가능한 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여주고, 사용자가 `로컬에 저장`을 누르기 전에는 저장소에 쓰지 않습니다.
+
 검증해야 할 상태:
 
 - valid CSV preview/result
