@@ -375,6 +375,8 @@ struct FitdaysImportView: View {
             kind: .good,
             systemImage: "checkmark.circle.fill"
           )
+
+          savedDetailShortcut(for: lastSaveConfirmation)
         }
       }
     }
@@ -648,6 +650,41 @@ struct FitdaysImportView: View {
     return "중복 \(summary.duplicateSampleCount)개는 기존 값과 같습니다. 새 항목 \(summary.newSampleCount)개를 함께 저장합니다."
   }
 
+  @ViewBuilder
+  private func savedDetailShortcut(for confirmation: FitdaysSaveConfirmation) -> some View {
+    if let detailDate = confirmation.detailDate {
+      let allSamples = repository.fetchSamples()
+      let detailData = HealthCalendarBuilder().detailData(
+        for: detailDate,
+        samples: allSamples,
+        sleepReports: []
+      )
+
+      VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+        NavigationLink {
+          DailyMeasurementDetailView(
+            detailData: detailData,
+            allSamples: allSamples
+          )
+        } label: {
+          HStack(spacing: NBSpacing.small) {
+            Label("가져온 최신 날짜 바로 보기", systemImage: "calendar.badge.clock")
+              .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.right")
+              .font(.footnote.weight(.semibold))
+          }
+        }
+        .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.privacyTint))
+
+        Text(confirmation.detailSummaryText)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
   private func saveButtonTitle(for summary: UnifiedHealthMetricImportDuplicateSummary?) -> String {
     guard let summary, summary.hasDuplicates else {
       return "로컬에 저장"
@@ -847,9 +884,13 @@ struct FitdaysImportView: View {
 
     do {
       try repository.save(batch: result.batch, samples: result.samples)
+      let importedDates = importedDayStarts(from: result.samples)
       let confirmation = FitdaysSaveConfirmation(
         message: saveSuccessMessage(result: result, duplicateSummary: duplicateSummary),
-        savedAt: Date()
+        savedAt: Date(),
+        sampleCount: result.samples.count,
+        importedDayCount: importedDates.count,
+        detailDate: importedDates.last
       )
       lastSaveConfirmation = confirmation
       statusMessage = confirmation.message
@@ -861,6 +902,12 @@ struct FitdaysImportView: View {
       lastSaveConfirmation = nil
       errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"
     }
+  }
+
+  private func importedDayStarts(from samples: [UnifiedHealthMetricSample]) -> [Date] {
+    let calendar = Calendar.current
+    return Array(Set(samples.map { calendar.startOfDay(for: $0.measuredAt) }))
+      .sorted()
   }
 
   private func reloadSavedImports() {
@@ -961,9 +1008,25 @@ private struct FitdaysPastedTextSummary: Equatable {
 private struct FitdaysSaveConfirmation: Equatable {
   var message: String
   var savedAt: Date
+  var sampleCount: Int
+  var importedDayCount: Int
+  var detailDate: Date?
 
   var displayMessage: String {
     "\(message) · \(SleepFormatters.shortTime(savedAt))"
+  }
+
+  var detailSummaryText: String {
+    guard let detailDate else {
+      return "저장된 날짜가 없으면 상세 화면으로 이동하지 않습니다."
+    }
+
+    let dayText = SleepFormatters.shortDate(detailDate)
+    if importedDayCount > 1 {
+      return "\(importedDayCount)일치 \(sampleCount)개 샘플 중 최신 날짜 \(dayText)를 엽니다."
+    }
+
+    return "\(sampleCount)개 샘플이 들어간 \(dayText)를 엽니다."
   }
 }
 
