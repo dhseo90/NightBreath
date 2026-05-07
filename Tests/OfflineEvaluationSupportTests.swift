@@ -362,6 +362,40 @@ struct OfflineEvaluationSupportTests {
     #expect(validation.licenseWarnings.first?.field == "datasetLicenseNote")
   }
 
+  @Test
+  func sampleManifestValidationScriptKeepsReplayInputsLocalAndShort() throws {
+    let root = repositoryRoot()
+    let script = root.appendingPathComponent("Tools/OfflineEvaluation/validate_sample_manifest.py")
+    let scriptSource = try sourceContents("Tools/OfflineEvaluation/validate_sample_manifest.py")
+    let toolGuide = try sourceContents("Tools/OfflineEvaluation/README.md")
+    let manifestGuide = try sourceContents("Docs/DATASET_MANIFEST_GUIDE.md")
+
+    #expect(FileManager.default.fileExists(atPath: script.path))
+    #expect(scriptSource.contains("ALLOWED_LABELS"))
+    #expect(scriptSource.contains("GITIGNORED_AUDIO_ROOTS"))
+    #expect(scriptSource.contains("OFFLINE_MANIFEST_MAX_SEGMENT_SECONDS"))
+    #expect(scriptSource.contains("git-tracked audio file"))
+    #expect(toolGuide.contains("validate_sample_manifest.py"))
+    #expect(manifestGuide.contains("validate_sample_manifest.py"))
+
+    let process = Process()
+    let output = Pipe()
+    process.executableURL = script
+    process.currentDirectoryURL = root
+    process.standardOutput = output
+    process.standardError = output
+
+    try process.run()
+    process.waitUntilExit()
+
+    let data = output.fileHandleForReading.readDataToEndOfFile()
+    let outputText = String(data: data, encoding: .utf8) ?? ""
+
+    #expect(process.terminationStatus == 0, "Script failed: \(outputText)")
+    #expect(outputText.contains("Offline manifest validation passed."))
+    #expect(outputText.contains("Missing local files: 3"))
+  }
+
   private func makeSegment(
     filePath: String,
     fileId: String,
@@ -397,6 +431,14 @@ struct OfflineEvaluationSupportTests {
       .appendingPathExtension("json")
     try json.write(to: url, atomically: true, encoding: .utf8)
     return url
+  }
+
+  private func repositoryRoot() -> URL {
+    URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+  }
+
+  private func sourceContents(_ relativePath: String) throws -> String {
+    try String(contentsOf: repositoryRoot().appendingPathComponent(relativePath), encoding: .utf8)
   }
 
   @discardableResult

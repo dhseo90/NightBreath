@@ -163,6 +163,15 @@ Offline Evaluation은 실행 전에 manifest를 validation하고 다음 요약�
 
 파일이 없으면 crash하지 않고 warning과 실패 record로 남깁니다. invalid label, 필수 필드 누락, 0 이하 duration은 blocking issue로 보고 해당 segment는 평가 대상에서 제외합니다.
 
+오디오를 실제로 로드하기 전 manifest 자체만 빠르게 확인하려면 다음 local gate를 실행합니다.
+
+```bash
+Tools/OfflineEvaluation/validate_sample_manifest.py \
+  --manifest Tools/OfflineEvaluation/sample_manifest.example.json
+```
+
+이 gate는 JSON schema, 허용 label, recording type, 짧은 segment duration, repo 안 git-tracked audio 참조 여부를 확인합니다. 실제 파일 존재까지 확인해야 하는 로컬 QA에서는 `--require-files`를 추가합니다. 개인 DEBUG 샘플은 `Samples/Personal/` 또는 repo 밖 로컬 폴더에 두고, 파일명이나 메모에 개인 정보와 sleep talk 내용을 넣지 않습니다.
+
 ## 실행
 
 ```bash

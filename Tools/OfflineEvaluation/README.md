@@ -50,6 +50,17 @@ Segment 필드:
 
 자세한 schema와 작성 원칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고하세요. 예시는 `sample_manifest.example.json`에 있습니다.
 
+## Manifest Validation
+
+로컬 sample/replay manifest를 만들거나 수정한 뒤에는 오디오를 로드하기 전에 schema와 privacy guard를 먼저 확인합니다.
+
+```bash
+Tools/OfflineEvaluation/validate_sample_manifest.py \
+  --manifest Tools/OfflineEvaluation/sample_manifest.example.json
+```
+
+기본 gate는 JSON schema, label, recording type, segment duration, git-tracked audio 참조 여부를 확인합니다. 실제 파일이 아직 준비되지 않은 경로는 missing count로만 보고하며, 파일 존재까지 강제하려면 `--require-files`를 추가합니다. 짧은 DEBUG/replay 샘플 기준은 기본 30초 이하이며 `OFFLINE_MANIFEST_MAX_SEGMENT_SECONDS`로 더 좁힐 수 있습니다.
+
 ## 실행
 
 ```bash

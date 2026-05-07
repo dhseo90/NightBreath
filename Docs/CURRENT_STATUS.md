@@ -56,6 +56,7 @@
 - DEBUG 수동 짧은 샘플 수집 화면
 - Dataset Replay
 - Offline Evaluation
+- Offline Evaluation sample manifest local validation gate
 - profile comparison 도구
 - Detector Offline Evaluation profile 비교 markdown quick summary
 - Detector Offline Evaluation snore/negative snapshot과 balanced delta markdown summary

@@ -37,6 +37,7 @@ let package = Package(
         "compare_profiles.swift",
         "evaluate_snore_baseline.swift",
         "compare_backends.swift",
+        "validate_sample_manifest.py",
       ],
       sources: ["evaluate_dataset.swift"]
     ),
@@ -52,6 +53,7 @@ let package = Package(
         "evaluate_dataset.swift",
         "evaluate_snore_baseline.swift",
         "compare_backends.swift",
+        "validate_sample_manifest.py",
       ],
       sources: ["compare_profiles.swift"]
     ),
@@ -67,6 +69,7 @@ let package = Package(
         "evaluate_dataset.swift",
         "compare_profiles.swift",
         "compare_backends.swift",
+        "validate_sample_manifest.py",
       ],
       sources: ["evaluate_snore_baseline.swift"]
     ),
@@ -82,6 +85,7 @@ let package = Package(
         "evaluate_dataset.swift",
         "compare_profiles.swift",
         "evaluate_snore_baseline.swift",
+        "validate_sample_manifest.py",
       ],
       sources: ["compare_backends.swift"]
     ),
