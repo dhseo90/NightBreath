@@ -107,6 +107,16 @@ False-positive-like guard:
 - `silence`, `lowEnergyNoise`, high-frequency synthetic negative는 최종 snore 이벤트를 만들지 않아야 합니다.
 - Offline Evaluation support test는 balanced profile에서 low-amplitude snore-like segment는 final snore로 남기고 high-frequency negative segment는 snore raw/final count 0을 유지하는지 확인합니다.
 
+## 2026-05-07 sensitivity preset synthetic guard
+
+실기기 피드백 없이 확인 가능한 범위에서 5단계 민감도 preset의 synthetic guard를 보강했습니다.
+
+- `verySensitive`, `sensitive`, `balanced`는 낮은 RMS의 distant snore-like feature가 raw 후보와 smoothing 이후 final snore로 남는지 확인합니다.
+- `conservative`, `veryConservative`는 같은 저진폭 입력 중 매우 희미한 후보를 코골기로 과하게 올리지 않는지 확인합니다.
+- 모든 선택 profile은 조용한 방, noise floor 수준의 저주파 팬/공조음, 이불 마찰 같은 고주파 마찰음, 낮은 수준의 broadband 소음을 snore raw/final 후보로 만들지 않는지 확인합니다.
+
+이 검증은 실제 침대 배치의 iPhone feature scale을 대체하지 않습니다. 오늘 밤 실기기 테스트에서는 같은 민감도 preset에서 `rawCandidateCountByType`, `snoreRejectReasonTop`, `rmsP90`, `energyP90`, `lowBandEnergyP90`, `finalEventCountByType`을 함께 기록해야 합니다.
+
 ## 2026-05-03 이전 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.

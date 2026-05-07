@@ -221,6 +221,7 @@
 - stop 이후 chunk가 들어오면 `chunksReceivedAfterStopRequest`, `secondsReceivingAudioAfterStopRequest`, `lastChunkReceivedAt`, force stop reason으로 남깁니다.
 - detector diagnostics는 raw/pre-smoothing/post-smoothing/final type count, reject reason, RMS/energy/band/zero-crossing/centroid summary, threshold snapshot, backend, tuning profile, model fallback 상태를 리포트에 보존합니다.
 - 코골기 detector는 절대 RMS threshold 외에 저진폭 low-band/relative-energy guard를 사용해 침대 배치 거리로 작게 들어온 snore-like 후보를 raw candidate로 남길 수 있습니다. 앱 설정의 `코골기 감지 민감도`는 `많이 민감`, `민감`, `보통`, `둔감`, `많이 둔감` 5단계 preset이며 Release 기본 profile은 계속 `balanced`/`보통`입니다.
+- 민감도 preset synthetic guard는 민감 계열의 distant snore-like recall과 전체 profile의 조용한 방/팬/공조음/이불 마찰/broadband noise negative 방어를 함께 확인합니다.
 - Core ML adapter는 모델 미포함 상태에서 crash 없이 `modelInstalled == false`와 rule-based fallback을 유지합니다. 실제 모델 artifact는 아직 앱 target에 포함하지 않았고, target 적용 전 integration gate와 실제 iPhone smoke evidence가 필요합니다.
 - 이벤트 오디오 샘플은 opt-in일 때만 짧게 저장되며, 전체 밤 원본 오디오 저장 경로는 추가하지 않았습니다.
 

@@ -67,6 +67,123 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func sensitiveProfilesKeepDistantSnoreLikeCandidateAfterSmoothing() {
+        let profiles: [DetectorTuningProfile] = [.verySensitive, .sensitive, .balanced]
+        let features = makeFeatures(
+            rms: 0.034,
+            energy: 0.00116,
+            peak: 0.070,
+            zeroCrossingRate: 0.075,
+            lowFrequencyEnergyRatio: 0.76,
+            midBandEnergy: 0.18,
+            highBandEnergy: 0.06,
+            spectralCentroid: 280,
+            estimatedNoiseLevel: 0.018
+        )
+
+        for profile in profiles {
+            let configuration = profile.configuration
+            let rawOutputs = RuleBasedSleepEventDetector(
+                thresholds: configuration.ruleBasedThresholds
+            ).detect(features: features)
+            let finalOutputs = configuration.smoothingPolicy.apply(to: rawOutputs)
+
+            #expect(rawOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should keep distant snore-like raw candidates.")
+            #expect(finalOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should keep distant snore-like events after smoothing.")
+        }
+    }
+
+    @Test
+    func conservativeProfilesDoNotOverReportVeryFaintDistantSnoreLikeInput() {
+        let profiles: [DetectorTuningProfile] = [.conservative, .veryConservative]
+        let features = makeFeatures(
+            rms: 0.030,
+            energy: 0.0009,
+            peak: 0.050,
+            zeroCrossingRate: 0.08,
+            lowFrequencyEnergyRatio: 0.76,
+            midBandEnergy: 0.18,
+            highBandEnergy: 0.06,
+            spectralCentroid: 280,
+            estimatedNoiseLevel: 0.018
+        )
+
+        for profile in profiles {
+            let configuration = profile.configuration
+            let rawOutputs = RuleBasedSleepEventDetector(
+                thresholds: configuration.ruleBasedThresholds
+            ).detect(features: features)
+            let finalOutputs = configuration.smoothingPolicy.apply(to: rawOutputs)
+
+            #expect(!rawOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should require a stronger snore-like signal.")
+            #expect(!finalOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should not smooth a very faint signal into snore.")
+        }
+    }
+
+    @Test
+    func allSelectableProfilesKeepCommonNegativeSignalsOutOfSnore() {
+        let negativeFixtures = [
+            makeFeatures(
+                rms: 0.012,
+                energy: 0.00014,
+                peak: 0.018,
+                zeroCrossingRate: 0.05,
+                lowFrequencyEnergyRatio: 0.65,
+                midBandEnergy: 0.16,
+                highBandEnergy: 0.05,
+                spectralCentroid: 230,
+                estimatedNoiseLevel: 0.011
+            ),
+            makeFeatures(
+                rms: 0.028,
+                energy: 0.00078,
+                peak: 0.036,
+                zeroCrossingRate: 0.05,
+                lowFrequencyEnergyRatio: 0.82,
+                midBandEnergy: 0.12,
+                highBandEnergy: 0.04,
+                spectralCentroid: 220,
+                estimatedNoiseLevel: 0.028
+            ),
+            makeFeatures(
+                rms: 0.040,
+                energy: 0.0016,
+                peak: 0.150,
+                zeroCrossingRate: 0.52,
+                lowFrequencyEnergyRatio: 0.22,
+                midBandEnergy: 0.20,
+                highBandEnergy: 0.46,
+                spectralCentroid: 2_200,
+                estimatedNoiseLevel: 0.018
+            ),
+            makeFeatures(
+                rms: 0.050,
+                energy: 0.0025,
+                peak: 0.100,
+                zeroCrossingRate: 0.44,
+                lowFrequencyEnergyRatio: 0.44,
+                midBandEnergy: 0.30,
+                highBandEnergy: 0.26,
+                spectralCentroid: 1_800,
+                estimatedNoiseLevel: 0.040
+            )
+        ]
+
+        for profile in DetectorTuningProfile.debugSelectableProfiles {
+            let configuration = profile.configuration
+            let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+            for features in negativeFixtures {
+                let rawOutputs = detector.detect(features: features)
+                let finalOutputs = configuration.smoothingPolicy.apply(to: rawOutputs)
+
+                #expect(!rawOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should not create raw snore from common negative signals.")
+                #expect(!finalOutputs.map(\.eventType).contains(.snore), "\(profile.rawValue) should not create final snore from common negative signals.")
+            }
+        }
+    }
+
+    @Test
     func lowFrequencyRoomHumAtNoiseFloorDoesNotBecomeSnore() {
         let detector = RuleBasedSleepEventDetector(
             thresholds: DetectorTuningProfile.balanced.configuration.ruleBasedThresholds

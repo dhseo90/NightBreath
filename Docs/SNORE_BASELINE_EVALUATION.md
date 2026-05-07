@@ -61,6 +61,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 - RMS threshold: 0.045
 - RMS 0.045 미만 snore 후보의 추가 조건: `rule.lowLevelSnoreRMS` 이상, `rule.lowLevelSnoreEnergy` 이상, low-band 0.64 이상, noise 대비 relative energy 1.35 이상, zero-crossing 0.24 이하, high-band 0.18 이하, spectral centroid 950Hz 이하
 - Release 기본 profile은 `balanced`이며 `verySensitive`/`sensitive`는 DEBUG 비교용입니다.
+- Synthetic sensitivity guard는 `verySensitive`/`sensitive`/`balanced`에서 distant snore-like 후보가 smoothing 이후까지 남는지, 전체 선택 profile에서 조용한 방/팬/공조음/이불 마찰/broadband noise negative가 snore로 바뀌지 않는지 확인합니다.
 
 ## Output
 
