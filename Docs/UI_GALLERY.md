@@ -34,6 +34,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - `Docs/Screenshots/screenshot_status.tsv`에서 각 후보의 상태를 관리합니다.
 - 허용 상태값은 `screenshot pending`, `captured, quality review pending`, `internal-only, quality review pending`, `blocked, recapture required`, `release-approved`입니다.
 - `Docs/UI_GALLERY.md`와 `Docs/UI_SCREEN_MAP.md`에 적는 모든 screenshot `.png` 경로는 `screenshot_status.tsv`의 `raw_source` 또는 `review_asset`에 함께 등록합니다.
+- screenshot 경로나 상태를 바꾼 뒤에는 `Tools/Screenshots/validate_screenshot_manifest.sh`를 실행해 manifest schema, 파일 존재 여부, 문서 참조 누락을 먼저 확인합니다.
 - `release-approved`로 바꾸려면 contact sheet 확인, App Store export 확인, user-facing 문서 렌더링 확인을 모두 통과해야 합니다.
 
 재노출 gate:

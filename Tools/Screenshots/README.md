@@ -138,6 +138,16 @@ Docs/Screenshots/review/screenshot_review_manifest.tsv
 
 승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다. `release-approved`로 바꾼 후보만 README/App Store/user-facing 문서에 image markdown/HTML `img`로 연결합니다.
 
+## Manifest Validation
+
+캡처 파일을 추가하거나 UI 문서에 screenshot 경로를 적은 뒤에는 simulator 없이도 아래 gate를 먼저 실행합니다.
+
+```bash
+Tools/Screenshots/validate_screenshot_manifest.sh
+```
+
+이 스크립트는 `Docs/Screenshots/screenshot_status.tsv`의 schema/status, non-pending 파일 존재 여부, `Docs/UI_GALLERY.md`와 `Docs/UI_SCREEN_MAP.md`의 PNG 경로 등록 여부, DEBUG-only screenshot의 release 승인 금지를 확인합니다. 이 gate는 visual QA를 대체하지 않으며, `release-approved` 전환 전에는 반드시 review sheet와 실제 문서 렌더링을 눈으로 다시 확인합니다.
+
 ## README 대표 screenshot 파일
 
 현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, 품질 gate 통과 전에는 README에 렌더링하지 않습니다.

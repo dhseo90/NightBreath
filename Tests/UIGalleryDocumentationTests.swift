@@ -199,6 +199,43 @@ struct UIGalleryDocumentationTests {
   }
 
   @Test
+  func screenshotManifestValidationScriptRunsLocalGate() throws {
+    let root = repositoryRoot()
+    let script = root.appendingPathComponent("Tools/Screenshots/validate_screenshot_manifest.sh")
+    let scriptContents = try sourceContents("Tools/Screenshots/validate_screenshot_manifest.sh")
+    let toolGuide = try sourceContents("Tools/Screenshots/README.md")
+    let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+
+    #expect(FileManager.default.fileExists(atPath: script.path))
+    #expect(scriptContents.contains("EXPECTED_HEADER"))
+    #expect(scriptContents.contains("ALLOWED_STATUSES"))
+    #expect(scriptContents.contains("release-approved"))
+    #expect(scriptContents.contains("DEBUG only"))
+    #expect(scriptContents.contains("Docs/UI_GALLERY.md"))
+    #expect(scriptContents.contains("Docs/UI_SCREEN_MAP.md"))
+    #expect(toolGuide.contains("validate_screenshot_manifest.sh"))
+    #expect(screenshotGuide.contains("validate_screenshot_manifest.sh"))
+    #expect(uiGallery.contains("validate_screenshot_manifest.sh"))
+
+    let process = Process()
+    let output = Pipe()
+    process.executableURL = script
+    process.currentDirectoryURL = root
+    process.standardOutput = output
+    process.standardError = output
+
+    try process.run()
+    process.waitUntilExit()
+
+    let data = output.fileHandleForReading.readDataToEndOfFile()
+    let outputText = String(data: data, encoding: .utf8) ?? ""
+
+    #expect(process.terminationStatus == 0, "Script failed: \(outputText)")
+    #expect(outputText.contains("Screenshot manifest validation passed."))
+  }
+
+  @Test
   func screenshotStatusManifestCoversGalleryAndScreenMapPngReferences() throws {
     let rows = try screenshotStatusRows()
     let manifestPaths = Set(rows.flatMap { row in

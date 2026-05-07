@@ -15,6 +15,7 @@
 - 파일이 존재해도 내부 QA label, crop 정렬, 주요 content 가독성 gate를 통과하기 전에는 `captured, quality review pending`으로 봅니다.
 - 각 screenshot 후보의 승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다.
 - `Docs/UI_GALLERY.md`나 `Docs/UI_SCREEN_MAP.md`에 `.png` 경로를 추가하면 같은 경로를 `screenshot_status.tsv`의 `raw_source` 또는 `review_asset`에 등록합니다.
+- 캡처 파일이나 문서 경로를 바꾼 뒤에는 `Tools/Screenshots/validate_screenshot_manifest.sh`로 schema/status, 파일 존재 여부, 문서 참조 등록 상태를 확인합니다.
 
 ## 폴더
 
