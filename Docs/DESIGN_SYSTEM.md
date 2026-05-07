@@ -196,6 +196,12 @@ Metric detail 원칙:
 - 사용자 화면에서는 raw `importBatchId` 같은 내부 ID를 그대로 노출하지 않고, Fitdays CSV 값은 `Fitdays CSV · 로컬` badge와 가져오기 기록 연결 여부로 설명합니다.
 - 수동 입력 버튼은 실제 입력 흐름이 준비되기 전에는 disabled placeholder로 유지합니다.
 
+Health Dashboard edge state 원칙:
+
+- `HealthDashboardView`는 Apple 건강앱/예시, Fitdays CSV 로컬 import, 앱 계산 지표 수를 `데이터 상태`에서 분리해 보여줍니다.
+- HealthKit 권한이 없거나 HealthKit 샘플이 없어도 로컬 import 샘플이 있으면 전체 건강 지표와 건강 캘린더 진입을 유지합니다.
+- 로컬 import 최근 값에는 실제 파일명, local path, raw import batch id를 표시하지 않습니다.
+
 Import result UI 원칙:
 
 - `FitdaysImportView`는 파일 선택, 가져오기 미리보기, 결과, 저장된 가져오기 기록, skipped row, unknown column, error count를 분리해 보여줍니다.

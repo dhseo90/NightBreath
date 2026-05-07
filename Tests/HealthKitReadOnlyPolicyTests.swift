@@ -214,6 +214,61 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(summary.hasBodyComposition)
     }
 
+    @Test
+    func healthDashboardDataStateKeepsLocalImportsVisibleWithoutHealthKitSamples() {
+        let deniedWithLocalImport = HealthDashboardDataStateSummary.make(
+            permissionState: .denied,
+            isPreviewData: false,
+            healthOrPreviewSampleCount: 0,
+            localImportSampleCount: 4,
+            appComputedSampleCount: 0
+        )
+        let emptyAfterPermission = HealthDashboardDataStateSummary.make(
+            permissionState: .readRequestCompleted,
+            isPreviewData: false,
+            healthOrPreviewSampleCount: 0,
+            localImportSampleCount: 0,
+            appComputedSampleCount: 0
+        )
+        let mixed = HealthDashboardDataStateSummary.make(
+            permissionState: .readRequestCompleted,
+            isPreviewData: false,
+            healthOrPreviewSampleCount: 3,
+            localImportSampleCount: 2,
+            appComputedSampleCount: 1
+        )
+        let previewWithLocal = HealthDashboardDataStateSummary.make(
+            permissionState: .notRequested,
+            isPreviewData: true,
+            healthOrPreviewSampleCount: 12,
+            localImportSampleCount: 2,
+            appComputedSampleCount: 0
+        )
+
+        #expect(deniedWithLocalImport.state == .localImportOnly)
+        #expect(!deniedWithLocalImport.shouldShowEmptyState)
+        #expect(deniedWithLocalImport.message.contains("Fitdays CSV"))
+        #expect(emptyAfterPermission.state == .emptyAfterPermission)
+        #expect(emptyAfterPermission.shouldShowEmptyState)
+        #expect(mixed.state == .mixedHealthKitAndLocal)
+        #expect(mixed.message.contains("출처별로 분리"))
+        #expect(previewWithLocal.state == .previewAndLocalImport)
+        #expect(previewWithLocal.message.contains("예시 샘플과 Fitdays CSV 로컬 import"))
+    }
+
+    @Test
+    func healthDashboardViewDocumentsEdgeStatesAndLocalImportOverview() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
+
+        #expect(contents.contains("dataStateSection"))
+        #expect(contents.contains("HealthDashboardDataStateSummary.make"))
+        #expect(contents.contains("localImportOverviewSection"))
+        #expect(contents.contains("로컬 import 최근 값"))
+        #expect(contents.contains("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고"))
+        #expect(contents.contains("sampleCount: importedUnifiedSamples.count"))
+        #expect(contents.contains("latestImportedUnifiedDate"))
+    }
+
     private var referenceDate: Date {
         Date(timeIntervalSince1970: 1_777_680_000)
     }

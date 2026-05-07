@@ -78,6 +78,7 @@
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 출처 구분
 - Fitdays CSV 로컬 import source badge/detail
 - 전체 건강 지표 overview
+- Health Dashboard 데이터 상태/로컬 import edge state
 - MetricChartView
 - 건강 지표 통계/그래프
 - HealthMetricsOverviewView

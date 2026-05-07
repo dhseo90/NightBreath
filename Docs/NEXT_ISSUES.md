@@ -67,6 +67,7 @@
 - import result, batch 삭제, extended metric sample 삭제 흐름은 구현되어 있으며 실제 Fitdays 파일/붙여넣기 데이터로 manual QA 필요
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시는 `Fitdays CSV · 로컬`과 내부 ID 숨김 기준으로 보강 완료. 실제 데이터로 manual QA 필요
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
+- Health Dashboard는 권한 없음/HealthKit 샘플 없음/로컬 import만 있음/mixed source edge state를 분리 표시합니다. 실제 HealthKit 권한 조합과 Fitdays import 결과로 manual QA 필요
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강
 - `Docs/HEALTH_DATA_GUIDE.md`의 Fitdays CSV/export 차이 추적

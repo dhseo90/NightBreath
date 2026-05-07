@@ -486,6 +486,14 @@ Sleep flow after denial works: yes / no
 Sensitive data included in repo: No
 ```
 
+Health Dashboard edge-state smoke:
+
+1. 연결 전 상태에서 `데이터 상태`가 예시 미리보기와 Apple 건강앱 read-only 요청 전 상태를 구분하는지 확인합니다.
+2. HealthKit 권한 거부 또는 사용할 수 없음 상태에서 로컬 import 샘플이 없으면 empty state가 안전하게 표시되는지 확인합니다.
+3. HealthKit 샘플이 없고 Fitdays CSV 로컬 import 샘플만 있을 때 `로컬 import만 표시`, `로컬 import 최근 값`, 전체 건강 지표/건강 캘린더 진입이 유지되는지 확인합니다.
+4. HealthKit read-only 샘플과 Fitdays CSV 샘플이 함께 있으면 `Apple 건강앱 + 로컬 import` 상태와 출처별 분리 설명이 표시되는지 확인합니다.
+5. 이 화면에서도 HealthKit write, 서버 전송, Fitdays 서버/API 연결, 실제 파일명/local path 노출이 없는지 확인합니다.
+
 ## Fitdays CSV Import QA
 
 Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 2026-05-07 실제 사용 확인에서는 월별 데이터 복사 텍스트를 확보할 수 있는 경로가 확인되었습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.

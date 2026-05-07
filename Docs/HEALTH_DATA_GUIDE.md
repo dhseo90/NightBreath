@@ -247,6 +247,8 @@ Share Extension 후보:
 
 `HealthDashboardView`는 건강 데이터 흐름의 허브입니다.
 
+대시보드는 `데이터 상태` 섹션에서 Apple 건강앱/예시 샘플, Fitdays CSV 로컬 import 샘플, 밤숨 앱 계산 지표 수를 분리해 보여줍니다. Apple 건강앱 권한이 없거나 표시할 HealthKit 샘플이 없어도 로컬 import 샘플이 있으면 전체 건강 지표와 건강 캘린더 진입은 계속 유효합니다.
+
 진입점:
 
 - HealthKit read-only 연결

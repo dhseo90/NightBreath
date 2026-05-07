@@ -134,6 +134,7 @@
 		000000000000000000000291 /* HealthCalendarModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001C0 /* HealthCalendarModels.swift */; };
 		000000000000000000000292 /* HealthCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001C1 /* HealthCalendarView.swift */; };
 		000000000000000000000293 /* MetricDetailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001C2 /* MetricDetailModels.swift */; };
+		0000000000000000000002A1 /* HealthDashboardDataState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001D1 /* HealthDashboardDataState.swift */; };
 		000000000000000000000240 /* NBColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000159 /* NBColor.swift */; };
 		000000000000000000000241 /* NBSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015A /* NBSpacing.swift */; };
 		000000000000000000000242 /* NBTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000015B /* NBTypography.swift */; };
@@ -350,6 +351,7 @@
 		0000000000000000000001C0 /* HealthCalendarModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCalendarModels.swift; sourceTree = "<group>"; };
 		0000000000000000000001C1 /* HealthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCalendarView.swift; sourceTree = "<group>"; };
 		0000000000000000000001C2 /* MetricDetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDetailModels.swift; sourceTree = "<group>"; };
+		0000000000000000000001D1 /* HealthDashboardDataState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardDataState.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -606,6 +608,7 @@
 				000000000000000000000184 /* HealthMetricTrendCalculator.swift */,
 				0000000000000000000001BE /* MetricStatisticsCalculator.swift */,
 				0000000000000000000001C2 /* MetricDetailModels.swift */,
+				0000000000000000000001D1 /* HealthDashboardDataState.swift */,
 				0000000000000000000001C0 /* HealthCalendarModels.swift */,
 				0000000000000000000001BA /* UnifiedHealthMetricCatalog.swift */,
 				000000000000000000000189 /* CrossMetricAnalysis.swift */,
@@ -851,6 +854,7 @@
 				000000000000000000000260 /* HealthMetricTrendCalculator.swift in Sources */,
 				00000000000000000000028F /* MetricStatisticsCalculator.swift in Sources */,
 				000000000000000000000293 /* MetricDetailModels.swift in Sources */,
+				0000000000000000000002A1 /* HealthDashboardDataState.swift in Sources */,
 				000000000000000000000291 /* HealthCalendarModels.swift in Sources */,
 				00000000000000000000028B /* UnifiedHealthMetricCatalog.swift in Sources */,
 				000000000000000000000264 /* CrossMetricAnalysis.swift in Sources */,

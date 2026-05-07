@@ -26,13 +26,21 @@ struct HealthDashboardView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         stateNotice
+        dataStateSection
         dashboardEntrySection
 
-        if shouldShowEmptyState {
-          emptyState
+        if dataStateSummary.shouldShowEmptyState {
+          HealthDataEmptyStateView(
+            title: dataStateSummary.title,
+            message: dataStateSummary.message
+          )
         } else if !visibleSamples.isEmpty {
           overviewSection
           HealthSourceSummarySection(sourceSummaries: calculator.sourceSummaries(samples: visibleSamples))
+        }
+
+        if !importedUnifiedSamples.isEmpty {
+          localImportOverviewSection
         }
 
         NBPrivacyNoticeCard(
@@ -71,10 +79,6 @@ struct HealthDashboardView: View {
     permissionState == .notRequested || permissionState == .mockDataOnly
   }
 
-  private var shouldShowEmptyState: Bool {
-    permissionState == .readRequestCompleted && healthSamples.isEmpty && importedUnifiedSamples.isEmpty
-  }
-
   private var unifiedDashboardSamples: [UnifiedHealthMetricSample] {
     let healthSourceType: HealthMetricSourceType = isPreviewData ? .mock : .healthKit
     return (
@@ -87,6 +91,16 @@ struct HealthDashboardView: View {
 
   private var calendarReports: [NightReport] {
     appState.trendReports(days: 370)
+  }
+
+  private var dataStateSummary: HealthDashboardDataStateSummary {
+    HealthDashboardDataStateSummary.make(
+      permissionState: permissionState,
+      isPreviewData: isPreviewData,
+      healthOrPreviewSampleCount: visibleSamples.count,
+      localImportSampleCount: importedUnifiedSamples.count,
+      appComputedSampleCount: appComputedCalendarSamples.count
+    )
   }
 
   private var calendarMorningCheckIns: [MorningCheckIn] {
@@ -283,8 +297,8 @@ struct HealthDashboardView: View {
             subtitle: "HealthKit에 없는 체성분 지표를 로컬 파일로 추가",
             systemImage: "square.and.arrow.down",
             tint: NBColor.mistTeal,
-            sampleCount: 0,
-            latestDate: nil
+            sampleCount: importedUnifiedSamples.count,
+            latestDate: latestImportedUnifiedDate
           )
         }
         .buttonStyle(.plain)
@@ -311,11 +325,46 @@ struct HealthDashboardView: View {
     }
   }
 
-  private var emptyState: some View {
-    HealthDataEmptyStateView(
-      title: "Apple 건강앱에 해당 데이터가 없습니다.",
-      message: "Omron Connect 또는 Fitdays 연동 상태를 확인하세요. 특정 앱 설치를 강제하지 않으며, Apple 건강앱에 저장된 source만 읽습니다."
-    )
+  private var dataStateSection: some View {
+    NBReportSection(title: "데이터 상태", systemImage: "waveform.path.ecg.rectangle") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+          Text(dataStateSummary.title)
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Text(dataStateSummary.message)
+            .font(NBTypography.footnote)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+          NBMetricCard(
+            title: isPreviewData ? "예시" : "Apple 건강앱",
+            value: "\(dataStateSummary.healthOrPreviewSampleCount)",
+            systemImage: isPreviewData ? "eye" : "heart.text.square",
+            tint: NBColor.privacyTint,
+            footnote: isPreviewData ? "미리보기" : "read-only"
+          )
+
+          NBMetricCard(
+            title: "로컬 import",
+            value: "\(dataStateSummary.localImportSampleCount)",
+            systemImage: "square.and.arrow.down",
+            tint: NBColor.mistTeal,
+            footnote: "Fitdays CSV"
+          )
+
+          NBMetricCard(
+            title: "앱 계산",
+            value: "\(dataStateSummary.appComputedSampleCount)",
+            systemImage: "sparkles",
+            tint: NBColor.dawn,
+            footnote: "기기 안"
+          )
+        }
+      }
+    }
   }
 
   private var overviewSection: some View {
@@ -325,6 +374,30 @@ struct HealthDashboardView: View {
         latestMetricCard(.diastolicBloodPressure)
         latestMetricCard(.bodyMass)
         latestMetricCard(.bodyFatPercentage)
+      }
+    }
+  }
+
+  private var localImportOverviewSection: some View {
+    NBReportSection(title: "로컬 import 최근 값", systemImage: "square.and.arrow.down") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        ForEach(importedUnifiedSamples.sortedByMeasuredAtDescending().prefix(6)) { sample in
+          if let displayModel = sample.displayModel() {
+            NBListRow(
+              title: displayModel.metadata.displayNameKo,
+              value: displayModel.valueText,
+              subtitle: "\(SleepFormatters.shortDate(sample.measuredAt)) · \(sample.sourceType.displayName)",
+              systemImage: "internaldrive",
+              tint: NBColor.mistTeal,
+              accessibilityLabel: "\(displayModel.metadata.displayNameKo), \(displayModel.valueText), 로컬 import"
+            )
+          }
+        }
+
+        Text("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고 기기 안의 로컬 샘플로만 표시합니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -438,6 +511,10 @@ struct HealthDashboardView: View {
 
   private var unifiedDashboardLatestDate: Date? {
     unifiedDashboardSamples.sortedByMeasuredAtDescending().first?.measuredAt
+  }
+
+  private var latestImportedUnifiedDate: Date? {
+    importedUnifiedSamples.sortedByMeasuredAtDescending().first?.measuredAt
   }
 
   private var healthCalendarLatestDate: Date? {
