@@ -46,7 +46,7 @@ manifest 파일이 없거나 로컬 오디오가 준비되지 않은 경우 도�
 - profile: `verySensitive`, `sensitive`, `balanced`, `conservative`, `veryConservative` 모두 비교
 - 확인 값: `rawCandidateCount`, `preSmoothingCandidateCount`, `postSmoothingEventCount`, `finalSnoreEventCount`, `rejectReasonTop`, `rmsSummary`, `energySummary`, `confidenceSummary`
 
-샘플 파일은 `Samples/Personal/` 또는 repo 밖 경로에 두고, manifest에는 파일명과 local path만 기록합니다. sleep talk 내용은 기록하지 않으며, 이 baseline은 detector 개발용 참고 자료입니다.
+샘플 파일은 `Samples/Personal/`처럼 gitignore된 개인 경로 또는 repo 밖 경로에 둡니다. 실제 개인 샘플 manifest는 private/ignored output으로만 보관하고, 커밋되는 예시 manifest와 문서에는 익명 placeholder만 남깁니다. sleep talk 내용은 기록하지 않으며, 이 baseline은 detector 개발용 참고 자료입니다.
 
 ## 2026-05-05 synthetic recall guard
 

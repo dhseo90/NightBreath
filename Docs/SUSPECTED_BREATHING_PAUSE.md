@@ -63,7 +63,7 @@
 
 ## Offline Evaluation
 
-manifest 기반 offline evaluation은 실제 오디오 파일을 repo에 넣지 않고 local path reference만 사용합니다.
+manifest 기반 offline evaluation은 실제 오디오 파일을 repo에 넣지 않고 private/ignored manifest의 local path reference만 사용합니다.
 
 예시:
 

@@ -26,7 +26,7 @@ ITEMS=(
   "App Store|Zero-event report|Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png|Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png|blocked, recapture required"
   "Health|Health metrics overview|Docs/Screenshots/Health/health_metrics_overview_light.png|Docs/Screenshots/Health/cropped/health_metrics_overview_light.png|captured, quality review pending"
   "Health|Fitdays import|Docs/Screenshots/Health/fitdays_import_light.png|Docs/Screenshots/Health/cropped/fitdays_import_light.png|captured, quality review pending"
-  "Health|Fitdays import result|Docs/Screenshots/Health/fitdays_import_result_light.png|Docs/Screenshots/Health/cropped/fitdays_import_result_light.png|captured, quality review pending"
+  "Health|Fitdays import result|Docs/Screenshots/Health/fitdays_import_result_light.png|Docs/Screenshots/Health/cropped/fitdays_import_result_light.png|blocked, recapture required"
   "Health|Health calendar|Docs/Screenshots/Health/health_calendar_light.png|Docs/Screenshots/Health/cropped/health_calendar_light.png|captured, quality review pending"
   "Health|Daily measurement detail|Docs/Screenshots/Health/daily_measurement_detail_light.png|Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png|captured, quality review pending"
   "Health|Metric detail body water|Docs/Screenshots/Health/metric_detail_body_water_light.png|Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png|captured, quality review pending"

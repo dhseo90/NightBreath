@@ -57,7 +57,7 @@ DEBUG 빌드에서 `설정 > 개발 > Dataset Replay`로 들어가 synthetic pat
 
 manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
-짧은 personal debug sample은 `recordingType: "personalDebugSample"`, `microphoneType: "iPhone"`, `segmentDurationSeconds: 2`, `3`, 또는 `5`처럼 기록합니다. `localFilePath`는 manifest 위치 기준 상대 경로나 repo 밖 절대 경로를 사용할 수 있지만, 실제 파일은 commit하지 않습니다.
+짧은 personal debug sample은 `recordingType: "personalDebugSample"`, `microphoneType: "iPhone"`, `segmentDurationSeconds: 2`, `3`, 또는 `5`처럼 기록합니다. `localFilePath`는 manifest 위치 기준 상대 경로나 repo 밖 절대 경로를 사용할 수 있지만, 실제 파일과 실제 개인 경로가 들어간 manifest는 commit하지 않습니다.
 
 ## Git 보호
 

@@ -24,7 +24,7 @@ Top-level 필드:
 
 Segment 필드:
 - `fileId`: 파일/segment 식별자
-- `localFilePath`: 로컬 오디오 파일 경로. manifest 파일 위치 기준 상대 경로 또는 절대 경로
+- `localFilePath`: 로컬 오디오 파일 경로. manifest 파일 위치 기준 상대 경로 또는 절대 경로. 실제 개인 샘플 경로가 들어간 manifest는 private/ignored output으로만 보관합니다.
 - `subjectId`: 익명화된 subject 식별자
 - `recordingType`: `publicDataset`, `personalDebugSample`, `synthetic`
 - `microphoneType`: `unknown`, `ambient`, `tracheal`, `iPhone`, `other`
@@ -171,7 +171,7 @@ swift run OfflineSnoreBaseline \
 - `snore_baseline_YYYYMMDD_HHMMSS.csv`
 - `snore_baseline_report.md`
 
-manifest가 없거나 로컬 오디오 파일이 준비되지 않았을 때 도구는 crash하지 않고 사용법 또는 missing file warning/failed record를 남깁니다. 공개 데이터셋은 자동 다운로드하지 않으므로 `sample_manifest.example.json`을 복사한 뒤 `localFilePath`를 직접 준비한 synthetic/local WAV/CAF/M4A 파일로 바꿔 실행하세요.
+manifest가 없거나 로컬 오디오 파일이 준비되지 않았을 때 도구는 crash하지 않고 사용법 또는 missing file warning/failed record를 남깁니다. 공개 데이터셋은 자동 다운로드하지 않으므로 `sample_manifest.example.json`을 복사한 뒤 `localFilePath`를 직접 준비한 synthetic/local WAV/CAF/M4A 파일로 바꿔 실행하세요. 실제 개인 경로가 들어간 복사본은 repository에 커밋하지 않습니다.
 
 자세한 해석 방법은 `Docs/SNORE_BASELINE_EVALUATION.md`를 참고하세요.
 

@@ -11,7 +11,7 @@
 
 ## 실행 방법
 
-먼저 공개/개인 오디오 파일을 직접 로컬에 준비하고 manifest의 `localFilePath`를 수정합니다. 오디오 파일은 repository에 넣지 않습니다.
+먼저 공개/개인 오디오 파일을 직접 로컬에 준비하고 private/ignored manifest의 `localFilePath`를 수정합니다. 오디오 파일과 실제 개인 path가 들어간 manifest는 repository에 넣지 않습니다.
 
 ```bash
 swift run OfflineBackendCompare \

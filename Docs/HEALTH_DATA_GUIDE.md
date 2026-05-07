@@ -110,8 +110,8 @@ CSV 또는 structured export file에 HealthKit 표준 지표가 포함되어 있
 - Fitdays privacy 문서에는 앱 데이터가 CSV 형식으로 저장되며, History Records / Data Reports 같은 앱 기능에서 CSV export를 지원한다고 설명되어 있습니다. 참고: [Fitdays App Privacy Policy](https://fitdays.org/app-privacy)
 - Fitdays+ privacy 문서에는 사용자가 personal data를 CSV 형식으로 export 요청할 권리가 있다고 설명되어 있습니다. 참고: [Fitdays+ Privacy Policy](https://plus.fitdays.cn/app/privacy?language=en&source=0)
 - 실제 메뉴명과 export 위치는 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태, 연결된 scale 모델에 따라 다를 수 있습니다. NightBreath 문서는 특정 메뉴명을 단정하지 않고 사용자가 직접 확보한 로컬 export 파일만 다룹니다.
-- 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 따라서 QA와 제품 copy는 export 가능성을 단정하지 않고, 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표를 우선 사용합니다.
-- 2026-05-07 실제 사용 확인에서는 월별 데이터 복사 텍스트가 comma-separated table 형태로 확보될 수 있음을 확인했습니다. 이 구조는 첫 column이 `짜`이고 값이 `HH:mm yyyy/MM/dd`처럼 시간이 앞에 오는 날짜이며, `골격근량 (클릭필수)`, `기초대사량 (BMR)` 같은 header annotation과 `--` placeholder를 포함할 수 있습니다. 실제 수치와 원문은 repository에 기록하지 않습니다.
+- 수동 QA에서는 앱 안에서 명확한 CSV/export 메뉴가 보이지 않을 수 있음을 확인했습니다. 따라서 QA와 제품 copy는 export 가능성을 단정하지 않고, 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표를 우선 사용합니다.
+- 수동 QA에서는 월별 데이터 복사 텍스트가 comma-separated table 형태로 확보될 수 있음을 확인했습니다. 이 구조는 첫 column이 `짜`이고 값이 `HH:mm yyyy/MM/dd`처럼 시간이 앞에 오는 날짜이며, `골격근량 (클릭필수)`, `기초대사량 (BMR)` 같은 header annotation과 `--` placeholder를 포함할 수 있습니다. 실제 수치와 원문은 repository에 기록하지 않습니다.
 
 ### Fitdays 데이터 유입 경로
 

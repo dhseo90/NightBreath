@@ -31,7 +31,7 @@ Tools/OfflineEvaluation/sample_manifest.example.json 형식의 manifest
 Tools/Training/output/export_feedback_manifest.json
 ```
 
-공개/개인 오디오 파일은 repo에 넣지 않습니다. manifest나 feedback export에는 local path reference만 남깁니다.
+공개/개인 오디오 파일은 repo에 넣지 않습니다. 실제 local path reference가 들어간 manifest나 feedback export는 private/ignored output으로만 보관하고, 커밋되는 예시에는 익명 placeholder만 남깁니다.
 
 ## Feedback Manifest 사용
 

@@ -32,9 +32,9 @@ Samples/Public/
 Samples/Personal/
 ```
 
-`localFilePath`는 manifest 파일 위치 기준 상대 경로 또는 절대 경로를 사용할 수 있습니다.
+`localFilePath`는 manifest 파일 위치 기준 상대 경로 또는 절대 경로를 사용할 수 있습니다. 실제 개인 샘플 경로가 들어간 manifest는 private/ignored output으로만 보관하고, 커밋되는 예시에는 익명 placeholder 경로만 사용합니다.
 
-실제 iPhone DEBUG 샘플은 앱 sandbox에서 꺼낸 뒤 `Samples/Personal/` 또는 repo 밖 로컬 폴더에 둡니다. 이때 `.caf`, `.metadata.json`, `.features.csv`를 함께 보관하면 `Dataset Replay`와 feature 분포 확인을 같은 샘플 기준으로 맞출 수 있습니다.
+실제 iPhone DEBUG 샘플은 앱 sandbox에서 꺼낸 뒤 `Samples/Personal/` 또는 repo 밖 로컬 폴더에 둡니다. 이때 `.caf`, `.metadata.json`, `.features.csv`를 함께 보관하면 `Dataset Replay`와 feature 분포 확인을 같은 샘플 기준으로 맞출 수 있습니다. 이 파일들과 실제 경로가 들어간 manifest는 repository에 커밋하지 않습니다.
 
 ## Schema
 

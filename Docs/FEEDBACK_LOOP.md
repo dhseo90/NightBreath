@@ -48,9 +48,9 @@ NightBreath / 밤숨의 event feedback loop는 detector 개발을 돕기 위한 
 feedback metadata와 이벤트 오디오 샘플은 분리되어 있습니다.
 
 - 이벤트 오디오 샘플 저장 OFF: feedback만 저장할 수 있습니다.
-- 이벤트 오디오 샘플 저장 ON: feedback에 `audioSampleId`와 local path reference를 export할 수 있습니다.
+- 이벤트 오디오 샘플 저장 ON: private/ignored export에만 `audioSampleId`와 local path reference를 남길 수 있습니다.
 - export 파일은 실제 오디오 파일을 포함하지 않습니다.
-- export 파일의 path는 로컬 참조이며, 해당 오디오 파일을 repo에 커밋하지 않습니다.
+- 실제 local path가 들어간 export는 repository에 커밋하지 않습니다. 커밋되는 문서와 예시에는 익명 `audioSampleId`나 placeholder만 사용합니다.
 
 ## Training Manifest Export
 
@@ -67,7 +67,7 @@ export_feedback_manifest.csv
 Tools/Training/output/
 ```
 
-이 폴더는 `.gitignore`에 포함되어 있어 export 결과와 local path reference가 repo에 들어가지 않습니다.
+이 폴더는 `.gitignore`에 포함되어 있어 export 결과와 local path reference가 repo에 들어가지 않습니다. 실제 개인 export를 문서 예시로 복사하지 않습니다.
 
 앱 컨테이너에서 feedback store를 로컬로 복사한 뒤 training helper를 실행할 수도 있습니다.
 

@@ -514,7 +514,7 @@ Health Dashboard edge-state smoke:
 
 ## Fitdays CSV Import QA
 
-Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 2026-05-07 실제 사용 확인에서는 월별 데이터 복사 텍스트를 확보할 수 있는 경로가 확인되었습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
+Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 수동 QA에서는 월별 데이터 복사 텍스트를 확보할 수 있는 경로가 확인되었습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
 
 실기기 export availability 재확인 smoke:
 
