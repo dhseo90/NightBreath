@@ -13,6 +13,16 @@ struct DailyRhythmMockBundle {
   func latestSample(_ metricType: HealthMetricType) -> HealthMetricSample? {
     healthSamples.latestSample(metricType: metricType)
   }
+
+  var dataReadinessSummary: DailyRhythmDataReadinessSummary {
+    DailyRhythmDataReadinessSummary.make(
+      snapshot: snapshot,
+      nightReport: nightReport,
+      morningCheckIn: morningCheckIn,
+      eveningCheckIn: eveningCheckIn,
+      healthMetricSamples: healthSamples
+    )
+  }
 }
 
 enum DailyRhythmMockFactory {

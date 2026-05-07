@@ -23,6 +23,10 @@ struct MorningBriefView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
+        DailyRhythmDataReadinessSection(
+          summary: bundle.dataReadinessSummary,
+          title: "아침 리포트 데이터 준비 상태"
+        )
         sleepSummarySection
         morningConditionSection
         morningHealthSection

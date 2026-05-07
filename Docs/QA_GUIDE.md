@@ -40,6 +40,7 @@ xcodebuild \
 - event audio opt-in
 - storage stats / orphan cleanup
 - Daily Rhythm score / insight / card content
+- Daily Rhythm data readiness / missing input explanation
 - HealthKit read-only policy
 - Fitdays CSV import
 - EHM metric catalog / trend / calendar / detail
@@ -62,6 +63,7 @@ Simulator QA는 mock 수면 세션, mock 수면 이벤트, mock NightReport, moc
 - detector diagnostic summary
 - zero-event 분석 문구
 - Health/Daily Rhythm mock 화면 상태
+- Morning Brief와 Daily Rhythm Report의 준비된 입력/제한 항목 상태
 - “서버 전송 없음”, “원본 전체 오디오 미저장”, “온디바이스 분석” 안내 문구
 
 확인 불가능한 항목:

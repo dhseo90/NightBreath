@@ -168,3 +168,64 @@ struct DailyRhythmScoreRing: View {
     .accessibilityLabel("\(title) \(score)점")
   }
 }
+
+struct DailyRhythmDataReadinessSection: View {
+  let summary: DailyRhythmDataReadinessSummary
+  var title: String = "데이터 준비 상태"
+
+  var body: some View {
+    NBReportSection(title: title, systemImage: "checklist.checked") {
+      VStack(alignment: .leading, spacing: NBSpacing.md) {
+        VStack(alignment: .leading, spacing: NBSpacing.xs) {
+          Text(summary.title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+            .fixedSize(horizontal: false, vertical: true)
+
+          Text(summary.message)
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+
+        ViewThatFits(in: .horizontal) {
+          HStack(spacing: NBSpacing.xs) {
+            readinessBadges
+          }
+          VStack(alignment: .leading, spacing: NBSpacing.xs) {
+            readinessBadges
+          }
+        }
+
+        NBListRow(
+          title: "준비된 입력",
+          value: "\(summary.includedSignalCount)개",
+          subtitle: summary.availableText,
+          systemImage: "checkmark.circle",
+          tint: NBColor.success
+        )
+        NBListRow(
+          title: "제한 항목",
+          value: "\(summary.missingSignalCount)개",
+          subtitle: summary.missingText,
+          systemImage: "exclamationmark.circle",
+          tint: summary.missingSignalCount == 0 ? NBColor.neutral : NBColor.warning
+        )
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var readinessBadges: some View {
+    NBStatusBadge(
+      "품질 \(summary.quality.displayName)",
+      kind: DailyRhythmUI.dataQualityStatus(summary.quality),
+      systemImage: "checkmark.seal"
+    )
+    NBStatusBadge(
+      "완성도 \(summary.completenessPercentText)",
+      kind: .neutral,
+      systemImage: "chart.pie"
+    )
+  }
+}

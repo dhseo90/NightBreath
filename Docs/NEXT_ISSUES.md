@@ -39,7 +39,7 @@
 - Omron Connect 혈압 source와 Fitdays 체중/체성분 source 표시를 실제 Apple 건강앱 데이터로 장기 검증
 - 혈압/체성분 dashboard의 7일/30일/90일 추세 copy와 empty state 재점검
 - Cross Metric 화면의 matched sample 부족 상태와 낮은 오디오 커버리지 표시 재점검
-- Daily Rhythm Report와 Morning Brief의 data quality 표시를 실제 사용 흐름에서 확인
+- Daily Rhythm Report와 Morning Brief의 데이터 준비 상태/제한 항목 표시를 실제 사용 흐름에서 확인
 
 주의:
 

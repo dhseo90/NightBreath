@@ -98,6 +98,7 @@
 - Daily Rhythm Report Builder
 - Morning Brief 화면
 - Daily Rhythm Report 화면
+- Morning Brief / Daily Rhythm Report 데이터 준비 상태와 제한 항목 표시
 - Evening Check-in 화면
 - Daily Health Card 화면
 - Daily Health Card template/privacy level 구조

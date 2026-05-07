@@ -23,6 +23,7 @@ struct DailyRhythmReportView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
+        DailyRhythmDataReadinessSection(summary: bundle.dataReadinessSummary)
         componentSection
         insightSection
         NBPrivacyNoticeCard(

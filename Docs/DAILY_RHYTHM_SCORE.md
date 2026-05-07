@@ -38,6 +38,15 @@
 
 데이터 품질은 점수 해석보다 먼저 보여줘야 합니다. 데이터가 부족한 날에는 `totalScore`를 과하게 낮추기보다 `limited`, `poor`, `insufficient` 같은 상태로 리포트 범위를 설명합니다.
 
+`DailyRhythmDataReadinessSummary`는 Morning Brief와 Daily Rhythm Report에서 같은 기준으로 다음 항목을 분리합니다.
+
+- 준비된 입력: 수면 리포트, 아침 컨디션, 저녁 기록, 혈압 데이터, 체성분 데이터, 활동/회복 데이터 중 연결된 항목
+- 제한 항목: 같은 항목 중 해당 날짜에 없거나 로드되지 않은 항목
+- 데이터 품질: `DailyDataQuality` display name
+- 완성도: `dataCompleteness` percent
+
+이 상태 블록은 점수보다 먼저 표시되며, “사용 가능한 항목만 참고용으로 표시한다”는 방향을 유지합니다.
+
 ## 데이터 부족 시 처리
 
 데이터가 없는 component는 리포트 전체를 실패시키지 않습니다.
