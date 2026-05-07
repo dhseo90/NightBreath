@@ -159,15 +159,17 @@ struct HealthCalendarTests {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 
         #expect(contents.contains("selectedDatePanel"))
+        #expect(contents.contains("selectedDateInlineDetail"))
         #expect(contents.contains("selectDate(date)"))
         #expect(contents.contains("let dates = monthDates"))
         #expect(contents.contains("let summaries = summariesByDay"))
         #expect(contents.contains("let summary = selectedDaySummary"))
-        #expect(contents.contains("이 날짜 자세히 보기"))
+        #expect(contents.contains("아래에서 선택 날짜 상세를 바로 확인합니다."))
+        #expect(contents.contains("선택 날짜 상세"))
         #expect(contents.contains("CalendarDaySourceDotStrip"))
         #expect(contents.contains("CalendarSelectedSourceStrip"))
         #expect(contents.contains("출처 dot"))
-        #expect(contents.contains("DailyMeasurementDetailView("))
+        #expect(contents.contains("DailyMeasurementDetailContent("))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }
 

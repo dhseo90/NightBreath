@@ -42,6 +42,7 @@ struct HealthCalendarView: View {
         weekdayHeader
         calendarGrid
         selectedDatePanel
+        selectedDateInlineDetail
         legend
 
         NBPrivacyNoticeCard(
@@ -228,17 +229,25 @@ struct HealthCalendarView: View {
           )
         }
 
-        NavigationLink {
-          DailyMeasurementDetailView(
-            detailData: selectedDetailData,
-            allSamples: samples
+        if summary.hasAnyData {
+          NBStatusBadge(
+            "아래에서 선택 날짜 상세를 바로 확인합니다.",
+            kind: .neutral,
+            systemImage: "arrow.down.circle"
           )
-        } label: {
-          Label("이 날짜 자세히 보기", systemImage: "list.bullet.rectangle")
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
       }
+    }
+  }
+
+  @ViewBuilder
+  private var selectedDateInlineDetail: some View {
+    if selectedDaySummary.hasAnyData {
+      DailyMeasurementDetailContent(
+        detailData: selectedDetailData,
+        allSamples: samples,
+        headerTitle: "선택 날짜 상세"
+      )
     }
   }
 
@@ -343,49 +352,62 @@ struct DailyMeasurementDetailView: View {
   let detailData: DailyMeasurementDetailData
   let allSamples: [UnifiedHealthMetricSample]
 
-  private let catalog = MetricCatalog.default
-
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        header
-
-        if !detailData.summary.hasAnyData {
-          HealthDataEmptyStateView(
-            title: "해당 날짜에 데이터가 없습니다",
-            message: "다른 날짜를 선택하거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요."
-          )
-        }
-
-        sleepSection
-        morningCheckInSection
-        eveningCheckInSection
-        metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "이날 기록된 혈압 샘플이 없습니다.")
-        metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "이날 기록된 체성분 샘플이 없습니다.")
-        metricSection(title: "Fitdays 확장 체성분", systemImage: "square.and.arrow.down", samples: detailData.fitdaysExtendedSamples, emptyMessage: "이날 가져온 Fitdays 확장 지표가 없습니다.")
-        metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "이날 기록된 활동 샘플이 없습니다.")
-        metricSection(title: "앱 계산 지표", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "이날 앱 계산 지표 샘플이 없습니다.")
-        sourceSection
-
-        NBPrivacyNoticeCard(
-          title: "개인 참고용 보기",
-          messages: [
-            "이날 기록된 데이터를 한곳에 모아 보여줍니다.",
-            "서로 다른 지표가 같은 날짜에 있어도 인과관계를 의미하지 않습니다.",
-            "이 화면은 개인 참고용이며 확정적 해석을 제공하지 않습니다.",
-          ],
-          systemImage: "info.circle"
-        )
-      }
+      DailyMeasurementDetailContent(
+        detailData: detailData,
+        allSamples: allSamples
+      )
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(SleepFormatters.shortDate(detailData.date))
   }
+}
+
+struct DailyMeasurementDetailContent: View {
+  let detailData: DailyMeasurementDetailData
+  let allSamples: [UnifiedHealthMetricSample]
+  var headerTitle: String = "이날 기록된 데이터"
+
+  private let catalog = MetricCatalog.default
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+      header
+
+      if !detailData.summary.hasAnyData {
+        HealthDataEmptyStateView(
+          title: "해당 날짜에 데이터가 없습니다",
+          message: "다른 날짜를 선택하거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요."
+        )
+      }
+
+      sleepSection
+      morningCheckInSection
+      eveningCheckInSection
+      metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "이날 기록된 혈압 샘플이 없습니다.")
+      metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "이날 기록된 체성분 샘플이 없습니다.")
+      metricSection(title: "Fitdays 확장 체성분", systemImage: "square.and.arrow.down", samples: detailData.fitdaysExtendedSamples, emptyMessage: "이날 가져온 Fitdays 확장 지표가 없습니다.")
+      metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "이날 기록된 활동 샘플이 없습니다.")
+      metricSection(title: "앱 계산 지표", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "이날 앱 계산 지표 샘플이 없습니다.")
+      sourceSection
+
+      NBPrivacyNoticeCard(
+        title: "개인 참고용 보기",
+        messages: [
+          "이날 기록된 데이터를 한곳에 모아 보여줍니다.",
+          "서로 다른 지표가 같은 날짜에 있어도 인과관계를 의미하지 않습니다.",
+          "이 화면은 개인 참고용이며 확정적 해석을 제공하지 않습니다.",
+        ],
+        systemImage: "info.circle"
+      )
+    }
+  }
 
   private var header: some View {
-    NBReportSection(title: "이날 기록된 데이터", systemImage: "calendar.badge.clock") {
+    NBReportSection(title: headerTitle, systemImage: "calendar.badge.clock") {
       LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
         NBMetricCard(
           title: "건강 샘플",

@@ -122,6 +122,7 @@ struct DailyMeasurementDetailTests {
     func dailyMeasurementRowsNavigateToMetricDetailAndShowSourceBadges() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 
+        #expect(contents.contains("DailyMeasurementDetailContent"))
         #expect(contents.contains("DailyMetricSampleRow"))
         #expect(contents.contains("MetricDetailView("))
         #expect(contents.contains("MetricSourceBadgeStrip"))
