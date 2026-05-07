@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import SleepSoundCore
 
 @Suite("Privacy Copy Safety")
 struct PrivacyCopySafetyTests {
@@ -257,6 +258,7 @@ struct PrivacyCopySafetyTests {
   func appAudioFileWritesAreLimitedToShortSampleStores() throws {
     let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     let appRoot = repositoryRoot.appendingPathComponent("SleepSoundApp")
+    let writerSignature = "try " + "AVAudioFile(forWriting"
     let allowedSuffixes = [
       "SleepSoundApp/Core/Storage/EventAudioSnippetStore.swift",
       "SleepSoundApp/Features/Settings/SampleCaptureView.swift",
@@ -264,13 +266,81 @@ struct PrivacyCopySafetyTests {
 
     for fileURL in swiftAndMarkdownFiles(under: appRoot) where fileURL.pathExtension == "swift" {
       let contents = try String(contentsOf: fileURL, encoding: .utf8)
-      guard contents.contains("AVAudioFile(forWriting") else { continue }
+      guard contents.contains(writerSignature) else { continue }
 
       #expect(
         allowedSuffixes.contains { fileURL.path.hasSuffix($0) },
         "\(fileURL.path) writes audio outside the approved short sample stores."
       )
     }
+  }
+
+  @Test
+  func allAudioFileWritersStayInApprovedAppDebugOrTestScopes() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let scannedRoots = [
+      repositoryRoot.appendingPathComponent("SleepSoundApp"),
+      repositoryRoot.appendingPathComponent("Tests"),
+      repositoryRoot.appendingPathComponent("Tools/OfflineEvaluation"),
+    ]
+    let writerSignature = "try " + "AVAudioFile(forWriting"
+    let allowedSuffixes = [
+      "SleepSoundApp/Core/Storage/EventAudioSnippetStore.swift",
+      "SleepSoundApp/Features/Settings/SampleCaptureView.swift",
+      "Tests/DatasetReplayAudioSourceTests.swift",
+      "Tests/OfflineEvaluationSupportTests.swift",
+    ]
+
+    for fileURL in textFiles(in: scannedRoots) where fileURL.pathExtension == "swift" {
+      let contents = try String(contentsOf: fileURL, encoding: .utf8)
+      guard contents.contains(writerSignature) else { continue }
+
+      #expect(
+        allowedSuffixes.contains { fileURL.path.hasSuffix($0) },
+        "\(fileURL.path) writes audio outside approved app/debug/test scopes."
+      )
+    }
+  }
+
+  @Test
+  func eventAudioSnippetPolicyDefaultsMatchPrivacyAudit() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let audit = try String(
+      contentsOf: repositoryRoot.appendingPathComponent("Docs/PRIVACY_STORAGE_AUDIT.md"),
+      encoding: .utf8
+    )
+    let policy = EventAudioSnippetPolicy.default
+
+    #expect(policy.preEventSeconds == 2)
+    #expect(policy.postEventSeconds == 3)
+    #expect(policy.maxSnippetDuration == 10)
+    #expect(policy.maxSnippetsPerSession == 100)
+    #expect(policy.maxFolderSizeBytes == 200 * 1_024 * 1_024)
+    #expect(policy.maxSnippetAge == 7 * 24 * 60 * 60)
+
+    #expect(audit.contains("이벤트 전 2초"))
+    #expect(audit.contains("이벤트 후 3초"))
+    #expect(audit.contains("샘플 최대 10초"))
+    #expect(audit.contains("세션당 최대 100개"))
+    #expect(audit.contains("폴더 최대 200MB"))
+    #expect(audit.contains("보관 기준 7일"))
+  }
+
+  @Test
+  func privacySettingsKeepsOptInAndDeletionCopyVisible() throws {
+    let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    let source = try String(
+      contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Settings/PrivacySettingsView.swift"),
+      encoding: .utf8
+    )
+
+    #expect(source.contains("이벤트 오디오 샘플 저장"))
+    #expect(source.contains("기본값은 꺼짐입니다"))
+    #expect(source.contains("전체 밤 오디오는 저장하지 않습니다"))
+    #expect(source.contains("서버로 전송하지 않습니다"))
+    #expect(source.contains("연결되지 않은 샘플 정리"))
+    #expect(source.contains("저장된 이벤트 오디오 샘플 전체 삭제"))
+    #expect(source.contains("HealthKit에 데이터를 쓰지 않고"))
   }
 
   private func swiftAndMarkdownFiles(under root: URL) -> [URL] {

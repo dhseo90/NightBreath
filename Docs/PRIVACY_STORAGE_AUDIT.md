@@ -85,6 +85,15 @@ rg -n "AVAudioFile|AVAudioRecorder|\\bwrite\\b|Documents|Caches|FileManager|\\.w
 - 세션당 샘플 개수 제한을 넘지 않아야 합니다.
 - 샘플 폴더 용량 제한을 넘지 않아야 합니다.
 
+현재 `EventAudioSnippetPolicy.default` 기준:
+
+- 이벤트 전 2초
+- 이벤트 후 3초
+- 샘플 최대 10초
+- 세션당 최대 100개
+- 폴더 최대 200MB
+- 보관 기준 7일
+
 설정이 꺼져 있으면 새 이벤트 오디오 샘플은 저장되지 않고, 수면 이벤트 요약과 리포트 수치만 남습니다.
 
 ## 저장소 위치와 통계
@@ -288,6 +297,22 @@ Tools/OfflineEvaluation/output/
 
 ```bash
 git ls-files "*.wav" "*.caf" "*.m4a"
+```
+
+## 자동 회귀 점검
+
+`PrivacyCopySafetyTests`와 `ReleaseReadinessGateTests`는 다음 privacy/storage 경계를 자동으로 확인합니다.
+
+- 앱 source의 `AVAudioFile(forWriting:)` 사용은 `EventAudioSnippetStore`와 DEBUG `SampleCaptureView`에만 허용합니다.
+- 테스트/offline evaluation용 오디오 writer는 synthetic fixture 생성에 한정합니다.
+- `EventAudioSnippetPolicy.default` 값은 이 문서의 이벤트 전/후 길이, 최대 길이, 세션당 개수, 폴더 용량, 보관 기준과 일치해야 합니다.
+- `PrivacySettingsView`에는 이벤트 샘플 opt-in, 기본값 OFF, 전체 밤 오디오 미저장, 서버 미전송, 삭제/정리 문구가 남아 있어야 합니다.
+- HealthKit write, 서버/네트워크 코드, 외부 SDK signature가 앱 source에 들어오면 실패합니다.
+
+Release 후보에서는 다음 명령으로 함께 실행합니다.
+
+```bash
+Tools/Release/audit_release_copy.sh
 ```
 
 ## 사용자 안내 문구
