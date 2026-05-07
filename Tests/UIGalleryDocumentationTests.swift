@@ -192,11 +192,57 @@ struct UIGalleryDocumentationTests {
     #expect(releaseApprovedCount == 0)
   }
 
+  @Test
+  func screenshotStatusManifestCoversGalleryAndScreenMapPngReferences() throws {
+    let rows = try screenshotStatusRows()
+    let manifestPaths = Set(rows.flatMap { row in
+      [row["raw_source"], row["review_asset"]]
+        .compactMap { $0 }
+        .filter { !$0.isEmpty }
+    })
+    let documentationFiles = [
+      "Docs/UI_GALLERY.md",
+      "Docs/UI_SCREEN_MAP.md",
+    ]
+
+    for relativePath in documentationFiles {
+      let contents = try sourceContents(relativePath)
+      let referencedPaths = try screenshotPNGPaths(in: contents)
+
+      for path in referencedPaths {
+        #expect(manifestPaths.contains(path), "\(relativePath) references \(path), but screenshot_status.tsv does not track it.")
+      }
+    }
+  }
+
   private func sourceContents(_ relativePath: String) throws -> String {
     try String(contentsOf: repositoryRoot().appendingPathComponent(relativePath), encoding: .utf8)
   }
 
   private func repositoryRoot() -> URL {
     URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+  }
+
+  private func screenshotStatusRows() throws -> [[String: String]] {
+    let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
+    let rows = manifest
+      .split(separator: "\n", omittingEmptySubsequences: true)
+      .map { String($0).split(separator: "\t", omittingEmptySubsequences: false).map(String.init) }
+    let header = try #require(rows.first)
+
+    return rows.dropFirst().map { row in
+      Dictionary(uniqueKeysWithValues: zip(header, row))
+    }
+  }
+
+  private func screenshotPNGPaths(in contents: String) throws -> Set<String> {
+    let regex = try NSRegularExpression(pattern: #"Docs/Screenshots/[^\s`\|\)\]]+\.png"#)
+    let nsRange = NSRange(contents.startIndex..<contents.endIndex, in: contents)
+    let matches = regex.matches(in: contents, range: nsRange)
+
+    return Set(matches.compactMap { match in
+      guard let range = Range(match.range, in: contents) else { return nil }
+      return String(contents[range])
+    })
   }
 }
