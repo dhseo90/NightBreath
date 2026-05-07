@@ -11,6 +11,7 @@ struct ReleaseReadinessGateTests {
         let reviewAudit = try contents("Docs/APP_REVIEW_AUDIT.md", root: root)
         let privacyAudit = try contents("Docs/PRIVACY_STORAGE_AUDIT.md", root: root)
         let qaGuide = try contents("Docs/QA_GUIDE.md", root: root)
+        let releaseAuditScript = try contents("Tools/Release/audit_release_copy.sh", root: root)
         let combinedReleaseDocs = [
             releaseGuide,
             productCopy,
@@ -24,6 +25,11 @@ struct ReleaseReadinessGateTests {
         #expect(releaseGuide.contains("AppStoreReadiness"))
         #expect(releaseGuide.contains("Privacy"))
         #expect(releaseGuide.contains("HealthKitReadOnlyPolicy"))
+        #expect(releaseGuide.contains("Tools/Release/audit_release_copy.sh"))
+        #expect(releaseAuditScript.contains("--filter ReleaseReadiness"))
+        #expect(releaseAuditScript.contains("--filter AppStoreReadiness"))
+        #expect(releaseAuditScript.contains("--filter PrivacyCopySafety"))
+        #expect(releaseAuditScript.contains("--filter HealthKitReadOnlyPolicy"))
         #expect(productCopy.contains("Primary Locale: ko-KR"))
         #expect(productCopy.contains("Secondary Locale: en-US"))
         #expect(productCopy.contains("서버 업로드나 클라우드 처리를 사용하지 않습니다"))
@@ -41,6 +47,66 @@ struct ReleaseReadinessGateTests {
         try assertAppSourceHasNoNetworkServerOrExternalSDK(root: root)
         try assertHealthKitImplementationStaysReadOnly(root: root)
         try assertAudioFileWritesStayInApprovedShortSampleStores(root: root)
+    }
+
+    @Test
+    func releaseFacingDocumentsAvoidMedicalNetworkAndIntegrationPromises() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let documentPaths = [
+            "Docs/APP_RELEASE_GUIDE.md",
+            "Docs/APP_REVIEW_AUDIT.md",
+            "Docs/APP_STORE_PRODUCT_PAGE_COPY.md",
+            "Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md",
+            "Docs/REAL_DEVICE_QA_RUNBOOK.md",
+            "Docs/PRIVACY_STORAGE_AUDIT.md",
+            "Docs/QA_GUIDE.md",
+        ]
+        let forbiddenPromisePhrases = [
+            "수면무호흡증을 진단합니다",
+            "수면무호흡증 진단 결과",
+            "AHI를 정확하게 측정합니다",
+            "이갈이를 확진합니다",
+            "질병을 판정합니다",
+            "치료가 필요합니다",
+            "정상입니다",
+            "코골이가 없었습니다",
+            "서버에 업로드합니다",
+            "클라우드에서 분석합니다",
+            "외부 API로 전송합니다",
+            "HealthKit에 기록합니다",
+            "HealthKit에 데이터를 씁니다",
+            "Fitdays와 자동 동기화합니다",
+            "Fitdays 서버/API에 직접 연결합니다",
+            "비공식 API를 사용합니다",
+            "전체 밤 원본 오디오를 저장합니다",
+        ]
+
+        for path in documentPaths {
+            let document = try contents(path, root: root)
+            for phrase in forbiddenPromisePhrases {
+                #expect(!document.contains(phrase), "\(path) contains forbidden release-facing promise: \(phrase)")
+            }
+        }
+    }
+
+    @Test
+    func releaseCopyAuditScriptStaysLocalAndTestOnly() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let script = try contents("Tools/Release/audit_release_copy.sh", root: root)
+        let forbiddenShellFragments = [
+            "curl ",
+            "wget ",
+            "gh ",
+            "git push",
+            "URLSession",
+            "open ",
+        ]
+
+        #expect(script.contains("xcrun swift test"))
+        #expect(script.contains("--no-parallel"))
+        for fragment in forbiddenShellFragments {
+            #expect(!script.contains(fragment), "Release audit script should stay local/test-only: \(fragment)")
+        }
     }
 
     private var restrictedClaimPhrases: [String] {

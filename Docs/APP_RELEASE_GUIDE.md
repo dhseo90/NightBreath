@@ -225,13 +225,16 @@ TestFlight blocking gate:
 실기기 QA와 별도로, release branch나 TestFlight 후보를 만들기 전에는 아래 자동 점검을 실행합니다.
 
 ```sh
-xcrun swift test --filter ReleaseReadiness --filter AppStoreReadiness --filter Privacy --filter HealthKitReadOnlyPolicy
+Tools/Release/audit_release_copy.sh
 ```
+
+이 스크립트는 `ReleaseReadiness`, `AppStoreReadiness`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
 - App Store product page copy와 release 문서가 개인정보/HealthKit/read-only 경계를 유지하는지 확인합니다.
 - 금지 의료 표현, 건강 상태 단정, 원인과 결과 단정 문구가 release 문서에 들어가지 않았는지 확인합니다.
+- 서버 업로드, 클라우드 분석, 외부 API 전송, Fitdays 자동 동기화 같은 긍정형 약속 문구가 release-facing 문서에 들어가지 않았는지 확인합니다.
 - 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
 - `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
