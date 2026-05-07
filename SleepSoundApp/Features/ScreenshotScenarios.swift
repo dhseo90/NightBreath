@@ -266,7 +266,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .fitdaysImport:
       "파일 선택 CTA, 로컬 import 원칙, HealthKit write 없음 안내가 보이게 캡처합니다."
     case .fitdaysImportResult:
-      "synthetic import 결과, 생성 샘플 수, 알 수 없는 column, 미리보기 목록이 보이게 캡처합니다."
+      "예시 import 결과, 생성 샘플 수, 알 수 없는 column, 미리보기 목록이 보이게 캡처합니다."
     case .healthMetricsOverview:
       "HealthKit 기반 지표와 Fitdays 로컬 전용 지표, 기간 선택, 카테고리 row가 보이게 캡처합니다."
     case .healthCalendar:
@@ -415,6 +415,7 @@ enum ScreenshotScenarioFactory {
     )
 
     state.applySimulatorQAScenario(scenario.simulatorPreset)
+    state.latestReportSource = .sample
     state.microphonePermissionState = .granted
     state.morningCheckIn = makeScreenshotMorningCheckIn(sessionId: state.latestSession.id)
 
@@ -434,7 +435,7 @@ enum ScreenshotScenarioFactory {
       dryMouth: true,
       soreThroat: false,
       rememberedAwakenings: 1,
-      memo: "Simulator 예시 기록"
+      memo: "예시 기록"
     )
   }
 
@@ -448,7 +449,7 @@ enum ScreenshotScenarioFactory {
       lateMeal: false,
       exercise: true,
       nap: false,
-      memo: "Simulator 예시 기록"
+      memo: "예시 기록"
     )
   }
 
@@ -587,7 +588,7 @@ enum ScreenshotScenarioFactory {
         awakeningSuspectedCount: index == 2 ? 1 : 0,
         longestSuspectedPause: 0,
         mostDisturbedHourRange: nil,
-        mainDisturbanceReason: "Simulator 예시 수면 소리 리포트입니다."
+        mainDisturbanceReason: "감지된 수면 중 소리 패턴을 참고용으로 정리했습니다."
       )
     }
   }
@@ -599,12 +600,12 @@ enum ScreenshotScenarioFactory {
       sourceName: "Fitdays CSV Import",
       sourceType: .fitdaysCSV,
       importedAt: referenceDate,
-      fileName: "synthetic_fitdays_preview.csv",
+      fileName: "fitdays_example_export.csv",
       rowCount: 4,
       sampleCount: fitdaysSamples.count,
       skippedRowCount: 1,
       errorCount: 1,
-      notes: "Screenshot scenario synthetic import result"
+      notes: "Screenshot scenario example import result"
     )
 
     return FitdaysImportResult(

@@ -109,7 +109,7 @@ EHM 원칙은 HealthKit 기반 지표와 Fitdays 로컬 전용 지표를 분리�
 - 피하지방률
 - 신체 나이 또는 Fitdays score 성격의 값
 
-사용자는 Fitdays 앱에서 직접 export/share한 CSV 또는 structured file을 선택해 가져옵니다. 앱은 선택된 로컬 파일을 기기 안에서 parsing하고, 결과를 `UnifiedHealthMetricSample`과 `ImportBatch`로 저장합니다.
+사용자는 Fitdays 앱에서 직접 export/share한 CSV 또는 structured file을 선택하거나, 월별 데이터 복사 텍스트를 붙여넣어 가져옵니다. 앱은 선택된 로컬 파일 또는 붙여넣은 structured text를 기기 안에서 parsing하고, 결과를 `UnifiedHealthMetricSample`과 `ImportBatch`로 저장합니다.
 
 Fitdays 확장 지표 원칙:
 

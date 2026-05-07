@@ -31,6 +31,7 @@ struct ReleaseReadinessGateTests {
         #expect(productCopy.contains("전체 밤 원본 오디오는 기본 저장하지 않습니다"))
         #expect(reviewAudit.contains("Required Scans Before Submission"))
         #expect(privacyAudit.contains("전체 밤 원본 오디오를 파일로 저장하는 코드는 없습니다"))
+        #expect(privacyAudit.contains("`.csv`, `.tsv`, `.txt` 외의 파일"))
         #expect(qaGuide.contains("Sensitive data included in repo: No"))
 
         for phrase in restrictedClaimPhrases {

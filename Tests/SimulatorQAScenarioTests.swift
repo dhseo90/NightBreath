@@ -170,8 +170,25 @@ struct SimulatorQAScenarioTests {
       #expect(simulatorScenarioView.contains(destination), "\(destination) should be reachable from screenshot launch routing.")
       #expect(captureScript.contains(croppedPath.replacingOccurrences(of: "cropped/", with: "")), "\(croppedPath) raw capture should be scripted.")
       #expect(screenshotGuide.contains(croppedPath), "\(croppedPath) should be documented in screenshot guide.")
-      #expect(uiGallery.contains(croppedPath), "\(croppedPath) should be linked in UI Gallery.")
+      #expect(uiGallery.contains(croppedPath), "\(croppedPath) should be tracked in UI Gallery.")
+      #expect(uiGallery.contains("quality review pending"), "Captured support/debug screenshots should stay quarantined until visual QA passes.")
     }
+  }
+
+  @Test
+  func screenshotScenariosDoNotExposeInternalQASourceInUserFacingData() throws {
+    let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+    let calibrationView = try sourceContents("SleepSoundApp/Features/Onboarding/CalibrationView.swift")
+
+    #expect(appState.contains("func applyScreenshotScenario(_ scenario: ScreenshotScenario)"))
+    #expect(appState.contains("latestReportSource = .sample"))
+    #expect(screenshotScenarios.contains("state.latestReportSource = .sample"))
+    #expect(!screenshotScenarios.contains("Simulator 예시 기록"))
+    #expect(!screenshotScenarios.contains("Simulator 예시 수면 소리 리포트입니다."))
+    #expect(!screenshotScenarios.contains("synthetic_fitdays_preview.csv"))
+    #expect(!calibrationView.contains("Simulator 예시 입력"))
+    #expect(screenshotScenarios.contains("fitdays_example_export.csv"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

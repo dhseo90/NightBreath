@@ -4,29 +4,24 @@ import Testing
 @Suite("UI Gallery Documentation")
 struct UIGalleryDocumentationTests {
   @Test
-  func uiGalleryImageMarkdownLinksResolveToExistingScreenshotFiles() throws {
-    let root = repositoryRoot()
+  func uiGalleryQuarantinesScreenshotImagesUntilQualityReviewPasses() throws {
     let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+    let readme = try sourceContents("README.md")
     let regex = try NSRegularExpression(pattern: #"!\[[^\]]*\]\((Screenshots/[^)\s]+)\)"#)
     let nsRange = NSRange(uiGallery.startIndex..<uiGallery.endIndex, in: uiGallery)
     let matches = regex.matches(in: uiGallery, range: nsRange)
 
-    #expect(!matches.isEmpty, "UI Gallery should contain captured screenshot image markdown links.")
-
-    for match in matches {
-      let pathRange = try #require(Range(match.range(at: 1), in: uiGallery))
-      let docsRelativePath = String(uiGallery[pathRange])
-      let fileURL = root.appendingPathComponent("Docs").appendingPathComponent(docsRelativePath)
-
-      #expect(
-        FileManager.default.fileExists(atPath: fileURL.path),
-        "\(docsRelativePath) should exist before UI Gallery links it as an image."
-      )
-    }
+    #expect(matches.isEmpty, "UI Gallery should not render screenshot candidates before visual QA passes.")
+    #expect(!readme.contains("<img src=\"Docs/Screenshots/"), "README should not render quarantined screenshot candidates.")
+    #expect(uiGallery.contains("Screenshot Quality Gate"))
+    #expect(uiGallery.contains("captured, quality review pending"))
+    #expect(uiGallery.contains("blocked, recapture required"))
+    #expect(uiGallery.contains("Simulator QA"))
+    #expect(readme.contains("품질 재검토 중"))
   }
 
   @Test
-  func capturedSupportAndDebugScreensStayDocumentedAsCaptured() throws {
+  func supportAndDebugScreensStayTrackedButNotRenderedUntilQualityReviewPasses() throws {
     let root = repositoryRoot()
     let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
     let screenMap = try sourceContents("Docs/UI_SCREEN_MAP.md")
@@ -45,8 +40,8 @@ struct UIGalleryDocumentationTests {
 
     #expect(uiGallery.contains("Privacy/Support"))
     #expect(uiGallery.contains("DEBUG observability"))
-    #expect(screenMap.contains("onboarding, device placement, calibration captured"))
-    #expect(screenMap.contains("replay, audio debug, sample capture captured"))
+    #expect(screenMap.contains("captured, quality review pending"))
+    #expect(screenMap.contains("internal-only, quality review pending"))
     #expect(!screenMap.contains("onboarding/device/calibration pending"))
     #expect(!screenMap.contains("replay/audio/sample capture pending"))
 
@@ -54,7 +49,8 @@ struct UIGalleryDocumentationTests {
       #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path), "\(path) should exist.")
 
       let galleryRelativePath = path.replacingOccurrences(of: "Docs/", with: "")
-      #expect(uiGallery.contains("](\(galleryRelativePath))"), "\(path) should be linked as a captured UI Gallery image.")
+      #expect(uiGallery.contains(galleryRelativePath), "\(path) should stay tracked in UI Gallery.")
+      #expect(!uiGallery.contains("](\(galleryRelativePath))"), "\(path) should not render as an image before quality review passes.")
       #expect(screenMap.contains(path), "\(path) should be listed in UI_SCREEN_MAP.")
       #expect(screenshotGuide.contains(galleryRelativePath.replacingOccurrences(of: "Screenshots/", with: "")), "\(path) should be documented in screenshot folder guide.")
     }
@@ -106,6 +102,8 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("mock/synthetic data"))
     #expect(uiGallery.contains("실제 개인 건강 데이터"))
     #expect(uiGallery.contains("실제 오디오 파일명"))
+    #expect(uiGallery.contains("blocked, recapture required"))
+    #expect(uiGallery.contains("release-approved가 아니며"))
 
     for fileName in expectedFiles {
       let rawPath = "Docs/Screenshots/AppStore/raw/\(fileName)"

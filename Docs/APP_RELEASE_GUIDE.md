@@ -67,6 +67,8 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 
 Screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 
+현재 저장된 README/App Store screenshot 후보는 2026-05-07 리뷰에서 품질 문제가 확인되어 release-approved가 아닙니다. 재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다.
+
 금지:
 
 - 실제 개인 건강 데이터
@@ -99,16 +101,16 @@ App Store screenshot은 아래 mock scenario와 headline copy를 우선 후보�
 
 Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드를 분리합니다. README 대표 카드는 `readmeRepresentative` display profile을 사용하고, App Store 후보 카드는 `appStoreMarketing` display profile을 사용합니다. App Store 후보 카드는 `privacyMinimal`/`minimal` 표시 수준을 기본으로 하며 실제 HealthKit/Fitdays source나 혈압, 체중, 체성분 같은 민감 수치를 노출하지 않습니다.
 
-| 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 안전 기준 |
-| --- | --- | --- | --- | --- |
-| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
-| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/README/cropped/sleep_report_light.png` | 점수와 이벤트는 개인 참고용으로 표현 |
-| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
-| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | 건강 상태나 원인과 결과를 단정하지 않음 |
-| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
-| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | HealthKit read-only와 Fitdays local-only 출처 구분 |
-| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
-| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
+| 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 현재 상태 | 안전 기준 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
+| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/README/cropped/sleep_report_light.png` | blocked, recapture required | 점수와 이벤트는 개인 참고용으로 표현 |
+| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | blocked, recapture required | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
+| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | blocked, recapture required | 건강 상태나 원인과 결과를 단정하지 않음 |
+| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
+| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | blocked, recapture required | HealthKit read-only와 Fitdays local-only 출처 구분 |
+| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | blocked, recapture required | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
+| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | blocked, recapture required | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
 
 App Store marketing capture source:
 
@@ -118,6 +120,12 @@ App Store marketing capture source:
 - App Store Connect size export script: `Tools/Screenshots/export_app_store_connect_screenshots.sh`
 
 Raw source는 App Store Connect size export 입력으로 사용하고, review crop은 내부 검토용으로만 사용합니다. 모든 파일은 DEBUG simulator scenario와 synthetic/mock data 기반이어야 합니다.
+
+재캡처 전 gate:
+
+- 내부 `Simulator QA` label, `synthetic` 파일명, local path, 실제 개인 데이터가 보이면 실패입니다.
+- fixed crop 결과만으로 승인하지 않고, raw/review crop/export PNG를 contact sheet로 확인합니다.
+- DEBUG-only 화면은 App Store screenshot 후보에서 제외합니다.
 
 Size export 기준:
 

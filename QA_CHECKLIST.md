@@ -10,7 +10,7 @@
 
 일상 개발 중 모든 변경마다 매번 수행하는 체크리스트가 아니라, 실제 기기 동작과 배포 전 위험을 확인할 때 사용하는 문서입니다.
 
-README screenshot과 `Docs/UI_GALLERY.md`는 mock data와 simulator scenario 기반 문서용 화면을 정리합니다. 이 체크리스트는 실제 기기에서 마이크, 권한, 저장소, 장시간 동작, HealthKit read-only 연결 상태를 확인하는 용도로 유지합니다.
+README screenshot과 `Docs/UI_GALLERY.md`는 mock data와 screenshot scenario 기반 문서용 화면을 정리합니다. 현재 기존 screenshot 후보는 품질 재검토 중이며, 내부 QA label 노출과 crop 정렬 문제가 해결되기 전에는 README/App Store/user-facing 문서에 렌더링하지 않습니다. 이 체크리스트는 실제 기기에서 마이크, 권한, 저장소, 장시간 동작, HealthKit read-only 연결 상태를 확인하는 용도로 유지합니다.
 
 README/UI Gallery의 문서용 screenshot은 실제 iPhone QA screenshot, 실제 개인 건강 데이터, 실제 오디오 샘플과 혼동하지 않습니다.
 
@@ -216,12 +216,12 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 ## 13. Extended Health Metrics / Fitdays import 확인
 
 - [ ] `HealthDashboardView`에서 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
-- [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택할 때만 import 흐름이 시작된다.
+- [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택하거나 `클립보드 붙여넣고 미리보기`를 눌렀을 때만 import 흐름이 시작된다.
 - [ ] 실제 Fitdays 앱에서 Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center 경로를 확인하고, 결과는 private note에만 남긴다.
 - [ ] 실제 Fitdays 앱에서 CSV/export 메뉴가 보이지 않으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 서버/API나 비공식 연결을 시도하지 않는다.
 - [ ] Fitdays 앱 버전, 로그인 상태, 실제 메뉴명, 실제 파일명, 실제 path, 실제 수치는 repository나 screenshot에 남기지 않는다.
 - [ ] export가 보이지 않아도 Fitdays 로그인, 서버/API 연결, 자동 동기화, UI scraping, reverse engineering을 추가하지 않는다.
-- [ ] valid synthetic CSV로 import preview와 import result가 표시된다.
+- [ ] valid synthetic CSV/TSV와 synthetic 월별 데이터 붙여넣기 텍스트로 import preview와 import result가 표시된다.
 - [ ] invalid CSV row는 앱을 멈추지 않고 skipped row로 표시된다.
 - [ ] 알 수 없는 column은 unknown column으로 표시되고 전체 import를 막지 않는다.
 - [ ] 지원 지표 column 없음 또는 import 가능한 sample 0개인 파일이 저장 전에 거부된다.

@@ -68,6 +68,7 @@
 - `MetricCatalog`
 - Fitdays CSV/import flow
 - Fitdays CSV/TSV/text import compatibility guard
+- Fitdays 월별 데이터 복사 텍스트 붙여넣기 import preview
 - Fitdays CSV/export 미확보 시 HealthKit read-only fallback UX
 - `ImportBatch`
 - synthetic Fitdays CSV fixture
@@ -101,12 +102,12 @@
 - mock/simulator screenshot 폴더 구조
 - DEBUG 전용 screenshot scenario preset
 - screenshot capture workflow 문서와 simctl helper script
-- README 대표 screenshot section
-- README 대표 mock/simulator screenshot 8개
-- README 대표 cropped screenshot 8개
-- UI Gallery screenshot/pending 연결
-- UI Gallery direct simulator screenshot 6개
-- 혈압/체성분/교차 보기와 health/metric/cross edge screenshot 6개
+- README 대표 screenshot section 품질 격리 상태 문서화
+- README 대표 mock/simulator screenshot 8개 후보 생성
+- README 대표 cropped screenshot 8개 후보 생성
+- UI Gallery screenshot/pending/quality review 연결
+- UI Gallery direct simulator screenshot 6개 후보 생성
+- 혈압/체성분/교차 보기와 health/metric/cross edge screenshot 6개 후보 생성
 - App Store screenshot mock scenario/headline plan
 - Daily Health Card 미리보기의 명시 액션 기반 로컬 PNG 생성/시스템 공유 sheet 연결
 - Daily Health Card 민감 수치 export confirmation sheet
@@ -120,8 +121,8 @@
 - App Icon generate/validate/review sheet 로컬 도구
 - App Store product page ko-KR/en-US 후보 copy 정리
 - Release readiness 자동 gate 테스트
-- UI Gallery screenshot captured/pending 상태와 App Store 후보 흐름 정리
-- UI Gallery screenshot link regression test
+- UI Gallery screenshot captured/pending/quality review 상태와 App Store 후보 재캡처 gate 정리
+- UI Gallery screenshot quarantine regression test
 
 ## 현재 개발 전략
 
@@ -153,6 +154,7 @@
 - App Store 제출
 - 실제 기기 홈 화면/Settings/TestFlight 표면의 최종 앱 아이콘 확인
 - App Store screenshot marketing final visual/export version
+- README/App Store screenshot 후보 재캡처와 visual QA 승인
 - App Store Connect 화면에서 product page copy 글자 수/locale 최종 확인
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export

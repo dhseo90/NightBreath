@@ -34,7 +34,7 @@ NightBreath는 수면 소리 리포트에서 출발해, 아침에 확인하는 �
 - 예시 건강 데이터 architecture: `HealthDataServiceProtocol`, `MockHealthDataService`, `DailyHealthSnapshotBuilder`로 Omron Connect/Fitdays/Apple Health 예시 source를 분리합니다.
 - HealthKit read-only 연동: 사용자가 건강 데이터 대시보드에서 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다.
 - Extended Health Metrics: HealthKit 표준 지표와 Fitdays CSV/로컬 전용 확장 지표를 `UnifiedHealthMetricSample`로 함께 표현합니다.
-- Fitdays CSV/import: 사용자가 직접 확보하고 선택한 CSV 또는 structured export 파일만 로컬에서 읽고, Files/Open in NightBreath 진입을 지원하며, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다. 파일을 확보하지 못하면 Apple 건강앱 read-only 표준 지표만 사용합니다.
+- Fitdays CSV/import: 사용자가 직접 확보하고 선택한 CSV, structured export 파일, 또는 월별 데이터 복사 텍스트만 로컬에서 읽고, Files/Open in NightBreath와 붙여넣기 진입을 지원하며, Fitdays 원격 서비스나 비공식 연결은 사용하지 않습니다. 구조화된 입력을 확보하지 못하면 Apple 건강앱 read-only 표준 지표만 사용합니다.
 - 건강 지표 통계/그래프: 7일/30일/90일/1년/전체 기간의 metric별 흐름, source, raw 샘플 목록을 확인합니다.
 - 월 건강 캘린더: 데이터가 있는 날짜를 표시하고, 날짜별 수면/건강/check-in/앱 계산 지표를 카테고리별로 봅니다.
 - 진단 목적 아님: 리포트는 개인 패턴을 살펴보기 위한 참고용 보기이며, 특정 건강 상태를 단정하거나 조치 판단을 제공하지 않습니다.
@@ -138,29 +138,20 @@ NightBreath의 주요 UI는 `Core/Design`의 NightBreath 디자인 시스템을 
 
 ## 주요 화면 미리보기
 
-아래 이미지는 예시 데이터와 simulator scenario로 생성된 화면입니다.
+대표 화면 캡처는 현재 품질 재검토 중입니다. 기존 README/App Store 후보 이미지는 crop 정렬과 내부 QA label 노출 문제가 확인되어 사용자-facing 문서에서 일시적으로 렌더링하지 않습니다.
 
-자세한 화면별 설명은 `Docs/UI_GALLERY.md`를 참고하세요.
+현재 문서에서 검토하는 대표 화면 범위:
 
-스크린샷은 예시 데이터와 simulator scenario를 사용하며 실제 개인 건강 데이터나 실제 오디오 데이터는 포함하지 않습니다.
+- 홈 대시보드
+- 수면 시작
+- 수면 리포트
+- 이벤트 타임라인
+- 아침 리포트
+- 오늘의 리듬 리포트
+- 하루 리듬 카드
+- 건강 데이터 대시보드
 
-DEBUG 빌드의 simulator screenshot preset과 캡처 절차는 `Tools/Screenshots/README.md`를 기준으로 합니다.
-
-| 홈 대시보드 | 수면 시작 |
-| --- | --- |
-| <img src="Docs/Screenshots/README/cropped/home_dashboard_light.png" width="260" alt="홈 대시보드"> | <img src="Docs/Screenshots/README/cropped/sleep_start_light.png" width="260" alt="수면 시작"> |
-
-| 수면 리포트 | 이벤트 타임라인 |
-| --- | --- |
-| <img src="Docs/Screenshots/README/cropped/sleep_report_light.png" width="260" alt="수면 리포트"> | <img src="Docs/Screenshots/README/cropped/sleep_timeline_light.png" width="260" alt="이벤트 타임라인"> |
-
-| 아침 리포트 | 오늘의 리듬 |
-| --- | --- |
-| <img src="Docs/Screenshots/README/cropped/morning_brief_light.png" width="260" alt="아침 리포트"> | <img src="Docs/Screenshots/README/cropped/daily_rhythm_report_light.png" width="260" alt="오늘의 리듬"> |
-
-| 하루 리듬 카드 | 건강 데이터 대시보드 |
-| --- | --- |
-| <img src="Docs/Screenshots/README/cropped/daily_health_card_light.png" width="260" alt="하루 리듬 카드"> | <img src="Docs/Screenshots/README/cropped/health_dashboard_light.png" width="260" alt="건강 데이터 대시보드"> |
+자세한 화면별 역할, 재캡처 대상, 품질 gate는 `Docs/UI_GALLERY.md`를 참고합니다. 캡처 절차는 `Tools/Screenshots/README.md`에서 관리합니다.
 
 ## V1에서 하지 않는 것
 

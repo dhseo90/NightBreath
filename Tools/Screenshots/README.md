@@ -2,6 +2,8 @@
 
 NightBreath / 밤숨의 README와 UI Gallery screenshot은 DEBUG 빌드에서 mock data 또는 simulator scenario만 사용해 생성합니다.
 
+2026-05-07 리뷰 기준 기존 README/App Store 후보 이미지는 crop 정렬과 내부 QA label 노출 문제가 확인되어 사용자-facing 문서에서 숨긴 상태입니다. 아래 workflow로 파일을 생성해도, contact sheet와 실제 문서 렌더링을 눈으로 확인하기 전에는 release-approved로 보지 않습니다.
+
 ## 준비
 
 1. Xcode 또는 `xcodebuild`로 DEBUG 빌드를 실행합니다.
@@ -103,9 +105,11 @@ Tools/Screenshots/crop_readme_screenshots.sh
 
 Crop 후에는 title, 주요 card, CTA가 잘리지 않는지 확인합니다. crop이 실패했거나 화면을 오해하게 만들면 fake screenshot을 만들지 않고 원본을 다시 capture하거나 crop 값을 조정합니다.
 
+현재 고정 crop 출력은 검토 후보입니다. 화면별로 좌우 치우침, 하단 잘림, 주요 content 가독성, 내부 QA label 노출 여부를 확인한 뒤 README에 연결합니다.
+
 ## README 대표 screenshot 파일
 
-현재 README는 아래 8개 light screenshot의 crop 버전을 대표 화면으로 사용합니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 합니다.
+현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, 품질 gate 통과 전에는 README에 렌더링하지 않습니다.
 
 - `Docs/Screenshots/README/home_dashboard_light.png`
 - `Docs/Screenshots/README/sleep_start_light.png`
@@ -196,6 +200,8 @@ SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,debugTools Tools/Screenshots/
 ## App Store Marketing Screenshot
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.
+
+현재 저장된 App Store 후보는 재캡처가 필요합니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
 
 ```bash
 Tools/Screenshots/capture_app_store_screenshots.sh

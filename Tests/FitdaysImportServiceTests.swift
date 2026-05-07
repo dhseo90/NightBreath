@@ -25,6 +25,7 @@ struct FitdaysImportServiceTests {
             FitdaysImportFallbackGuidance.privacyMessages
             + [FitdaysImportFallbackGuidance.emptyStateMessage]
             + [FitdaysImportFallbackGuidance.supportedFileSummary]
+            + [FitdaysImportFallbackGuidance.supportedPasteSummary]
             + [FitdaysImportFallbackGuidance.noImportablePreviewMessage]
             + [FitdaysImportFallbackGuidance.importErrorRecoveryMessage]
             + [FitdaysImportFallbackGuidance.exportUnavailableTitle]
@@ -37,6 +38,7 @@ struct FitdaysImportServiceTests {
         #expect(combined.contains("CSV/export가 보이지 않으면 Apple 건강앱 read-only 지표만 사용합니다."))
         #expect(combined.contains("파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."))
         #expect(combined.contains("지원 파일: .csv, .tsv, .txt"))
+        #expect(combined.contains("월별 데이터 복사 텍스트"))
         #expect(combined.contains("저장 가능한 샘플이 없습니다."))
         #expect(combined.contains("파일 구조를 확인하거나"))
         #expect(combined.contains("Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다."))
@@ -77,6 +79,102 @@ struct FitdaysImportServiceTests {
         #expect(bodyMass.sourceType == .fitdaysCSV)
         #expect(MetricCatalog.default.isExtendedLocalOnly(bodyWater.metricID))
         #expect(bodyWater.sourceType == .fitdaysCSV)
+    }
+
+    @Test
+    func previewImportFromPastedMonthlyTextUsesLocalFitdaysSourceWithoutFile() throws {
+        let pastedText = """
+        측정일\t측정시간\t체중\t체수분률\t내장지방 레벨
+        2026.05.01\t07:20\t71.8 kg\t56.4%\t8
+        2026.05.02\t07:25\t71.6 kg\t56.8%\t8
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.batch.fileName == "fitdays_pasted_monthly_text.tsv")
+        #expect(result.batch.sourceName == "Fitdays 붙여넣기")
+        #expect(result.batch.sourceType == .fitdaysCSV)
+        #expect(result.batch.rowCount == 2)
+        #expect(result.batch.sampleCount == 6)
+        #expect(result.samples.count == 6)
+        #expect(result.rowErrors.isEmpty)
+        #expect(Set(result.samples.map(\.sourceType)) == [.fitdaysCSV])
+        #expect(Set(result.samples.map(\.sourceName)) == ["Fitdays 붙여넣기"])
+        #expect(result.samples.allSatisfy { $0.notes?.contains("붙여넣은 Fitdays 월별 데이터") == true })
+        #expect(result.samples.allSatisfy { $0.externalRecordId?.contains("fitdays_pasted_monthly_text.tsv") == true })
+    }
+
+    @Test
+    func previewImportFromPastedMonthlyTextHandlesKoreanAMPMRows() throws {
+        let pastedText = """
+        측정일\t측정시간\t체중\t체지방률\t체수분률
+        2026. 5. 1.\t오전 7:20\t71.8 kg\t18.4%\t56.4%
+        2026. 5. 2.\t오후 9:05\t71.6 kg\t18.2%\t56.8%
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.batch.rowCount == 2)
+        #expect(result.batch.sampleCount == 6)
+        #expect(result.skippedRowCount == 0)
+        #expect(result.rowErrors.isEmpty)
+        #expect(Set(result.samples.map(\.metricID)) == [.bodyMass, .bodyFatPercentage, .bodyWaterPercentage])
+    }
+
+    @Test
+    func previewImportFromLooseFitdaysMonthlyClipboardTextCreatesSamples() throws {
+        let pastedText = """
+        2026년 5월
+        5월 1일 오전 7:20
+        체중 71.8kg
+        BMI 23.1
+        체지방률 18.4%
+        체수분률
+        56.4%
+        내장지방 레벨 8
+        5월 2일 오후 9:05
+        체중
+        71.6 kg
+        체수분률 56.8%
+        """
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+
+        #expect(result.batch.fileName == "fitdays_pasted_monthly_text.tsv")
+        #expect(result.batch.sourceName == "Fitdays 붙여넣기")
+        #expect(result.batch.rowCount == 12)
+        #expect(result.batch.sampleCount == 7)
+        #expect(result.samples.count == 7)
+        #expect(result.rowErrors.isEmpty)
+        #expect(result.unknownColumns.isEmpty)
+        #expect(Set(result.samples.map(\.metricID)) == [
+            .bodyMass,
+            .bodyMassIndex,
+            .bodyFatPercentage,
+            .bodyWaterPercentage,
+            .visceralFatLevel,
+        ])
+        #expect(result.samples.allSatisfy { $0.sourceType == .fitdaysCSV })
+        #expect(result.samples.allSatisfy { $0.sourceName == "Fitdays 붙여넣기" })
+    }
+
+    @Test
+    func importPastedTextPersistsSamplesAndRejectsEmptyPaste() throws {
+        let repository = InMemoryUnifiedHealthMetricSampleRepository()
+        let pastedText = """
+        Date\tTime\tWeight\tBody Water
+        2026-05-01\t07:20\t71.8\t56.4
+        """
+
+        let result = try service.importPastedText(pastedText, repository: repository)
+
+        #expect(repository.fetchBatches().map(\.id) == [result.batch.id])
+        #expect(repository.fetchSamples().count == 2)
+        #expect(throws: FitdaysImportError.emptyFile) {
+            try service.importPastedText(" \n\t ", repository: repository)
+        }
+        #expect(repository.fetchBatches().count == 1)
+        #expect(repository.fetchSamples().count == 2)
     }
 
     @Test
@@ -218,6 +316,15 @@ struct FitdaysImportServiceTests {
         let infoPlist = try sourceContents("SleepSoundApp/App/Info.plist")
 
         #expect(source.contains("FitdaysImportFallbackGuidance.supportedFileSummary"))
+        #expect(source.contains("FitdaysImportFallbackGuidance.supportedPasteSummary"))
+        #expect(source.contains("TextEditor(text: pastedTextBinding)"))
+        #expect(source.contains("previewPastedText"))
+        #expect(source.contains("pasteClipboardTextAndPreview"))
+        #expect(source.contains("clearPastedPreviewState"))
+        #expect(source.contains("importResult = nil"))
+        #expect(source.contains("UIPasteboard.general.string"))
+        #expect(source.contains("클립보드 붙여넣고 미리보기"))
+        #expect(source.contains("월별 데이터 붙여넣기"))
         #expect(source.contains("FitdaysImportFallbackGuidance.noImportablePreviewMessage"))
         #expect(source.contains("userFacingImportErrorMessage"))
         #expect(source.contains("FitdaysImportFallbackGuidance.importErrorRecoveryMessage"))

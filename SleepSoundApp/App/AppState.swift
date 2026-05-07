@@ -381,6 +381,7 @@ final class AppState: ObservableObject {
     func applyScreenshotScenario(_ scenario: ScreenshotScenario) {
         applySimulatorQAScenario(scenario.simulatorPreset)
         activeScreenshotScenario = scenario
+        latestReportSource = .sample
         microphonePermissionState = .granted
         morningCheckIn = ScreenshotScenarioFactory.makeScreenshotMorningCheckIn(sessionId: latestSession.id)
 

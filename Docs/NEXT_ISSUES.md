@@ -16,7 +16,7 @@
 
 - 최종 앱 아이콘 asset 검증 도구와 review sheet 준비 완료. 제출 전 실제 기기 홈 화면/TestFlight 표면 확인 필요
 - App Store screenshot headline copy와 mock scenario plan은 정리 완료
-- App Store screenshot marketing visual 재캡처와 App Store Connect size export
+- App Store screenshot marketing visual은 현재 blocked 상태입니다. 내부 QA label과 crop 품질 문제를 고친 뒤 재캡처하고 App Store Connect size export를 다시 실행합니다.
 - App Store Connect용 screenshot size/export 절차 정리
 - App Store product page copy 후보 정리 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
@@ -29,6 +29,7 @@
 - App Store screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 - 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 샘플을 사용하지 않습니다.
 - 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하지 않습니다.
+- 기존 README/App Store screenshot 후보는 release-approved가 아니며, 품질 gate 통과 전에는 README/App Store/user-facing 문서에 렌더링하지 않습니다.
 
 ## Daily Rhythm / Health Dashboard
 
@@ -48,13 +49,14 @@
 
 ## Extended Health Metrics / Fitdays Import
 
-- 실제 Fitdays 앱에서 CSV/export 메뉴가 보이는지 재확인
+- 실제 Fitdays 앱에서 CSV/export 메뉴와 월별 데이터 복사 텍스트 구조를 재확인
 - `Docs/QA_GUIDE.md`와 `Docs/HEALTH_DATA_GUIDE.md`의 실기기 export availability runbook 준비 완료
 - export 메뉴가 계속 보이지 않으면 Apple 건강앱 read-only 표준 지표를 기본 경로로 유지
 - `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
 - `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
+- 실제 Fitdays 월별 데이터 복사 텍스트를 확보한 경우 붙여넣기 preview/import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
 - Share Extension 필요 여부는 실제 export/share 경로가 확인된 뒤 결정
 - invalid CSV/TSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
@@ -140,15 +142,16 @@
 
 ## UI Gallery / Screenshot
 
-- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 README용 crop으로 반영 완료
-- README screenshot crop/재캡처는 앱 UI나 simulator device가 바뀔 때 유지보수 항목으로 관리
-- Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 반영 완료
-- SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario로 캡처 완료
-- 혈압, 체성분, 교차 보기와 health/metric/cross edge screenshot은 simulator direct scenario로 캡처 완료
-- onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 simulator direct scenario로 캡처 완료
-- App Store raw/review-cropped 후보 8개와 export 절차는 문서화 완료
-- `Docs/UI_GALLERY.md` image markdown 경로는 regression test로 실제 파일 존재 여부를 확인
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있지만 현재 `captured, quality review pending`입니다.
+- README screenshot은 crop 정렬, 주요 content 가독성, 내부 QA label 노출 여부를 다시 본 뒤 승인된 파일만 README에 렌더링합니다.
+- Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 후보 파일이 있으나 visual QA 전까지 문서에서 이미지 렌더링하지 않습니다.
+- SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.
+- 혈압, 체성분, 교차 보기와 health/metric/cross edge screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.
+- onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 simulator direct scenario 후보 파일이 있으나 DEBUG-only는 internal-only로 유지합니다.
+- App Store raw/review-cropped 후보 8개는 내부 `Simulator QA` label 노출 가능성 때문에 blocked/re-capture required 상태입니다.
+- `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
 - 직접 launch scenario가 없는 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 `screenshot pending` 항목으로 유지
+- 재캡처 후 contact sheet 기반 visual QA와 App Store export PNG 확인 절차 추가
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 

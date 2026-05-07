@@ -311,6 +311,9 @@ struct AppStoreReadinessTests {
         #expect(guide.contains("readmeRepresentative"))
         #expect(guide.contains("appStoreMarketing"))
         #expect(guide.contains("민감 수치를 노출하지 않습니다"))
+        #expect(guide.contains("blocked, recapture required"))
+        #expect(guide.contains("release-approved가 아닙니다"))
+        #expect(guide.contains("내부 `Simulator QA` label"))
 
         for (scenario, headline, screenshotPath) in expectedRows {
             #expect(guide.contains(scenario), "\(scenario) should be documented in the App Store screenshot plan.")
@@ -373,6 +376,9 @@ struct AppStoreReadinessTests {
         #expect(releaseGuide.contains("App Store marketing capture source"))
         #expect(releaseGuide.contains("DEBUG simulator scenario"))
         #expect(releaseGuide.contains("synthetic/mock data"))
+        #expect(screenshotGuide.contains("재캡처 전까지 사용 금지"))
+        #expect(toolGuide.contains("재캡처가 필요합니다"))
+        #expect(releaseGuide.contains("재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다"))
 
         for filename in expectedRawFiles {
             #expect(captureScript.contains(filename), "\(filename) should be part of the App Store capture script.")

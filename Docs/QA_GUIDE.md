@@ -488,15 +488,15 @@ Sensitive data included in repo: No
 
 ## Fitdays CSV Import QA
 
-Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 다만 2026-05-06 실제 사용 확인에서는 앱 안에서 명확한 CSV/export 메뉴를 찾지 못했습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
+Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data export request 경로에서 CSV 또는 CSV-compatible structured export 가능성이 있습니다. 2026-05-07 실제 사용 확인에서는 월별 데이터 복사 텍스트를 확보할 수 있는 경로가 확인되었습니다. 실제 앱 메뉴명은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 QA 기록에서는 확인한 메뉴명을 private note에만 남기고 repository에는 실제 파일명/path/값을 기록하지 않습니다.
 
 실기기 export availability 재확인 smoke:
 
 1. 실제 iPhone에서 Fitdays 앱 버전, 로그인 상태, 지역/언어 설정을 private note에만 기록합니다.
 2. Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center를 순서대로 확인합니다.
 3. Share / Export / Progress Report / Data Report / Export My Data / Personal Data Request처럼 보이는 항목이 있는지 확인합니다.
-4. CSV, TSV, text, email attachment, Files 저장, iCloud Drive 저장, AirDrop 공유 중 하나라도 가능한지 확인합니다.
-5. export가 보이면 실제 파일은 repository 밖에 저장하고, NightBreath에서는 파일 선택 또는 Open in NightBreath preview까지만 확인합니다.
+4. CSV, TSV, text, 월별 데이터 복사, email attachment, Files 저장, iCloud Drive 저장, AirDrop 공유 중 하나라도 가능한지 확인합니다.
+5. export가 보이면 실제 파일은 repository 밖에 저장하고, NightBreath에서는 파일 선택, Open in NightBreath preview, 또는 월별 데이터 붙여넣기 preview까지만 확인합니다.
 6. export가 보이지 않으면 Fitdays 앱을 더 파고들지 않고 Apple 건강앱 read-only fallback과 향후 로컬 입력 follow-up으로 기록합니다.
 7. 이 재확인은 Fitdays 서버/API 연결, 자동 로그인, UI scraping, 비공식 연결 방식, reverse engineering을 만들기 위한 근거로 사용하지 않습니다.
 
@@ -507,28 +507,31 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 5. CSV가 보이지 않으면 Account / Export My Data / Customer Service Center 경로를 확인합니다.
 6. 그래도 export 파일을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 고유 지표는 manual input follow-up으로 남깁니다.
 7. `FitdaysImportView`에 파일이 없어도 괜찮다는 fallback 섹션, CSV/export 메뉴를 찾지 못한 경우의 안내, 건강 데이터 대시보드 진입이 보이는지 확인합니다.
-8. 사용자가 명시적으로 파일을 선택할 때만 import가 시작되는지 확인합니다.
-9. valid CSV에서 preview, result, 샘플 개수, skipped row, unknown column이 표시되는지 확인합니다.
+8. 사용자가 명시적으로 파일을 선택하거나 월별 데이터 텍스트를 붙여넣고 미리보기를 눌렀을 때만 import preview가 시작되는지 확인합니다.
+9. valid CSV/TSV 또는 월별 데이터 복사 텍스트에서 preview, result, 샘플 개수, skipped row, unknown column이 표시되는지 확인합니다.
 10. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.
 11. localized column name, 단위 suffix, 날짜/시간 형식 차이가 flexible mapping으로 처리되는지 확인합니다.
 12. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
 13. Fitdays 확장 지표는 HealthKit 기반이 아니라 로컬 전용으로 설명되는지 확인합니다.
 14. import batch 삭제 흐름이 있으면 sample도 함께 사라지는지 확인합니다.
 15. Files 앱에서 `.csv`, `.tsv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
-16. unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
-17. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
-18. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
-19. Open in flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
-20. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
+16. `FitdaysImportView`의 `월별 데이터 붙여넣기`에서 `클립보드 붙여넣고 미리보기`를 눌러 synthetic TSV/text table preview가 생성되는지 확인합니다.
+17. 직접 입력칸에 붙여넣은 뒤 `입력 내용 미리보기`를 눌러도 같은 preview가 생성되는지 확인합니다.
+18. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
+19. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
+20. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
+21. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
+22. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
 
 ```text
 Export type: private Fitdays CSV or structured export / synthetic fixture
 App path checked: Reports / Data Reports / Chart / History Records / More Data / Customer Service Center
-NightBreath entry point: file picker / Open in NightBreath / Apple Health read-only fallback
-Fallback used: CSV export / data request / Apple Health read-only / manual follow-up
+NightBreath entry point: file picker / Open in NightBreath / pasted monthly text / Apple Health read-only fallback
+Fallback used: CSV export / monthly text copy / data request / Apple Health read-only / manual follow-up
 Export menu visible: yes / no
+Monthly text copy visible: yes / no
 Fitdays app version recorded in repo: no
 Fitdays account/login details recorded in repo: no
 If no export menu: Apple Health read-only fallback / manual input follow-up

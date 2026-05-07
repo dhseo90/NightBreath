@@ -32,6 +32,11 @@ struct ColumnMappingTests {
         #expect(mapping.metricID(for: "SubQ Fat") == .subcutaneousFatPercentage)
         #expect(mapping.metricID(for: "Body Age") == .metabolicAge)
         #expect(mapping.metricID(for: "BodyAge") == .metabolicAge)
+        #expect(mapping.metricID(for: "체수분율") == .bodyWaterPercentage)
+        #expect(mapping.metricID(for: "체지방율") == .bodyFatPercentage)
+        #expect(mapping.metricID(for: "내장 지방") == .visceralFatLevel)
+        #expect(mapping.metricID(for: "피하 지방율") == .subcutaneousFatPercentage)
+        #expect(mapping.metricID(for: "신체 나이") == .metabolicAge)
     }
 
     @Test

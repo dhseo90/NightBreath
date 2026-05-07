@@ -191,7 +191,7 @@ HealthKit 관련 adapter 경계는 read-only 방향으로 제한합니다. 권�
 
 ## Fitdays import 점검
 
-Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사용자가 직접 확보하고 선택한 CSV 또는 structured export 파일에서 로컬 `UnifiedHealthMetricSample`로 변환합니다. 실제 앱에서 CSV/export 경로가 보이지 않으면 이 import 경로는 사용하지 않고 Apple 건강앱 read-only 표준 지표만 사용합니다.
+Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사용자가 직접 확보하고 선택한 CSV, structured export 파일, 또는 월별 데이터 복사 텍스트에서 로컬 `UnifiedHealthMetricSample`로 변환합니다. 실제 앱에서 CSV/export 경로가 보이지 않으면 월별 데이터 복사 텍스트를 붙여넣어 미리볼 수 있고, 구조화된 입력을 확보하지 못하면 Apple 건강앱 read-only 표준 지표만 사용합니다.
 
 2026-05-04 조사 기준으로 Fitdays 공식 도움말은 Progress Report 공유 시 CSV 형식 선택을 언급하고, Fitdays privacy 문서는 History Records / Data Reports를 통한 CSV export를 설명합니다. Fitdays+ privacy 문서도 personal data를 CSV로 export 요청할 권리를 설명합니다. 다만 실제 메뉴명과 export 방식은 앱 버전, 지역, Fitdays/Fitdays+ 차이, 로그인 상태에 따라 달라질 수 있으므로 NightBreath는 사용자가 직접 확보한 로컬 파일만 입력으로 받습니다.
 
@@ -199,6 +199,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 
 - `FitdaysImportView`의 사용자 명시 파일 선택
 - iOS document type/open-in으로 전달된 CSV 또는 plain text export file preview
+- `FitdaysImportView`의 사용자 명시 `클립보드 붙여넣고 미리보기` 또는 월별 데이터 텍스트 입력 preview
 - `FitdaysImportService`의 로컬 CSV parsing, flexible column mapping, row validation
 - `ImportBatch`와 `UnifiedHealthMetricSample` 저장
 - HealthKit 표준 지표가 CSV에 포함된 경우에도 `sourceType == fitdaysCSV`로 저장
@@ -219,9 +220,10 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 
 현재 저장 원칙:
 
-- 선택된 CSV 또는 structured export 파일은 import 입력으로만 사용하고, 원본 파일 자체를 앱 repository나 screenshot asset으로 보관하지 않습니다.
+- 선택된 CSV, structured export 파일, 또는 붙여넣은 월별 데이터 텍스트는 import 입력으로만 사용하고, 원본 자체를 앱 repository나 screenshot asset으로 보관하지 않습니다.
 - file picker와 open-in document URL은 같은 preview validation을 통과해야 저장할 수 있습니다.
-- 앱은 `.csv`, `.txt` 외의 파일을 Fitdays import 입력으로 처리하지 않습니다.
+- pasted monthly text는 사용자 명시 버튼 또는 직접 입력 후 같은 parser와 preview validation을 통과해야 저장할 수 있습니다.
+- 앱은 `.csv`, `.tsv`, `.txt` 외의 파일을 Fitdays import 입력으로 처리하지 않습니다.
 - CSV 구조가 맞지 않는 plain text file은 저장 전에 실패합니다.
 - 측정일 column은 있지만 지원 지표 column이 없는 text 파일과 import 가능한 sample이 0개인 파일은 저장하지 않습니다.
 - import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.

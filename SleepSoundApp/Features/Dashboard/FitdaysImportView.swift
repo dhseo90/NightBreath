@@ -1,5 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
+#if os(iOS)
+import UIKit
+#endif
 
 struct FitdaysImportView: View {
   private let service: FitdaysImportService
@@ -11,6 +14,7 @@ struct FitdaysImportView: View {
   @State private var importResult: FitdaysImportResult?
   @State private var statusMessage: String?
   @State private var errorMessage: String?
+  @State private var pastedExportText = ""
   @State private var didPreviewInitialFile = false
 
   init(
@@ -34,6 +38,7 @@ struct FitdaysImportView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         headerSection
+        pastedTextSection
         policySection
         exportUnavailableSection
         fallbackSection
@@ -77,6 +82,10 @@ struct FitdaysImportView: View {
           .font(NBTypography.caption)
           .foregroundStyle(NBColor.secondaryText)
 
+        Text(FitdaysImportFallbackGuidance.supportedPasteSummary)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+
         if let statusMessage {
           NBStatusBadge(statusMessage, kind: .good, systemImage: "checkmark.circle")
         }
@@ -84,6 +93,77 @@ struct FitdaysImportView: View {
         if let errorMessage {
           NBStatusBadge(errorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
         }
+      }
+    }
+  }
+
+  private var pastedTextSection: some View {
+    NBReportSection(title: "월별 데이터 붙여넣기", systemImage: "doc.on.clipboard") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        Text("Fitdays에서 월별 데이터를 복사했다면 표 형태의 텍스트를 여기에 붙여넣고 저장 전 미리보기를 확인합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+
+        ZStack(alignment: .topLeading) {
+          TextEditor(text: pastedTextBinding)
+            .font(.system(.footnote, design: .monospaced))
+            .frame(minHeight: 150)
+            .padding(NBSpacing.small)
+            .background(NBColor.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.medium, style: .continuous))
+            .overlay(
+              RoundedRectangle(cornerRadius: NBCornerRadius.medium, style: .continuous)
+                .stroke(NBColor.divider)
+            )
+            .accessibilityLabel("Fitdays 월별 데이터 붙여넣기 입력")
+
+          if pastedExportText.isEmpty {
+            Text("Fitdays에서 복사한 월별 데이터 표를 붙여넣거나 아래 버튼을 누르세요.")
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
+              .padding(.horizontal, NBSpacing.medium)
+              .padding(.vertical, NBSpacing.medium)
+              .allowsHitTesting(false)
+          }
+        }
+
+        VStack(spacing: NBSpacing.small) {
+          #if os(iOS)
+          Button {
+            pasteClipboardTextAndPreview()
+          } label: {
+            Label("클립보드 붙여넣고 미리보기", systemImage: "doc.on.clipboard")
+              .frame(maxWidth: .infinity)
+          }
+          .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+          #endif
+
+          HStack(spacing: NBSpacing.small) {
+            Button {
+              previewPastedText()
+            } label: {
+              Label("입력 내용 미리보기", systemImage: "eye")
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.nbSecondary)
+            .disabled(trimmedPastedText.isEmpty)
+
+            Button {
+              clearPastedText()
+            } label: {
+              Label("비우기", systemImage: "xmark.circle")
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.nbSecondary)
+            .disabled(pastedExportText.isEmpty)
+          }
+        }
+
+        Text("붙여넣은 원문은 앱 밖이나 서버로 보내지 않고, 저장 버튼을 누른 뒤에도 변환된 로컬 샘플만 기기 안에 보관합니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -247,7 +327,7 @@ struct FitdaysImportView: View {
         }
 
         if result.samples.count > 8 {
-            Text("외 \(result.samples.count - 8)개 샘플")
+          Text("외 \(result.samples.count - 8)개 샘플")
             .font(NBTypography.footnote)
             .foregroundStyle(NBColor.secondaryText)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -269,6 +349,32 @@ struct FitdaysImportView: View {
       importResult = nil
       errorMessage = userFacingImportErrorMessage(error)
     }
+  }
+
+  private var trimmedPastedText: String {
+    pastedExportText.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private var pastedTextBinding: Binding<String> {
+    Binding(
+      get: { pastedExportText },
+      set: { newValue in
+        guard newValue != pastedExportText else { return }
+        pastedExportText = newValue
+        clearPastedPreviewState()
+      }
+    )
+  }
+
+  private func clearPastedText() {
+    pastedExportText = ""
+    clearPastedPreviewState()
+  }
+
+  private func clearPastedPreviewState() {
+    importResult = nil
+    statusMessage = nil
+    errorMessage = nil
   }
 
   private func userFacingImportErrorMessage(_ error: Error) -> String {
@@ -306,6 +412,36 @@ struct FitdaysImportView: View {
     } catch {
       importResult = nil
       errorMessage = error.localizedDescription
+    }
+  }
+
+  #if os(iOS)
+  private func pasteClipboardTextAndPreview() {
+    errorMessage = nil
+    statusMessage = nil
+
+    guard let clipboardText = UIPasteboard.general.string,
+          !clipboardText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+      importResult = nil
+      errorMessage = "클립보드에 붙여넣을 Fitdays 텍스트가 없습니다."
+      return
+    }
+
+    pastedExportText = clipboardText
+    previewPastedText(clipboardText)
+  }
+  #endif
+
+  private func previewPastedText(_ textOverride: String? = nil) {
+    errorMessage = nil
+    statusMessage = nil
+
+    do {
+      importResult = try service.previewImport(fromPastedText: textOverride ?? pastedExportText)
+      statusMessage = "붙여넣은 월별 데이터에서 저장 전 미리보기를 만들었습니다."
+    } catch {
+      importResult = nil
+      errorMessage = userFacingImportErrorMessage(error)
     }
   }
 
