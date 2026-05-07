@@ -30,7 +30,7 @@
 
 ## 현재 README 대표 screenshot
 
-다음 파일은 DEBUG simulator와 mock data 상태에서 생성한 후보입니다. 현재 README에서는 렌더링하지 않으며, 재캡처 또는 crop 재검토 후 승인된 파일만 다시 연결합니다.
+다음 파일은 DEBUG simulator와 mock data 상태에서 생성한 후보입니다. 2026-05-07 visual review에서 crop 정렬과 내부 QA label 노출 가능성이 확인되어 현재 상태는 `blocked, recapture required`입니다. README에서는 렌더링하지 않으며, 재캡처와 crop 재검토 후 승인된 파일만 다시 연결합니다.
 
 - `README/home_dashboard_light.png`
 - `README/sleep_start_light.png`
@@ -41,7 +41,7 @@
 - `README/daily_health_card_light.png`
 - `README/health_dashboard_light.png`
 
-README 본문에는 위 원본을 직접 쓰지 않고, status bar, 시간, Dynamic Island 영역과 하단 floating tab bar 겹침 영역을 제거한 crop 버전을 후보로 사용합니다. 단, 현재 crop 후보는 화면별 visual QA가 끝나지 않아 README에서 숨깁니다.
+README 본문에는 위 원본을 직접 쓰지 않고, status bar, 시간, Dynamic Island 영역과 하단 floating tab bar 겹침 영역을 제거한 crop 버전을 후보로 사용합니다. 단, 현재 crop 후보는 화면별 visual QA를 통과하지 못했으므로 README에서 숨깁니다.
 
 - 원본 위치: `Docs/Screenshots/README/*.png`
 - README용 crop 위치: `Docs/Screenshots/README/cropped/*.png`

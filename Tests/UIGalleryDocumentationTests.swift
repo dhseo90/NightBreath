@@ -16,6 +16,7 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("Screenshot Quality Gate"))
     #expect(uiGallery.contains("captured, quality review pending"))
     #expect(uiGallery.contains("blocked, recapture required"))
+    #expect(uiGallery.contains("| README 대표 8개 | blocked, recapture required |"))
     #expect(uiGallery.contains("Simulator QA"))
     #expect(readme.contains("품질 재검토 중"))
   }
@@ -159,6 +160,7 @@ struct UIGalleryDocumentationTests {
     #expect(toolGuide.contains("release-approved"))
 
     var appStoreBlockedCount = 0
+    var readmeBlockedCount = 0
     var debugInternalCount = 0
     var releaseApprovedCount = 0
 
@@ -177,6 +179,9 @@ struct UIGalleryDocumentationTests {
       if group == "App Store", status == "blocked, recapture required" {
         appStoreBlockedCount += 1
       }
+      if group == "README", status == "blocked, recapture required" {
+        readmeBlockedCount += 1
+      }
       if group == "Debug", status == "internal-only, quality review pending" {
         debugInternalCount += 1
       }
@@ -188,6 +193,7 @@ struct UIGalleryDocumentationTests {
     }
 
     #expect(appStoreBlockedCount == 8)
+    #expect(readmeBlockedCount == 8)
     #expect(debugInternalCount >= 4)
     #expect(releaseApprovedCount == 0)
   }

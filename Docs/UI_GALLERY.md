@@ -11,7 +11,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - 실제 screenshot 파일이 없는 화면은 `screenshot pending`으로 표시합니다.
 - 실제 파일이 생기기 전에는 README나 문서에 image markdown을 추가하지 않습니다.
 - README에는 품질 gate를 통과한 대표 화면만 싣고, 전체 화면과 edge state는 이 문서에서 관리합니다.
-- README 대표 screenshot은 `Docs/Screenshots/README/cropped/`의 crop 버전을 후보로 사용하되, visual QA를 통과하기 전에는 README에 렌더링하지 않습니다.
+- README 대표 screenshot은 `Docs/Screenshots/README/cropped/`의 crop 버전을 후보로 사용했지만, 현재는 재캡처가 필요하므로 README에 렌더링하지 않습니다.
 - README 대표 crop은 status bar, 시간, Dynamic Island 영역만 제거하고 화면 title과 주요 content는 유지해야 합니다.
 - 원본 capture는 `Docs/Screenshots/README/`에 보존하며, 상세 gallery screenshot은 화면별 필요에 따라 원본 또는 crop 버전을 구분해 관리합니다.
 - App Store 후보 screenshot은 `Docs/APP_RELEASE_GUIDE.md`와 함께 검토합니다.
@@ -27,7 +27,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - App Store 후보 `01_home_dashboard_light.png` 계열에 내부 QA source label인 `Simulator QA`가 노출되었습니다.
 - 고정 상하단 crop만으로 처리해 화면별 여백, 주요 card 위치, 하단 content 가독성이 충분히 검수되지 않았습니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
-- 파일 존재 여부는 `captured`가 아니라 `captured, quality review pending`으로 봅니다.
+- 파일 존재 여부만으로 승인하지 않습니다. README/App Store 후보는 현재 `blocked, recapture required`로 보고, 상세 gallery 후보만 `captured, quality review pending`으로 추적합니다.
 
 상태 source-of-truth:
 
@@ -47,7 +47,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 | 범위 | 상태 | 비고 |
 | --- | --- | --- |
-| README 대표 8개 | captured, quality review pending | `Docs/Screenshots/README/cropped/` 기준, README 렌더링 중단 |
+| README 대표 8개 | blocked, recapture required | crop 정렬과 내부 QA label 노출 여부를 재확인하기 전까지 README 렌더링 금지 |
 | Health/EHM 상세 | captured, quality review pending | Health overview, Fitdays import, calendar, metric detail, 혈압, 체성분, cross metric |
 | Privacy/Support | captured, quality review pending | privacy settings, onboarding, device placement, calibration |
 | Sleep/Edge direct scenario | captured, quality review pending | recording, zero-event, low coverage, event audio storage off, Health/Metric/Cross empty states |

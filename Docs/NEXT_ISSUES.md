@@ -149,7 +149,7 @@
 
 ## UI Gallery / Screenshot
 
-- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있지만 현재 `captured, quality review pending`입니다.
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있지만 현재 `blocked, recapture required`입니다.
 - README screenshot은 crop 정렬, 주요 content 가독성, 내부 QA label 노출 여부를 다시 본 뒤 승인된 파일만 README에 렌더링합니다.
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 후보 파일이 있으나 visual QA 전까지 문서에서 이미지 렌더링하지 않습니다.
 - SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.

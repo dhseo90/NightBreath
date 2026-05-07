@@ -137,6 +137,7 @@
 - UI Gallery screenshot quarantine regression test
 - Screenshot raw/crop contact sheet 생성 workflow
 - Screenshot approval status manifest
+- README screenshot 후보 blocked/recapture 상태와 문서 source-of-truth 정렬
 
 ## 현재 개발 전략
 
