@@ -230,13 +230,15 @@ Share Extension 후보:
 
 `FitdaysImportView`의 미리보기는 저장 전 단계입니다. `미리보기 판단` 섹션에서 처리한 row, 저장 가능한 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여주고, 사용자가 `로컬에 저장`을 누르기 전에는 저장소에 쓰지 않습니다.
 
+저장된 가져오기 기록은 같은 화면의 `저장된 가져오기` 섹션에서 확인합니다. 이 섹션은 현재 저장소 기준 샘플 수, 처리 row, 건너뜀/오류 count를 보여주고, 삭제 시 해당 `importBatchId`를 가진 로컬 샘플을 함께 제거합니다. 실제 파일명과 local path는 개인 정보가 섞일 수 있으므로 목록에 표시하지 않습니다.
+
 검증해야 할 상태:
 
 - valid CSV preview/result
 - invalid date/time row skip
 - unknown column warning
 - duplicate import handling
-- batch 삭제 시 관련 sample 삭제
+- `저장된 가져오기` 목록과 batch 삭제 시 관련 sample 삭제
 - 실제 파일명과 실제 개인 수치가 문서/screenshot에 노출되지 않음
 
 ## Health Dashboard

@@ -56,6 +56,7 @@
 - `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
 - 월별 붙여넣기 parser는 compact date와 주요 한국어 alias regression을 포함합니다. 실제 앱에서 새 구조가 확인되면 개인값 제거 후 fixture만 추가합니다.
 - import preview는 처리 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여줍니다.
+- 저장된 가져오기 기록은 현재 저장소 기준 샘플 수와 삭제 흐름을 제공하며, 실제 파일명/local path는 표시하지 않습니다.
 - Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays 월별 데이터 복사 텍스트를 확보한 경우 붙여넣기 preview/import QA
@@ -63,7 +64,7 @@
 - Share Extension 필요 여부는 실제 export/share 경로가 확인된 뒤 결정
 - invalid CSV/TSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
 - 지원 지표 column 없음, import 가능한 sample 0개인 파일을 저장 전에 거부하는지 확인
-- import result, batch 삭제, extended metric sample 삭제 흐름 확인
+- import result, batch 삭제, extended metric sample 삭제 흐름은 구현되어 있으며 실제 Fitdays 파일/붙여넣기 데이터로 manual QA 필요
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시 재점검
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강

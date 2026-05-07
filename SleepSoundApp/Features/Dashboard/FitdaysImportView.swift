@@ -16,6 +16,10 @@ struct FitdaysImportView: View {
   @State private var errorMessage: String?
   @State private var pastedExportText = ""
   @State private var didPreviewInitialFile = false
+  @State private var savedBatches: [ImportBatch] = []
+  @State private var savedSampleCountsByBatchID: [UUID: Int] = [:]
+  @State private var batchPendingDeletion: ImportBatch?
+  @State private var isDeleteBatchAlertPresented = false
 
   init(
     service: FitdaysImportService = FitdaysImportService(),
@@ -50,6 +54,8 @@ struct FitdaysImportView: View {
         } else {
           emptyState
         }
+
+        savedBatchesSection
       }
       .padding(NBSpacing.screenHorizontal)
     }
@@ -62,7 +68,20 @@ struct FitdaysImportView: View {
       allowsMultipleSelection: false,
       onCompletion: handleFileImporterResult
     )
-    .onAppear(perform: previewInitialFileIfNeeded)
+    .onAppear {
+      previewInitialFileIfNeeded()
+      reloadSavedImports()
+    }
+    .alert("가져오기 기록 삭제", isPresented: $isDeleteBatchAlertPresented) {
+      Button("삭제", role: .destructive) {
+        deletePendingBatch()
+      }
+      Button("취소", role: .cancel) {
+        batchPendingDeletion = nil
+      }
+    } message: {
+      Text("이 기록으로 저장된 로컬 샘플도 함께 삭제합니다. 원본 파일은 앱에 저장하지 않았기 때문에 삭제 대상이 아닙니다.")
+    }
   }
 
   private var headerSection: some View {
@@ -410,6 +429,105 @@ struct FitdaysImportView: View {
     }
   }
 
+  private var savedBatchesSection: some View {
+    NBReportSection(title: "저장된 가져오기", systemImage: "externaldrive") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        if savedBatches.isEmpty {
+          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+            Text("아직 로컬에 저장한 Fitdays 가져오기 기록이 없습니다.")
+              .font(NBTypography.callout)
+              .foregroundStyle(NBColor.primaryText)
+            Text("미리보기 확인 후 로컬에 저장을 누르면 이곳에서 저장된 기록과 샘플 수를 확인하고 삭제할 수 있습니다.")
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        } else {
+          ForEach(savedBatches) { batch in
+            savedBatchRow(batch)
+
+            if batch.id != savedBatches.last?.id {
+              Divider().overlay(NBColor.divider)
+            }
+          }
+        }
+
+        Text("개인 정보가 파일명에 들어갈 수 있어 저장된 목록에는 실제 파일명이나 local path를 표시하지 않습니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+
+  private func savedBatchRow(_ batch: ImportBatch) -> some View {
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      HStack(alignment: .top, spacing: NBSpacing.medium) {
+        VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+          Text(batch.sourceName)
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Text("\(SleepFormatters.shortDate(batch.importedAt)) \(SleepFormatters.shortTime(batch.importedAt)) · \(batch.sourceType.displayName)")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+        }
+
+        Spacer(minLength: NBSpacing.small)
+
+        Button(role: .destructive) {
+          requestDeleteBatch(batch)
+        } label: {
+          Label("삭제", systemImage: "trash")
+            .labelStyle(.iconOnly)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityLabel("가져오기 기록 삭제")
+      }
+
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+        NBMetricCard(
+          title: "저장 샘플",
+          value: "\(savedSampleCountsByBatchID[batch.id] ?? batch.sampleCount)",
+          systemImage: "tray.full",
+          tint: NBColor.mistTeal,
+          footnote: "현재 저장소 기준"
+        )
+
+        NBMetricCard(
+          title: "처리 row",
+          value: "\(batch.rowCount)",
+          systemImage: "tablecells",
+          tint: NBColor.privacyTint,
+          footnote: "가져오기 당시"
+        )
+
+        NBMetricCard(
+          title: "건너뜀",
+          value: "\(batch.skippedRowCount)",
+          systemImage: "arrow.uturn.forward",
+          tint: batch.skippedRowCount > 0 ? NBColor.warning : NBColor.success,
+          footnote: "row"
+        )
+
+        NBMetricCard(
+          title: "오류",
+          value: "\(batch.errorCount)",
+          systemImage: "exclamationmark.triangle",
+          tint: batch.errorCount > 0 ? NBColor.warning : NBColor.success,
+          footnote: "row"
+        )
+      }
+
+      if let notes = batch.notes, !notes.isEmpty {
+        Text(notes)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
   private func diagnosticTextBlock(title: String, messages: [String]) -> some View {
     VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
       Text(title)
@@ -540,8 +658,39 @@ struct FitdaysImportView: View {
       try repository.save(batch: result.batch, samples: result.samples)
       statusMessage = "로컬 저장소에 \(result.importedSampleCount)개 샘플을 저장했습니다."
       errorMessage = nil
+      reloadSavedImports()
     } catch {
       errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"
+    }
+  }
+
+  private func reloadSavedImports() {
+    let batches = repository.fetchBatches()
+    savedBatches = batches
+    savedSampleCountsByBatchID = Dictionary(
+      uniqueKeysWithValues: batches.map { batch in
+        (batch.id, repository.fetchSamples(importBatchId: batch.id.uuidString).count)
+      }
+    )
+  }
+
+  private func requestDeleteBatch(_ batch: ImportBatch) {
+    batchPendingDeletion = batch
+    isDeleteBatchAlertPresented = true
+  }
+
+  private func deletePendingBatch() {
+    guard let batch = batchPendingDeletion else { return }
+
+    do {
+      try repository.deleteBatch(id: batch.id)
+      statusMessage = "선택한 Fitdays 가져오기 기록과 관련 샘플을 삭제했습니다."
+      errorMessage = nil
+      batchPendingDeletion = nil
+      reloadSavedImports()
+    } catch {
+      errorMessage = "batch 삭제에 실패했습니다: \(error.localizedDescription)"
+      batchPendingDeletion = nil
     }
   }
 

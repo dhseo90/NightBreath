@@ -197,7 +197,7 @@ Metric detail 원칙:
 
 Import result UI 원칙:
 
-- `FitdaysImportView`는 파일 선택, 가져오기 미리보기, 결과, skipped row, unknown column, error count를 분리해 보여줍니다.
+- `FitdaysImportView`는 파일 선택, 가져오기 미리보기, 결과, 저장된 가져오기 기록, skipped row, unknown column, error count를 분리해 보여줍니다.
 - unknown column은 실패가 아니라 mapping rule 확장 후보로 안내합니다.
 - invalid row는 전체 import를 막기보다 건너뛰고 결과에서 row count를 명확히 보여줍니다.
 - 실제 개인 CSV 파일명이나 local path는 screenshot과 README 대표 이미지에 노출하지 않습니다.
