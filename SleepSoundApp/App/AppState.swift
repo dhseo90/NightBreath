@@ -17,7 +17,7 @@ enum SleepReportSource: Equatable {
         case .deviceAnalysis:
             "기기 분석 리포트"
         case .simulatorQA:
-            "Simulator QA"
+            "검증용 예시"
         }
     }
 

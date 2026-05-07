@@ -191,6 +191,18 @@ struct SimulatorQAScenarioTests {
     #expect(screenshotScenarios.contains("fitdays_example_export.csv"))
   }
 
+  @Test
+  func userFacingScreenshotLaunchScenariosUsePublicReportSourceCopy() throws {
+    let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+
+    #expect(appState.contains("func applyScreenshotScenario(_ scenario: ScreenshotScenario)"))
+    #expect(appState.contains("latestReportSource = .sample"))
+    #expect(appState.contains("case .simulatorQA:\n            \"검증용 예시\""))
+    #expect(!appState.contains("case .simulatorQA:\n            \"Simulator QA\""))
+    #expect(screenshotScenarios.contains("state.latestReportSource = .sample"))
+  }
+
   private func sourceContents(_ relativePath: String) throws -> String {
     let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)

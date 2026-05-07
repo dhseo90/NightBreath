@@ -24,7 +24,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 현재 저장된 screenshot 후보는 다음 이유로 README/App Store/사용자-facing 문서에 바로 노출하지 않습니다.
 
-- App Store 후보 `01_home_dashboard_light.png` 계열에 내부 QA source label인 `Simulator QA`가 노출되었습니다.
+- App Store 후보 `01_home_dashboard_light.png` 계열에 내부 QA source label인 `Simulator QA`가 노출되었습니다. 이후 코드에서는 user-facing screenshot launch scenario가 public source copy를 사용하도록 보강했지만, 기존 image 파일은 재캡처 전까지 계속 blocked입니다.
 - 고정 상하단 crop만으로 처리해 화면별 여백, 주요 card 위치, 하단 content 가독성이 충분히 검수되지 않았습니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
 - 파일 존재 여부만으로 승인하지 않습니다. README/App Store 후보는 현재 `blocked, recapture required`로 보고, 상세 gallery 후보만 `captured, quality review pending`으로 추적합니다.

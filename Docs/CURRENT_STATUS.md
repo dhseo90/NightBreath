@@ -147,6 +147,7 @@
 - Screenshot raw/crop contact sheet 생성 workflow
 - Screenshot approval status manifest
 - README screenshot 후보 blocked/recapture 상태와 문서 source-of-truth 정렬
+- user-facing screenshot launch scenario의 내부 QA source badge 노출 방지
 
 ## 현재 개발 전략
 
