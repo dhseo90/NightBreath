@@ -51,40 +51,44 @@ Daily Rhythm 전환 이후 README에는 홈, 수면 시작, 수면 리포트, �
 ## Navigation 구조
 
 ```text
-HomeDashboardView
-- DailyMeasurementDetailView
-- HealthCalendarView
-- SleepStartView
+TabView
+- 홈 tab: HomeDashboardView
+  - DailyMeasurementDetailView
+  - HealthCalendarView
+  - SleepReportView
+    - SleepTimelineView
+    - MorningCheckInView
+    - PrivacySettingsView
+  - MorningBriefView
+  - DailyRhythmReportView
+  - EveningCheckInView
+  - DailyHealthCardPreviewView
+    - DailyHealthCardView
+  - TrendDashboardView
+  - HealthDashboardView
+- 수면 tab: SleepStartView
   - DevicePlacementGuideView
     - CalibrationView
   - PrivacySettingsView
   - SleepRecordingView
     - SleepReportView
-- SleepReportView
-  - SleepTimelineView
-  - MorningCheckInView
-  - PrivacySettingsView
-- MorningBriefView
-- DailyRhythmReportView
-- EveningCheckInView
-- DailyHealthCardPreviewView
-  - DailyHealthCardView
-- TrendDashboardView
-- HealthDashboardView
+- 건강 tab: HealthDashboardView
   - HealthMetricsOverviewView
     - MetricDetailView
   - HealthCalendarView
     - DailyMeasurementDetailContent
     - MetricDetailView
   - FitdaysImportView
+    - DailyMeasurementDetailView
   - BloodPressureDashboardView
   - BodyCompositionDashboardView
   - CrossMetricDashboardView
-- PrivacySettingsView
-- DevicePlacementGuideView
+- 설정 tab: SettingsListView
+  - PrivacySettingsView
+  - DevicePlacementGuideView
 ```
 
-Navigation은 기존 SwiftUI `NavigationLink` 흐름을 유지합니다. 홈은 최근 리포트와 수면 시작 CTA의 허브 역할을 하고, 리포트 화면은 타임라인과 아침 체크인으로 이어지는 상세 흐름을 제공합니다.
+Navigation은 기존 SwiftUI `NavigationLink` 흐름을 유지합니다. 홈은 최근 리포트와 수면 시작 CTA의 허브 역할을 하고, 수면/건강/설정은 하단 tab에서 직접 진입합니다. 리포트 화면은 타임라인과 아침 체크인으로 이어지는 상세 흐름을 제공합니다.
 
 ## DEBUG 전용 화면
 

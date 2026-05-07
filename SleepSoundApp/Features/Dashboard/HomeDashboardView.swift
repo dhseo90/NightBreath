@@ -33,6 +33,14 @@ struct HomeDashboardView: View {
       }
 
       NavigationStack {
+        HealthDashboardView()
+          .navigationTitle("건강")
+      }
+      .tabItem {
+        Label("건강", systemImage: "heart.text.square")
+      }
+
+      NavigationStack {
         SettingsListView()
           .navigationTitle("설정")
       }

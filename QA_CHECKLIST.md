@@ -215,7 +215,7 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 
 ## 13. Extended Health Metrics / Fitdays import 확인
 
-- [ ] `HealthDashboardView`에서 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
+- [ ] 하단 `건강` tab에서 `HealthDashboardView`로 바로 들어갈 수 있고, 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
 - [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택하거나 `클립보드 붙여넣고 미리보기`를 눌렀을 때만 import 흐름이 시작된다.
 - [ ] 실제 Fitdays 앱에서 Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center 경로를 확인하고, 결과는 private note에만 남긴다.
 - [ ] 실제 Fitdays 앱에서 CSV/export 메뉴가 보이지 않으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 서버/API나 비공식 연결을 시도하지 않는다.

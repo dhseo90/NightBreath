@@ -87,6 +87,7 @@
 - Fitdays 월별 붙여넣기 compact date / Korean alias parser regression
 - Fitdays import 미리보기 판단 섹션
 - Fitdays 저장된 가져오기 기록/삭제 UI
+- Fitdays 저장 완료 후 최신 가져온 날짜 상세 바로가기
 - Fitdays CSV/export 미확보 시 HealthKit read-only fallback UX
 - `ImportBatch`
 - synthetic Fitdays CSV fixture
@@ -102,6 +103,7 @@
 - 월 건강 캘린더
 - HealthCalendarView
 - DailyMeasurementDetailView
+- 하단 건강 tab의 HealthDashboardView 직접 진입
 - MetricDetailView
 - EHM 관련 unit test
 - EHM 관련 문서

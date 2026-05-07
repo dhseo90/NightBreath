@@ -20,6 +20,8 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("HomeHealthQuickValueChip"))
         #expect(contents.contains("latestSample(.bodyMass)"))
         #expect(contents.contains("latestSample(.systolicBloodPressure)"))
+        #expect(contents.contains("Label(\"건강\", systemImage: \"heart.text.square\")"))
+        #expect(contents.contains("HealthDashboardView()"))
         #expect(!contents.contains("requestReadPermission"))
     }
 
