@@ -131,6 +131,7 @@
               NBDiagnosticItem(title: "추정 원인", value: analysis.probableReason.displayName, status: .caution),
               NBDiagnosticItem(title: "분석 confidence", value: percentString(analysis.confidence), status: .debug),
               NBDiagnosticItem(title: "raw 후보 수", value: "\(diagnostics.rawCandidateCount)개", status: .neutral),
+              NBDiagnosticItem(title: "입력 레벨 평가", value: diagnostics.inputLevelAssessmentDisplayText, status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .good),
               NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
             ],
             showsDetails: true,

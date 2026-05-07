@@ -155,6 +155,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - `snoreRawCandidateCount`, `snoreRejectedCount`, `snoreRejectReasonTop`
 - `rejectReasonCounts` top 3
 - RMS/energy p50/p90, low-band p50/p90, zero crossing p50, spectral centroid p50
+- `inputLevelAssessment`
 - `thresholdSnapshot`, `activeDetectorBackend`, `tuningProfile`, `modelInstalled`, `fallbackUsed`
 - `latestFeatureDebugSummary`, `latestRawCandidateDebugSummary`
 
@@ -170,6 +171,7 @@ DEBUG 확인:
 zero-event 판독:
 
 - 실제 오디오 수신이 거의 없으면 capture/background 문제를 먼저 봅니다.
+- audio coverage는 충분하지만 `inputLevelAssessment == goodCoverageLowInputLevel`이면 detector 민감도를 더 올리기 전에 iPhone 거리, 마이크 방향, 케이스/침구 가림을 먼저 확인합니다.
 - audio coverage는 충분하지만 코골기 feature 후보와 raw 후보가 모두 0개이면 feature scale과 threshold snapshot을 비교합니다.
 - 코골기 feature 후보는 있었지만 raw 후보가 0개이면 `snoreLikeFeatureRejectReasonCounts`와 `latestFeatureDebugSummary`를 확인합니다.
 - raw 후보는 있었지만 post-smoothing이 0이면 confidence/duration/drop reason을 확인합니다.

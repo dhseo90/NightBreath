@@ -120,6 +120,37 @@ struct DetectorDiagnosticsCollectorTests {
     }
 
     @Test
+    func collectorKeepsVeryLowInputDistantSnoreTextureVisibleAsNearMiss() throws {
+        let collector = makeCollector()
+        let features = makeFeatures(
+            rms: 0.00024,
+            energy: 0.00000006,
+            startedAt: Date(timeIntervalSince1970: 26.5),
+            lowBandEnergy: 0.78,
+            midBandEnergy: 0.14,
+            highBandEnergy: 0.08,
+            zeroCrossingRate: 0.06,
+            spectralCentroid: 700,
+            estimatedNoiseLevel: 0.00024
+        )
+
+        collector.record(features: features, outputs: [])
+        let diagnostics = try finalized(collector)
+
+        #expect(diagnostics.rawCandidateCount == 0)
+        #expect(diagnostics.snoreLikeFeatureCandidateCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectedCount == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.inputLevelTooLow] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowRmsThreshold] == 1)
+        #expect(diagnostics.snoreLikeFeatureRejectReasonCounts[.belowEnergyThreshold] == 1)
+        #expect(diagnostics.rejectedCountByReason[.inputLevelTooLow] == 1)
+        #expect(diagnostics.rejectedCountByReason[.likelySilence] == 1)
+        #expect(diagnostics.inputLevelLooksTooLowForPlacement)
+        #expect(diagnostics.inputLevelAssessment == "goodCoverageLowInputLevel")
+        #expect(diagnostics.summaryTextForZeroEvents?.contains("입력 레벨") == true)
+    }
+
+    @Test
     func collectorDoesNotTreatBroadbandLowLevelNoiseAsSnoreNearMiss() throws {
         let collector = makeCollector()
         let features = makeFeatures(
@@ -241,8 +272,12 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(markdown.contains("snore:1"))
         #expect(markdown.contains("belowConfidenceThreshold"))
         #expect(markdown.contains("Threshold Snapshot"))
+        #expect(markdown.contains("inputLevelAssessment"))
         #expect(markdown.contains("원본 오디오"))
         #expect(csv.contains("snoreRawCandidateCount"))
+        #expect(csv.contains("postSmoothingEventCountByType"))
+        #expect(!csv.contains("postSmoothingCandidateCountByType"))
+        #expect(csv.contains("inputLevelAssessment"))
         #expect(csv.contains("rmsP90"))
         #expect(csv.contains("zeroEventSummary"))
 
@@ -309,6 +344,37 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(reasons.contains(.belowRmsThreshold))
         #expect(reasons.contains(.belowEnergyThreshold))
         #expect(reasons.contains(.belowLowBandRatio))
+    }
+
+    @Test
+    func inferredRejectReasonsIncludeInputLevelTooLowForDistantTexture() {
+        let features = makeFeatures(
+            rms: 0.00024,
+            energy: 0.00000006,
+            startedAt: Date(timeIntervalSince1970: 91),
+            lowBandEnergy: 0.78,
+            midBandEnergy: 0.14,
+            highBandEnergy: 0.08,
+            zeroCrossingRate: 0.06,
+            spectralCentroid: 700,
+            estimatedNoiseLevel: 0.00024
+        )
+        let reasons = RejectReason.inferredForFeatureWithoutOutput(
+            features,
+            thresholdsSnapshot: [
+                "rule.silenceRMS": 0.01,
+                "rule.snoreRMS": 0.05,
+                "rule.lowLevelSnoreRMS": 0.0275,
+                "rule.lowLevelSnoreEnergy": 0.00049,
+                "rule.lowLevelSnoreLowBandRatio": 0.64,
+                "tuning.snoreEnergyThreshold": 0.0025,
+            ]
+        )
+
+        #expect(reasons.contains(.inputLevelTooLow))
+        #expect(reasons.contains(.likelySilence))
+        #expect(reasons.contains(.belowRmsThreshold))
+        #expect(reasons.contains(.belowEnergyThreshold))
     }
 
     @Test
@@ -419,7 +485,8 @@ struct DetectorDiagnosticsCollectorTests {
                 receivedAudioSeconds: 60,
                 analyzedAudioSeconds: 60,
                 receivedChunkCount: 60,
-                analyzedChunkCount: 60
+                analyzedChunkCount: 60,
+                audioCoverageRatio: 1
             )
         ))
     }

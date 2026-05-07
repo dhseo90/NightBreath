@@ -35,7 +35,7 @@
 확인 순서:
 
 1. `audioChunkCount`, `analyzedChunkCount`, `receivedAudioSeconds`, `analyzedAudioSeconds`, `audioCoverageRatio`로 실제 입력과 분석 시간이 충분했는지 확인합니다.
-2. `rmsSummary`, `energySummary`, `lowBandEnergySummary`, `zeroCrossingRateSummary`, `spectralCentroidSummary`의 p50/p90 값을 threshold snapshot과 비교합니다.
+2. `rmsSummary`, `energySummary`, `lowBandEnergySummary`, `zeroCrossingRateSummary`, `spectralCentroidSummary`의 p50/p90 값을 threshold snapshot과 비교하고 `inputLevelAssessment`를 확인합니다.
 3. `snoreLikeFeatureCandidateCount`와 `snoreLikeFeatureRejectReasonCounts`로 feature 단계의 코골기 유사 신호가 raw 후보 전 단계에서 제외되었는지 확인합니다.
 4. `rawCandidateCountByType`에서 `snore` 후보가 올라왔는지 확인합니다.
 5. `preSmoothingCandidateCountByType`와 `postSmoothingEventCountByType`를 비교해 raw 후보가 smoothing 단계에서 사라졌는지 봅니다.
@@ -44,6 +44,8 @@
 8. `latestFeatureDebugSummary`, `latestRawCandidateDebugSummary`, `detectorBackend`, `tuningProfile`, `modelInstalled`, `modelFallbackCount`, `fallbackUsed`를 함께 기록합니다.
 
 DEBUG 빌드에서는 `SleepReportView`, `DetectorTuningView`, `DatasetReplayView`의 `QA readout 공유` 버튼으로 같은 diagnostics를 markdown 텍스트로 뽑을 수 있습니다. 이 readout은 raw/pre/post/final count, snore feature/raw/reject path, RMS/energy/band p50/p90, threshold snapshot, backend/fallback 상태만 포함하며 원본 오디오, 이벤트 오디오 샘플 파일 경로, 개인 오디오 파일 경로는 포함하지 않습니다.
+
+`inputLevelAssessment == goodCoverageLowInputLevel`이면 capture는 충분했지만 실제 RMS/energy p90/p99가 저진폭 코골기 후보 기준보다 크게 낮았다는 뜻입니다. 이 경우 “민감도 한 칸 더”보다 iPhone 배치, 마이크 방향, 케이스/침구 가림을 먼저 확인하고, 같은 배치에서 짧은 foreground 입력 테스트 또는 DEBUG 샘플로 feature scale을 비교합니다.
 
 zero-event 해석 문구는 다음 범위를 넘지 않습니다.
 
@@ -95,6 +97,7 @@ Diagnostics 변경:
 - `thresholdSnapshot`에 저진폭 guard key가 `rule.*`로 남습니다.
 - `snoreLikeFeatureCandidateCount`는 기존 near-threshold RMS뿐 아니라 저진폭 low-band 후보도 잡습니다.
 - raw 후보로 올라오지 못한 경우 `snoreLikeFeatureRejectReasonCounts`에 RMS/energy/low-band/environmental-noise 계열 이유가 남습니다.
+- 매우 낮은 RMS라도 low-band, 낮은 ZCR, 낮은 high-band/centroid texture가 있으면 raw 전 near-miss로 남기고, `inputLevelTooLow` reject reason과 `inputLevelAssessment`로 배치/입력 부족 가능성을 분리합니다.
 
 False-positive-like guard:
 

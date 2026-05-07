@@ -2,6 +2,7 @@ import Foundation
 
 public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
     case audioNotReceivedEnough
+    case inputLevelTooLowForPlacement
     case audioReceivedButNoRawCandidates
     case snoreLikeFeaturesRejectedBeforeRaw
     case detectorTooConservative
@@ -19,6 +20,8 @@ public enum ZeroEventProbableReason: String, Codable, CaseIterable, Sendable {
         switch self {
         case .audioNotReceivedEnough:
             "오디오 수신 부족"
+        case .inputLevelTooLowForPlacement:
+            "입력 레벨/배치 확인 필요"
         case .audioReceivedButNoRawCandidates:
             "오디오 수신 후 raw 후보 없음"
         case .snoreLikeFeaturesRejectedBeforeRaw:
@@ -76,6 +79,14 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
                 probableReason: .audioNotReceivedEnough,
                 recommendedDebugAction: "먼저 백그라운드/잠금 테스트에서 실제 오디오 수신 시간과 녹음 커버리지를 확인하세요.",
                 confidence: 0.88
+            )
+        }
+
+        if diagnostics.inputLevelLooksTooLowForPlacement {
+            return ZeroEventAnalysis(
+                probableReason: .inputLevelTooLowForPlacement,
+                recommendedDebugAction: "오디오는 충분히 수신됐지만 RMS/energy p90/p99가 저진폭 코골기 후보 기준보다 크게 낮았습니다. iPhone을 침대 쪽으로 조금 더 가깝게 두고 마이크가 막히지 않았는지 30초 foreground 입력 테스트로 확인하세요.",
+                confidence: 0.86
             )
         }
 

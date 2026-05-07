@@ -70,6 +70,7 @@ pipeline count 필드:
 - `snoreRawCandidateCount`
 - `snoreRejectedCount`
 - `snoreRejectReasonTop`
+- `inputLevelAssessment`
 - `latestFeatureDebugSummary`
 - `latestRawCandidateDebugSummary`
 - `thresholdSnapshot`
@@ -81,6 +82,7 @@ pipeline count 필드:
 판독 기준:
 
 - audio chunk가 거의 없으면 먼저 capture/background 상태를 확인합니다.
+- audio coverage는 충분한데 `inputLevelAssessment == goodCoverageLowInputLevel`이면 실제 입력 RMS/energy가 저진폭 코골기 후보 기준보다 크게 낮은 상태입니다. 이 경우 threshold를 바로 낮추기보다 iPhone 거리, 마이크 방향, 케이스/침구 가림을 먼저 짧은 foreground 테스트로 비교합니다.
 - 코골기 feature 후보와 raw 후보가 모두 0개이면 RMS/energy/low-band 분포가 threshold 근처까지 올라왔는지 확인합니다.
 - 코골기 feature 후보는 있지만 raw 후보가 0개이면 `snoreLikeFeatureRejectReasonCounts`로 RMS, energy, low-band ratio, confidence 근접 여부를 확인합니다.
 - raw 후보는 있는데 post-smoothing이 0이면 confidence, duration, merge/drop reason을 봅니다.

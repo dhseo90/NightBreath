@@ -78,6 +78,36 @@ struct ZeroEventAnalysisTests {
     }
 
     @Test
+    func detectsGoodCoverageButInputLevelTooLowForPlacement() throws {
+        let diagnostics = makeDiagnostics(
+            rawCandidateCount: 1,
+            rawCandidateCountByType: [.movementLike: 1],
+            snoreLikeFeatureCandidateCount: 1,
+            snoreLikeFeatureRejectedCount: 1,
+            snoreLikeFeatureRejectReasonCounts: [.inputLevelTooLow: 1],
+            rmsValues: [0.00015, 0.00037, 0.00084],
+            energyValues: [0.00000002, 0.00000014, 0.00000071],
+            lowBandValues: [0.64, 0.92, 0.98],
+            thresholdsSnapshot: [
+                "rule.silenceRMS": 0.008,
+                "rule.snoreRMS": 0.040,
+                "rule.lowLevelSnoreRMS": 0.022,
+                "rule.lowLevelSnoreEnergy": 0.0003146,
+                "rule.lowLevelSnoreLowBandRatio": 0.64,
+                "tuning.snoreEnergyThreshold": 0.0016,
+            ]
+        )
+
+        let analysis = try #require(ZeroEventAnalysis.make(diagnostics: diagnostics))
+
+        #expect(diagnostics.inputLevelLooksTooLowForPlacement)
+        #expect(diagnostics.summaryTextForZeroEvents?.contains("입력 레벨") == true)
+        #expect(analysis.probableReason == .inputLevelTooLowForPlacement)
+        #expect(analysis.recommendedDebugAction.contains("iPhone"))
+        #expect(analysis.recommendedDebugAction.contains("마이크"))
+    }
+
+    @Test
     func detectorTooConservativeAnalysisWorksAcrossDebugProfiles() throws {
         for profile in DetectorTuningProfile.debugSelectableProfiles {
             let configuration = profile.configuration
@@ -217,7 +247,9 @@ struct ZeroEventAnalysisTests {
         snoreLikeFeatureRejectedCount: Int = 0,
         snoreLikeFeatureRejectReasonCounts: [RejectReason: Int] = [:],
         rmsValues: [Double] = [0.02, 0.03],
-        energyValues: [Double] = [0.0004, 0.0009]
+        energyValues: [Double] = [0.0004, 0.0009],
+        lowBandValues: [Double] = [0.1, 0.2],
+        thresholdsSnapshot: [String: Double] = DetectorTuningProfile.balanced.configuration.thresholdSnapshot
     ) -> DetectorDiagnostics {
         let sessionId = UUID()
         let startedAt = Date()
@@ -249,10 +281,10 @@ struct ZeroEventAnalysisTests {
             energySummary: SummaryStats.make(values: energyValues),
             zeroCrossingRateSummary: SummaryStats.make(values: [0.1, 0.2]),
             spectralCentroidSummary: SummaryStats.make(values: [800, 1_400]),
-            lowBandEnergySummary: SummaryStats.make(values: [0.1, 0.2]),
+            lowBandEnergySummary: SummaryStats.make(values: lowBandValues),
             midBandEnergySummary: SummaryStats.make(values: [0.1, 0.2]),
             highBandEnergySummary: SummaryStats.make(values: [0.1, 0.2]),
-            thresholdsSnapshot: DetectorTuningProfile.balanced.configuration.thresholdSnapshot,
+            thresholdsSnapshot: thresholdsSnapshot,
             tuningProfile: DetectorTuningProfile.balanced.displayName,
             eventAudioSampleStorageEnabled: false,
             notes: []

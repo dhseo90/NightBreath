@@ -366,6 +366,7 @@ struct SleepReportView: View {
                 NBDiagnosticItem(title: "pre-smoothing by type", value: eventCountText(diagnostics.preSmoothingCandidateCountByType), status: .debug),
                 NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
                 NBDiagnosticItem(title: "snore-like feature rejected", value: "\(diagnostics.snoreLikeFeatureRejectedCount)개, \(featureRejectReasonText(diagnostics))", status: diagnostics.snoreLikeFeatureRejectedCount > 0 ? .caution : .good),
+                NBDiagnosticItem(title: "input level assessment", value: diagnostics.inputLevelAssessmentDisplayText, status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .good),
                 NBDiagnosticItem(title: "threshold snapshot", value: thresholdSnapshotText(diagnostics), status: .debug),
                 NBDiagnosticItem(title: "RMS min/p50/p90/max", value: "\(shortNumber(diagnostics.rmsMin)) / \(shortNumber(diagnostics.rmsP50)) / \(shortNumber(diagnostics.rmsP90)) / \(shortNumber(diagnostics.rmsMax))", status: .neutral),
                 NBDiagnosticItem(title: "Energy min/p50/p90/max", value: "\(shortNumber(diagnostics.energyMin)) / \(shortNumber(diagnostics.energyP50)) / \(shortNumber(diagnostics.energyP90)) / \(shortNumber(diagnostics.energyMax))", status: .neutral),
@@ -416,6 +417,7 @@ struct SleepReportView: View {
                 NBDiagnosticItem(title: "코골기 feature/raw/제외", value: "\(diagnostics.snoreLikeFeatureCandidateCount) / \(diagnostics.snoreRawCandidateCount) / \(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)", status: .debug),
                 NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
                 NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
+                NBDiagnosticItem(title: "입력 레벨 평가", value: diagnostics.inputLevelAssessmentDisplayText, status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .good),
                 NBDiagnosticItem(title: "주요 탈락 이유", value: topRejectReasonText(diagnostics), status: .caution),
               ],
                 showsDetails: true

@@ -14,6 +14,7 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
     case smoothingDropped
     case likelyEnvironmentalNoise
     case likelySilence
+    case inputLevelTooLow
     case insufficientBreathingContext
     case noRecoveryPattern
     case likelySilenceOnly
@@ -49,6 +50,8 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
             "환경 소음 가능성"
         case .likelySilence:
             "무음/저활동 가능성"
+        case .inputLevelTooLow:
+            "입력 레벨 낮음"
         case .insufficientBreathingContext:
             "이전 호흡 맥락 부족"
         case .noRecoveryPattern:
@@ -81,9 +84,18 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
         let lowLevelSnoreLowBandRatio = thresholdsSnapshot["rule.lowLevelSnoreLowBandRatio"] ?? 0.64
         let snoreRelativeEnergyRatio = thresholdsSnapshot["rule.snoreRelativeEnergyRatio"] ?? 1.35
         let relativeEnergy = Self.relativeEnergyRatio(features: features, silenceRMS: silenceRMS)
+        let distantLowInputHint = Self.isDistantLowInputSnoreLikeHint(
+            features: features,
+            silenceRMS: silenceRMS,
+            lowLevelSnoreRMS: lowLevelSnoreRMS,
+            lowLevelSnoreLowBandRatio: lowLevelSnoreLowBandRatio
+        )
 
         if features.isLikelySilence || features.rms < silenceRMS {
             reasons.append(.likelySilence)
+        }
+        if distantLowInputHint {
+            reasons.append(.inputLevelTooLow)
         }
         if features.rms < snoreRMS {
             reasons.append(.belowRmsThreshold)
@@ -125,6 +137,22 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
             reasons.append(.unknown)
         }
         return unique(reasons)
+    }
+
+    static func isDistantLowInputSnoreLikeHint(
+        features: AudioFeatures,
+        silenceRMS: Double,
+        lowLevelSnoreRMS: Double,
+        lowLevelSnoreLowBandRatio: Double
+    ) -> Bool {
+        let minimumObservableRMS = max(silenceRMS * 0.015, 0.00012)
+        return features.rms >= minimumObservableRMS &&
+            features.rms < max(silenceRMS, lowLevelSnoreRMS) &&
+            features.energy > 0 &&
+            features.lowFrequencyEnergyRatio >= max(0.70, lowLevelSnoreLowBandRatio) &&
+            features.zeroCrossingRate <= 0.20 &&
+            features.highBandEnergy <= 0.22 &&
+            features.spectralCentroid <= 1_800
     }
 
     private static func relativeEnergyRatio(features: AudioFeatures, silenceRMS: Double) -> Double {
@@ -580,6 +608,55 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var spectralCentroidP50: Double { spectralCentroidSummary.p50 }
     public var thresholdSnapshot: [String: Double] { thresholdsSnapshot }
 
+    public var inputLevelLooksTooLowForPlacement: Bool {
+        guard finalEventCountByType.values.reduce(0, +) == 0,
+              analyzedAudioSeconds >= 60,
+              audioCoverageRatio >= 0.75,
+              rmsSummary.count > 0,
+              energySummary.count > 0 else {
+            return false
+        }
+
+        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"]
+            ?? thresholdsSnapshot["tuning.silenceRmsThreshold"]
+            ?? 0.01
+        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"]
+            ?? thresholdsSnapshot["tuning.snoreRmsThreshold"]
+            ?? 0.05
+        let lowLevelSnoreRMS = thresholdsSnapshot["rule.lowLevelSnoreRMS"]
+            ?? max(silenceRMS * 2.2, snoreRMS * 0.55)
+        let lowLevelSnoreEnergy = thresholdsSnapshot["rule.lowLevelSnoreEnergy"]
+            ?? lowLevelSnoreRMS * lowLevelSnoreRMS * 0.65
+        let lowLevelSnoreLowBandRatio = thresholdsSnapshot["rule.lowLevelSnoreLowBandRatio"] ?? 0.64
+        let p99FarBelowLowLevelRMS = rmsSummary.p99 > 0 &&
+            rmsSummary.p99 < lowLevelSnoreRMS * 0.25
+        let p90NearNoiseFloor = rmsSummary.p90 > 0 &&
+            rmsSummary.p90 < max(silenceRMS * 0.12, lowLevelSnoreRMS * 0.05)
+        let p99FarBelowLowLevelEnergy = energySummary.p99 > 0 &&
+            energySummary.p99 < lowLevelSnoreEnergy * 0.05
+        let hasSnoreTextureHint =
+            snoreLikeFeatureCandidateCount > 0 ||
+            snoreLikeFeatureRejectReasonCounts[.inputLevelTooLow, default: 0] > 0 ||
+            lowBandEnergySummary.p90 >= max(0.60, lowLevelSnoreLowBandRatio * 0.90)
+
+        return p99FarBelowLowLevelRMS &&
+            p90NearNoiseFloor &&
+            p99FarBelowLowLevelEnergy &&
+            hasSnoreTextureHint
+    }
+
+    public var inputLevelAssessment: String {
+        inputLevelLooksTooLowForPlacement
+            ? "goodCoverageLowInputLevel"
+            : "notFlagged"
+    }
+
+    public var inputLevelAssessmentDisplayText: String {
+        inputLevelLooksTooLowForPlacement
+            ? "오디오 수신 충분, 입력 레벨 낮음"
+            : "특이 사항 없음"
+    }
+
     public var summaryTextForZeroEvents: String? {
         guard finalEventCountByType.values.reduce(0, +) == 0 else { return nil }
         guard audioChunkCount > 0 || analyzedChunkCount > 0 else {
@@ -587,6 +664,9 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         }
         guard analyzedChunkCount > 0, analyzedAudioSeconds > 0 else {
             return "오디오 입력은 일부 수신되었지만 분석된 chunk가 부족해 detector 판단 경로를 제한적으로만 볼 수 있습니다."
+        }
+        if inputLevelLooksTooLowForPlacement {
+            return "오디오는 충분히 수신됐지만 입력 레벨이 낮아 코골기 후보 기준까지 올라오지 않았습니다. iPhone 배치나 마이크 방향 영향을 확인하세요."
         }
         if snoreRawCandidateCount > 0, snorePostSmoothingEventCount == 0 {
             return "코골기 raw 후보는 있었지만 confidence, 지속 시간 또는 smoothing 기준을 통과한 최종 이벤트가 없었습니다."
@@ -664,6 +744,7 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "snoreRejectedCount",
             "snoreRejectReasonTop",
             "rejectReasonTop",
+            "inputLevelAssessment",
             "zeroEventSummary",
         ] {
             lines.append("| \(key) | \(rows[key] ?? "") |")
@@ -729,13 +810,14 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "rawCandidateCount": "\(diagnostics.rawCandidateCount)",
             "rawCandidateCountByType": eventCountText(diagnostics.rawCandidateCountByType),
             "preSmoothingCandidateCountByType": eventCountText(diagnostics.preSmoothingCandidateCountByType),
-            "postSmoothingCandidateCountByType": eventCountText(diagnostics.postSmoothingEventCountByType),
+            "postSmoothingEventCountByType": eventCountText(diagnostics.postSmoothingEventCountByType),
             "finalEventCountByType": eventCountText(diagnostics.finalEventCountByType),
             "snoreLikeFeatureCandidateCount": "\(diagnostics.snoreLikeFeatureCandidateCount)",
             "snoreRawCandidateCount": "\(diagnostics.snoreRawCandidateCount)",
             "snoreRejectedCount": "\(diagnostics.snoreRejectedCount + diagnostics.snoreLikeFeatureRejectedCount)",
             "snoreRejectReasonTop": diagnostics.snoreRejectReasonTop?.rawValue ?? "",
             "rejectReasonTop": diagnostics.topRejectReasons.prefix(5).map { "\($0.0.rawValue):\($0.1)" }.joined(separator: ";"),
+            "inputLevelAssessment": diagnostics.inputLevelAssessment,
             "rmsP50": number(diagnostics.rmsP50),
             "rmsP90": number(diagnostics.rmsP90),
             "energyP50": number(diagnostics.energyP50),
@@ -768,13 +850,14 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "rawCandidateCount",
             "rawCandidateCountByType",
             "preSmoothingCandidateCountByType",
-            "postSmoothingCandidateCountByType",
+            "postSmoothingEventCountByType",
             "finalEventCountByType",
             "snoreLikeFeatureCandidateCount",
             "snoreRawCandidateCount",
             "snoreRejectedCount",
             "snoreRejectReasonTop",
             "rejectReasonTop",
+            "inputLevelAssessment",
             "rmsP50",
             "rmsP90",
             "energyP50",
@@ -1084,14 +1167,23 @@ public final class DetectorDiagnosticsCollector {
         let hasLowBandHint = features.lowFrequencyEnergyRatio >= 0.30
         let hasStrongDistanceLowBandHint = features.lowFrequencyEnergyRatio >= lowLevelSnoreLowBandRatio
         let hasSnoreLikeCadence = features.zeroCrossingRate <= 0.60
-        let isCandidate = !features.isLikelySilence
+        let distantLowInputHint = RejectReason.isDistantLowInputSnoreLikeHint(
+            features: features,
+            silenceRMS: silenceRMS,
+            lowLevelSnoreRMS: lowLevelSnoreRMS,
+            lowLevelSnoreLowBandRatio: lowLevelSnoreLowBandRatio
+        )
+        let isCandidate = distantLowInputHint || (!features.isLikelySilence
             && features.rms >= silenceRMS
             && (nearRMS || nearEnergy)
-            && (hasLowBandHint || hasStrongDistanceLowBandHint || hasSnoreLikeCadence)
+            && (hasLowBandHint || hasStrongDistanceLowBandHint || hasSnoreLikeCadence))
 
         guard isCandidate else { return (false, []) }
 
         var reasons: [RejectReason] = []
+        if distantLowInputHint {
+            reasons.append(.inputLevelTooLow)
+        }
         if features.rms < snoreRMS {
             reasons.append(.belowRmsThreshold)
         }
