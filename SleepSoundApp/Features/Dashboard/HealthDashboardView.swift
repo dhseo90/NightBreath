@@ -6,6 +6,7 @@ struct HealthDashboardView: View {
   private let userSettings: UserSettingsProviding
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
+  private let calendarBuilder = HealthCalendarBuilder()
   private let healthKitDashboardLookbackDays = 370
 
   @EnvironmentObject private var appState: AppState
@@ -33,6 +34,7 @@ struct HealthDashboardView: View {
         header
         stateNotice
         dataStateSection
+        recentMeasurementShortcutSection
         dashboardEntrySection
 
         if dataStateSummary.shouldShowEmptyState {
@@ -336,6 +338,45 @@ struct HealthDashboardView: View {
           )
         }
         .buttonStyle(.plain)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var recentMeasurementShortcutSection: some View {
+    if let latestDate = healthCalendarLatestDate {
+      let detailData = calendarBuilder.detailData(
+        for: latestDate,
+        samples: unifiedDashboardSamples,
+        sleepReports: calendarReports,
+        morningCheckIns: calendarMorningCheckIns,
+        eveningCheckIns: []
+      )
+
+      NBReportSection(title: "최근 날짜 바로가기", systemImage: "calendar.badge.clock") {
+        VStack(alignment: .leading, spacing: NBSpacing.small) {
+          NavigationLink {
+            DailyMeasurementDetailView(
+              detailData: detailData,
+              allSamples: unifiedDashboardSamples
+            )
+          } label: {
+            HealthDashboardEntryCard(
+              title: "최근 날짜 자세히 보기",
+              subtitle: "수면, 혈압, 체성분, Fitdays import를 한 날짜에서 확인",
+              systemImage: "calendar.badge.clock",
+              tint: NBColor.dawn,
+              sampleCount: detailData.summary.sampleCount,
+              latestDate: detailData.date
+            )
+          }
+          .buttonStyle(.plain)
+
+          Text("최근 날짜는 로컬 import, Apple 건강앱 read-only 샘플, 밤숨 앱 계산 지표 중 가장 최신 측정일 기준입니다.")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
       }
     }
   }

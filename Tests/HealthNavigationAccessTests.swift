@@ -25,6 +25,24 @@ struct HealthNavigationAccessTests {
         #expect(!contents.contains("requestReadPermission"))
     }
 
+    @Test
+    func healthDashboardTabProvidesRecentDateShortcutWithoutPermissionRequest() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
+
+        #expect(contents.contains("recentMeasurementShortcutSection"))
+        #expect(contents.contains("최근 날짜 바로가기"))
+        #expect(contents.contains("최근 날짜 자세히 보기"))
+        #expect(contents.contains("DailyMeasurementDetailView("))
+        #expect(contents.contains("calendarBuilder.detailData"))
+        #expect(contents.contains("healthCalendarLatestDate"))
+        #expect(contents.contains("가장 최신 측정일 기준"))
+
+        let sectionStart = try #require(contents.range(of: "private var recentMeasurementShortcutSection")?.lowerBound)
+        let sectionEnd = try #require(contents.range(of: "private var dataStateSection")?.lowerBound)
+        let section = contents[sectionStart..<sectionEnd]
+        #expect(!section.contains("requestReadPermission"))
+    }
+
     private func sourceContents(_ relativePath: String) throws -> String {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)

@@ -215,7 +215,7 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 
 ## 13. Extended Health Metrics / Fitdays import 확인
 
-- [ ] 하단 `건강` tab에서 `HealthDashboardView`로 바로 들어갈 수 있고, 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
+- [ ] 하단 `건강` tab에서 `HealthDashboardView`로 바로 들어갈 수 있고, 최근 날짜 상세, 전체 건강 지표, 월 건강 캘린더, Fitdays 가져오기, 기존 혈압/체성분 dashboard 진입점이 보인다.
 - [ ] `FitdaysImportView`에서 사용자가 명시적으로 확보한 CSV/export 파일을 선택하거나 `클립보드 붙여넣고 미리보기`를 눌렀을 때만 import 흐름이 시작된다.
 - [ ] 실제 Fitdays 앱에서 Reports / Data Reports / Chart / History Records / More Data / Account / Customer Service Center 경로를 확인하고, 결과는 private note에만 남긴다.
 - [ ] 실제 Fitdays 앱에서 CSV/export 메뉴가 보이지 않으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 서버/API나 비공식 연결을 시도하지 않는다.
@@ -229,6 +229,7 @@ rg -n "import HealthKit|HKHealthStore|requestAuthorization|toShare|HKSampleQuery
 - [ ] import batch 삭제가 가능한 경우 해당 batch의 sample도 함께 삭제되는지 확인한다.
 - [ ] extended metric sample 삭제가 가능한 경우 삭제 후 overview, calendar, metric detail에서 사라지는지 확인한다.
 - [ ] `HealthMetricsOverviewView`에서 HealthKit-backed metric과 Fitdays local-only metric이 category와 source badge로 구분된다.
+- [ ] `MetricDetailView`에서 선택 기간/출처에 샘플이 없을 때 그래프 empty copy가 기간 변경, HealthKit 연결, Fitdays CSV 가져오기 같은 다음 행동을 안내하고 의료 판단처럼 보이지 않는다.
 - [ ] `HealthCalendarView`에서 이전/다음 월 이동과 오늘 이동이 동작한다.
 - [ ] 데이터가 있는 날짜 cell에 수면, 혈압, 체성분, 활동, check-in indicator가 표시된다.
 - [ ] 날짜를 누르면 `DailyMeasurementDetailView`에서 수면, 아침 컨디션, 저녁 체크인, 혈압, 체성분, Fitdays 확장 체성분, 활동, 앱 계산 지표가 category별로 보인다.

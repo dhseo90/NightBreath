@@ -302,6 +302,36 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func metricDetailGraphEmptyAndEdgeCopyStaysActionableAndSafe() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift")
+        let noMetric = MetricDetailEmptyStateReason.noMetricSamples
+        let noSource = MetricDetailEmptyStateReason.noSamplesForSource
+        let noPeriod = MetricDetailEmptyStateReason.noSamplesForPeriod
+
+        #expect(contents.contains("선택한 기간에 표시할 샘플이 없습니다"))
+        #expect(contents.contains("기간을 바꾸거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요."))
+        #expect(contents.contains("MetricChartView("))
+        #expect(contents.contains("NBEmptyStateView("))
+        #expect(noMetric.message.contains("HealthKit read-only"))
+        #expect(noMetric.message.contains("Fitdays CSV"))
+        #expect(noSource.message.contains("출처 필터"))
+        #expect(noPeriod.message.contains("기간을 넓히거나 전체 기간"))
+
+        let edgeCopy = [
+            noMetric.title,
+            noMetric.message,
+            noSource.title,
+            noSource.message,
+            noPeriod.title,
+            noPeriod.message,
+        ].joined(separator: " ")
+        #expect(!edgeCopy.contains("정상"))
+        #expect(!edgeCopy.contains("비정상"))
+        #expect(!edgeCopy.contains("질병"))
+        #expect(!edgeCopy.contains("치료"))
+    }
+
+    @Test
     func detailCopyAvoidsRestrictedWording() {
         let allCopy = MetricDetailPeriod.allCases.map(\.displayName)
             + MetricDetailSourceFilter.allCases.map(\.displayName)

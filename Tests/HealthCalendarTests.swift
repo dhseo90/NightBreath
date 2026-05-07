@@ -155,6 +155,63 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func largeImportedDatasetMonthAndDetailBuildStayResponsive() {
+        let monthDate = date(2026, 5, 15)
+        let metricIDs: [UnifiedHealthMetricID] = [
+            .systolicBloodPressure,
+            .diastolicBloodPressure,
+            .bodyMass,
+            .bodyMassIndex,
+            .bodyFatPercentage,
+            .bodyWaterPercentage,
+            .skeletalMuscleMass,
+            .basalMetabolicRate,
+            .stepCount,
+            .sleepSoundScore,
+        ]
+        var samples: [UnifiedHealthMetricSample] = []
+        samples.reserveCapacity(365 * metricIDs.count)
+        for dayOffset in 0..<365 {
+            for (metricIndex, metricID) in metricIDs.enumerated() {
+                let sourceType: HealthMetricSourceType = metricIndex.isMultiple(of: 2) ? .fitdaysCSV : .healthKit
+                let sourceName = metricIndex.isMultiple(of: 2) ? "Synthetic Fitdays CSV" : "Synthetic HealthKit"
+                let measuredAt = monthDate.addingTimeInterval(
+                    Double(dayOffset - 220) * 24 * 60 * 60 + Double(metricIndex) * 60
+                )
+                samples.append(sample(
+                    metricID,
+                    60 + Double((dayOffset + metricIndex) % 40),
+                    measuredAt,
+                    sourceType: sourceType,
+                    sourceName: sourceName
+                ))
+            }
+        }
+        let reports = (0..<120).map { offset in
+            report(sessionID: UUID(), generatedAt: monthDate.addingTimeInterval(Double(offset - 80) * 24 * 60 * 60))
+        }
+
+        let startedAt = Date()
+        let summaries = builder.summaries(
+            forMonthContaining: monthDate,
+            samples: samples,
+            sleepReports: reports,
+            calendar: calendar
+        )
+        let detail = builder.detailData(
+            for: monthDate,
+            samples: samples,
+            sleepReports: reports,
+            calendar: calendar
+        )
+        let elapsed = Date().timeIntervalSince(startedAt)
+
+        #expect(summaries.count == 42)
+        #expect(!detail.samples.isEmpty)
+        #expect(elapsed < 1.5, "Large synthetic calendar build took \(elapsed)s")
+    }
+
+    @Test
     func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 

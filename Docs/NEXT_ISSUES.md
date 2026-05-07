@@ -74,8 +74,8 @@
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
 - Health Dashboard는 권한 없음/HealthKit 샘플 없음/로컬 import만 있음/mixed source edge state를 분리 표시하고, Apple 건강앱 read-only 조회 범위와 원본 앱 동기화 확인 안내를 최근 1년 기준으로 제공합니다. 실제 HealthKit 권한 조합과 Fitdays import 결과로 manual QA 필요
 - Health Dashboard는 한 번 연결한 뒤 앱 재실행/업데이트 후에도 permission sheet 없이 HealthKit sample을 재조회하고, `HealthKit 읽기 결과`와 `혈압 HealthKit 샘플` date range를 표시합니다. 실제 iPhone에서 2월~4월 혈압 sample이 calendar에 들어오는지 manual QA 필요
-- 홈의 건강 기록 바로가기, 하단 건강 tab, 건강 캘린더 inline 선택 날짜 상세는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 홈 카드가 기대 날짜를 고르는지, 캘린더 상세가 너무 길거나 느리지 않은지 manual QA 필요
-- 건강 캘린더 월 이동 계산 재사용과 metric 그래프 평균선/요약/출처 범례는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 체감 성능과 가독성 QA 필요
+- 홈의 건강 기록 바로가기, 하단 건강 tab, 건강 tab 최근 날짜 CTA, 건강 캘린더 inline 선택 날짜 상세는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 홈 카드와 건강 tab CTA가 기대 날짜를 고르는지, 캘린더 상세가 너무 길거나 느리지 않은지 manual QA 필요
+- 건강 캘린더 월 이동 계산 재사용, 대량 synthetic dataset 회귀 테스트, metric 그래프 평균선/요약/출처 범례/empty copy guard는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 체감 성능과 가독성 QA 필요
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, inline DailyMeasurementDetailContent grouping 회귀 테스트 보강
 - `Docs/HEALTH_DATA_GUIDE.md`의 Fitdays CSV/export 차이 추적

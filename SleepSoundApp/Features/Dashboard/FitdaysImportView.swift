@@ -569,6 +569,8 @@ struct FitdaysImportView: View {
         )
       }
 
+      batchDetailShortcut(batch)
+
       if let notes = batch.notes, !notes.isEmpty {
         Text(notes)
           .font(NBTypography.caption)
@@ -577,6 +579,37 @@ struct FitdaysImportView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  @ViewBuilder
+  private func batchDetailShortcut(_ batch: ImportBatch) -> some View {
+    let batchSamples = repository.fetchSamples(importBatchId: batch.id.uuidString)
+    if let latestDate = importedDayStarts(from: batchSamples).last {
+      let allSamples = repository.fetchSamples()
+      let detailData = HealthCalendarBuilder().detailData(
+        for: latestDate,
+        samples: allSamples,
+        sleepReports: []
+      )
+
+      NavigationLink {
+        DailyMeasurementDetailView(
+          detailData: detailData,
+          allSamples: allSamples
+        )
+      } label: {
+        HStack(spacing: NBSpacing.small) {
+          Label("이 가져오기 최신 날짜 보기", systemImage: "calendar.badge.clock")
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text(SleepFormatters.shortDate(latestDate))
+            .font(NBTypography.caption.weight(.semibold))
+            .foregroundStyle(NBColor.secondaryText)
+          Image(systemName: "chevron.right")
+            .font(.footnote.weight(.semibold))
+        }
+      }
+      .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.privacyTint))
+    }
   }
 
   private func diagnosticTextBlock(title: String, messages: [String]) -> some View {
