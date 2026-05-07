@@ -1,7 +1,17 @@
 import SwiftUI
 
 struct HomeDashboardView: View {
+  private let unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol
+  private let healthCalendarBuilder = HealthCalendarBuilder()
+
   @EnvironmentObject private var appState: AppState
+  @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
+
+  init(
+    unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
+  ) {
+    self.unifiedSampleRepository = unifiedSampleRepository
+  }
 
   var body: some View {
     TabView {
@@ -37,6 +47,7 @@ struct HomeDashboardView: View {
         scoreHeader
 
         actionLinks
+        healthQuickAccessSection
 
         LazyVGrid(
           columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium
@@ -117,6 +128,9 @@ struct HomeDashboardView: View {
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .onAppear {
+      loadHomeHealthSamples()
+    }
   }
 
   private var scoreHeader: some View {
@@ -231,6 +245,45 @@ struct HomeDashboardView: View {
     }
   }
 
+  private var healthQuickAccessSection: some View {
+    NBReportSection(
+      title: "건강 기록 바로가기",
+      subtitle: "최근 날짜의 수면·건강·Fitdays 기록을 한 번에 엽니다.",
+      systemImage: "heart.text.square"
+    ) {
+      VStack(spacing: NBSpacing.medium) {
+        NavigationLink {
+          DailyMeasurementDetailView(
+            detailData: quickHealthDetailData,
+            allSamples: homeUnifiedDashboardSamples
+          )
+        } label: {
+          HomeHealthQuickAccessCard(
+            detailData: quickHealthDetailData,
+            fallbackDate: quickHealthDetailDate
+          )
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+          HealthCalendarView(
+            samples: homeUnifiedDashboardSamples,
+            sleepReports: calendarReports,
+            morningCheckIns: calendarMorningCheckIns,
+            eveningCheckIns: [],
+            permissionState: .notRequested,
+            isPreviewData: false,
+            initialMonth: quickHealthDetailDate
+          )
+        } label: {
+          Label("건강 캘린더 바로 보기", systemImage: "calendar")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.nbSecondary)
+      }
+    }
+  }
+
   private var dailyRhythmLinks: some View {
     NBReportSection(
       title: "Daily Rhythm",
@@ -342,6 +395,62 @@ struct HomeDashboardView: View {
           .foregroundStyle(NBColor.secondaryText)
       }
     }
+  }
+
+  private var calendarReports: [NightReport] {
+    appState.trendReports(days: 370)
+  }
+
+  private var calendarMorningCheckIns: [MorningCheckIn] {
+    calendarReports.compactMap { appState.checkIn(for: $0.sessionId) }
+  }
+
+  private var appComputedHomeSamples: [UnifiedHealthMetricSample] {
+    calendarReports.flatMap { report in
+      [
+        UnifiedHealthMetricSample(
+          metricID: .sleepSoundScore,
+          value: Double(report.sleepSoundScore),
+          unit: "점",
+          measuredAt: report.generatedAt,
+          sourceType: .appComputed,
+          sourceName: "밤숨 앱"
+        ),
+        UnifiedHealthMetricSample(
+          metricID: .audioCoverageRatio,
+          value: report.audioCoverageRatio * 100,
+          unit: "%",
+          measuredAt: report.generatedAt,
+          sourceType: .appComputed,
+          sourceName: "밤숨 앱"
+        ),
+      ]
+    }
+  }
+
+  private var homeUnifiedDashboardSamples: [UnifiedHealthMetricSample] {
+    (importedUnifiedSamples + appComputedHomeSamples)
+      .sortedByMeasuredAtAscending()
+  }
+
+  private var quickHealthDetailDate: Date {
+    let candidateDates = homeUnifiedDashboardSamples.map(\.measuredAt)
+      + calendarReports.map(\.generatedAt)
+      + calendarMorningCheckIns.map(\.createdAt)
+    return Calendar.current.startOfDay(for: candidateDates.max() ?? Date())
+  }
+
+  private var quickHealthDetailData: DailyMeasurementDetailData {
+    healthCalendarBuilder.detailData(
+      for: quickHealthDetailDate,
+      samples: homeUnifiedDashboardSamples,
+      sleepReports: calendarReports,
+      morningCheckIns: calendarMorningCheckIns
+    )
+  }
+
+  private func loadHomeHealthSamples() {
+    importedUnifiedSamples = unifiedSampleRepository.fetchSamples()
   }
 
   private var trendScores: [Int] {
@@ -490,6 +599,113 @@ struct HomeDashboardView: View {
 
   private func percentString(_ ratio: Double) -> String {
     String(format: "%.0f%%", min(max(ratio, 0), 1) * 100)
+  }
+}
+
+private struct HomeHealthQuickAccessCard: View {
+  let detailData: DailyMeasurementDetailData
+  let fallbackDate: Date
+
+  var body: some View {
+    NBCard(background: NBColor.privacy.opacity(0.08), stroke: NBColor.privacy.opacity(0.18)) {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        HStack(alignment: .top, spacing: NBSpacing.small) {
+          Label("최근 건강 기록", systemImage: "heart.text.square")
+            .font(NBTypography.headline)
+            .foregroundStyle(NBColor.primaryText)
+
+          Spacer(minLength: NBSpacing.small)
+
+          Image(systemName: "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(NBColor.tertiaryText)
+            .accessibilityHidden(true)
+        }
+
+        Text(SleepFormatters.shortDate(detailData.date))
+          .font(NBTypography.title)
+          .foregroundStyle(NBColor.primaryText)
+
+        Text(detailData.summary.hasAnyData ? "이날 기록된 데이터를 바로 확인합니다." : "아직 연결된 건강 기록이 없습니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+          HomeHealthQuickMetric(
+            title: "건강 샘플",
+            value: "\(detailData.summary.sampleCount)개",
+            systemImage: "number",
+            tint: NBColor.privacyTint
+          )
+          HomeHealthQuickMetric(
+            title: "데이터 품질",
+            value: detailData.summary.dataQuality.displayName,
+            systemImage: "checkmark.seal",
+            tint: qualityTint
+          )
+        }
+
+        if detailData.summary.hasAnyData {
+          CalendarSelectedCategoryStrip(summary: detailData.summary)
+          CalendarSelectedSourceStrip(sourceTypes: detailData.summary.sourceTypes)
+        }
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(accessibilityText)
+    }
+  }
+
+  private var qualityTint: Color {
+    switch detailData.summary.dataQuality {
+    case .excellent, .good:
+      NBColor.success
+    case .limited:
+      NBColor.warning
+    case .poor, .insufficient:
+      NBColor.caution
+    }
+  }
+
+  private var accessibilityText: String {
+    let dateText = SleepFormatters.shortDate(fallbackDate)
+    guard detailData.summary.hasAnyData else {
+      return "최근 건강 기록, \(dateText), 데이터 없음"
+    }
+    return "최근 건강 기록, \(dateText), 건강 샘플 \(detailData.summary.sampleCount)개, 데이터 품질 \(detailData.summary.dataQuality.displayName)"
+  }
+}
+
+private struct HomeHealthQuickMetric: View {
+  let title: String
+  let value: String
+  let systemImage: String
+  let tint: Color
+
+  var body: some View {
+    HStack(spacing: NBSpacing.xs) {
+      Image(systemName: systemImage)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(tint)
+        .frame(width: 18)
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+        Text(value)
+          .font(NBTypography.captionEmphasis)
+          .foregroundStyle(NBColor.primaryText)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+      }
+
+      Spacer(minLength: 0)
+    }
+    .padding(NBSpacing.small)
+    .background(NBColor.cardBackground.opacity(0.72))
+    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
   }
 }
 

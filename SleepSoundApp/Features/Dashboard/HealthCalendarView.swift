@@ -763,7 +763,7 @@ private struct CalendarDaySourceDotStrip: View {
   }
 }
 
-private struct CalendarSelectedCategoryStrip: View {
+struct CalendarSelectedCategoryStrip: View {
   let summary: CalendarDaySummary
 
   var body: some View {
@@ -780,7 +780,7 @@ private struct CalendarSelectedCategoryStrip: View {
   }
 }
 
-private struct CalendarSelectedSourceStrip: View {
+struct CalendarSelectedSourceStrip: View {
   let sourceTypes: [HealthMetricSourceType]
 
   var body: some View {
