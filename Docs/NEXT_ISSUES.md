@@ -12,7 +12,7 @@
 4. TestFlight 내부 테스트 실행
 5. Legal/App Review 최종 재확인
 6. detector threshold tuning with real data
-7. Core ML model 실제 앱 target 적용
+7. Core ML model 실제 앱 target 적용. `Docs/CORE_ML_MODEL_INTEGRATION.md` gate와 실제 iPhone smoke evidence 확보 후 진행
 
 ## Release / App Store 준비
 
@@ -139,7 +139,7 @@
 - 이벤트 오디오 샘플 세션별 개수/폴더 용량 초과 guard 보강 완료
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리
-- Core ML 변환 결과를 앱 target에 추가하는 절차 검증
+- Core ML 변환 결과를 앱 target에 추가하는 절차 gate 문서화 완료. 실제 artifact target 적용은 보류
 - Rule-based와 Core ML backend 비교 결과를 실제 iPhone QA 기록에 연결
 
 주의:

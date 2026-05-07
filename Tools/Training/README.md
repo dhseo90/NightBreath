@@ -190,7 +190,7 @@ duration
 
 앱의 `ModelInputAdapter`는 같은 값을 제공하며, 향후 vector 입력 모델을 위해 `features` 배열도 함께 준비합니다. sklearn baseline은 numeric label을 사용하므로 앱에서는 `1`을 `snore`, `0`을 `non_snore`로 안전하게 해석합니다.
 
-생성된 모델을 실제 앱에서 테스트하려면 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
+생성된 모델을 실제 앱에서 테스트하려면 `Docs/CORE_ML_MODEL_INTEGRATION.md`의 integration gate를 먼저 통과한 뒤 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
 
 ## 최소 권장 샘플 수
 

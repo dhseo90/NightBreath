@@ -188,7 +188,7 @@
 - 실제 Fitdays CSV import manual QA
 - 실제 Fitdays 앱 내 CSV/export 메뉴 확인
 - Fitdays 고유 지표 로컬 수동 입력 기능
-- 실제 `.mlmodel` 앱 bundle 적용
+- 실제 `.mlmodel` 앱 bundle 적용. 적용 전 `Docs/CORE_ML_MODEL_INTEGRATION.md` gate 통과 필요
 - detector 성능 확정 검증
 - 실제 iPhone 장시간 overnight 안정성 검증
 - 실제 HealthKit 데이터 기반 장기 검증
@@ -221,6 +221,7 @@
 - stop 이후 chunk가 들어오면 `chunksReceivedAfterStopRequest`, `secondsReceivingAudioAfterStopRequest`, `lastChunkReceivedAt`, force stop reason으로 남깁니다.
 - detector diagnostics는 raw/pre-smoothing/post-smoothing/final type count, reject reason, RMS/energy/band/zero-crossing/centroid summary, threshold snapshot, backend, tuning profile, model fallback 상태를 리포트에 보존합니다.
 - 코골기 detector는 절대 RMS threshold 외에 저진폭 low-band/relative-energy guard를 사용해 침대 배치 거리로 작게 들어온 snore-like 후보를 raw candidate로 남길 수 있습니다. 앱 설정의 `코골기 감지 민감도`는 `많이 민감`, `민감`, `보통`, `둔감`, `많이 둔감` 5단계 preset이며 Release 기본 profile은 계속 `balanced`/`보통`입니다.
+- Core ML adapter는 모델 미포함 상태에서 crash 없이 `modelInstalled == false`와 rule-based fallback을 유지합니다. 실제 모델 artifact는 아직 앱 target에 포함하지 않았고, target 적용 전 integration gate와 실제 iPhone smoke evidence가 필요합니다.
 - 이벤트 오디오 샘플은 opt-in일 때만 짧게 저장되며, 전체 밤 원본 오디오 저장 경로는 추가하지 않았습니다.
 
 ## 실기기 확인이 남은 항목

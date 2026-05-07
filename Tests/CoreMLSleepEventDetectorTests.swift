@@ -163,6 +163,37 @@ struct CoreMLSleepEventDetectorTests {
         }
     }
 
+    @Test
+    func appTargetModelIntegrationStaysExplicitlyGated() throws {
+        let root = repositoryRoot()
+        let integrationGuide = try sourceContents("Docs/CORE_ML_MODEL_INTEGRATION.md")
+        let snoreMLGuide = try sourceContents("Docs/SNORE_ML_V0.md")
+        let trainingGuide = try sourceContents("Tools/Training/README.md")
+        let project = try sourceContents("SleepSoundApp.xcodeproj/project.pbxproj")
+        let modelArtifacts = try modelArtifacts(in: [
+            root.appendingPathComponent("SleepSoundApp"),
+            root.appendingPathComponent("Models")
+        ], root: root)
+
+        #expect(modelArtifacts.isEmpty, "Real Core ML model artifacts should not be committed before target integration gate: \(modelArtifacts)")
+        #expect(!project.contains("SnoreDetector.mlmodel"))
+        #expect(!project.contains("SnoreDetector.mlmodelc"))
+        #expect(!project.contains("SleepEventClassifier.mlmodel"))
+        #expect(integrationGuide.contains("Core ML Model Integration Gate"))
+        #expect(integrationGuide.contains("실제 모델 artifact는 아직 앱 target에 포함하지 않습니다."))
+        #expect(integrationGuide.contains("modelInstalled == false"))
+        #expect(integrationGuide.contains("fallbackUsed"))
+        #expect(integrationGuide.contains("rule-based fallback"))
+        #expect(integrationGuide.contains("--filter CoreMLSleepEventDetector"))
+        #expect(integrationGuide.contains("--filter CompositeSleepEventDetector"))
+        #expect(integrationGuide.contains("--backends ruleBased,coreML,hybrid"))
+        #expect(integrationGuide.contains("sensitive/verySensitive profile을 Release 기본값으로 올리지 않습니다"))
+        #expect(integrationGuide.contains("전체 밤 원본 오디오 저장 기능을 추가하지 않습니다"))
+        #expect(integrationGuide.contains("서버 업로드, 클라우드 처리, 외부 API 호출, 외부 분석 SDK를 추가하지 않습니다"))
+        #expect(snoreMLGuide.contains("Docs/CORE_ML_MODEL_INTEGRATION.md"))
+        #expect(trainingGuide.contains("Docs/CORE_ML_MODEL_INTEGRATION.md"))
+    }
+
     private func makeFeatures() -> AudioFeatures {
         AudioFeatures(
             startedAt: Date(timeIntervalSince1970: 20),
@@ -172,6 +203,35 @@ struct CoreMLSleepEventDetectorTests {
             zeroCrossingRate: 0.2,
             lowFrequencyEnergyRatio: 0.4
         )
+    }
+
+    private func repositoryRoot() -> URL {
+        URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    }
+
+    private func sourceContents(_ relativePath: String) throws -> String {
+        try String(contentsOf: repositoryRoot().appendingPathComponent(relativePath), encoding: .utf8)
+    }
+
+    private func modelArtifacts(in roots: [URL], root repositoryRoot: URL) throws -> [String] {
+        let extensions: Set<String> = ["mlmodel", "mlmodelc", "mlpackage"]
+        var results: [String] = []
+
+        for root in roots where FileManager.default.fileExists(atPath: root.path) {
+            guard let enumerator = FileManager.default.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            ) else {
+                continue
+            }
+
+            for case let url as URL in enumerator where extensions.contains(url.pathExtension.lowercased()) {
+                results.append(url.path.replacingOccurrences(of: repositoryRoot.path + "/", with: ""))
+            }
+        }
+
+        return results.sorted()
     }
 }
 

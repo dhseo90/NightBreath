@@ -112,7 +112,7 @@ Tools/Training/output/snore_model.pkl
 Models/CoreML/SnoreDetector.mlmodel
 ```
 
-변환된 모델을 실제 앱에서 쓰려면 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel` 또는 같은 이름의 compiled model을 앱 target에 추가합니다.
+변환된 모델을 실제 앱에서 쓰려면 `Docs/CORE_ML_MODEL_INTEGRATION.md`의 gate를 먼저 통과한 뒤 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel` 또는 같은 이름의 compiled model을 앱 target에 추가합니다.
 
 ## 앱 Fallback
 
