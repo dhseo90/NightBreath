@@ -9,6 +9,8 @@ export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Develope
 /usr/bin/xcrun swift test \
   --filter ReleaseReadiness \
   --filter AppStoreReadiness \
+  --filter UIGalleryDocumentation \
+  --filter SimulatorQAScenario \
   --filter PrivacyCopySafety \
   --filter HealthKitReadOnlyPolicy \
   --no-parallel

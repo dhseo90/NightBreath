@@ -228,7 +228,7 @@ TestFlight blocking gate:
 Tools/Release/audit_release_copy.sh
 ```
 
-이 스크립트는 `ReleaseReadiness`, `AppStoreReadiness`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다.
+이 스크립트는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
@@ -238,6 +238,8 @@ Tools/Release/audit_release_copy.sh
 - 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
 - `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
+- App Store/README screenshot 후보가 visual QA 전에는 user-facing 문서에 렌더링되지 않는지 확인합니다.
+- DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
 
 이 자동 gate는 실제 iPhone stop/background/overnight QA를 대체하지 않습니다. 자동 gate 통과 후에도 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 manual evidence를 별도로 기록합니다.
 

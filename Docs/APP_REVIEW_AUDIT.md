@@ -101,6 +101,14 @@ Before answering App Store Connect questionnaires, verify the current binary and
 
 ## Required Scans Before Submission
 
+자동 release/App Review scan은 먼저 한 번에 실행합니다.
+
+```bash
+Tools/Release/audit_release_copy.sh
+```
+
+이 gate는 release copy, App Store readiness, UI Gallery screenshot quarantine, DEBUG simulator scenario source, privacy copy, HealthKit read-only policy를 함께 확인합니다. 자동 scan이 통과하더라도 실제 iPhone stop/background/snore smoke와 TestFlight evidence는 별도 manual gate입니다.
+
 ```bash
 rg -n "URLSession|http://|https://|NWConnection|Alamofire|Firebase|Analytics|AdMob" SleepSoundApp Tests Package.swift
 ```
@@ -125,4 +133,4 @@ rg -n "수면무호흡증.*진단|AHI.*정확 측정|이갈이.*확진|질병.*�
 - TestFlight internal test evidence
 - Final App Store screenshot visual inspection
 
-이 항목은 실기기 또는 App Store Connect/TestFlight context가 있어야 완료할 수 있습니다.
+이 항목은 실기기 또는 App Store Connect/TestFlight context가 있어야 완료할 수 있습니다. 실행 전 evidence template은 `Docs/REAL_DEVICE_QA_RUNBOOK.md`와 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`를 기준으로 기록합니다.
