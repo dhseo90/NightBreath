@@ -1412,6 +1412,10 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
   public var totalEvaluatedSegments: Int
   public var evaluatedRecords: Int
   public var failedRecords: Int
+  public var expectedSnoreRecords: Int
+  public var expectedSnoreDetectedRecords: Int
+  public var snoreNegativeRecords: Int
+  public var snoreNegativeWithSnoreEventRecords: Int
   public var rawCandidateCount: Int
   public var preSmoothingCandidateCount: Int
   public var postSmoothingEventCount: Int
@@ -1432,6 +1436,10 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     totalEvaluatedSegments: Int,
     evaluatedRecords: Int,
     failedRecords: Int,
+    expectedSnoreRecords: Int = 0,
+    expectedSnoreDetectedRecords: Int = 0,
+    snoreNegativeRecords: Int = 0,
+    snoreNegativeWithSnoreEventRecords: Int = 0,
     rawCandidateCount: Int,
     preSmoothingCandidateCount: Int,
     postSmoothingEventCount: Int,
@@ -1451,6 +1459,16 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     self.totalEvaluatedSegments = max(0, totalEvaluatedSegments)
     self.evaluatedRecords = max(0, evaluatedRecords)
     self.failedRecords = max(0, failedRecords)
+    self.expectedSnoreRecords = max(0, expectedSnoreRecords)
+    self.expectedSnoreDetectedRecords = min(
+      max(0, expectedSnoreDetectedRecords),
+      self.expectedSnoreRecords
+    )
+    self.snoreNegativeRecords = max(0, snoreNegativeRecords)
+    self.snoreNegativeWithSnoreEventRecords = min(
+      max(0, snoreNegativeWithSnoreEventRecords),
+      self.snoreNegativeRecords
+    )
     self.rawCandidateCount = max(0, rawCandidateCount)
     self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
     self.postSmoothingEventCount = max(0, postSmoothingEventCount)
@@ -1469,6 +1487,20 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
 
   public var finalEventCount: Int {
     finalEventCountByType.values.reduce(0, +)
+  }
+
+  public var expectedSnoreMissedRecords: Int {
+    max(0, expectedSnoreRecords - expectedSnoreDetectedRecords)
+  }
+
+  public var expectedSnoreHitRate: Double {
+    guard expectedSnoreRecords > 0 else { return 0 }
+    return Double(expectedSnoreDetectedRecords) / Double(expectedSnoreRecords)
+  }
+
+  public var snoreNegativeEventRate: Double {
+    guard snoreNegativeRecords > 0 else { return 0 }
+    return Double(snoreNegativeWithSnoreEventRecords) / Double(snoreNegativeRecords)
   }
 
   private static func clampedRatio(_ value: Double) -> Double {
@@ -1677,8 +1709,10 @@ public struct OfflineProfileComparisonRunner {
     records.flatMap { record in
       let expected = Set(record.expectedLabels.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
       let quietLabels: Set<String> = ["unknown", "silence", "quiet"]
+      let snoreNegativeLabels = quietLabels.union([SleepEventType.environmentalNoise.rawValue])
       let expectedEventLabels = expected.subtracting(quietLabels).filter { !$0.isEmpty }
       let finalEventCount = record.finalEventCountByType.values.reduce(0, +)
+      let finalSnoreCount = record.finalEventCountByType[SleepEventType.snore.rawValue] ?? 0
       var findings: [OfflineProfileLabelFinding] = []
 
       if expectedEventLabels.isEmpty, finalEventCount > 0 {
@@ -1687,6 +1721,19 @@ public struct OfflineProfileComparisonRunner {
             kind: .possibleFalsePositiveLike,
             record: record,
             explanation: "expectedLabels가 quiet/unknown 계열인데 이벤트가 생성되었습니다. threshold를 낮출수록 이런 후보가 늘어날 수 있습니다."
+          )
+        )
+      }
+
+      if !expected.isEmpty,
+         expected.isSubset(of: snoreNegativeLabels),
+         !expected.isSubset(of: quietLabels),
+         finalSnoreCount > 0 {
+        findings.append(
+          makeFinding(
+            kind: .possibleFalsePositiveLike,
+            record: record,
+            explanation: "expectedLabels가 silence/unknown/environmentalNoise 계열인데 최종 코골기 이벤트가 생성되었습니다. snore threshold와 low-band guard를 함께 확인하세요."
           )
         )
       }
@@ -1730,12 +1777,18 @@ public struct OfflineProfileComparisonRunner {
       let profileFindings = findings.filter { $0.tuningProfile == profile }
       let validProfileRecords = profileRecords.filter { $0.errorMessage == nil }
       let zeroEventRecords = validProfileRecords.filter { $0.finalEventCount == 0 }
+      let expectedSnoreRecords = validProfileRecords.filter(Self.expectsSnore)
+      let snoreNegativeRecords = validProfileRecords.filter(Self.isSnoreNegative)
 
       return OfflineProfileSummary(
         tuningProfile: profile,
         totalEvaluatedSegments: segmentKeys.count,
         evaluatedRecords: profileRecords.count,
         failedRecords: profileRecords.filter { $0.errorMessage != nil }.count,
+        expectedSnoreRecords: expectedSnoreRecords.count,
+        expectedSnoreDetectedRecords: expectedSnoreRecords.filter(Self.hasFinalSnoreEvent).count,
+        snoreNegativeRecords: snoreNegativeRecords.count,
+        snoreNegativeWithSnoreEventRecords: snoreNegativeRecords.filter(Self.hasFinalSnoreEvent).count,
         rawCandidateCount: profileRecords.reduce(0) { $0 + $1.rawCandidateCount },
         preSmoothingCandidateCount: profileRecords.reduce(0) { $0 + $1.preSmoothingCandidateCount },
         postSmoothingEventCount: profileRecords.reduce(0) { $0 + $1.postSmoothingEventCount },
@@ -1925,6 +1978,24 @@ public struct OfflineProfileComparisonRunner {
 
     lines.append(contentsOf: [
       "",
+      "## Snore / Negative Snapshot",
+      "",
+      "| Profile | Expected Snore Hit | Expected Snore Missed | Negative Snore Events | Final Snore Events | Review Cue |",
+      "| --- | ---: | ---: | ---: | ---: | --- |",
+    ])
+    lines.append(contentsOf: snoreNegativeSnapshotRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
+      "## Delta From Balanced",
+      "",
+      "| Profile | Final Event Delta | Zero Event Delta | FP-like Delta | FN-like Delta | Review Cue |",
+      "| --- | ---: | ---: | ---: | ---: | --- |",
+    ])
+    lines.append(contentsOf: balancedDeltaRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
       "## Zero Event Stage Breakdown",
       "",
       "| Profile | Zero Events | No Raw Candidate | Raw But No Final | Smoothing Dropped | Post Smoothing But No Final | Top Reject | Review Cue |",
@@ -2022,6 +2093,33 @@ public struct OfflineProfileComparisonRunner {
     }
   }
 
+  private static func snoreNegativeSnapshotRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| none | 0/0 (0.0%) | 0 | 0/0 (0.0%) | 0 | snore/negative label이 있는 record가 없습니다. |"]
+    }
+
+    return summaries.map { summary in
+      "| \(summary.tuningProfile) | \(snoreHitText(summary)) | \(summary.expectedSnoreMissedRecords) | \(negativeSnoreText(summary)) | \(summary.finalEventCountByType[SleepEventType.snore.rawValue, default: 0]) | \(snoreNegativeReviewCue(summary)) |"
+    }
+  }
+
+  private static func balancedDeltaRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| none | 0 | 0 | 0 | 0 | 비교할 record가 없습니다. |"]
+    }
+    guard let balanced = summaries.first(where: { $0.tuningProfile == DetectorTuningProfile.balanced.rawValue }) else {
+      return ["| balanced missing | 0 | 0 | 0 | 0 | Release 기본 profile인 balanced 결과를 함께 생성하세요. |"]
+    }
+
+    return summaries.map { summary in
+      let finalDelta = summary.finalEventCount - balanced.finalEventCount
+      let zeroDelta = summary.zeroEventCount - balanced.zeroEventCount
+      let fpDelta = summary.possibleFalsePositiveLikeCount - balanced.possibleFalsePositiveLikeCount
+      let fnDelta = summary.possibleFalseNegativeLikeCount - balanced.possibleFalseNegativeLikeCount
+      return "| \(summary.tuningProfile) | \(signed(finalDelta)) | \(signed(zeroDelta)) | \(signed(fpDelta)) | \(signed(fnDelta)) | \(balancedDeltaCue(summary: summary, balanced: balanced)) |"
+    }
+  }
+
   private static func zeroEventBreakdownRows(summaries: [OfflineProfileSummary]) -> [String] {
     guard !summaries.isEmpty else {
       return ["| none | 0 | 0 | 0 | 0 | 0 | none | 비교할 record가 없습니다. |"]
@@ -2034,6 +2132,14 @@ public struct OfflineProfileComparisonRunner {
 
   private static func zeroEventText(_ summary: OfflineProfileSummary) -> String {
     "\(summary.zeroEventCount)/\(summary.evaluatedRecords) (\(formatPercent(summary.zeroEventRate)))"
+  }
+
+  private static func snoreHitText(_ summary: OfflineProfileSummary) -> String {
+    "\(summary.expectedSnoreDetectedRecords)/\(summary.expectedSnoreRecords) (\(formatPercent(summary.expectedSnoreHitRate)))"
+  }
+
+  private static func negativeSnoreText(_ summary: OfflineProfileSummary) -> String {
+    "\(summary.snoreNegativeWithSnoreEventRecords)/\(summary.snoreNegativeRecords) (\(formatPercent(summary.snoreNegativeEventRate)))"
   }
 
   private static func finalEventsText(_ counts: [String: Int]) -> String {
@@ -2063,6 +2169,43 @@ public struct OfflineProfileComparisonRunner {
       return "expected label 누락 segment의 reject reason을 확인하세요."
     }
     return "labeled segment를 늘려 반복 확인하세요."
+  }
+
+  private static func snoreNegativeReviewCue(_ summary: OfflineProfileSummary) -> String {
+    if summary.expectedSnoreRecords == 0, summary.snoreNegativeRecords == 0 {
+      return "snore와 silence/noise negative segment를 함께 추가하세요."
+    }
+    if summary.snoreNegativeWithSnoreEventRecords > 0 {
+      return "negative segment에서 코골기 이벤트가 생겨 FP-like guard 확인이 필요합니다."
+    }
+    if summary.expectedSnoreMissedRecords > 0 {
+      return "expected snore 누락 record의 reject reason과 smoothing drop을 확인하세요."
+    }
+    return "현재 labeled set에서는 snore hit와 negative guard가 함께 유지됩니다."
+  }
+
+  private static func balancedDeltaCue(
+    summary: OfflineProfileSummary,
+    balanced: OfflineProfileSummary
+  ) -> String {
+    guard summary.tuningProfile != balanced.tuningProfile else {
+      return "Release 기본 profile 기준선입니다."
+    }
+    if summary.possibleFalsePositiveLikeCount > balanced.possibleFalsePositiveLikeCount {
+      return "balanced보다 FP-like가 늘었습니다. Release 기본값 후보로 바로 올리지 마세요."
+    }
+    if summary.zeroEventCount < balanced.zeroEventCount,
+       summary.possibleFalsePositiveLikeCount <= balanced.possibleFalsePositiveLikeCount {
+      return "누락 감소 후보입니다. negative segment를 더 늘려 확인하세요."
+    }
+    if summary.zeroEventCount > balanced.zeroEventCount {
+      return "balanced보다 누락이 늘었습니다. 보수 profile 비교용으로 보세요."
+    }
+    return "balanced 대비 차이가 작습니다. 더 많은 segment로 반복 확인하세요."
+  }
+
+  private static func signed(_ value: Int) -> String {
+    value > 0 ? "+\(value)" : "\(value)"
   }
 
   private static func zeroEventSort(
@@ -2135,6 +2278,30 @@ public struct OfflineProfileComparisonRunner {
 
   private static func segmentKey(_ record: OfflineEvaluationRecord) -> String {
     "\(record.datasetName)|\(record.fileId)|\(record.segmentStartSeconds)|\(record.segmentDurationSeconds)"
+  }
+
+  private static func expectsSnore(_ record: OfflineEvaluationRecord) -> Bool {
+    normalizedLabels(record.expectedLabels).contains(SleepEventType.snore.rawValue)
+  }
+
+  private static func isSnoreNegative(_ record: OfflineEvaluationRecord) -> Bool {
+    let labels = normalizedLabels(record.expectedLabels)
+    guard !labels.isEmpty else { return false }
+    let negativeLabels: Set<String> = [
+      "quiet",
+      "silence",
+      "unknown",
+      SleepEventType.environmentalNoise.rawValue,
+    ]
+    return labels.isSubset(of: negativeLabels)
+  }
+
+  private static func hasFinalSnoreEvent(_ record: OfflineEvaluationRecord) -> Bool {
+    record.finalEventCountByType[SleepEventType.snore.rawValue, default: 0] > 0
+  }
+
+  private static func normalizedLabels(_ labels: [String]) -> Set<String> {
+    Set(labels.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
   }
 
   private static func weightedAverageConfidence(records: [OfflineEvaluationRecord]) -> Double? {

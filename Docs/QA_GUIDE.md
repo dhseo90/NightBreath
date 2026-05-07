@@ -127,6 +127,8 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - reject reason, raw 후보 수, 최종 이벤트 수 확인
 - threshold 변경 후보를 수동 검토용 보고서로 생성
 
+`OfflineProfileCompare`의 `tuning_report.md`에서는 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Delta From Balanced, Zero Event Stage Breakdown을 순서대로 확인합니다. 특히 Snore / Negative Snapshot은 expected snore hit와 silence/unknown/environmentalNoise negative segment의 final snore 발생률을 함께 보여주므로, 민감 profile에서 누락이 줄어도 소음 구간 코골기 오탐 위험이 늘었는지 먼저 확인합니다.
+
 세부 detector/dataset 문서는 `Docs/DETECTOR_TUNING.md`, `Docs/DATASET_REPLAY.md`, `Docs/DATASET_GUIDE.md`, `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
 ## 실제 iPhone zero-event diagnostics

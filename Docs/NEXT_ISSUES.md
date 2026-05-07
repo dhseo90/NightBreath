@@ -131,6 +131,7 @@
 - 침대 위 충전 상태 거리에서 snore raw 후보가 생기는지, 같은 배치의 조용한 구간/주변 소음 negative에서 snore raw 후보가 늘지 않는지 확인
 - Offline Evaluation으로 verySensitive / sensitive / balanced / conservative / veryConservative profile 비교
 - Offline Evaluation profile 비교 markdown quick summary 보강 완료
+- Offline Evaluation snore/negative snapshot과 balanced delta markdown summary 보강 완료
 - Offline Evaluation zero-event stage breakdown markdown summary 보강 완료
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리

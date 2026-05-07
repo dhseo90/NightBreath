@@ -48,6 +48,7 @@
 - Offline Evaluation
 - profile comparison 도구
 - Detector Offline Evaluation profile 비교 markdown quick summary
+- Detector Offline Evaluation snore/negative snapshot과 balanced delta markdown summary
 - Detector Offline Evaluation zero-event stage breakdown markdown summary
 - snore baseline/backend comparison 도구
 - Snore ML v0 training/변환 준비 도구

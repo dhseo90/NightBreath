@@ -70,6 +70,10 @@ struct OfflineProfileComparisonTests {
 
     #expect(summaries.count == 2)
     #expect(balanced.totalEvaluatedSegments == 2)
+    #expect(balanced.expectedSnoreRecords == 1)
+    #expect(balanced.expectedSnoreDetectedRecords == 1)
+    #expect(balanced.snoreNegativeRecords == 1)
+    #expect(balanced.snoreNegativeWithSnoreEventRecords == 0)
     #expect(balanced.rawCandidateCount == 2)
     #expect(balanced.zeroEventCount == 1)
     #expect(balanced.zeroEventNoRawCandidateCount == 1)
@@ -79,6 +83,39 @@ struct OfflineProfileComparisonTests {
     #expect(balanced.finalEventCountByType["snore"] == 1)
     #expect(balanced.averageConfidence == 0.7)
     #expect(balanced.topRejectReasons.first?.reason == "belowConfidenceThreshold")
+  }
+
+  @Test
+  func summarizesSnoreNegativeRiskForEnvironmentalNoiseLabels() {
+    let records = [
+      makeRecord(
+        profile: "sensitive",
+        fileId: "fan-noise",
+        expectedLabels: ["environmentalNoise"],
+        finalEventCountByType: ["snore": 1],
+        rawCandidateCount: 2
+      ),
+      makeRecord(
+        profile: "sensitive",
+        fileId: "room-tone",
+        expectedLabels: ["silence"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 0
+      ),
+    ]
+
+    let findings = OfflineProfileComparisonRunner.makeLabelFindings(records: records)
+    let summary = try! #require(
+      OfflineProfileComparisonRunner.makeProfileSummaries(
+        records: records,
+        findings: findings
+      ).first
+    )
+
+    #expect(summary.snoreNegativeRecords == 2)
+    #expect(summary.snoreNegativeWithSnoreEventRecords == 1)
+    #expect(summary.snoreNegativeEventRate == 0.5)
+    #expect(findings.contains { $0.kind == .possibleFalsePositiveLike && $0.fileId == "fan-noise" })
   }
 
   @Test
@@ -190,6 +227,12 @@ struct OfflineProfileComparisonTests {
     #expect(report.contains("## Recall / Risk Matrix"))
     #expect(report.contains("| balanced | 2 | 0 | 2/2 (100.0%) | 1 -> 0 | none | belowConfidenceThreshold: 3 |"))
     #expect(report.contains("| sensitive | 2 | 0 | 0/2 (0.0%) | 5 -> 2 | environmentalNoise: 1, snore: 1 | likelyEnvironmentalNoise: 1 |"))
+    #expect(report.contains("## Snore / Negative Snapshot"))
+    #expect(report.contains("| balanced | 0/1 (0.0%) | 1 | 0/1 (0.0%) | 0 | expected snore 누락 record의 reject reason과 smoothing drop을 확인하세요. |"))
+    #expect(report.contains("| sensitive | 1/1 (100.0%) | 0 | 0/1 (0.0%) | 1 | 현재 labeled set에서는 snore hit와 negative guard가 함께 유지됩니다. |"))
+    #expect(report.contains("## Delta From Balanced"))
+    #expect(report.contains("| balanced | 0 | 0 | 0 | 0 | Release 기본 profile 기준선입니다. |"))
+    #expect(report.contains("| sensitive | +2 | -2 | +1 | -1 | balanced보다 FP-like가 늘었습니다. Release 기본값 후보로 바로 올리지 마세요. |"))
     #expect(report.contains("## Zero Event Stage Breakdown"))
     #expect(report.contains("| balanced | 2 | 1 | 1 | 1 | 0 | belowConfidenceThreshold: 3 | raw 후보가 smoothing/final 단계에서 사라지는지 확인하세요. |"))
     #expect(report.contains("| sensitive | 0 | 0 | 0 | 0 | 0 | likelyEnvironmentalNoise: 1 | quiet/noise segment의 false-positive-like guard를 확인하세요. |"))

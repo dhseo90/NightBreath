@@ -172,6 +172,16 @@ swift run OfflineProfileCompare \
 - `Tools/OfflineEvaluation/output/tuning_report.md`
 - `Tools/OfflineEvaluation/output/suggested_changes.json`
 
+`tuning_report.md`는 다음 순서로 읽습니다.
+
+1. `Quick Comparison`: zero-event가 가장 적은 profile, final event가 가장 많은 profile, FP-like가 가장 낮은 profile, Release 기본 `balanced` 상태를 먼저 봅니다.
+2. `Recall / Risk Matrix`: raw → final 후보 수, final event type, top reject reason을 profile별로 비교합니다.
+3. `Snore / Negative Snapshot`: expected snore segment가 final snore로 남았는지와 silence/unknown/environmentalNoise negative segment에서 final snore가 생겼는지를 같이 봅니다.
+4. `Delta From Balanced`: Release 기본 `balanced` 대비 final event, zero-event, FP-like, FN-like 증감을 확인합니다.
+5. `Zero Event Stage Breakdown`: raw 후보 없음, raw 후보는 있었지만 final 없음, smoothing drop, post-smoothing 이후 final 누락을 분리합니다.
+
+`Snore / Negative Snapshot`과 `Delta From Balanced`에서 sensitive 계열의 누락 감소가 보이더라도 negative segment의 final snore 발생률 또는 FP-like delta가 늘면 Release 기본값으로 바로 올리지 않습니다.
+
 ## 2-1. Snore Baseline 실행
 
 코골기 detector만 더 자세히 볼 때는 Snore Baseline 도구를 함께 실행합니다.

@@ -96,7 +96,9 @@ JSON/CSV record에는 다음 값이 포함됩니다.
 
 `Top Reject Reasons`는 detector 후보가 왜 버려졌는지 보여줍니다. 예를 들어 `belowRmsThreshold`, `belowEnergyThreshold`, `belowConfidenceThreshold`가 반복되면 threshold 후보를 수동 검토할 수 있습니다.
 
-`OfflineProfileCompare`의 `tuning_report.md`는 profile별 `Zero Event Stage Breakdown`을 추가로 제공합니다. 이 표는 zero-event record를 raw 후보 없음, raw 후보는 있었지만 final 없음, smoothing drop, post-smoothing 이후 final 누락으로 분리해 실제 코골이 후보가 어느 단계에서 사라졌는지 빠르게 확인하는 용도입니다.
+`OfflineProfileCompare`의 `tuning_report.md`는 profile별 `Snore / Negative Snapshot`, `Delta From Balanced`, `Zero Event Stage Breakdown`을 추가로 제공합니다. Snore / Negative Snapshot은 expected snore segment에서 final snore가 남았는지와 silence/unknown/environmentalNoise negative segment에서 final snore가 생겼는지를 나란히 보여줍니다. Delta From Balanced는 Release 기본 profile인 `balanced` 대비 final event, zero-event, FP-like, FN-like 변화량을 보여줘 sensitive 계열을 기본값 후보로 볼 수 있는지 빠르게 확인하는 용도입니다.
+
+`Zero Event Stage Breakdown`은 zero-event record를 raw 후보 없음, raw 후보는 있었지만 final 없음, smoothing drop, post-smoothing 이후 final 누락으로 분리해 실제 코골이 후보가 어느 단계에서 사라졌는지 빠르게 확인하는 용도입니다.
 
 `Possible False-Positive-Like Cases`는 `expectedLabels`가 `silence`, `unknown`, `environmentalNoise` 중심인데 최종 코골기 이벤트가 생긴 segment입니다.
 
