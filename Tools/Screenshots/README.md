@@ -130,6 +130,8 @@ Docs/Screenshots/review/screenshot_review_manifest.tsv
 - 긴 한국어 문구, badge, chart axis가 겹치거나 잘리지 않음
 - 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명 없음
 
+승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다. `release-approved`로 바꾼 후보만 README/App Store/user-facing 문서에 image markdown/HTML `img`로 연결합니다.
+
 ## README 대표 screenshot 파일
 
 현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, 품질 gate 통과 전에는 README에 렌더링하지 않습니다.

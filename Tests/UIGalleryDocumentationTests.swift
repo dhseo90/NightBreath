@@ -122,6 +122,76 @@ struct UIGalleryDocumentationTests {
     }
   }
 
+  @Test
+  func screenshotStatusManifestDefinesAllowedApprovalStates() throws {
+    let root = repositoryRoot()
+    let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+    let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
+    let toolGuide = try sourceContents("Tools/Screenshots/README.md")
+    let rows = manifest
+      .split(separator: "\n", omittingEmptySubsequences: true)
+      .map { String($0).split(separator: "\t", omittingEmptySubsequences: false).map(String.init) }
+    let header = try #require(rows.first)
+    let dataRows = Array(rows.dropFirst())
+    let allowedStatuses: Set<String> = [
+      "screenshot pending",
+      "captured, quality review pending",
+      "internal-only, quality review pending",
+      "blocked, recapture required",
+      "release-approved",
+    ]
+
+    #expect(header == [
+      "id",
+      "group",
+      "view_or_surface",
+      "scenario",
+      "raw_source",
+      "review_asset",
+      "status",
+      "release_surface",
+      "notes",
+    ])
+    #expect(dataRows.count >= 30)
+    #expect(uiGallery.contains("Docs/Screenshots/screenshot_status.tsv"))
+    #expect(screenshotGuide.contains("Docs/Screenshots/screenshot_status.tsv"))
+    #expect(toolGuide.contains("release-approved"))
+
+    var appStoreBlockedCount = 0
+    var debugInternalCount = 0
+    var releaseApprovedCount = 0
+
+    for row in dataRows {
+      #expect(row.count == header.count, "Every screenshot status row should keep the TSV schema: \(row)")
+      let group = row[1]
+      let rawSource = row[4]
+      let reviewAsset = row[5]
+      let status = row[6]
+
+      #expect(allowedStatuses.contains(status), "Unexpected screenshot status: \(status)")
+
+      if status == "release-approved" {
+        releaseApprovedCount += 1
+      }
+      if group == "App Store", status == "blocked, recapture required" {
+        appStoreBlockedCount += 1
+      }
+      if group == "Debug", status == "internal-only, quality review pending" {
+        debugInternalCount += 1
+      }
+
+      if status != "screenshot pending" {
+        #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(rawSource).path), "\(rawSource) should exist.")
+        #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(reviewAsset).path), "\(reviewAsset) should exist.")
+      }
+    }
+
+    #expect(appStoreBlockedCount == 8)
+    #expect(debugInternalCount >= 4)
+    #expect(releaseApprovedCount == 0)
+  }
+
   private func sourceContents(_ relativePath: String) throws -> String {
     try String(contentsOf: repositoryRoot().appendingPathComponent(relativePath), encoding: .utf8)
   }

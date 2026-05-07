@@ -29,6 +29,12 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
 - 파일 존재 여부는 `captured`가 아니라 `captured, quality review pending`으로 봅니다.
 
+상태 source-of-truth:
+
+- `Docs/Screenshots/screenshot_status.tsv`에서 각 후보의 상태를 관리합니다.
+- 허용 상태값은 `screenshot pending`, `captured, quality review pending`, `internal-only, quality review pending`, `blocked, recapture required`, `release-approved`입니다.
+- `release-approved`로 바꾸려면 contact sheet 확인, App Store export 확인, user-facing 문서 렌더링 확인을 모두 통과해야 합니다.
+
 재노출 gate:
 
 - screenshot scenario에서 내부 QA 문구, 실제 개인 데이터, 실제 파일명, local path가 보이지 않아야 합니다.

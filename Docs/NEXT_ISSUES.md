@@ -152,6 +152,7 @@
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
 - 직접 launch scenario가 없는 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 `screenshot pending` 항목으로 유지
 - 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA와 App Store export PNG 확인 절차 유지
+- `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 `release-approved` 후보만 README/App Store/user-facing 문서에 렌더링
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 
