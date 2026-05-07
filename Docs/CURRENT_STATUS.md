@@ -56,6 +56,7 @@
 - Snore ML v0 training/변환 준비 도구
 - multiclass event classifier 준비 도구
 - Simulator QA scenarios
+- Real-device QA runbook preflight/redaction/failure triage
 - Regression Test Suite
 - NightBreath 디자인 시스템
 - HealthKit mock/protocol 기반 건강 데이터 dashboard 방향

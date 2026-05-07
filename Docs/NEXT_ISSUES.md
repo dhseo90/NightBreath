@@ -104,7 +104,7 @@
 - foreground 1분 smoke test
 - P0 fix 이후 `Docs/QA_GUIDE.md`의 Foreground stop smoke / Double stop tap / Lock/background short stop 통과
 - stop 이후 actual audio received time이 증가하지 않는 evidence template 기록
-- 실제 iPhone smoke result template은 `Docs/REAL_DEVICE_QA_RUNBOOK.md`에 준비 완료, 실행과 private evidence는 실기기 피드백 대기
+- 실제 iPhone smoke result template, preflight, redaction checklist, failure triage는 `Docs/REAL_DEVICE_QA_RUNBOOK.md`에 준비 완료, 실행과 private evidence는 실기기 피드백 대기
 - 화면 잠금 3분 smoke test
 - 앱 백그라운드 3분 smoke test
 - 실제 코골이 또는 코골기 유사 smoke에서 raw/reject/final diagnostics 기록

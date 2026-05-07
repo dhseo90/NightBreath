@@ -10,6 +10,26 @@
 - TestFlight build, commit hash, device model, iOS version은 재현에 필요한 범위에서만 기록합니다.
 - 결과 문구는 측정 품질, detector 동작, privacy/storage 정책 중심으로 기록하고 건강 상태를 단정하지 않습니다.
 
+## Preflight Without Device
+
+실제 iPhone이 없어도 아래 항목은 먼저 준비합니다.
+
+- 테스트 대상 commit hash와 branch 상태를 확인합니다.
+- `git diff --check`, 관련 focused test, generic iOS Debug build 결과를 기록합니다.
+- DEBUG 화면 위치를 확인합니다: `SleepReportView`, `DetectorTuningView`, `DatasetReplayView`의 `QA readout 공유`.
+- private QA note에 Result Template을 미리 복사합니다.
+- repository에는 실제 개인 오디오 파일, 실제 개인 CSV/export 파일, 실제 local path가 staged 상태로 남아 있지 않은지 확인합니다.
+- 이벤트 오디오 샘플 저장은 기본 OFF이며, opt-in을 켤 때만 짧은 샘플이 저장된다는 점을 테스트 전 메모에 표시합니다.
+- 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 의료 진단 표현이 이번 빌드 범위에 없는지 확인합니다.
+
+## Evidence Redaction Checklist
+
+- 실제 파일명 대신 `debug-snore-sample-1`, `private-fitdays-file` 같은 익명 label만 씁니다.
+- local path, 사용자 이름, 집/장소 이름, 대화 내용, sleep talk 내용은 기록하지 않습니다.
+- detector QA readout은 private QA note에만 붙이고 repository에는 필요한 aggregate count만 옮깁니다.
+- screenshot을 공유할 때는 DEBUG-only label, 개인 health value, 파일 경로, 실제 기기 이름이 보이지 않는지 확인합니다.
+- 실패 재현 단계는 행동과 timestamp 중심으로 쓰고 건강 상태를 단정하지 않습니다.
+
 ## Smoke Test Set
 
 ### 1. Foreground stop smoke
@@ -60,6 +80,8 @@ Double stop tap: pass / fail / not run
 Lock/background short stop: pass / fail / not run
 Snore signal smoke: pass / fail / not run
 Zero-event explanation: pass / fail / not run
+Detector QA readout captured: pass / fail / not run
+Event audio snippet safeguard: pass / fail / not run
 
 Stop diagnostics:
 stopButtonTappedAt:
@@ -117,6 +139,17 @@ Notes:
 blocking issue:
 next action:
 ```
+
+## Failure Triage Matrix
+
+| Failure | 먼저 볼 evidence | 다음 액션 |
+| --- | --- | --- |
+| Stop 이후 received audio 증가 | stop diagnostics, `chunksReceivedAfterStopRequest`, `lastAudioChunkReceivedAt` | P0 capture lifecycle 이슈로 분리하고 overnight 금지 |
+| Double stop에서 report 중복 | duplicateReportObserved, stopButtonTappedAt count | stop idempotency regression으로 분리 |
+| Snore smoke final event 0 | detector QA readout, raw/reject/smoothing/final count | feature/raw/smoothing/report 단계 중 누락 위치 분류 |
+| raw/reject diagnostics 없음 | audioChunkCount, analyzedChunkCount, fallbackUsed | capture 입력 부족 또는 backend fallback 이슈로 분리 |
+| Event snippet 정책 회귀 | opt-in 상태, savedAudioDuration, storage stats | privacy/storage P1로 분리하고 전체 밤 오디오 파일 여부 재확인 |
+| 금지 문구 노출 | 화면 이름, 문구, build config | copy safety 이슈로 분리하고 release gate 재실행 |
 
 ## Overnight Gate
 
