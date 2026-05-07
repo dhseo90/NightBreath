@@ -84,6 +84,8 @@ rg -n "AVAudioFile|AVAudioRecorder|\\bwrite\\b|Documents|Caches|FileManager|\\.w
 - confidence가 최소 기준 이상이어야 합니다.
 - 세션당 샘플 개수 제한을 넘지 않아야 합니다.
 - 샘플 폴더 용량 제한을 넘지 않아야 합니다.
+- 세션당 샘플 개수 제한은 전체 폴더가 아니라 해당 세션 file name 기준으로 적용합니다.
+- 샘플 저장 후 폴더 용량이 제한을 넘는 경우 새로 쓴 샘플을 즉시 제거하고 저장 실패로 처리합니다.
 
 현재 `EventAudioSnippetPolicy.default` 기준:
 

@@ -156,7 +156,7 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         output: DetectorOutput,
         chunks: [AudioChunk]
     ) throws -> EventAudioSnippet {
-        let existingCount = try snippetFiles().count
+        let existingCount = try snippetFiles(sessionId: sessionId).count
         guard existingCount < policy.maxSnippetsPerSession else {
             throw EventAudioSnippetStoreError.snippetLimitReached
         }
@@ -184,6 +184,7 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         let url = snippetsDirectory.appendingPathComponent(fileName)
 
         try writeCAF(samples: samples, sampleRate: extracted.sampleRate, to: url)
+        try enforceFolderSizeLimit(afterWriting: url)
 
         return EventAudioSnippet(
             sessionId: sessionId,
@@ -204,7 +205,7 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         chunks: [AudioChunk],
         createdAt: Date = Date()
     ) throws -> EventAudioSnippet {
-        let existingCount = try snippetFiles().count
+        let existingCount = try snippetFiles(sessionId: sessionId).count
         guard existingCount < policy.maxSnippetsPerSession else {
             throw EventAudioSnippetStoreError.snippetLimitReached
         }
@@ -233,6 +234,7 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         let url = snippetsDirectory.appendingPathComponent(fileName)
 
         try writeCAF(samples: samples, sampleRate: extracted.sampleRate, to: url)
+        try enforceFolderSizeLimit(afterWriting: url)
 
         let snippetStart = maxDate(targetStart, extracted.firstSampleAt)
         return EventAudioSnippet(
@@ -369,13 +371,15 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         }
     }
 
-    private func snippetFiles() throws -> [URL] {
+    private func snippetFiles(sessionId: UUID? = nil) throws -> [URL] {
         guard fileManager.fileExists(atPath: snippetsDirectory.path) else { return [] }
-        return try fileManager.contentsOfDirectory(
+        let files = try fileManager.contentsOfDirectory(
             at: snippetsDirectory,
             includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]
         )
         .filter { $0.pathExtension.lowercased() == "caf" }
+        guard let sessionId else { return files }
+        return files.filter { fileBelongsToSession(fileName: $0.lastPathComponent, sessionId: sessionId) }
     }
 
     private func snippetFileRecords() -> [SnippetFileRecord] {
@@ -472,6 +476,39 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
         try file.write(from: buffer)
     }
 
+    private func enforceFolderSizeLimit(afterWriting url: URL) throws {
+        let writtenSize = fileSizeBytes(at: url)
+        let projectedSize = folderSizeBytes(excluding: url) + writtenSize
+        guard projectedSize <= policy.maxFolderSizeBytes else {
+            try? fileManager.removeItem(at: url)
+            throw EventAudioSnippetStoreError.folderSizeLimitExceeded
+        }
+    }
+
+    private func folderSizeBytes(excluding excludedURL: URL) -> Int64 {
+        guard let enumerator = fileManager.enumerator(
+            at: snippetsDirectory,
+            includingPropertiesForKeys: [.fileSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return 0
+        }
+
+        var total: Int64 = 0
+        let excludedPath = excludedURL.standardizedFileURL.path
+        for case let fileURL as URL in enumerator {
+            guard fileURL.pathExtension.lowercased() == "caf" else { continue }
+            guard fileURL.standardizedFileURL.path != excludedPath else { continue }
+            total += fileSizeBytes(at: fileURL)
+        }
+        return total
+    }
+
+    private func fileSizeBytes(at url: URL) -> Int64 {
+        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        return Int64(max(0, size))
+    }
+
     private func makeFileName(
         sessionId: UUID,
         eventType: SleepEventType,
@@ -502,6 +539,12 @@ public final class EventAudioSnippetStore: @unchecked Sendable {
 
     private func minDate(_ lhs: Date, _ rhs: Date) -> Date {
         lhs <= rhs ? lhs : rhs
+    }
+
+    private func fileBelongsToSession(fileName: String, sessionId: UUID) -> Bool {
+        let fullID = sessionId.uuidString
+        let shortID = String(fullID.prefix(8))
+        return fileName.contains(fullID) || fileName.contains(shortID)
     }
 }
 

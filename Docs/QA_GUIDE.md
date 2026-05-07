@@ -93,6 +93,14 @@ Simulator preset 예시:
 
 DEBUG 빌드의 `SimulatorScenarioView`에서 preset을 적용하고 주요 화면을 확인합니다. QA 후에는 preset을 해제합니다.
 
+Event audio snippet safeguard 확인:
+
+- 기본값 OFF에서 새 샘플이 저장되지 않아야 합니다.
+- ON 상태에서도 이벤트 전 2초/후 3초, 최대 10초 샘플만 로컬에 저장되어야 합니다.
+- 세션당 최대 개수는 다른 세션의 기존 샘플 때문에 막히면 안 됩니다.
+- 새 샘플 저장 후 폴더 용량 제한을 넘으면 새 파일이 제거되고 저장 실패로 처리되어야 합니다.
+- 연결되지 않은 샘플 정리는 orphan만 삭제하고 연결된 이벤트 샘플은 유지해야 합니다.
+
 EHM screenshot / 화면 상태 scenario:
 
 - `ScreenshotHealthMetricsOverviewScenario`

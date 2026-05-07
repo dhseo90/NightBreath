@@ -101,6 +101,75 @@ struct EventAudioSnippetStoreTests {
     }
 
     @Test
+    func snippetLimitIsAppliedPerSessionNotWholeFolder() throws {
+        let root = makeTemporaryDirectory()
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(
+                maxSnippetsPerSession: 1,
+                maxFolderSizeBytes: 2_000_000
+            )
+        )
+        let firstSessionId = UUID()
+        let secondSessionId = UUID()
+
+        let first = try store.saveSnippet(
+            sessionId: firstSessionId,
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 320)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 319))
+        )
+        let second = try store.saveSnippet(
+            sessionId: secondSessionId,
+            output: makeOutput(startedAt: Date(timeIntervalSince1970: 330)),
+            chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 329))
+        )
+
+        #expect(store.snippetExists(fileName: first.fileName))
+        #expect(store.snippetExists(fileName: second.fileName))
+        #expect(store.storageStats(linkedFileNames: [first.fileName, second.fileName]).sampleCount == 2)
+        #expect(throws: EventAudioSnippetStoreError.snippetLimitReached) {
+            try store.saveSnippet(
+                sessionId: firstSessionId,
+                output: makeOutput(startedAt: Date(timeIntervalSince1970: 340)),
+                chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 339))
+            )
+        }
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
+    func removesNewSnippetIfProjectedFolderSizeWouldExceedPolicy() throws {
+        let root = makeTemporaryDirectory()
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let existingSample = root.appendingPathComponent("existing_near_limit.caf")
+        try Data(repeating: 7, count: 1_048_000).write(to: existingSample)
+        let store = EventAudioSnippetStore(
+            snippetsDirectory: root,
+            policy: EventAudioSnippetPolicy(
+                maxSnippetsPerSession: 10,
+                maxFolderSizeBytes: 1_048_576
+            )
+        )
+        let beforeFiles = try FileManager.default.contentsOfDirectory(atPath: root.path)
+
+        #expect(throws: EventAudioSnippetStoreError.folderSizeLimitExceeded) {
+            try store.saveSnippet(
+                sessionId: UUID(),
+                output: makeOutput(startedAt: Date(timeIntervalSince1970: 350)),
+                chunks: makeChunks(startedAt: Date(timeIntervalSince1970: 349))
+            )
+        }
+
+        let afterFiles = try FileManager.default.contentsOfDirectory(atPath: root.path)
+        #expect(beforeFiles == afterFiles)
+        #expect(FileManager.default.fileExists(atPath: existingSample.path))
+        #expect(store.folderSizeBytes() == 1_048_000)
+
+        try? FileManager.default.removeItem(at: root)
+    }
+
+    @Test
     func savingSnippetDoesNotAutomaticallyDeleteExistingSamples() throws {
         let root = makeTemporaryDirectory()
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

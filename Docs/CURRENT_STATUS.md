@@ -39,6 +39,7 @@
 - 이벤트별 사용자 feedback 저장/삭제/export 구조
 - 이벤트 오디오 샘플 opt-in 설정
 - 저장된 이벤트 오디오 용량 표시
+- 이벤트 오디오 샘플 세션별 개수/폴더 용량 초과 guard
 - orphan sample cleanup
 - 온보딩, iPhone 배치 가이드, 30초 캘리브레이션 flow
 - 개인정보/저장소 관리 UI
