@@ -169,6 +169,7 @@ struct CoreMLSleepEventDetectorTests {
         let integrationGuide = try sourceContents("Docs/CORE_ML_MODEL_INTEGRATION.md")
         let snoreMLGuide = try sourceContents("Docs/SNORE_ML_V0.md")
         let trainingGuide = try sourceContents("Tools/Training/README.md")
+        let gateScript = try sourceContents("Tools/Training/validate_coreml_integration_gate.sh")
         let project = try sourceContents("SleepSoundApp.xcodeproj/project.pbxproj")
         let modelArtifacts = try modelArtifacts(in: [
             root.appendingPathComponent("SleepSoundApp"),
@@ -192,6 +193,35 @@ struct CoreMLSleepEventDetectorTests {
         #expect(integrationGuide.contains("서버 업로드, 클라우드 처리, 외부 API 호출, 외부 분석 SDK를 추가하지 않습니다"))
         #expect(snoreMLGuide.contains("Docs/CORE_ML_MODEL_INTEGRATION.md"))
         #expect(trainingGuide.contains("Docs/CORE_ML_MODEL_INTEGRATION.md"))
+        #expect(trainingGuide.contains("validate_coreml_integration_gate.sh"))
+        #expect(gateScript.contains("KNOWN_MODEL_REFERENCES"))
+        #expect(gateScript.contains("SnoreDetector.mlmodel"))
+        #expect(gateScript.contains("SleepEventClassifier.mlmodel"))
+        #expect(gateScript.contains("rule-based fallback"))
+    }
+
+    @Test
+    func coreMLIntegrationGateScriptRunsWithoutModelArtifacts() throws {
+        let root = repositoryRoot()
+        let script = root.appendingPathComponent("Tools/Training/validate_coreml_integration_gate.sh")
+
+        #expect(FileManager.default.fileExists(atPath: script.path))
+
+        let process = Process()
+        let output = Pipe()
+        process.executableURL = script
+        process.currentDirectoryURL = root
+        process.standardOutput = output
+        process.standardError = output
+
+        try process.run()
+        process.waitUntilExit()
+
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        let outputText = String(data: data, encoding: .utf8) ?? ""
+
+        #expect(process.terminationStatus == 0, "Script failed: \(outputText)")
+        #expect(outputText.contains("Core ML integration gate passed."))
     }
 
     private func makeFeatures() -> AudioFeatures {

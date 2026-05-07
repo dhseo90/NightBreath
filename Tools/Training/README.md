@@ -192,6 +192,12 @@ duration
 
 생성된 모델을 실제 앱에서 테스트하려면 `Docs/CORE_ML_MODEL_INTEGRATION.md`의 integration gate를 먼저 통과한 뒤 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
 
+앱 target에 모델을 붙이기 전 현재 repository가 모델 미포함 상태를 유지하는지 확인하려면 아래 local gate를 실행합니다.
+
+```sh
+Tools/Training/validate_coreml_integration_gate.sh
+```
+
 ## 최소 권장 샘플 수
 
 스크립트의 학습 시작 최소값은 `snore 20개 + non-snore 20개 + 전체 40개`입니다. 이 기준보다 적으면 학습을 중단하고 추가 샘플 준비 방법을 안내합니다.

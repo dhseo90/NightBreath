@@ -141,6 +141,7 @@
 - false-positive-like / false-negative-like segment 검토
 - tuning report 기반 threshold 후보 정리
 - Core ML 변환 결과를 앱 target에 추가하는 절차 gate 문서화 완료. 실제 artifact target 적용은 보류
+- `Tools/Training/validate_coreml_integration_gate.sh`로 모델 artifact/app target 참조가 gate 전 상태에 섞이지 않았는지 로컬 확인 가능
 - Rule-based와 Core ML backend 비교 결과를 실제 iPhone QA 기록에 연결
 
 주의:

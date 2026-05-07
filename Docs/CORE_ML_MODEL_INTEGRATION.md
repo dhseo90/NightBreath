@@ -37,6 +37,12 @@
 
 모델을 target에 넣기 전후로 아래 local check를 실행합니다.
 
+모델 artifact를 앱 target에 추가하기 전 현재 repo가 gate 이전 상태를 유지하는지 먼저 확인합니다.
+
+```sh
+Tools/Training/validate_coreml_integration_gate.sh
+```
+
 ```sh
 xcrun swift test --filter CoreMLSleepEventDetector --filter CompositeSleepEventDetector --filter ModelOutputMapper --filter DetectorThresholdConfiguration --no-parallel
 ```
