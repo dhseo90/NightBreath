@@ -206,6 +206,8 @@ Importer 설계 원칙:
 - 가져온 sample의 `sourceType`은 항상 `fitdaysCSV`입니다. HealthKit 표준 지표가 export 파일에 있어도 `healthKit` source로 바꾸지 않습니다.
 - import batch는 삭제 가능해야 하며, 삭제 시 해당 `importBatchId`를 가진 sample도 함께 정리할 수 있어야 합니다.
 - UI에는 실제 local path를 표시하지 않고, screenshot에는 실제 개인 파일명도 사용하지 않습니다.
+- 지표 상세 화면에서는 Fitdays CSV 값을 `Fitdays CSV · 로컬` badge로 표시하고, raw `importBatchId` 같은 내부 ID는 사용자 화면에 노출하지 않습니다.
+- HealthKit-backed 표준 지표가 Fitdays CSV로 들어온 경우에도 HealthKit 값으로 바꾸지 않고 로컬 import 출처로 분리 표시합니다.
 
 ### Open in NightBreath / Share Extension 방침
 

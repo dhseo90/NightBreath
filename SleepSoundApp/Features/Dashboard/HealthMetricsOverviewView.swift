@@ -303,6 +303,11 @@ struct MetricDetailView: View {
           sourceTypes: viewModel.metricSamples.map(\.sourceType)
         )
 
+        MetricSourceContextNotice(
+          metadata: metric,
+          sourceTypes: viewModel.metricSamples.map(\.sourceType)
+        )
+
         Text(metric.description)
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
@@ -473,8 +478,8 @@ private struct MetricSampleListRow: View {
       )
 
       VStack(alignment: .leading, spacing: 3) {
-        if let importBatchId = sample.importBatchId, !importBatchId.isEmpty {
-          Text("Import batch: \(importBatchId)")
+        ForEach(sourceNotes, id: \.self) { note in
+          Text(note)
         }
         if let notes = sample.notes, !notes.isEmpty {
           Text(notes)
@@ -484,6 +489,34 @@ private struct MetricSampleListRow: View {
       .foregroundStyle(NBColor.tertiaryText)
       .padding(.leading, 34)
     }
+  }
+
+  private var sourceNotes: [String] {
+    var notes: [String] = []
+
+    switch sample.sourceType {
+    case .fitdaysCSV:
+      notes.append("Fitdays CSV 로컬 import 샘플")
+      notes.append("HealthKit에 저장하지 않음")
+    case .manual:
+      notes.append("기기 안에 저장된 수동 입력 샘플")
+    case .appComputed:
+      notes.append("밤숨 앱에서 기기 안에서 계산한 샘플")
+    case .healthKit:
+      notes.append("Apple 건강앱 read-only 샘플")
+    case .mock:
+      notes.append("예시 데이터 샘플")
+    }
+
+    if sample.importBatchId?.isEmpty == false {
+      notes.append("가져오기 기록에 연결된 샘플")
+    }
+
+    if metric.isExtendedLocalOnly {
+      notes.append("로컬 전용 지표")
+    }
+
+    return notes
   }
 }
 
@@ -721,7 +754,7 @@ struct MetricSourceBadgeStrip: View {
 
         ForEach(orderedSourceTypes) { sourceType in
           NBStatusBadge(
-            sourceType.displayName,
+            sourceBadgeLabel(for: sourceType),
             kind: sourceBadgeKind(for: sourceType),
             systemImage: sourceIcon(for: sourceType)
           )
@@ -745,8 +778,23 @@ struct MetricSourceBadgeStrip: View {
     if metadata.isExtendedLocalOnly {
       parts.append("로컬 전용")
     }
-    parts.append(contentsOf: orderedSourceTypes.map(\.displayName))
+    parts.append(contentsOf: orderedSourceTypes.map { sourceBadgeLabel(for: $0) })
     return parts.joined(separator: ", ")
+  }
+
+  private func sourceBadgeLabel(for sourceType: HealthMetricSourceType) -> String {
+    switch sourceType {
+    case .healthKit:
+      sourceType.displayName
+    case .fitdaysCSV:
+      "Fitdays CSV · 로컬"
+    case .manual:
+      "수동 입력 · 로컬"
+    case .appComputed:
+      sourceType.displayName
+    case .mock:
+      sourceType.displayName
+    }
   }
 
   private func sourceBadgeKind(for sourceType: HealthMetricSourceType) -> NBStatusKind {
@@ -762,6 +810,32 @@ struct MetricSourceBadgeStrip: View {
     case .mock:
       .debug
     }
+  }
+}
+
+private struct MetricSourceContextNotice: View {
+  let metadata: MetricDisplayMetadata
+  let sourceTypes: [HealthMetricSourceType]
+
+  private var summary: MetricDetailSourceSummary {
+    MetricDetailSourceSummary.make(for: metadata, sourceTypes: sourceTypes)
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+      Label("출처 구분", systemImage: "square.stack.3d.up")
+        .font(NBTypography.caption.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
+
+      ForEach(summary.messages, id: \.self) { message in
+        Text(message)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
   }
 }
 

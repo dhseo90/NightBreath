@@ -192,7 +192,8 @@ Metric detail 원칙:
 
 - `MetricDetailView` header는 지표명, unit, 최근 값, 최근 측정 시각, 출처, HealthKit 기반/로컬 전용 여부를 먼저 보여줍니다.
 - summary stats는 최근 값, 평균, 최소, 최대, 최근 변화, 측정 횟수, 첫/최근 측정일을 compact card로 표시합니다.
-- 샘플 목록은 측정 시간, 값, sourceName, sourceType, importBatchId, notes를 필요한 만큼만 보여주고 긴 메타데이터로 화면을 압도하지 않습니다.
+- 샘플 목록은 측정 시간, 값, sourceName, sourceType, notes를 필요한 만큼만 보여주고 긴 메타데이터로 화면을 압도하지 않습니다.
+- 사용자 화면에서는 raw `importBatchId` 같은 내부 ID를 그대로 노출하지 않고, Fitdays CSV 값은 `Fitdays CSV · 로컬` badge와 가져오기 기록 연결 여부로 설명합니다.
 - 수동 입력 버튼은 실제 입력 흐름이 준비되기 전에는 disabled placeholder로 유지합니다.
 
 Import result UI 원칙:

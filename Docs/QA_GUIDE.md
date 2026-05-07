@@ -515,16 +515,17 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 13. Fitdays 확장 지표는 HealthKit 기반이 아니라 로컬 전용으로 설명되는지 확인합니다.
 14. 저장 후 `저장된 가져오기` 섹션에 기록, 현재 저장소 기준 샘플 수, 처리 row, 건너뜀/오류 count가 표시되는지 확인합니다.
 15. 가져오기 기록 삭제를 실행하면 해당 `importBatchId`의 sample도 함께 사라지고 원본 파일명/local path는 UI에 표시되지 않는지 확인합니다.
-16. `미리보기 판단` 섹션에서 처리한 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column이 구분되는지 확인합니다.
-17. Files 앱에서 `.csv`, `.tsv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
-18. `FitdaysImportView`의 `월별 데이터 붙여넣기`에서 `클립보드 붙여넣고 미리보기`를 눌러 synthetic TSV/text table preview가 생성되는지 확인합니다.
-19. 직접 입력칸에 붙여넣은 뒤 `입력 내용 미리보기`를 눌러도 같은 preview가 생성되는지 확인합니다.
-20. 월 헤더, `5/1 07:20`, `5.2 오후 9:05`, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급`처럼 실제 복사 텍스트에 가까운 익명화 구조가 sample로 변환되는지 확인합니다.
-21. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
-22. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
-23. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
-24. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
-25. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
+16. 지표 상세 화면에서 Fitdays CSV 샘플이 `Fitdays CSV · 로컬` badge와 로컬 import 설명으로 표시되고 raw `importBatchId`가 보이지 않는지 확인합니다.
+17. `미리보기 판단` 섹션에서 처리한 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column이 구분되는지 확인합니다.
+18. Files 앱에서 `.csv`, `.tsv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
+19. `FitdaysImportView`의 `월별 데이터 붙여넣기`에서 `클립보드 붙여넣고 미리보기`를 눌러 synthetic TSV/text table preview가 생성되는지 확인합니다.
+20. 직접 입력칸에 붙여넣은 뒤 `입력 내용 미리보기`를 눌러도 같은 preview가 생성되는지 확인합니다.
+21. 월 헤더, `5/1 07:20`, `5.2 오후 9:05`, `몸무게`, `수분`, `골격근`, `내장지방등급`, `기초대사`, `체나이`, `비만등급`처럼 실제 복사 텍스트에 가까운 익명화 구조가 sample로 변환되는지 확인합니다.
+22. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
+23. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
+24. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
+25. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
+26. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
 기록 시 실제 파일명과 실제 수치를 적지 않습니다.
 

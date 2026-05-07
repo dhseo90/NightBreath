@@ -204,6 +204,56 @@ public struct MetricDetailExplanation: Equatable, Sendable {
     }
 }
 
+public struct MetricDetailSourceSummary: Equatable, Sendable {
+    public var messages: [String]
+
+    public init(messages: [String]) {
+        self.messages = messages
+    }
+
+    public static func make(
+        for metadata: MetricDisplayMetadata,
+        sourceTypes: [HealthMetricSourceType]
+    ) -> MetricDetailSourceSummary {
+        let uniqueSourceTypes = Set(sourceTypes)
+
+        if uniqueSourceTypes.isEmpty {
+            return MetricDetailSourceSummary(messages: [
+                "선택한 기간에 표시할 출처가 아직 없습니다.",
+            ])
+        }
+
+        if metadata.isHealthKitBacked && uniqueSourceTypes.contains(.fitdaysCSV) {
+            return MetricDetailSourceSummary(messages: [
+                "\(metadata.displayNameKo)는 Apple 건강앱에서도 read-only로 읽을 수 있는 표준 지표입니다.",
+                "Fitdays CSV로 가져온 값은 HealthKit 값으로 바꾸지 않고 로컬 import 출처로 따로 표시합니다.",
+                "앱은 HealthKit에 데이터를 쓰지 않습니다.",
+            ])
+        }
+
+        if metadata.isExtendedLocalOnly {
+            return MetricDetailSourceSummary(messages: [
+                "\(metadata.displayNameKo)는 HealthKit 표준 지표가 아니라 로컬 전용 지표입니다.",
+                "Fitdays CSV 또는 수동 입력으로 저장된 샘플만 표시합니다.",
+                "값은 개인 참고용으로만 정리합니다.",
+            ])
+        }
+
+        if uniqueSourceTypes == [.healthKit] {
+            return MetricDetailSourceSummary(messages: [
+                "\(metadata.displayNameKo)는 Apple 건강앱에서 read-only로 읽은 샘플입니다.",
+                "앱은 HealthKit에 데이터를 쓰지 않습니다.",
+            ])
+        }
+
+        return MetricDetailSourceSummary(messages: [
+            "출처별 샘플을 분리해 표시합니다.",
+            "Fitdays CSV와 수동 입력 값은 기기 안에 저장된 로컬 샘플입니다.",
+            "값은 개인 참고용으로만 정리합니다.",
+        ])
+    }
+}
+
 public struct MetricDetailViewModel: Equatable, Sendable {
     public var metricID: UnifiedHealthMetricID
     public var samples: [UnifiedHealthMetricSample]

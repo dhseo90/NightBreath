@@ -200,6 +200,27 @@ struct MetricDetailViewModelTests {
     }
 
     @Test
+    func sourceSummarySeparatesFitdaysImportFromHealthKitBackedMetrics() throws {
+        let bodyMass = try #require(MetricCatalog.default.metadata(for: .bodyMass))
+        let bodyWater = try #require(MetricCatalog.default.metadata(for: .bodyWaterPercentage))
+
+        let standardSummary = MetricDetailSourceSummary.make(
+            for: bodyMass,
+            sourceTypes: [.healthKit, .fitdaysCSV]
+        )
+        let localOnlySummary = MetricDetailSourceSummary.make(
+            for: bodyWater,
+            sourceTypes: [.fitdaysCSV]
+        )
+
+        #expect(standardSummary.messages.joined(separator: " ").contains("로컬 import 출처"))
+        #expect(standardSummary.messages.joined(separator: " ").contains("HealthKit 값으로 바꾸지 않고"))
+        #expect(standardSummary.messages.joined(separator: " ").contains("HealthKit에 데이터를 쓰지 않습니다"))
+        #expect(localOnlySummary.messages.joined(separator: " ").contains("로컬 전용 지표"))
+        #expect(localOnlySummary.messages.joined(separator: " ").contains("Fitdays CSV 또는 수동 입력"))
+    }
+
+    @Test
     func emptyDataStatesSeparateMissingMetricSourceAndPeriod() {
         let oldHealthKitSample = sample(.bodyMass, 72.2, daysAgo: 40, sourceType: .healthKit)
 
@@ -261,9 +282,14 @@ struct MetricDetailViewModelTests {
         #expect(contents.contains("MetricSummaryCard"))
         #expect(contents.contains("rawSampleListSection"))
         #expect(contents.contains("MetricSourceBadgeStrip"))
+        #expect(contents.contains("MetricSourceContextNotice"))
+        #expect(contents.contains("Fitdays CSV · 로컬"))
+        #expect(contents.contains("가져오기 기록에 연결된 샘플"))
+        #expect(contents.contains("HealthKit에 저장하지 않음"))
         #expect(contents.contains("HealthKit 기반"))
         #expect(contents.contains("로컬 전용"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
+        #expect(!contents.contains("Import batch:"))
     }
 
     @Test
@@ -271,6 +297,9 @@ struct MetricDetailViewModelTests {
         let allCopy = MetricDetailPeriod.allCases.map(\.displayName)
             + MetricDetailSourceFilter.allCases.map(\.displayName)
             + MetricCatalog.default.allMetrics().flatMap { MetricDetailExplanation.make(for: $0).messages }
+            + MetricCatalog.default.allMetrics().flatMap {
+                MetricDetailSourceSummary.make(for: $0, sourceTypes: [.healthKit, .fitdaysCSV, .manual, .appComputed]).messages
+            }
             + MetricDetailEmptyStateReason.noMetricSamples.titleAndMessage
             + MetricDetailEmptyStateReason.noSamplesForSource.titleAndMessage
             + MetricDetailEmptyStateReason.noSamplesForPeriod.titleAndMessage
