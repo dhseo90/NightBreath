@@ -344,6 +344,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/capture_app_store_screenshots.sh"),
             encoding: .utf8
         )
+        let reviewSheetScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/build_screenshot_review_sheet.sh"),
+            encoding: .utf8
+        )
         let screenshotGuide = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/README.md"),
             encoding: .utf8
@@ -371,9 +375,20 @@ struct AppStoreReadinessTests {
         #expect(captureScript.contains("Docs/Screenshots/AppStore/raw"))
         #expect(captureScript.contains("Docs/Screenshots/AppStore/review-cropped"))
         #expect(captureScript.contains("APP_STORE_SCREENSHOT_SCENARIOS"))
+        #expect(reviewSheetScript.contains("screenshot_review_sheet.html"))
+        #expect(reviewSheetScript.contains("screenshot_review_manifest.tsv"))
+        #expect(reviewSheetScript.contains("internal label"))
+        #expect(reviewSheetScript.contains("Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png"))
+        #expect(reviewSheetScript.contains("Docs/Screenshots/README/cropped/home_dashboard_light.png"))
         #expect(screenshotGuide.contains("App Store Marketing Screenshot"))
+        #expect(screenshotGuide.contains("Tools/Screenshots/build_screenshot_review_sheet.sh"))
+        #expect(screenshotGuide.contains("screenshot_review_sheet.html"))
         #expect(toolGuide.contains("App Store Marketing Screenshot"))
+        #expect(toolGuide.contains("Review Sheet"))
+        #expect(toolGuide.contains("build_screenshot_review_sheet.sh"))
         #expect(releaseGuide.contains("App Store marketing capture source"))
+        #expect(releaseGuide.contains("review sheet script"))
+        #expect(releaseGuide.contains("screenshot_review_sheet.html"))
         #expect(releaseGuide.contains("DEBUG simulator scenario"))
         #expect(releaseGuide.contains("synthetic/mock data"))
         #expect(screenshotGuide.contains("재캡처 전까지 사용 금지"))
@@ -425,6 +440,7 @@ struct AppStoreReadinessTests {
         #expect(exportScript.contains("force_original_aspect_ratio=decrease"))
         #expect(exportScript.contains("force_original_aspect_ratio=increase"))
         #expect(gitignore.contains("Docs/Screenshots/AppStore/export/"))
+        #expect(gitignore.contains("Docs/Screenshots/review/"))
         #expect(screenshotGuide.contains("App Store Connect size별 export"))
         #expect(toolGuide.contains("App Store Connect size export"))
         #expect(toolGuide.contains("https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/"))

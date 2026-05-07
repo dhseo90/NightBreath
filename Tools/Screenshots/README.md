@@ -107,6 +107,29 @@ Crop 후에는 title, 주요 card, CTA가 잘리지 않는지 확인합니다. c
 
 현재 고정 crop 출력은 검토 후보입니다. 화면별로 좌우 치우침, 하단 잘림, 주요 content 가독성, 내부 QA label 노출 여부를 확인한 뒤 README에 연결합니다.
 
+## Review Sheet
+
+재캡처나 crop 이후에는 로컬 review sheet를 생성해 raw source와 crop 결과를 나란히 확인합니다.
+
+```bash
+Tools/Screenshots/build_screenshot_review_sheet.sh
+```
+
+출력 위치:
+
+```text
+Docs/Screenshots/review/screenshot_review_sheet.html
+Docs/Screenshots/review/screenshot_review_manifest.tsv
+```
+
+이 출력 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. review sheet에서 다음 항목이 모두 통과해야 README/App Store/user-facing 문서에 다시 연결할 수 있습니다.
+
+- 내부 `Simulator QA` label이나 `synthetic` 파일명, local path가 보이지 않음
+- title, 주요 card, CTA, tab/navigation 상태가 잘리지 않음
+- 화면이 한쪽으로 치우치지 않고 crop 여백이 과하지 않음
+- 긴 한국어 문구, badge, chart axis가 겹치거나 잘리지 않음
+- 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명 없음
+
 ## README 대표 screenshot 파일
 
 현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, 품질 gate 통과 전에는 README에 렌더링하지 않습니다.
@@ -232,6 +255,8 @@ APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/captu
 ```
 
 App Store Connect에 올릴 size별 파일은 raw source에서 별도 export합니다. review-cropped 파일은 README/UI Gallery 검토용 crop과 같은 성격이며, App Store Connect 업로드 원본으로 쓰지 않습니다.
+
+App Store 후보를 재캡처한 뒤에는 `Tools/Screenshots/build_screenshot_review_sheet.sh`로 raw/review crop contact sheet를 먼저 확인합니다.
 
 ### App Store Connect size export
 

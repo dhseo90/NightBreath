@@ -27,6 +27,7 @@ struct UIGalleryDocumentationTests {
     let screenMap = try sourceContents("Docs/UI_SCREEN_MAP.md")
     let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
     let toolGuide = try sourceContents("Tools/Screenshots/README.md")
+    let reviewSheetScript = try sourceContents("Tools/Screenshots/build_screenshot_review_sheet.sh")
     let expectedCapturedPaths = [
       "Docs/Screenshots/Privacy/cropped/privacy_settings_light.png",
       "Docs/Screenshots/Privacy/cropped/onboarding_light.png",
@@ -57,6 +58,10 @@ struct UIGalleryDocumentationTests {
 
     #expect(toolGuide.contains("capture_support_screenshots.sh"))
     #expect(toolGuide.contains("현재 캡처 세트"))
+    #expect(toolGuide.contains("Review Sheet"))
+    #expect(screenshotGuide.contains("screenshot_review_sheet.html"))
+    #expect(reviewSheetScript.contains("manual_gate"))
+    #expect(reviewSheetScript.contains("DEBUG-only 화면 분리"))
   }
 
   @Test
@@ -97,6 +102,7 @@ struct UIGalleryDocumentationTests {
     ]
 
     #expect(uiGallery.contains("App Store Screenshot Candidate Flow"))
+    #expect(uiGallery.contains("Tools/Screenshots/build_screenshot_review_sheet.sh"))
     #expect(uiGallery.contains("Docs/Screenshots/AppStore/export/"))
     #expect(uiGallery.contains("커밋하지 않습니다"))
     #expect(uiGallery.contains("mock/synthetic data"))

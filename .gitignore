@@ -20,6 +20,7 @@ Tools/DatasetReplay/output/
 Tools/OfflineEvaluation/output/
 .device-data/
 Docs/Screenshots/AppStore/export/
+Docs/Screenshots/review/
 *.wav
 *.caf
 *.m4a

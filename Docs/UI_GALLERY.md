@@ -33,7 +33,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 - screenshot scenario에서 내부 QA 문구, 실제 개인 데이터, 실제 파일명, local path가 보이지 않아야 합니다.
 - 화면별 crop은 title, 주요 card, CTA, tab/navigation 상태를 자르거나 한쪽으로 치우치게 만들지 않아야 합니다.
-- README와 App Store 후보는 각각 별도 contact sheet로 검토하고 승인된 파일만 image markdown/HTML `img`로 연결합니다.
+- README와 App Store 후보는 `Tools/Screenshots/build_screenshot_review_sheet.sh`로 만든 contact sheet에서 raw source와 crop을 같이 검토하고 승인된 파일만 image markdown/HTML `img`로 연결합니다.
 - App Store 후보는 raw source와 export 산출물 모두 눈으로 확인한 뒤에만 `release-approved`로 전환합니다.
 
 ## Capture Status Summary

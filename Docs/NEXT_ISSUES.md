@@ -151,7 +151,7 @@
 - App Store raw/review-cropped 후보 8개는 내부 `Simulator QA` label 노출 가능성 때문에 blocked/re-capture required 상태입니다.
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
 - 직접 launch scenario가 없는 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 `screenshot pending` 항목으로 유지
-- 재캡처 후 contact sheet 기반 visual QA와 App Store export PNG 확인 절차 추가
+- 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA와 App Store export PNG 확인 절차 유지
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
 

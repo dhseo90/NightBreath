@@ -123,6 +123,7 @@
 - Release readiness 자동 gate 테스트
 - UI Gallery screenshot captured/pending/quality review 상태와 App Store 후보 재캡처 gate 정리
 - UI Gallery screenshot quarantine regression test
+- Screenshot raw/crop contact sheet 생성 workflow
 
 ## 현재 개발 전략
 

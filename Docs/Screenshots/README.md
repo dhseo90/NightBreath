@@ -54,6 +54,14 @@ Crop script:
 Tools/Screenshots/crop_readme_screenshots.sh
 ```
 
+Review sheet:
+
+```bash
+Tools/Screenshots/build_screenshot_review_sheet.sh
+```
+
+Review sheet는 `Docs/Screenshots/review/screenshot_review_sheet.html`과 `Docs/Screenshots/review/screenshot_review_manifest.tsv`를 생성합니다. 이 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. README/App Store/user-facing 문서에 screenshot을 다시 렌더링하기 전에는 raw source와 crop을 나란히 보고 내부 label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 확인합니다.
+
 ## EHM 상세 screenshot 후보
 
 다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 screenshot입니다. 원본은 `Health/`에 보존하고, UI Gallery에는 status bar, 시간, Dynamic Island 영역을 제거한 `Health/cropped/` 버전을 우선 사용합니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.

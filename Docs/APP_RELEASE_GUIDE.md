@@ -117,6 +117,7 @@ App Store marketing capture source:
 - raw source: `Docs/Screenshots/AppStore/raw/`
 - review crop: `Docs/Screenshots/AppStore/review-cropped/`
 - capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
+- review sheet script: `Tools/Screenshots/build_screenshot_review_sheet.sh`
 - App Store Connect size export script: `Tools/Screenshots/export_app_store_connect_screenshots.sh`
 
 Raw source는 App Store Connect size export 입력으로 사용하고, review crop은 내부 검토용으로만 사용합니다. 모든 파일은 DEBUG simulator scenario와 synthetic/mock data 기반이어야 합니다.
@@ -125,6 +126,7 @@ Raw source는 App Store Connect size export 입력으로 사용하고, review cr
 
 - 내부 `Simulator QA` label, `synthetic` 파일명, local path, 실제 개인 데이터가 보이면 실패입니다.
 - fixed crop 결과만으로 승인하지 않고, raw/review crop/export PNG를 contact sheet로 확인합니다.
+- `Docs/Screenshots/review/screenshot_review_sheet.html`에서 raw source와 review crop을 나란히 확인합니다.
 - DEBUG-only 화면은 App Store screenshot 후보에서 제외합니다.
 
 Size export 기준:
