@@ -15,6 +15,11 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("HealthCalendarView("))
         #expect(contents.contains("UnifiedHealthMetricSampleRepositoryProtocol"))
         #expect(contents.contains("loadHomeHealthSamples()"))
+        #expect(contents.contains("HomeHealthDateControls"))
+        #expect(contents.contains("moveHomeHealthDate(by:"))
+        #expect(contents.contains("HomeHealthQuickValueChip"))
+        #expect(contents.contains("latestSample(.bodyMass)"))
+        #expect(contents.contains("latestSample(.systolicBloodPressure)"))
         #expect(!contents.contains("requestReadPermission"))
     }
 

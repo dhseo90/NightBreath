@@ -6,6 +6,7 @@ struct HomeDashboardView: View {
 
   @EnvironmentObject private var appState: AppState
   @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
+  @State private var selectedHomeHealthDate: Date?
 
   init(
     unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
@@ -252,6 +253,16 @@ struct HomeDashboardView: View {
       systemImage: "heart.text.square"
     ) {
       VStack(spacing: NBSpacing.medium) {
+        HomeHealthDateControls(
+          date: quickHealthDetailDate,
+          dateCount: availableHomeHealthDates.count,
+          canMoveToPrevious: canMoveToPreviousHomeHealthDate,
+          canMoveToNext: canMoveToNextHomeHealthDate,
+          onPrevious: { moveHomeHealthDate(by: -1) },
+          onLatest: { showLatestHomeHealthDate() },
+          onNext: { moveHomeHealthDate(by: 1) }
+        )
+
         NavigationLink {
           DailyMeasurementDetailView(
             detailData: quickHealthDetailData,
@@ -433,11 +444,37 @@ struct HomeDashboardView: View {
       .sortedByMeasuredAtAscending()
   }
 
+  private var availableHomeHealthDates: [Date] {
+    let calendar = Calendar.current
+    let dates = homeUnifiedDashboardSamples.map { calendar.startOfDay(for: $0.measuredAt) }
+      + calendarReports.map { calendar.startOfDay(for: $0.generatedAt) }
+      + calendarMorningCheckIns.map { calendar.startOfDay(for: $0.createdAt) }
+
+    return Array(Set(dates)).sorted()
+  }
+
   private var quickHealthDetailDate: Date {
-    let candidateDates = homeUnifiedDashboardSamples.map(\.measuredAt)
-      + calendarReports.map(\.generatedAt)
-      + calendarMorningCheckIns.map(\.createdAt)
-    return Calendar.current.startOfDay(for: candidateDates.max() ?? Date())
+    let calendar = Calendar.current
+    if let selectedHomeHealthDate,
+       availableHomeHealthDates.contains(where: { calendar.isDate($0, inSameDayAs: selectedHomeHealthDate) }) {
+      return calendar.startOfDay(for: selectedHomeHealthDate)
+    }
+    return availableHomeHealthDates.last ?? calendar.startOfDay(for: Date())
+  }
+
+  private var quickHomeHealthDateIndex: Int? {
+    let calendar = Calendar.current
+    return availableHomeHealthDates.firstIndex { calendar.isDate($0, inSameDayAs: quickHealthDetailDate) }
+  }
+
+  private var canMoveToPreviousHomeHealthDate: Bool {
+    guard let quickHomeHealthDateIndex else { return false }
+    return quickHomeHealthDateIndex > 0
+  }
+
+  private var canMoveToNextHomeHealthDate: Bool {
+    guard let quickHomeHealthDateIndex else { return false }
+    return quickHomeHealthDateIndex < availableHomeHealthDates.count - 1
   }
 
   private var quickHealthDetailData: DailyMeasurementDetailData {
@@ -451,6 +488,19 @@ struct HomeDashboardView: View {
 
   private func loadHomeHealthSamples() {
     importedUnifiedSamples = unifiedSampleRepository.fetchSamples()
+    if selectedHomeHealthDate == nil {
+      selectedHomeHealthDate = availableHomeHealthDates.last
+    }
+  }
+
+  private func moveHomeHealthDate(by value: Int) {
+    guard let quickHomeHealthDateIndex else { return }
+    let nextIndex = min(max(quickHomeHealthDateIndex + value, 0), availableHomeHealthDates.count - 1)
+    selectedHomeHealthDate = availableHomeHealthDates[nextIndex]
+  }
+
+  private func showLatestHomeHealthDate() {
+    selectedHomeHealthDate = availableHomeHealthDates.last
   }
 
   private var trendScores: [Int] {
@@ -602,6 +652,55 @@ struct HomeDashboardView: View {
   }
 }
 
+private struct HomeHealthDateControls: View {
+  let date: Date
+  let dateCount: Int
+  let canMoveToPrevious: Bool
+  let canMoveToNext: Bool
+  let onPrevious: () -> Void
+  let onLatest: () -> Void
+  let onNext: () -> Void
+
+  var body: some View {
+    NBCard {
+      HStack(spacing: NBSpacing.small) {
+        Button(action: onPrevious) {
+          Image(systemName: "chevron.left")
+            .frame(width: 34, height: 34)
+        }
+        .buttonStyle(.plain)
+        .disabled(!canMoveToPrevious)
+        .accessibilityLabel("이전 건강 기록")
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(SleepFormatters.shortDate(date))
+            .font(NBTypography.headline)
+            .foregroundStyle(NBColor.primaryText)
+          Text(dateCount > 0 ? "기록 있는 날짜 \(dateCount)개" : "기록 있는 날짜 없음")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        Button(action: onLatest) {
+          Label("최신", systemImage: "clock.arrow.circlepath")
+            .font(NBTypography.captionEmphasis)
+        }
+        .buttonStyle(NBSecondaryButtonStyle())
+        .disabled(dateCount == 0)
+
+        Button(action: onNext) {
+          Image(systemName: "chevron.right")
+            .frame(width: 34, height: 34)
+        }
+        .buttonStyle(.plain)
+        .disabled(!canMoveToNext)
+        .accessibilityLabel("다음 건강 기록")
+      }
+    }
+  }
+}
+
 private struct HomeHealthQuickAccessCard: View {
   let detailData: DailyMeasurementDetailData
   let fallbackDate: Date
@@ -625,6 +724,14 @@ private struct HomeHealthQuickAccessCard: View {
         Text(SleepFormatters.shortDate(detailData.date))
           .font(NBTypography.title)
           .foregroundStyle(NBColor.primaryText)
+
+        if !quickValues.isEmpty {
+          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+            ForEach(quickValues) { item in
+              HomeHealthQuickValueChip(item: item)
+            }
+          }
+        }
 
         Text(detailData.summary.hasAnyData ? "이날 기록된 데이터를 바로 확인합니다." : "아직 연결된 건강 기록이 없습니다.")
           .font(NBTypography.callout)
@@ -673,6 +780,114 @@ private struct HomeHealthQuickAccessCard: View {
       return "최근 건강 기록, \(dateText), 데이터 없음"
     }
     return "최근 건강 기록, \(dateText), 건강 샘플 \(detailData.summary.sampleCount)개, 데이터 품질 \(detailData.summary.dataQuality.displayName)"
+  }
+
+  private var quickValues: [HomeHealthQuickValue] {
+    var values: [HomeHealthQuickValue] = []
+
+    if let systolic = latestSample(.systolicBloodPressure),
+       let diastolic = latestSample(.diastolicBloodPressure) {
+      values.append(
+        HomeHealthQuickValue(
+          title: "혈압",
+          value: "\(Int(systolic.value.rounded()))/\(Int(diastolic.value.rounded()))",
+          unit: "mmHg",
+          systemImage: "heart",
+          tint: NBColor.danger
+        )
+      )
+    }
+
+    if let bodyMass = latestSample(.bodyMass) {
+      values.append(
+        HomeHealthQuickValue(
+          title: "체중",
+          value: UnifiedMetricFormatting.valueString(bodyMass.value, unit: bodyMass.unit),
+          unit: nil,
+          systemImage: "scalemass",
+          tint: NBColor.mistTeal
+        )
+      )
+    }
+
+    if let bodyFat = latestSample(.bodyFatPercentage) {
+      values.append(
+        HomeHealthQuickValue(
+          title: "체지방률",
+          value: UnifiedMetricFormatting.valueString(bodyFat.value, unit: bodyFat.unit),
+          unit: nil,
+          systemImage: "percent",
+          tint: NBColor.warning
+        )
+      )
+    }
+
+    if let sleepScore = latestSample(.sleepSoundScore) {
+      values.append(
+        HomeHealthQuickValue(
+          title: "수면 소리",
+          value: "\(Int(sleepScore.value.rounded()))점",
+          unit: nil,
+          systemImage: "waveform",
+          tint: NBColor.sleepTint
+        )
+      )
+    }
+
+    return Array(values.prefix(4))
+  }
+
+  private func latestSample(_ metricID: UnifiedHealthMetricID) -> UnifiedHealthMetricSample? {
+    detailData.samples
+      .filter { $0.metricID == metricID }
+      .sortedByMeasuredAtDescending()
+      .first
+  }
+}
+
+private struct HomeHealthQuickValue: Identifiable {
+  var id: String { title }
+  let title: String
+  let value: String
+  let unit: String?
+  let systemImage: String
+  let tint: Color
+}
+
+private struct HomeHealthQuickValueChip: View {
+  let item: HomeHealthQuickValue
+
+  var body: some View {
+    HStack(alignment: .center, spacing: NBSpacing.xs) {
+      Image(systemName: item.systemImage)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(item.tint)
+        .frame(width: 18)
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(item.title)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+        HStack(alignment: .firstTextBaseline, spacing: 2) {
+          Text(item.value)
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.primaryText)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+          if let unit = item.unit {
+            Text(unit)
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+          }
+        }
+      }
+
+      Spacer(minLength: 0)
+    }
+    .padding(NBSpacing.small)
+    .background(NBColor.cardBackground.opacity(0.78))
+    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
   }
 }
 
