@@ -564,9 +564,13 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 
 1. 건강 데이터 연결 후 Apple 건강앱 read-only 상태 메시지가 최근 1년 범위임을 설명하는지 확인합니다.
 2. 4월처럼 이전 달 데이터가 비어 있으면 앱이 먼저 항목별 권한, Apple 건강앱 실제 샘플, 원본 앱의 Apple 건강앱 동기화 상태를 확인하라고 안내하는지 확인합니다.
-3. 건강 캘린더에서 이전/다음 달을 여러 번 눌러도 셀 표시와 선택 날짜 패널이 눈에 띄게 늦지 않은지 확인합니다.
-4. 그래프에 평균선, 최근값, 평균, 범위, 출처별 색상 범례가 표시되는지 확인합니다.
-5. 그래프와 캘린더 copy가 건강 상태를 단정하거나 치료/진단 표현을 사용하지 않는지 확인합니다.
+3. 한 번 건강 데이터 연결을 완료한 뒤 앱을 재실행하거나 업데이트한 상태에서 건강 대시보드 진입 시 permission sheet 없이 HealthKit sample을 다시 읽는지 확인합니다.
+4. `HealthKit 읽기 결과`가 전체 sample count와 가장 오래된 날짜/최신 날짜를 표시하는지 확인합니다.
+5. `혈압 HealthKit 샘플`이 혈압 sample count와 날짜 범위를 표시하는지 확인합니다. 0개이면 혈압 항목별 권한과 원본 앱의 Apple 건강앱 동기화를 확인합니다.
+6. Fitdays 로컬 import가 있는 상태에서 HealthKit 미연결 preview sample이 건강 캘린더에 실제 Apple 데이터처럼 섞이지 않는지 확인합니다.
+7. 건강 캘린더에서 이전/다음 달을 여러 번 눌러도 셀 표시와 선택 날짜 패널이 눈에 띄게 늦지 않은지 확인합니다.
+8. 그래프에 평균선, 최근값, 평균, 범위, 출처별 색상 범례가 표시되는지 확인합니다.
+9. 그래프와 캘린더 copy가 건강 상태를 단정하거나 치료/진단 표현을 사용하지 않는지 확인합니다.
 
 ```text
 Export type: private Fitdays CSV or structured export / synthetic fixture

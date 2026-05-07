@@ -3,6 +3,7 @@ import SwiftUI
 struct HealthDashboardView: View {
   private let service: any HealthKitServiceProtocol
   private let unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol
+  private let userSettings: UserSettingsProviding
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
   private let healthKitDashboardLookbackDays = 370
@@ -13,13 +14,17 @@ struct HealthDashboardView: View {
   @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
   @State private var isLoading = false
   @State private var statusMessage: String?
+  @State private var hasRequestedHealthKitReadAccess: Bool
 
   init(
     service: any HealthKitServiceProtocol = RealHealthKitService(),
-    unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
+    unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository(),
+    userSettings: UserSettingsProviding = UserSettings()
   ) {
     self.service = service
     self.unifiedSampleRepository = unifiedSampleRepository
+    self.userSettings = userSettings
+    _hasRequestedHealthKitReadAccess = State(initialValue: userSettings.hasRequestedHealthKitReadAccess)
   }
 
   var body: some View {
@@ -62,13 +67,14 @@ struct HealthDashboardView: View {
     .navigationTitle("건강 데이터")
     .onAppear {
       loadImportedUnifiedSamples()
+      refreshHealthDataIfPreviouslyConnected()
     }
   }
 
   private var visibleSamples: [HealthMetricSample] {
     switch permissionState {
     case .notRequested, .mockDataOnly:
-      mockService.samples
+      shouldShowPreviewHealthSamples ? mockService.samples : []
     case .readRequestCompleted:
       healthSamples
     case .denied, .unavailable:
@@ -78,6 +84,10 @@ struct HealthDashboardView: View {
 
   private var isPreviewData: Bool {
     permissionState == .notRequested || permissionState == .mockDataOnly
+  }
+
+  private var shouldShowPreviewHealthSamples: Bool {
+    isPreviewData && importedUnifiedSamples.isEmpty && !hasRequestedHealthKitReadAccess
   }
 
   private var unifiedDashboardSamples: [UnifiedHealthMetricSample] {
@@ -142,7 +152,7 @@ struct HealthDashboardView: View {
           connectHealthData()
         } label: {
           Label(
-            isLoading ? "연결 확인 중" : "건강 데이터 연결",
+            isLoading ? "건강앱 읽는 중" : healthConnectButtonTitle,
             systemImage: "heart.text.square"
           )
         }
@@ -368,6 +378,21 @@ struct HealthDashboardView: View {
             footnote: "기기 안"
           )
         }
+
+        if let healthKitFetchSummary {
+          Text(healthKitFetchSummary)
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+
+        if let bloodPressureFetchSummary {
+          NBStatusBadge(
+            bloodPressureFetchSummary.message,
+            kind: bloodPressureFetchSummary.kind,
+            systemImage: bloodPressureFetchSummary.systemImage
+          )
+        }
       }
     }
   }
@@ -424,7 +449,33 @@ struct HealthDashboardView: View {
       await MainActor.run {
         permissionState = nextPermissionState
         healthSamples = fetchedSamples
+        hasRequestedHealthKitReadAccess = nextPermissionState == .readRequestCompleted
+        userSettings.hasRequestedHealthKitReadAccess = hasRequestedHealthKitReadAccess
         statusMessage = message(for: nextPermissionState, sampleCount: fetchedSamples.count)
+        isLoading = false
+      }
+    }
+  }
+
+  private func refreshHealthDataIfPreviouslyConnected() {
+    guard userSettings.hasRequestedHealthKitReadAccess,
+          service.isAvailable,
+          permissionState != .readRequestCompleted,
+          !isLoading else {
+      return
+    }
+
+    hasRequestedHealthKitReadAccess = true
+    permissionState = .readRequestCompleted
+    isLoading = true
+    statusMessage = "이전에 연결한 Apple 건강앱 데이터를 다시 읽고 있습니다."
+
+    Task {
+      let fetchedSamples = await fetchDashboardSamples()
+
+      await MainActor.run {
+        healthSamples = fetchedSamples
+        statusMessage = message(for: .readRequestCompleted, sampleCount: fetchedSamples.count)
         isLoading = false
       }
     }
@@ -467,6 +518,47 @@ struct HealthDashboardView: View {
     case .mockDataOnly:
       "예시 데이터로 화면을 표시합니다."
     }
+  }
+
+  private var healthConnectButtonTitle: String {
+    hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
+      ? "건강 데이터 새로고침"
+      : "건강 데이터 연결"
+  }
+
+  private var healthKitFetchSummary: String? {
+    guard permissionState == .readRequestCompleted else {
+      return nil
+    }
+    guard let first = healthSamples.first?.measuredAt,
+          let latest = healthSamples.last?.measuredAt else {
+      return "HealthKit 읽기 결과: 최근 1년 범위에서 샘플 0개"
+    }
+    return "HealthKit 읽기 결과: \(healthSamples.count)개 · \(SleepFormatters.shortDate(first))~\(SleepFormatters.shortDate(latest))"
+  }
+
+  private var bloodPressureFetchSummary: (message: String, kind: NBStatusKind, systemImage: String)? {
+    guard permissionState == .readRequestCompleted else {
+      return nil
+    }
+
+    let bloodPressureSamples = healthSamples
+      .filter { HealthDashboardMetrics.bloodPressure.contains($0.metricType) }
+
+    guard let first = bloodPressureSamples.first?.measuredAt,
+          let latest = bloodPressureSamples.last?.measuredAt else {
+      return (
+        "혈압 HealthKit 샘플 0개입니다. Apple 건강앱의 혈압 항목 권한과 Omron/측정 앱의 Apple 건강앱 동기화를 확인하세요.",
+        .caution,
+        "heart.slash"
+      )
+    }
+
+    return (
+      "혈압 HealthKit 샘플 \(bloodPressureSamples.count)개 · \(SleepFormatters.shortDate(first))~\(SleepFormatters.shortDate(latest))",
+      .good,
+      "heart.text.square"
+    )
   }
 
   private func latestMetricCard(_ metricType: HealthMetricType) -> NBMetricCard {

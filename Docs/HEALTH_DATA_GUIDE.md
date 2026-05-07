@@ -262,6 +262,12 @@ Share Extension 후보:
 
 Apple 건강앱 read-only 조회 범위는 대시보드 기준 최근 1년입니다. 이전 달 데이터가 비어 보이면 먼저 항목별 HealthKit 권한, Apple 건강앱 안의 실제 샘플 존재 여부, Omron/Fitdays 같은 원본 앱의 Apple 건강앱 동기화 상태를 확인합니다. 이 확인은 HealthKit write, Fitdays 서버/API 연결, 비공식 동기화 구현으로 이어지면 안 됩니다.
 
+HealthKit read-only sample은 앱 로컬 저장소에 복제해 보관하지 않고, 사용자가 건강 데이터 연결을 선택한 뒤 현재 세션에서 읽은 결과를 화면에 표시합니다. 사용자가 한 번 연결한 뒤에는 `hasRequestedHealthKitReadAccess` flag를 로컬 설정에 남기고, 건강 대시보드 진입 시 permission sheet 없이 최근 1년 HealthKit sample을 다시 읽습니다. 이 자동 재조회는 이전에 사용자가 연결을 선택한 경우에만 동작합니다.
+
+Fitdays import sample은 로컬 저장소에 저장되는 데이터이고, Apple 건강앱 sample은 HealthKit read-only 재조회 결과입니다. 따라서 건강 캘린더에서 4월 Fitdays 점은 보이는데 Apple 건강앱 점이 비어 있으면, 같은 월에 HealthKit 혈압 sample이 실제로 읽혔는지 `HealthKit 읽기 결과`와 `혈압 HealthKit 샘플` diagnostic copy를 먼저 봅니다.
+
+연결 전 preview sample은 실제 HealthKit 데이터가 아닙니다. 로컬 Fitdays import가 있는 상태에서는 mock preview health sample을 건강 캘린더에 섞지 않아, 최근 mock 값이 실제 Apple 건강앱 데이터처럼 보이지 않게 합니다.
+
 진입점:
 
 - HealthKit read-only 연결

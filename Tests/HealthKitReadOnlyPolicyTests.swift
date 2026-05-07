@@ -268,6 +268,11 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(contents.contains("healthKitDashboardLookbackDays = 370"))
         #expect(contents.contains("최근 1년 범위"))
         #expect(contents.contains("원본 앱의 Apple 건강앱 동기화 상태"))
+        #expect(contents.contains("hasRequestedHealthKitReadAccess"))
+        #expect(contents.contains("refreshHealthDataIfPreviouslyConnected"))
+        #expect(contents.contains("HealthKit 읽기 결과"))
+        #expect(contents.contains("혈압 HealthKit 샘플"))
+        #expect(contents.contains("shouldShowPreviewHealthSamples"))
         #expect(contents.contains("sampleCount: importedUnifiedSamples.count"))
         #expect(contents.contains("latestImportedUnifiedDate"))
     }

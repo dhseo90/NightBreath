@@ -32,6 +32,7 @@ private final class PreviewUserSettings: UserSettingsProviding {
   var isEventAudioSampleStorageEnabled = false
   var hasCompletedOnboarding = false
   var detectorTuningProfile: DetectorTuningProfile = .releaseDefault
+  var hasRequestedHealthKitReadAccess = false
 }
 
 @MainActor

@@ -728,5 +728,6 @@ private final class ScreenshotUserSettings: UserSettingsProviding {
   var isEventAudioSampleStorageEnabled = false
   var hasCompletedOnboarding = true
   var detectorTuningProfile: DetectorTuningProfile = .releaseDefault
+  var hasRequestedHealthKitReadAccess = false
 }
 #endif

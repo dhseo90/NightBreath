@@ -64,6 +64,19 @@ struct UserSettingsTests {
     }
 
     @Test
+    func healthKitReadAccessRequestFlagDefaultsOffAndPersists() throws {
+        let userDefaults = try makeIsolatedUserDefaults()
+        let settings = UserSettings(userDefaults: userDefaults)
+
+        #expect(settings.hasRequestedHealthKitReadAccess == false)
+
+        settings.hasRequestedHealthKitReadAccess = true
+        let reloadedSettings = UserSettings(userDefaults: userDefaults)
+
+        #expect(reloadedSettings.hasRequestedHealthKitReadAccess)
+    }
+
+    @Test
     func storageRulesBlockEventSamplesWhenSettingIsOff() {
         let shouldStore = EventAudioSampleStorageRules.shouldAttemptStorage(
             isEnabled: false,

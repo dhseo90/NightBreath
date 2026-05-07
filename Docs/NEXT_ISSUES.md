@@ -73,6 +73,7 @@
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시는 `Fitdays CSV · 로컬`과 내부 ID 숨김 기준으로 보강 완료. 실제 데이터로 manual QA 필요
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
 - Health Dashboard는 권한 없음/HealthKit 샘플 없음/로컬 import만 있음/mixed source edge state를 분리 표시하고, Apple 건강앱 read-only 조회 범위와 원본 앱 동기화 확인 안내를 최근 1년 기준으로 제공합니다. 실제 HealthKit 권한 조합과 Fitdays import 결과로 manual QA 필요
+- Health Dashboard는 한 번 연결한 뒤 앱 재실행/업데이트 후에도 permission sheet 없이 HealthKit sample을 재조회하고, `HealthKit 읽기 결과`와 `혈압 HealthKit 샘플` date range를 표시합니다. 실제 iPhone에서 2월~4월 혈압 sample이 calendar에 들어오는지 manual QA 필요
 - 건강 캘린더 월 이동 계산 재사용과 metric 그래프 평균선/요약/출처 범례는 simulator-first로 보강했습니다. 실제 개인 데이터 규모에서 체감 성능과 가독성 QA 필요
 - MetricDetailView 기간 선택, source filter, empty state 회귀 테스트 보강
 - HealthCalendarView 월 이동, 날짜 선택, DailyMeasurementDetailView grouping 회귀 테스트 보강

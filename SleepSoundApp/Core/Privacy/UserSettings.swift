@@ -4,12 +4,14 @@ public protocol UserSettingsProviding: AnyObject {
     var isEventAudioSampleStorageEnabled: Bool { get set }
     var hasCompletedOnboarding: Bool { get set }
     var detectorTuningProfile: DetectorTuningProfile { get set }
+    var hasRequestedHealthKitReadAccess: Bool { get set }
 }
 
 public final class UserSettings: UserSettingsProviding {
     public static let eventAudioSampleStorageKey = "isEventAudioSampleStorageEnabled"
     public static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
     public static let detectorTuningProfileKey = "detectorTuningProfile"
+    public static let hasRequestedHealthKitReadAccessKey = "hasRequestedHealthKitReadAccess"
 
     private let userDefaults: UserDefaults
 
@@ -47,6 +49,15 @@ public final class UserSettings: UserSettingsProviding {
         set {
             let profile = DetectorTuningProfile.debugSelectableProfiles.contains(newValue) ? newValue : .releaseDefault
             userDefaults.set(profile.rawValue, forKey: Self.detectorTuningProfileKey)
+        }
+    }
+
+    public var hasRequestedHealthKitReadAccess: Bool {
+        get {
+            userDefaults.bool(forKey: Self.hasRequestedHealthKitReadAccessKey)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Self.hasRequestedHealthKitReadAccessKey)
         }
     }
 }
