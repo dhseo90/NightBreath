@@ -48,6 +48,7 @@ struct SleepStartView: View {
         permissionStatusCard
 
         setupSummaryCard
+        latestResultSection
 
         NBPrivacyNoticeCard(
           title: "측정 전 개인정보 확인",
@@ -67,6 +68,55 @@ struct SleepStartView: View {
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+  }
+
+  private var latestResultSection: some View {
+    NBReportSection(title: "최근 수면 결과", systemImage: "doc.text.magnifyingglass") {
+      VStack(spacing: NBSpacing.md) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
+          NBMetricCard(
+            title: "수면 소리 점수",
+            value: "\(appState.latestReport.sleepSoundScore)",
+            unit: "점",
+            subtitle: SleepFormatters.shortDate(appState.latestReport.generatedAt),
+            systemImage: "waveform.path.ecg",
+            tint: NBColor.sleepTint
+          )
+
+          NBMetricCard(
+            title: "측정 품질",
+            value: appState.latestReport.measurementQuality.displayName,
+            subtitle: "커버리지 \(percentString(appState.latestReport.audioCoverageRatio))",
+            systemImage: "checkmark.seal",
+            tint: appState.latestReport.measurementQuality == .poor ? NBColor.danger : NBColor.success
+          )
+        }
+
+        HStack(spacing: NBSpacing.md) {
+          NavigationLink {
+            SleepReportView(report: appState.latestReport, events: appState.latestEvents)
+          } label: {
+            Label("리포트", systemImage: "doc.text.magnifyingglass")
+          }
+          .buttonStyle(.nbSecondary)
+
+          NavigationLink {
+            SleepTimelineView(report: appState.latestReport, events: appState.latestEvents)
+          } label: {
+            Label("타임라인", systemImage: "list.bullet.rectangle")
+          }
+          .buttonStyle(.nbSecondary)
+        }
+
+        NavigationLink {
+          TrendDashboardView()
+        } label: {
+          Label("수면 트렌드", systemImage: "chart.line.uptrend.xyaxis")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.nbSecondary)
+      }
+    }
   }
 
   private var permissionStatusCard: some View {
@@ -138,6 +188,10 @@ struct SleepStartView: View {
 
   private var startButtonIcon: String {
     appState.isPreparingCapture ? "hourglass" : "play.fill"
+  }
+
+  private func percentString(_ ratio: Double) -> String {
+    String(format: "%.0f%%", min(max(ratio, 0), 1) * 100)
   }
 
   private var permissionDescription: String {

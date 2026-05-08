@@ -106,6 +106,8 @@
 - DailyMeasurementDetailView
 - 하단 건강 tab의 HealthDashboardView 직접 진입
 - 건강 tab 첫 화면의 최근 날짜 상세 CTA
+- 하단 tab 역할 정리: 홈=종합 평가, 수면=측정/결과, 건강=HealthKit+수면+Fitdays 데이터 허브, 설정=앱 설정
+- 수면 tab의 최근 리포트/타임라인/수면 트렌드 직행
 - MetricDetailView
 - EHM 관련 unit test
 - EHM 관련 문서

@@ -220,6 +220,12 @@ public struct SummaryStats: Codable, Equatable, Sendable {
         )
     }
 
+    public static func make(values: [Double], totalCount: Int) -> SummaryStats {
+        var stats = make(values: values)
+        stats.count = Swift.max(stats.count, totalCount)
+        return stats
+    }
+
     private static func percentile(_ percentile: Double, values: [Double]) -> Double {
         guard !values.isEmpty else { return 0 }
         guard values.count > 1 else { return values[0] }
@@ -239,6 +245,38 @@ public struct SummaryStats: Codable, Equatable, Sendable {
 
     private static func safe(_ value: Double) -> Double {
         value.isFinite ? value : 0
+    }
+}
+
+private struct BoundedFeatureValueSampler: Sendable {
+    private let maxStoredValueCount: Int
+    private var observedValueCount = 0
+    private var values: [Double] = []
+
+    init(maxStoredValueCount: Int) {
+        self.maxStoredValueCount = max(1, maxStoredValueCount)
+    }
+
+    mutating func append(_ value: Double) {
+        guard value.isFinite else { return }
+
+        observedValueCount += 1
+        if values.count < maxStoredValueCount {
+            values.append(value)
+            return
+        }
+
+        let replacementIndex = observedValueCount % maxStoredValueCount
+        values[replacementIndex] = value
+    }
+
+    mutating func removeAll(keepingCapacity: Bool = true) {
+        observedValueCount = 0
+        values.removeAll(keepingCapacity: keepingCapacity)
+    }
+
+    func summary() -> SummaryStats {
+        SummaryStats.make(values: values, totalCount: observedValueCount)
     }
 }
 
@@ -904,6 +942,7 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
 }
 
 public final class DetectorDiagnosticsCollector {
+    private let maxStoredFeatureSamples: Int
     private var sessionId: UUID?
     private var startedAt: Date?
     private var detectorBackend: String = SleepDetectionBackend.ruleBased.displayName
@@ -916,13 +955,13 @@ public final class DetectorDiagnosticsCollector {
     private var confidenceHistogram: [String: Int] = [:]
     private var modelFallbackCount = 0
     private var analyzedChunkCount = 0
-    private var rmsValues: [Double] = []
-    private var energyValues: [Double] = []
-    private var zeroCrossingRateValues: [Double] = []
-    private var spectralCentroidValues: [Double] = []
-    private var lowBandEnergyValues: [Double] = []
-    private var midBandEnergyValues: [Double] = []
-    private var highBandEnergyValues: [Double] = []
+    private var rmsValues: BoundedFeatureValueSampler
+    private var energyValues: BoundedFeatureValueSampler
+    private var zeroCrossingRateValues: BoundedFeatureValueSampler
+    private var spectralCentroidValues: BoundedFeatureValueSampler
+    private var lowBandEnergyValues: BoundedFeatureValueSampler
+    private var midBandEnergyValues: BoundedFeatureValueSampler
+    private var highBandEnergyValues: BoundedFeatureValueSampler
     private var preSmoothingCandidateCount = 0
     private var postSmoothingEventCount = 0
     private var preSmoothingCandidateCountByType: [SleepEventType: Int] = [:]
@@ -936,7 +975,16 @@ public final class DetectorDiagnosticsCollector {
     private var latestRawCandidateDebugSummary: String?
     private var notes: [String] = []
 
-    public init() {}
+    public init(maxStoredFeatureSamples: Int = 7_200) {
+        self.maxStoredFeatureSamples = max(1, maxStoredFeatureSamples)
+        self.rmsValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.energyValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.zeroCrossingRateValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.spectralCentroidValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.lowBandEnergyValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.midBandEnergyValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+        self.highBandEnergyValues = BoundedFeatureValueSampler(maxStoredValueCount: self.maxStoredFeatureSamples)
+    }
 
     public func reset(
         sessionId: UUID,
@@ -1111,13 +1159,13 @@ public final class DetectorDiagnosticsCollector {
             snoreLikeFeatureRejectedCount: snoreLikeFeatureRejectedCount,
             snoreLikeFeatureRejectReasonCounts: snoreLikeFeatureRejectReasonCounts,
             confidenceHistogram: confidenceHistogram,
-            rmsSummary: SummaryStats.make(values: rmsValues),
-            energySummary: SummaryStats.make(values: energyValues),
-            zeroCrossingRateSummary: SummaryStats.make(values: zeroCrossingRateValues),
-            spectralCentroidSummary: SummaryStats.make(values: spectralCentroidValues),
-            lowBandEnergySummary: SummaryStats.make(values: lowBandEnergyValues),
-            midBandEnergySummary: SummaryStats.make(values: midBandEnergyValues),
-            highBandEnergySummary: SummaryStats.make(values: highBandEnergyValues),
+            rmsSummary: rmsValues.summary(),
+            energySummary: energyValues.summary(),
+            zeroCrossingRateSummary: zeroCrossingRateValues.summary(),
+            spectralCentroidSummary: spectralCentroidValues.summary(),
+            lowBandEnergySummary: lowBandEnergyValues.summary(),
+            midBandEnergySummary: midBandEnergyValues.summary(),
+            highBandEnergySummary: highBandEnergyValues.summary(),
             thresholdsSnapshot: thresholdsSnapshot,
             tuningProfile: tuningProfile,
             eventAudioSampleStorageEnabled: eventAudioSampleStorageEnabled,
@@ -1251,7 +1299,7 @@ public final class DetectorDiagnosticsCollector {
         }
     }
 
-    private func appendFinite(_ value: Double, to values: inout [Double]) {
+    private func appendFinite(_ value: Double, to values: inout BoundedFeatureValueSampler) {
         guard value.isFinite else { return }
         values.append(value)
     }

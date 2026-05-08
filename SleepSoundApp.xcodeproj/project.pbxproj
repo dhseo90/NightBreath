@@ -68,6 +68,7 @@
 		00000000000000000000023A /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000014E /* UserSettings.swift */; };
 		00000000000000000000023B /* EventAudioStorageStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000150 /* EventAudioStorageStats.swift */; };
 		00000000000000000000023C /* DetectorDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000151 /* DetectorDiagnostics.swift */; };
+		0000000000000000000002A2 /* SleepAudioProcessingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001D2 /* SleepAudioProcessingPipeline.swift */; };
 		00000000000000000000023D /* DetectorThresholdConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000153 /* DetectorThresholdConfiguration.swift */; };
 		00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000154 /* ZeroEventAnalysis.swift */; };
 		00000000000000000000023F /* DetectorTuningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000155 /* DetectorTuningView.swift */; };
@@ -352,6 +353,7 @@
 		0000000000000000000001C1 /* HealthCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthCalendarView.swift; sourceTree = "<group>"; };
 		0000000000000000000001C2 /* MetricDetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricDetailModels.swift; sourceTree = "<group>"; };
 		0000000000000000000001D1 /* HealthDashboardDataState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDashboardDataState.swift; sourceTree = "<group>"; };
+		0000000000000000000001D2 /* SleepAudioProcessingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepAudioProcessingPipeline.swift; sourceTree = "<group>"; };
 		00000000000000000000026F /* ScreenAppearancePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenAppearancePreviews.swift; sourceTree = "<group>"; };
 		000000000000000000000271 /* ScreenshotScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotScenarios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -513,9 +515,10 @@
 			children = (
 				000000000000000000000107 /* SleepAnalyzer.swift */,
 				00000000000000000000012D /* SleepEventDetector.swift */,
-				000000000000000000000138 /* SleepDetectionBackend.swift */,
-				000000000000000000000151 /* DetectorDiagnostics.swift */,
-				000000000000000000000153 /* DetectorThresholdConfiguration.swift */,
+					000000000000000000000138 /* SleepDetectionBackend.swift */,
+					000000000000000000000151 /* DetectorDiagnostics.swift */,
+					0000000000000000000001D2 /* SleepAudioProcessingPipeline.swift */,
+					000000000000000000000153 /* DetectorThresholdConfiguration.swift */,
 				000000000000000000000154 /* ZeroEventAnalysis.swift */,
 				00000000000000000000012F /* DetectionSmoothingPolicy.swift */,
 				000000000000000000000170 /* BreathingActivityEstimator.swift */,
@@ -912,9 +915,10 @@
 				000000000000000000000272 /* ScreenshotScenarios.swift in Sources */,
 				000000000000000000000219 /* LocalDataStore.swift in Sources */,
 				00000000000000000000021A /* SleepRepository.swift in Sources */,
-				00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,
-				000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */,
-				00000000000000000000021B /* HomeDashboardView.swift in Sources */,
+					00000000000000000000023B /* EventAudioStorageStats.swift in Sources */,
+					000000000000000000000239 /* EventAudioSnippetStore.swift in Sources */,
+					0000000000000000000002A2 /* SleepAudioProcessingPipeline.swift in Sources */,
+					00000000000000000000021B /* HomeDashboardView.swift in Sources */,
 				000000000000000000000282 /* DailyRhythmMockFactory.swift in Sources */,
 				000000000000000000000283 /* DailyRhythmUIHelpers.swift in Sources */,
 				000000000000000000000284 /* MorningBriefView.swift in Sources */,

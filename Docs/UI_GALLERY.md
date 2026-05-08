@@ -127,14 +127,14 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HomeDashboardView` | 앱 홈과 최근 리포트 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, Daily Rhythm 진입점 | 수면 시작, 리포트/타임라인/건강/개인정보 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
+| `HomeDashboardView` | 종합 평가와 최근 상태 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, 주요 이벤트, Daily Rhythm 진입점 | 수면 시작, 최근 리포트, 수면 트렌드, 건강 tab 상세 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
 | `TrendDashboardView` | 7일/30일/90일 수면 소리 흐름 | 수면 소리 점수, 코골기 시간, 측정 품질 추세 | 기간 선택 | 낮은 측정 품질은 배지와 문장으로 구분 | `ScreenshotTrendDashboardScenario` | `Docs/Screenshots/Home/trend-dashboard.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Sleep Flow
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SleepStartView` | 오늘 밤 측정 시작 전 준비 | 측정 안내, 기기 배치, 마이크 권한, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 배치 가이드, 개인정보 설정 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
+| `SleepStartView` | 수면 기능 동작과 결과 확인 | 측정 안내, 기기 배치, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 최근 리포트, 타임라인, 수면 트렌드, 배치 가이드 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
 | `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md` |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | blocked, recapture required | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
@@ -155,7 +155,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HealthDashboardView` | 건강 데이터 허브 | read-only 연결 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 혈압/체성분/교차 보기 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | blocked, recapture required | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthDashboardView` | Apple 건강앱 + 밤숨 수면 결과 + Fitdays 데이터 허브 | read-only 연결 상태, 앱 계산 수면 지표, 로컬 import 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 최근 날짜 상세, 혈압/체성분/교차 보기/Fitdays import 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | blocked, recapture required | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit 기반 지표, Fitdays 로컬 전용 지표, 기간별 최근값/평균/변화, 출처 badge | 기간 선택, metric detail 진입 | 출처 type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, HealthKit 기반/로컬 전용 badge, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 기반/로컬 전용 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `MetricDetailView` 로컬 전용 예시 | Fitdays 확장 로컬 전용 metric 상세 예시 | 기초대사량 설명, 로컬 전용/Fitdays CSV badge, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 로컬 전용 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |

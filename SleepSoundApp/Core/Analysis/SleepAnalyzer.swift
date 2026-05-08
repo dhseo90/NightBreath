@@ -22,7 +22,7 @@ public protocol SleepAnalyzing {
     -> [SleepEvent]
 }
 
-public struct SleepAnalyzer: SleepAnalyzing {
+public struct SleepAnalyzer: SleepAnalyzing, Sendable {
   public var extractor: any AudioFeatureExtracting
   public var detector: any SleepEventDetector
   public var suspectedBreathingPauseSequenceDetector: SuspectedBreathingPauseSequenceDetector

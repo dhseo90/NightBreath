@@ -1,18 +1,7 @@
 import SwiftUI
 
 struct HomeDashboardView: View {
-  private let unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol
-  private let healthCalendarBuilder = HealthCalendarBuilder()
-
   @EnvironmentObject private var appState: AppState
-  @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
-  @State private var selectedHomeHealthDate: Date?
-
-  init(
-    unifiedSampleRepository: any UnifiedHealthMetricSampleRepositoryProtocol = JSONUnifiedHealthMetricSampleRepository()
-  ) {
-    self.unifiedSampleRepository = unifiedSampleRepository
-  }
 
   var body: some View {
     TabView {
@@ -56,7 +45,6 @@ struct HomeDashboardView: View {
         scoreHeader
 
         actionLinks
-        healthQuickAccessSection
 
         LazyVGrid(
           columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium
@@ -130,16 +118,11 @@ struct HomeDashboardView: View {
           ],
           systemImage: "iphone.gen3.radiowaves.left.and.right"
         )
-
-        healthPlaceholder
       }
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
-    .onAppear {
-      loadHomeHealthSamples()
-    }
   }
 
   private var scoreHeader: some View {
@@ -248,58 +231,9 @@ struct HomeDashboardView: View {
       NavigationLink {
         HealthDashboardView()
       } label: {
-        Label("건강 데이터 대시보드", systemImage: "heart.text.square")
+        Label("건강 탭에서 자세히", systemImage: "heart.text.square")
       }
       .buttonStyle(.nbSecondary)
-    }
-  }
-
-  private var healthQuickAccessSection: some View {
-    NBReportSection(
-      title: "건강 기록 바로가기",
-      subtitle: "최근 날짜의 수면·건강·Fitdays 기록을 한 번에 엽니다.",
-      systemImage: "heart.text.square"
-    ) {
-      VStack(spacing: NBSpacing.medium) {
-        HomeHealthDateControls(
-          date: quickHealthDetailDate,
-          dateCount: availableHomeHealthDates.count,
-          canMoveToPrevious: canMoveToPreviousHomeHealthDate,
-          canMoveToNext: canMoveToNextHomeHealthDate,
-          onPrevious: { moveHomeHealthDate(by: -1) },
-          onLatest: { showLatestHomeHealthDate() },
-          onNext: { moveHomeHealthDate(by: 1) }
-        )
-
-        NavigationLink {
-          DailyMeasurementDetailView(
-            detailData: quickHealthDetailData,
-            allSamples: homeUnifiedDashboardSamples
-          )
-        } label: {
-          HomeHealthQuickAccessCard(
-            detailData: quickHealthDetailData,
-            fallbackDate: quickHealthDetailDate
-          )
-        }
-        .buttonStyle(.plain)
-
-        NavigationLink {
-          HealthCalendarView(
-            samples: homeUnifiedDashboardSamples,
-            sleepReports: calendarReports,
-            morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: [],
-            permissionState: .notRequested,
-            isPreviewData: false,
-            initialMonth: quickHealthDetailDate
-          )
-        } label: {
-          Label("건강 캘린더 바로 보기", systemImage: "calendar")
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.nbSecondary)
-      }
     }
   }
 
@@ -397,118 +331,8 @@ struct HomeDashboardView: View {
     }
   }
 
-  private var healthPlaceholder: some View {
-    let placeholder = HealthDashboardPlaceholder()
-    return NBCard {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label(placeholder.title, systemImage: "heart.text.square")
-          .font(.headline)
-        Text(placeholder.message)
-          .font(.callout)
-          .foregroundStyle(NBColor.secondaryText)
-        Text(placeholder.plannedMetrics.prefix(5).map(\.displayName).joined(separator: " · "))
-          .font(.footnote)
-          .foregroundStyle(NBColor.secondaryText)
-        Text("건강 데이터 연결 버튼을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. HealthKit에는 데이터를 쓰지 않습니다.")
-          .font(.footnote)
-          .foregroundStyle(NBColor.secondaryText)
-      }
-    }
-  }
-
   private var calendarReports: [NightReport] {
     appState.trendReports(days: 370)
-  }
-
-  private var calendarMorningCheckIns: [MorningCheckIn] {
-    calendarReports.compactMap { appState.checkIn(for: $0.sessionId) }
-  }
-
-  private var appComputedHomeSamples: [UnifiedHealthMetricSample] {
-    calendarReports.flatMap { report in
-      [
-        UnifiedHealthMetricSample(
-          metricID: .sleepSoundScore,
-          value: Double(report.sleepSoundScore),
-          unit: "점",
-          measuredAt: report.generatedAt,
-          sourceType: .appComputed,
-          sourceName: "밤숨 앱"
-        ),
-        UnifiedHealthMetricSample(
-          metricID: .audioCoverageRatio,
-          value: report.audioCoverageRatio * 100,
-          unit: "%",
-          measuredAt: report.generatedAt,
-          sourceType: .appComputed,
-          sourceName: "밤숨 앱"
-        ),
-      ]
-    }
-  }
-
-  private var homeUnifiedDashboardSamples: [UnifiedHealthMetricSample] {
-    (importedUnifiedSamples + appComputedHomeSamples)
-      .sortedByMeasuredAtAscending()
-  }
-
-  private var availableHomeHealthDates: [Date] {
-    let calendar = Calendar.current
-    let dates = homeUnifiedDashboardSamples.map { calendar.startOfDay(for: $0.measuredAt) }
-      + calendarReports.map { calendar.startOfDay(for: $0.generatedAt) }
-      + calendarMorningCheckIns.map { calendar.startOfDay(for: $0.createdAt) }
-
-    return Array(Set(dates)).sorted()
-  }
-
-  private var quickHealthDetailDate: Date {
-    let calendar = Calendar.current
-    if let selectedHomeHealthDate,
-       availableHomeHealthDates.contains(where: { calendar.isDate($0, inSameDayAs: selectedHomeHealthDate) }) {
-      return calendar.startOfDay(for: selectedHomeHealthDate)
-    }
-    return availableHomeHealthDates.last ?? calendar.startOfDay(for: Date())
-  }
-
-  private var quickHomeHealthDateIndex: Int? {
-    let calendar = Calendar.current
-    return availableHomeHealthDates.firstIndex { calendar.isDate($0, inSameDayAs: quickHealthDetailDate) }
-  }
-
-  private var canMoveToPreviousHomeHealthDate: Bool {
-    guard let quickHomeHealthDateIndex else { return false }
-    return quickHomeHealthDateIndex > 0
-  }
-
-  private var canMoveToNextHomeHealthDate: Bool {
-    guard let quickHomeHealthDateIndex else { return false }
-    return quickHomeHealthDateIndex < availableHomeHealthDates.count - 1
-  }
-
-  private var quickHealthDetailData: DailyMeasurementDetailData {
-    healthCalendarBuilder.detailData(
-      for: quickHealthDetailDate,
-      samples: homeUnifiedDashboardSamples,
-      sleepReports: calendarReports,
-      morningCheckIns: calendarMorningCheckIns
-    )
-  }
-
-  private func loadHomeHealthSamples() {
-    importedUnifiedSamples = unifiedSampleRepository.fetchSamples()
-    if selectedHomeHealthDate == nil {
-      selectedHomeHealthDate = availableHomeHealthDates.last
-    }
-  }
-
-  private func moveHomeHealthDate(by value: Int) {
-    guard let quickHomeHealthDateIndex else { return }
-    let nextIndex = min(max(quickHomeHealthDateIndex + value, 0), availableHomeHealthDates.count - 1)
-    selectedHomeHealthDate = availableHomeHealthDates[nextIndex]
-  }
-
-  private func showLatestHomeHealthDate() {
-    selectedHomeHealthDate = availableHomeHealthDates.last
   }
 
   private var trendScores: [Int] {
@@ -660,278 +484,6 @@ struct HomeDashboardView: View {
   }
 }
 
-private struct HomeHealthDateControls: View {
-  let date: Date
-  let dateCount: Int
-  let canMoveToPrevious: Bool
-  let canMoveToNext: Bool
-  let onPrevious: () -> Void
-  let onLatest: () -> Void
-  let onNext: () -> Void
-
-  var body: some View {
-    NBCard {
-      HStack(spacing: NBSpacing.small) {
-        Button(action: onPrevious) {
-          Image(systemName: "chevron.left")
-            .frame(width: 34, height: 34)
-        }
-        .buttonStyle(.plain)
-        .disabled(!canMoveToPrevious)
-        .accessibilityLabel("이전 건강 기록")
-
-        VStack(alignment: .leading, spacing: 2) {
-          Text(SleepFormatters.shortDate(date))
-            .font(NBTypography.headline)
-            .foregroundStyle(NBColor.primaryText)
-          Text(dateCount > 0 ? "기록 있는 날짜 \(dateCount)개" : "기록 있는 날짜 없음")
-            .font(NBTypography.caption)
-            .foregroundStyle(NBColor.secondaryText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-        Button(action: onLatest) {
-          Label("최신", systemImage: "clock.arrow.circlepath")
-            .font(NBTypography.captionEmphasis)
-        }
-        .buttonStyle(NBSecondaryButtonStyle())
-        .disabled(dateCount == 0)
-
-        Button(action: onNext) {
-          Image(systemName: "chevron.right")
-            .frame(width: 34, height: 34)
-        }
-        .buttonStyle(.plain)
-        .disabled(!canMoveToNext)
-        .accessibilityLabel("다음 건강 기록")
-      }
-    }
-  }
-}
-
-private struct HomeHealthQuickAccessCard: View {
-  let detailData: DailyMeasurementDetailData
-  let fallbackDate: Date
-
-  var body: some View {
-    NBCard(background: NBColor.privacy.opacity(0.08), stroke: NBColor.privacy.opacity(0.18)) {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        HStack(alignment: .top, spacing: NBSpacing.small) {
-          Label("최근 건강 기록", systemImage: "heart.text.square")
-            .font(NBTypography.headline)
-            .foregroundStyle(NBColor.primaryText)
-
-          Spacer(minLength: NBSpacing.small)
-
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(NBColor.tertiaryText)
-            .accessibilityHidden(true)
-        }
-
-        Text(SleepFormatters.shortDate(detailData.date))
-          .font(NBTypography.title)
-          .foregroundStyle(NBColor.primaryText)
-
-        if !quickValues.isEmpty {
-          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-            ForEach(quickValues) { item in
-              HomeHealthQuickValueChip(item: item)
-            }
-          }
-        }
-
-        Text(detailData.summary.hasAnyData ? "이날 기록된 데이터를 바로 확인합니다." : "아직 연결된 건강 기록이 없습니다.")
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
-
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-          HomeHealthQuickMetric(
-            title: "건강 샘플",
-            value: "\(detailData.summary.sampleCount)개",
-            systemImage: "number",
-            tint: NBColor.privacyTint
-          )
-          HomeHealthQuickMetric(
-            title: "데이터 품질",
-            value: detailData.summary.dataQuality.displayName,
-            systemImage: "checkmark.seal",
-            tint: qualityTint
-          )
-        }
-
-        if detailData.summary.hasAnyData {
-          CalendarSelectedCategoryStrip(summary: detailData.summary)
-          CalendarSelectedSourceStrip(sourceTypes: detailData.summary.sourceTypes)
-        }
-      }
-      .accessibilityElement(children: .combine)
-      .accessibilityLabel(accessibilityText)
-    }
-  }
-
-  private var qualityTint: Color {
-    switch detailData.summary.dataQuality {
-    case .excellent, .good:
-      NBColor.success
-    case .limited:
-      NBColor.warning
-    case .poor, .insufficient:
-      NBColor.caution
-    }
-  }
-
-  private var accessibilityText: String {
-    let dateText = SleepFormatters.shortDate(fallbackDate)
-    guard detailData.summary.hasAnyData else {
-      return "최근 건강 기록, \(dateText), 데이터 없음"
-    }
-    return "최근 건강 기록, \(dateText), 건강 샘플 \(detailData.summary.sampleCount)개, 데이터 품질 \(detailData.summary.dataQuality.displayName)"
-  }
-
-  private var quickValues: [HomeHealthQuickValue] {
-    var values: [HomeHealthQuickValue] = []
-
-    if let systolic = latestSample(.systolicBloodPressure),
-       let diastolic = latestSample(.diastolicBloodPressure) {
-      values.append(
-        HomeHealthQuickValue(
-          title: "혈압",
-          value: "\(Int(systolic.value.rounded()))/\(Int(diastolic.value.rounded()))",
-          unit: "mmHg",
-          systemImage: "heart",
-          tint: NBColor.danger
-        )
-      )
-    }
-
-    if let bodyMass = latestSample(.bodyMass) {
-      values.append(
-        HomeHealthQuickValue(
-          title: "체중",
-          value: UnifiedMetricFormatting.valueString(bodyMass.value, unit: bodyMass.unit),
-          unit: nil,
-          systemImage: "scalemass",
-          tint: NBColor.mistTeal
-        )
-      )
-    }
-
-    if let bodyFat = latestSample(.bodyFatPercentage) {
-      values.append(
-        HomeHealthQuickValue(
-          title: "체지방률",
-          value: UnifiedMetricFormatting.valueString(bodyFat.value, unit: bodyFat.unit),
-          unit: nil,
-          systemImage: "percent",
-          tint: NBColor.warning
-        )
-      )
-    }
-
-    if let sleepScore = latestSample(.sleepSoundScore) {
-      values.append(
-        HomeHealthQuickValue(
-          title: "수면 소리",
-          value: "\(Int(sleepScore.value.rounded()))점",
-          unit: nil,
-          systemImage: "waveform",
-          tint: NBColor.sleepTint
-        )
-      )
-    }
-
-    return Array(values.prefix(4))
-  }
-
-  private func latestSample(_ metricID: UnifiedHealthMetricID) -> UnifiedHealthMetricSample? {
-    detailData.samples
-      .filter { $0.metricID == metricID }
-      .sortedByMeasuredAtDescending()
-      .first
-  }
-}
-
-private struct HomeHealthQuickValue: Identifiable {
-  var id: String { title }
-  let title: String
-  let value: String
-  let unit: String?
-  let systemImage: String
-  let tint: Color
-}
-
-private struct HomeHealthQuickValueChip: View {
-  let item: HomeHealthQuickValue
-
-  var body: some View {
-    HStack(alignment: .center, spacing: NBSpacing.xs) {
-      Image(systemName: item.systemImage)
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(item.tint)
-        .frame(width: 18)
-        .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text(item.title)
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-        HStack(alignment: .firstTextBaseline, spacing: 2) {
-          Text(item.value)
-            .font(NBTypography.captionEmphasis)
-            .foregroundStyle(NBColor.primaryText)
-            .lineLimit(1)
-            .minimumScaleFactor(0.75)
-          if let unit = item.unit {
-            Text(unit)
-              .font(NBTypography.caption)
-              .foregroundStyle(NBColor.secondaryText)
-          }
-        }
-      }
-
-      Spacer(minLength: 0)
-    }
-    .padding(NBSpacing.small)
-    .background(NBColor.cardBackground.opacity(0.78))
-    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
-  }
-}
-
-private struct HomeHealthQuickMetric: View {
-  let title: String
-  let value: String
-  let systemImage: String
-  let tint: Color
-
-  var body: some View {
-    HStack(spacing: NBSpacing.xs) {
-      Image(systemName: systemImage)
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(tint)
-        .frame(width: 18)
-        .accessibilityHidden(true)
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title)
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-        Text(value)
-          .font(NBTypography.captionEmphasis)
-          .foregroundStyle(NBColor.primaryText)
-          .lineLimit(1)
-          .minimumScaleFactor(0.8)
-      }
-
-      Spacer(minLength: 0)
-    }
-    .padding(NBSpacing.small)
-    .background(NBColor.cardBackground.opacity(0.72))
-    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
-  }
-}
-
 private struct DetectorSensitivitySettingsView: View {
   @EnvironmentObject private var appState: AppState
 
@@ -1032,18 +584,6 @@ private struct SettingsListView: View {
         } label: {
           Label("30초 캘리브레이션", systemImage: "waveform.badge.magnifyingglass")
         }
-      }
-
-      Section("건강 데이터") {
-        NavigationLink {
-          HealthDashboardView()
-        } label: {
-          Label("건강 데이터 대시보드", systemImage: "heart.text.square")
-        }
-
-        Text("건강 데이터 연결을 선택할 때만 Apple 건강앱 읽기 권한을 요청합니다. 서버 전송 없이 로컬 화면에 표시합니다.")
-          .font(.footnote)
-          .foregroundStyle(.secondary)
       }
 
       #if DEBUG

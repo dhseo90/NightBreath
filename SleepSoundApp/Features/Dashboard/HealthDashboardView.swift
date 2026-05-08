@@ -144,9 +144,9 @@ struct HealthDashboardView: View {
   }
 
   private var header: some View {
-    NBReportSection(title: "건강 데이터 대시보드", systemImage: "heart.text.square") {
+    NBReportSection(title: "건강 데이터 허브", systemImage: "heart.text.square") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("Apple 건강앱에서 혈압, 체중, 체성분, 활동, 심박수, 호흡수 데이터를 최근 1년 범위로 읽어 보기 쉽게 정리합니다.")
+        Text("Apple 건강앱 read-only 샘플, 밤숨 수면 결과, Fitdays 로컬 import 데이터를 날짜와 지표별로 함께 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 

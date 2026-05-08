@@ -275,15 +275,15 @@ Fitdays extended metric 표시명 원칙:
 
 현재 주요 화면 적용 현황입니다. 화면별 역할, 표시 데이터, 주요 액션, navigation 관계는 `Docs/UI_SCREEN_MAP.md`에서 관리합니다.
 
-- `HomeDashboardView`: `NBCard`, `NBMetricCard`, `NBStatusBadge`, `NBReportSection`, `NBListRow`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 최근 리포트, 수면 소리 점수, 측정 품질, 커버리지, 이벤트 오디오 샘플 상태, 온디바이스 분석 안내를 정리합니다.
-- `SleepStartView`: `NBMoonBreathIcon`, `NBCard`, `NBReportSection`, `NBListRow`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 측정 시작 안내, 기기 배치, 마이크 권한, 이벤트 샘플 opt-in 상태를 표시합니다.
+- `HomeDashboardView`: `NBCard`, `NBMetricCard`, `NBStatusBadge`, `NBReportSection`, `NBListRow`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 최근 리포트 기반 종합 평가, 수면 소리 점수, 측정 품질, 커버리지, 주요 이벤트, 하루 리듬 카드 진입을 정리합니다.
+- `SleepStartView`: `NBMoonBreathIcon`, `NBCard`, `NBReportSection`, `NBListRow`, `NBMetricCard`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 측정 시작 안내, 기기 배치, 마이크 권한, 최근 수면 리포트/타임라인/트렌드 진입, 이벤트 샘플 opt-in 상태를 표시합니다.
 - `SleepRecordingView`: `NBRecordingPulseIcon`, `NBMetricCard`, `NBStatusBadge`, `NBDangerButton`, `NBPrivacyNoticeCard`로 녹음/분석 중 상태, 실제 오디오 수신/분석 시간, 커버리지, 오디오 중단 정보를 보여줍니다.
 - `SleepReportView`: `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBDiagnosticCard`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 리포트 요약, detector diagnostics, zero-event analysis, 진단 목적 아님 안내를 정돈합니다.
 - `SleepTimelineView`: `NBTimelineRow`, `NBStatusBadge`, `NBEmptyStateView`로 이벤트 타입, 시간, duration, confidence, 오디오 샘플 재생/삭제 상태를 표시합니다.
 - `MorningCheckInView`: `NBCard`, `NBMetricCard`, `NBReportSection`, `NBStatusBadge`, `NBPrimaryButton`, `NBPrivacyNoticeCard`로 개운함, 피로감, 기억나는 각성, 메모 저장 흐름을 주관적 컨디션 기록 톤으로 정리합니다.
 - `PrivacySettingsView`: `NBPrivacyNoticeCard`, `NBMetricCard`, `NBSecondaryButton`, `NBDangerButton`, `NBDiagnosticCard`로 이벤트 오디오 샘플 opt-in, 저장량, orphan cleanup, 전체 삭제, feedback 삭제 UI를 유지합니다.
 - `DevicePlacementGuideView`: `NBIllustration`, `NBCard`, `NBReportSection`, `NBListRow`, `NBStatusBadge`, `NBPrivacyNoticeCard`로 iPhone 배치, 마이크 가림 방지, 충전 연결, 저전력 모드 확인, 30초 캘리브레이션 진입을 정리합니다.
-- `HealthDashboardView`: 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 mock/future read-only 건강 데이터 안내와 BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
+- `HealthDashboardView`: 건강 데이터 허브 구조를 유지하면서 `NBCard`, `NBListRow`, `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 Apple 건강앱 read-only 샘플, 밤숨 앱 계산 수면 지표, Fitdays 로컬 import, BloodPressure/BodyComposition/CrossMetric 진입을 정리합니다.
 - `HealthMetricsOverviewView`: `MetricChartView`, `MetricSummaryCard`, `NBListRow`, `NBStatusBadge`, `NBEmptyStateView`로 HealthKit 기반 지표와 Fitdays 로컬 전용 지표를 카테고리별로 정리하고 `MetricDetailView`로 이어지게 합니다.
 - `HealthCalendarView`: `CalendarDayCell`, source/data-quality indicator, `NBPrivacyNoticeCard`로 월별 데이터 존재 여부와 날짜 선택 흐름을 보여줍니다.
 - `DailyMeasurementDetailView`: `NBReportSection`, `NBMetricCard`, `NBListRow`, `NBEmptyStateView`로 날짜별 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표를 section 단위로 정리합니다.
