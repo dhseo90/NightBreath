@@ -83,6 +83,7 @@
 - Core ML model target 적용 전 dry-run validation gate
 - Recording 화면 UI refresh throttle과 상세 diagnostics collapse
 - close low+mid snore-like texture guard와 voice-like/steady hum negative regression
+- retained input chunk 전체를 보는 spectral feature extraction과 delayed snore chunk regression
 - Simulator QA scenarios
 - Real-device QA runbook preflight/redaction/failure triage
 - Regression Test Suite

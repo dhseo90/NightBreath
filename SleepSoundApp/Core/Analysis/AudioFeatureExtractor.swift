@@ -98,23 +98,20 @@ public struct AudioFeatureExtractor: AudioFeatureExtracting {
         from samples: [Float],
         sampleRate: Double
     ) -> SpectralSummary {
-        let windowCount = min(samples.count, 512)
-        guard windowCount > 2 else {
+        guard samples.count > 2 else {
             return SpectralSummary()
         }
 
         let safeSampleRate = max(1, sampleRate)
         let nyquist = safeSampleRate / 2
-        let binCount = max(1, windowCount / 2)
         var lowPower = 0.0
         var midPower = 0.0
         var highPower = 0.0
         var totalPower = 0.0
         var weightedFrequencyPower = 0.0
 
-        for bin in 1...binCount {
-            let frequency = min(Double(bin) * safeSampleRate / Double(windowCount), nyquist)
-            let power = estimatePower(samples: samples, windowCount: windowCount, bin: bin)
+        for frequency in sampledBandFrequencies(nyquist: nyquist) {
+            let power = estimatePower(samples: samples, sampleRate: safeSampleRate, frequency: frequency)
 
             totalPower += power
             weightedFrequencyPower += frequency * power
@@ -141,27 +138,32 @@ public struct AudioFeatureExtractor: AudioFeatureExtracting {
         )
     }
 
-    private func estimatePower(samples: [Float], windowCount: Int, bin: Int) -> Double {
-        var real = 0.0
-        var imaginary = 0.0
-        let angleScale = -2 * Double.pi * Double(bin) / Double(windowCount)
-
-        for index in 0..<windowCount {
-            let value = Double(samples[index])
-            let window = hannWindow(index: index, count: windowCount)
-            let angle = angleScale * Double(index)
-            real += value * window * cos(angle)
-            imaginary += value * window * sin(angle)
-        }
-
-        let power = real * real + imaginary * imaginary
-        guard power.isFinite else { return 0 }
-        return max(0, power)
+    private func sampledBandFrequencies(nyquist: Double) -> [Double] {
+        [
+            60, 75, 90, 95, 105, 120, 135, 160, 200, 250,
+            350, 500, 700, 950, 1_300, 1_700,
+            2_300, 3_000, 3_200, 4_200, 6_000
+        ].filter { $0 < nyquist }
     }
 
-    private func hannWindow(index: Int, count: Int) -> Double {
-        guard count > 1 else { return 1 }
-        return 0.5 - 0.5 * cos((2 * Double.pi * Double(index)) / Double(count - 1))
+    private func estimatePower(samples: [Float], sampleRate: Double, frequency: Double) -> Double {
+        guard sampleRate > 0, frequency > 0 else { return 0 }
+
+        var previous = 0.0
+        var previousPrevious = 0.0
+        let omega = 2 * Double.pi * frequency / sampleRate
+        let coefficient = 2 * cos(omega)
+
+        for index in samples.indices {
+            let value = Double(samples[index])
+            let current = value + coefficient * previous - previousPrevious
+            previousPrevious = previous
+            previous = current
+        }
+
+        let power = previousPrevious * previousPrevious + previous * previous - coefficient * previous * previousPrevious
+        guard power.isFinite else { return 0 }
+        return max(0, power)
     }
 
     private func estimateNoiseLevel(

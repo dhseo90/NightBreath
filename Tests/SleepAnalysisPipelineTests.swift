@@ -97,6 +97,33 @@ struct SleepAnalysisPipelineTests {
     }
 
     @Test
+    func delayedSnoreEnergyInsideRetainedInputChunkSurvivesToFinalEvent() {
+        let startedAt = Date(timeIntervalSince1970: 1_772_011_500)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: startedAt.addingTimeInterval(300),
+            measurementDuration: 300,
+            estimatedSleepDuration: 300
+        )
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer(backend: .ruleBased)
+        let chunkDuration = 4_096.0 / 48_000.0
+        let chunks = (0..<4).map { index in
+            delayedSnoreChunk(
+                startedAt: startedAt.addingTimeInterval(Double(index) * chunkDuration),
+                silentPrefixCount: 512
+            )
+        }
+
+        let rawOutputs = analyzer.detectOutputs(from: chunks)
+        let smoothingResult = analyzer.smoothWithDiagnostics(outputs: rawOutputs)
+        let events = analyzer.makeEvents(session: session, outputs: smoothingResult.outputs)
+
+        #expect(rawOutputs.filter { $0.eventType == .snore }.count >= 4)
+        #expect(smoothingResult.outputs.contains { $0.eventType == .snore })
+        #expect(events.contains { $0.type == .snore })
+    }
+
+    @Test
     func quietAndNoiseNegativesDoNotBecomeSnoreEvents() {
         let startedAt = Date(timeIntervalSince1970: 1_772_020_000)
         let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer(backend: .ruleBased)
@@ -231,6 +258,29 @@ struct SleepAnalysisPipelineTests {
             sampleRate: sampleRate,
             startedAt: startedAt,
             duration: duration
+        )
+    }
+
+    private func delayedSnoreChunk(
+        startedAt: Date,
+        silentPrefixCount: Int
+    ) -> AudioChunk {
+        let sampleRate = 48_000.0
+        let frameCount = 4_096
+        let frequency = 120.0
+        let amplitude = 0.16
+        let samples = (0..<frameCount).map { frame -> Float in
+            guard frame >= silentPrefixCount else { return 0 }
+
+            let t = Double(frame - silentPrefixCount) / sampleRate
+            return Float(sin(2 * Double.pi * frequency * t) * amplitude)
+        }
+
+        return AudioChunk(
+            samples: samples,
+            sampleRate: sampleRate,
+            startedAt: startedAt,
+            duration: Double(frameCount) / sampleRate
         )
     }
 }

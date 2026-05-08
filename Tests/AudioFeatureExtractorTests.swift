@@ -128,6 +128,26 @@ struct AudioFeatureExtractorTests {
     }
 
     @Test
+    func spectralSummaryUsesRetainedChunkBeyondFirstPrefix() {
+        let extractor = AudioFeatureExtractor()
+        let chunk = SyntheticAudioFixture.delayedSineWave(
+            frequency: 120,
+            amplitude: 0.16,
+            silentPrefixCount: 512,
+            totalFrameCount: 4_096,
+            sampleRate: 48_000
+        )
+
+        let features = extractor.extractFeatures(from: chunk)
+
+        #expect(features.rms > 0.03)
+        #expect(features.lowBandEnergy > 0.55)
+        #expect(features.lowBandEnergy > features.midBandEnergy)
+        #expect(features.lowBandEnergy > features.highBandEnergy)
+        #expect(features.spectralCentroid < 400)
+    }
+
+    @Test
     func featureCSVExporterWritesSummaryOnly() {
         let chunk = SyntheticAudioFixture.highEnergyNoise(duration: 0.2)
         let features = AudioFeatureExtractor().extractFeatures(from: chunk)
@@ -269,6 +289,29 @@ private enum SyntheticAudioFixture {
         }
 
         return makeChunk(samples: samples, duration: duration)
+    }
+
+    static func delayedSineWave(
+        frequency: Double,
+        amplitude: Double,
+        silentPrefixCount: Int,
+        totalFrameCount: Int,
+        sampleRate: Double
+    ) -> AudioChunk {
+        let safeFrameCount = max(silentPrefixCount + 1, totalFrameCount)
+        let samples = (0..<safeFrameCount).map { index -> Float in
+            guard index >= silentPrefixCount else { return 0 }
+
+            let phase = 2 * Double.pi * frequency * Double(index - silentPrefixCount) / sampleRate
+            return Float(sin(phase) * amplitude)
+        }
+
+        return AudioChunk(
+            samples: samples,
+            sampleRate: sampleRate,
+            startedAt: start,
+            duration: Double(safeFrameCount) / sampleRate
+        )
     }
 
     private static func frameCount(_ duration: TimeInterval) -> Int {

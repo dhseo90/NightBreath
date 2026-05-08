@@ -139,6 +139,19 @@ Regression guard:
 - noise floor와 같은 수준의 steady room hum은 snore가 되지 않아야 합니다.
 - Release 기본 profile은 계속 `balanced`입니다.
 
+## 2026-05-08 retained chunk spectral coverage fix
+
+실제 iPhone foreground 테스트에서 최근 오디오 미리듣기에는 코골기처럼 들리는 소리가 있었지만 최종 이벤트가 0개인 케이스를 반영했습니다. 이전 `AudioFeatureExtractor`는 retained PCM sample 중 앞 512개만 주파수 분석에 사용했습니다. 48kHz 4096-frame input chunk에서는 약 10ms만 보고 low/mid/high band를 판단하는 셈이라, chunk 뒤쪽에 들어온 코골기 texture가 RMS에는 반영되어도 low-band feature에는 반영되지 않을 수 있었습니다.
+
+변경:
+
+- spectral summary를 prefix DFT 대신 retained chunk 전체를 훑는 sampled-frequency power 방식으로 바꿨습니다.
+- low-band target에는 60-250Hz 범위의 코골기 후보 주파수를 포함합니다.
+- mid/high target도 유지해 voice-like, broadband, high-frequency negative guard가 계속 동작하게 했습니다.
+- delayed snore energy가 chunk 앞 512 sample 뒤에 있어도 final snore event까지 이어지는 regression test를 추가했습니다.
+
+이 변경은 전체 밤 원본 오디오 저장과 무관하며, retained chunk feature summary만 계산합니다.
+
 ## 2026-05-03 이전 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.
