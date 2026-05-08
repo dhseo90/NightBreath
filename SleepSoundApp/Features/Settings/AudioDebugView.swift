@@ -439,7 +439,10 @@
     }
 
     private func updatePipelineObservability(features: AudioFeatures, outputs: [DetectorOutput]) {
-      let snoreObservation = snoreLikeFeatureObservation(for: features)
+      let snoreObservation = SnoreLikeFeatureObserver.observe(
+        features: features,
+        thresholdsSnapshot: thresholdSnapshot
+      )
       if snoreObservation.isCandidate {
         snoreLikeFeatureCandidateCount += 1
         if !outputs.contains(where: { $0.eventType == .snore }) {
@@ -482,61 +485,6 @@
     private func trimRawOutputsForLiveDebug() {
       guard rawOutputs.count > maxDebugRawOutputCount else { return }
       rawOutputs.removeFirst(rawOutputs.count - maxDebugRawOutputCount)
-    }
-
-    private func snoreLikeFeatureObservation(
-      for features: AudioFeatures
-    ) -> (isCandidate: Bool, rejectReasons: [RejectReason]) {
-      let snoreEnergyThreshold = snoreThreshold * snoreThreshold
-      let lowLevelSnoreRMS = max(silenceThreshold * 2.2, snoreThreshold * 0.55)
-      let lowLevelSnoreLowBandRatio = 0.64
-      let distantLowInputHint = isDistantLowInputSnoreLikeHint(
-        features: features,
-        lowLevelSnoreRMS: lowLevelSnoreRMS,
-        lowLevelSnoreLowBandRatio: lowLevelSnoreLowBandRatio
-      )
-      let isCandidate = distantLowInputHint || (!features.isLikelySilence
-        && features.rms >= silenceThreshold
-        && (features.rms >= snoreThreshold * 0.75 || features.energy >= snoreEnergyThreshold * 0.75)
-        && (features.lowFrequencyEnergyRatio >= 0.30 || features.zeroCrossingRate <= 0.60))
-
-      guard isCandidate else { return (false, []) }
-
-      var reasons: [RejectReason] = []
-      if distantLowInputHint {
-        reasons.append(.inputLevelTooLow)
-      }
-      if features.rms < snoreThreshold {
-        reasons.append(.belowRmsThreshold)
-      }
-      if features.energy < snoreEnergyThreshold {
-        reasons.append(.belowEnergyThreshold)
-      }
-      if features.lowFrequencyEnergyRatio < 0.45 {
-        reasons.append(.belowLowBandRatio)
-      }
-      if features.zeroCrossingRate > 0.45 ||
-          features.spectralCentroid >= 2_200 ||
-          features.highBandEnergy >= 0.30 {
-        reasons.append(.likelyEnvironmentalNoise)
-      }
-
-      return (true, reasons.isEmpty ? [.unknown] : reasons)
-    }
-
-    private func isDistantLowInputSnoreLikeHint(
-      features: AudioFeatures,
-      lowLevelSnoreRMS: Double,
-      lowLevelSnoreLowBandRatio: Double
-    ) -> Bool {
-      let minimumObservableRMS = max(silenceThreshold * 0.015, 0.00012)
-      return features.rms >= minimumObservableRMS &&
-        features.rms < max(silenceThreshold, lowLevelSnoreRMS) &&
-        features.energy > 0 &&
-        features.lowFrequencyEnergyRatio >= max(0.70, lowLevelSnoreLowBandRatio) &&
-        features.zeroCrossingRate <= 0.20 &&
-        features.highBandEnergy <= 0.22 &&
-        features.spectralCentroid <= 1_800
     }
 
     private func updateDetectorThresholds() {

@@ -39,6 +39,31 @@ struct DetectorDiagnosticsCollectorTests {
     }
 
     @Test
+    func sharedSnoreLikeFeatureObserverClassifiesLowInputNearMiss() {
+        let features = makeFeatures(
+            rms: 0.00024,
+            energy: 0.00000006,
+            startedAt: Date(timeIntervalSince1970: 12),
+            lowBandEnergy: 0.78,
+            midBandEnergy: 0.14,
+            highBandEnergy: 0.08,
+            zeroCrossingRate: 0.06,
+            spectralCentroid: 700,
+            estimatedNoiseLevel: 0.00024
+        )
+
+        let observation = SnoreLikeFeatureObserver.observe(
+            features: features,
+            thresholdsSnapshot: thresholdSnapshot
+        )
+
+        #expect(observation.isCandidate)
+        #expect(observation.rejectReasons.contains(.inputLevelTooLow))
+        #expect(observation.rejectReasons.contains(.belowRmsThreshold))
+        #expect(observation.rejectReasons.contains(.belowEnergyThreshold))
+    }
+
+    @Test
     func collectorRecordsRawCandidatesAndConfidenceHistogram() throws {
         let collector = makeCollector()
         let features = makeFeatures(rms: 0.08, energy: 0.0064, startedAt: Date(timeIntervalSince1970: 20))
@@ -460,20 +485,24 @@ struct DetectorDiagnosticsCollectorTests {
             startedAt: Date(timeIntervalSince1970: 0),
             detectorBackend: backend.displayName,
             modelInstalled: modelInstalled,
-            thresholdsSnapshot: [
-                "rule.silenceRMS": 0.01,
-                "rule.snoreRMS": 0.05,
-                "rule.lowLevelSnoreRMS": 0.0275,
-                "rule.lowLevelSnoreEnergy": 0.00049,
-                "rule.lowLevelSnoreLowBandRatio": 0.64,
-                "rule.snoreRelativeEnergyRatio": 1.35,
-                "tuning.snoreEnergyThreshold": 0.0025,
-                "smoothing.confidenceThreshold": 0.35
-            ],
+            thresholdsSnapshot: thresholdSnapshot,
             tuningProfile: DetectorTuningProfile.balanced.displayName,
             eventAudioSampleStorageEnabled: false
         )
         return collector
+    }
+
+    private var thresholdSnapshot: [String: Double] {
+        [
+            "rule.silenceRMS": 0.01,
+            "rule.snoreRMS": 0.05,
+            "rule.lowLevelSnoreRMS": 0.0275,
+            "rule.lowLevelSnoreEnergy": 0.00049,
+            "rule.lowLevelSnoreLowBandRatio": 0.64,
+            "rule.snoreRelativeEnergyRatio": 1.35,
+            "tuning.snoreEnergyThreshold": 0.0025,
+            "smoothing.confidenceThreshold": 0.35
+        ]
     }
 
     private func finalized(_ collector: DetectorDiagnosticsCollector) throws -> DetectorDiagnostics {

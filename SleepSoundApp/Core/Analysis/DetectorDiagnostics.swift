@@ -171,6 +171,124 @@ public enum RejectReason: String, Codable, CaseIterable, Sendable {
     }
 }
 
+public struct SnoreLikeFeatureObservation: Equatable, Sendable {
+    public var isCandidate: Bool
+    public var rejectReasons: [RejectReason]
+
+    public init(isCandidate: Bool, rejectReasons: [RejectReason]) {
+        self.isCandidate = isCandidate
+        self.rejectReasons = rejectReasons
+    }
+}
+
+public enum SnoreLikeFeatureObserver {
+    public static func observe(
+        features: AudioFeatures,
+        thresholdsSnapshot: [String: Double]
+    ) -> SnoreLikeFeatureObservation {
+        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"]
+            ?? thresholdsSnapshot["tuning.silenceRmsThreshold"]
+            ?? 0.01
+        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"]
+            ?? thresholdsSnapshot["tuning.snoreRmsThreshold"]
+            ?? 0.05
+        let snoreEnergy = thresholdsSnapshot["tuning.snoreEnergyThreshold"] ?? snoreRMS * snoreRMS
+        let lowLevelSnoreRMS = thresholdsSnapshot["rule.lowLevelSnoreRMS"] ?? max(silenceRMS * 2.2, snoreRMS * 0.55)
+        let lowLevelSnoreEnergy = thresholdsSnapshot["rule.lowLevelSnoreEnergy"] ?? lowLevelSnoreRMS * lowLevelSnoreRMS * 0.65
+        let lowLevelSnoreLowBandRatio = thresholdsSnapshot["rule.lowLevelSnoreLowBandRatio"] ?? 0.64
+        let snoreRelativeEnergyRatio = thresholdsSnapshot["rule.snoreRelativeEnergyRatio"] ?? 1.35
+        let relativeEnergy = relativeEnergyRatio(features: features, silenceRMS: silenceRMS)
+        let nearRMS = features.rms >= lowLevelSnoreRMS
+        let nearEnergy = features.energy >= min(snoreEnergy * 0.55, lowLevelSnoreEnergy)
+        let hasLowBandHint = features.lowFrequencyEnergyRatio >= 0.30
+        let hasStrongDistanceLowBandHint = features.lowFrequencyEnergyRatio >= lowLevelSnoreLowBandRatio
+        let hasSnoreLikeCadence = features.zeroCrossingRate <= 0.60
+        let distantLowInputHint = RejectReason.isDistantLowInputSnoreLikeHint(
+            features: features,
+            silenceRMS: silenceRMS,
+            lowLevelSnoreRMS: lowLevelSnoreRMS,
+            lowLevelSnoreLowBandRatio: lowLevelSnoreLowBandRatio
+        )
+        let isCandidate = distantLowInputHint || (!features.isLikelySilence
+            && features.rms >= silenceRMS
+            && (nearRMS || nearEnergy)
+            && (hasLowBandHint || hasStrongDistanceLowBandHint || hasSnoreLikeCadence))
+
+        guard isCandidate else { return SnoreLikeFeatureObservation(isCandidate: false, rejectReasons: []) }
+
+        var reasons: [RejectReason] = []
+        if distantLowInputHint {
+            reasons.append(.inputLevelTooLow)
+        }
+        if features.rms < snoreRMS {
+            reasons.append(.belowRmsThreshold)
+        }
+        if features.energy < snoreEnergy {
+            reasons.append(.belowEnergyThreshold)
+        }
+        if features.rms >= lowLevelSnoreRMS,
+           features.rms < snoreRMS,
+           features.energy < lowLevelSnoreEnergy || relativeEnergy < snoreRelativeEnergyRatio {
+            reasons.append(.belowEnergyThreshold)
+        }
+        if features.lowFrequencyEnergyRatio < 0.45 {
+            reasons.append(.belowLowBandRatio)
+        }
+        if features.rms >= lowLevelSnoreRMS,
+           features.rms < snoreRMS,
+           features.lowFrequencyEnergyRatio < lowLevelSnoreLowBandRatio {
+            reasons.append(.belowLowBandRatio)
+        }
+        if features.rms >= lowLevelSnoreRMS,
+           features.rms < snoreRMS,
+           features.zeroCrossingRate > 0.24 ||
+            features.highBandEnergy > 0.18 ||
+            features.spectralCentroid > 950 {
+            reasons.append(.likelyEnvironmentalNoise)
+        }
+        if features.rms >= snoreRMS,
+           features.rms < 0.05 {
+            if features.lowFrequencyEnergyRatio >= 0.45,
+               features.lowFrequencyEnergyRatio < 0.58 {
+                reasons.append(.belowLowBandRatio)
+            }
+            if features.zeroCrossingRate > 0.28 ||
+                features.highBandEnergy > 0.22 ||
+                features.spectralCentroid > 1_200 {
+                reasons.append(.likelyEnvironmentalNoise)
+            }
+        }
+        if features.zeroCrossingRate > 0.45 ||
+            features.spectralCentroid >= 2_200 ||
+            features.highBandEnergy >= 0.30 {
+            reasons.append(.likelyEnvironmentalNoise)
+        }
+        if features.isLikelySilence {
+            reasons.append(.likelySilence)
+        }
+
+        return SnoreLikeFeatureObservation(
+            isCandidate: true,
+            rejectReasons: unique(reasons.isEmpty ? [.unknown] : reasons)
+        )
+    }
+
+    private static func relativeEnergyRatio(features: AudioFeatures, silenceRMS: Double) -> Double {
+        let floor = max(features.estimatedNoiseLevel, silenceRMS * 0.75, 0.0001)
+        let floorEnergy = max(floor * floor, 0.000_000_01)
+        guard features.energy.isFinite else { return 0 }
+        return max(0, features.energy / floorEnergy)
+    }
+
+    private static func unique(_ reasons: [RejectReason]) -> [RejectReason] {
+        reasons.reduce(into: [RejectReason]()) { result, reason in
+            if !result.contains(reason) {
+                result.append(reason)
+            }
+        }
+    }
+}
+
 public struct SummaryStats: Codable, Equatable, Sendable {
     public var count: Int
     public var min: Double
@@ -1050,7 +1168,10 @@ public final class DetectorDiagnosticsCollector {
         appendFinite(features.midBandEnergy, to: &midBandEnergyValues)
         appendFinite(features.highBandEnergy, to: &highBandEnergyValues)
 
-        let snoreObservation = snoreLikeFeatureObservation(for: features)
+        let snoreObservation = SnoreLikeFeatureObserver.observe(
+            features: features,
+            thresholdsSnapshot: thresholdsSnapshot
+        )
         if snoreObservation.isCandidate {
             snoreLikeFeatureCandidateCount += 1
             if !outputs.contains(where: { $0.eventType == .snore }) {
@@ -1205,110 +1326,6 @@ public final class DetectorDiagnosticsCollector {
 
     private func incrementReject(_ reason: RejectReason) {
         rejectedCountByReason[reason, default: 0] += 1
-    }
-
-    private func snoreLikeFeatureObservation(
-        for features: AudioFeatures
-    ) -> (isCandidate: Bool, rejectReasons: [RejectReason]) {
-        let silenceRMS = thresholdsSnapshot["rule.silenceRMS"]
-            ?? thresholdsSnapshot["tuning.silenceRmsThreshold"]
-            ?? 0.01
-        let snoreRMS = thresholdsSnapshot["rule.snoreRMS"]
-            ?? thresholdsSnapshot["tuning.snoreRmsThreshold"]
-            ?? 0.05
-        let snoreEnergy = thresholdsSnapshot["tuning.snoreEnergyThreshold"] ?? snoreRMS * snoreRMS
-        let lowLevelSnoreRMS = thresholdsSnapshot["rule.lowLevelSnoreRMS"] ?? max(silenceRMS * 2.2, snoreRMS * 0.55)
-        let lowLevelSnoreEnergy = thresholdsSnapshot["rule.lowLevelSnoreEnergy"] ?? lowLevelSnoreRMS * lowLevelSnoreRMS * 0.65
-        let lowLevelSnoreLowBandRatio = thresholdsSnapshot["rule.lowLevelSnoreLowBandRatio"] ?? 0.64
-        let snoreRelativeEnergyRatio = thresholdsSnapshot["rule.snoreRelativeEnergyRatio"] ?? 1.35
-        let relativeEnergy = relativeEnergyRatio(features: features, silenceRMS: silenceRMS)
-        let nearRMS = features.rms >= lowLevelSnoreRMS
-        let nearEnergy = features.energy >= min(snoreEnergy * 0.55, lowLevelSnoreEnergy)
-        let hasLowBandHint = features.lowFrequencyEnergyRatio >= 0.30
-        let hasStrongDistanceLowBandHint = features.lowFrequencyEnergyRatio >= lowLevelSnoreLowBandRatio
-        let hasSnoreLikeCadence = features.zeroCrossingRate <= 0.60
-        let distantLowInputHint = RejectReason.isDistantLowInputSnoreLikeHint(
-            features: features,
-            silenceRMS: silenceRMS,
-            lowLevelSnoreRMS: lowLevelSnoreRMS,
-            lowLevelSnoreLowBandRatio: lowLevelSnoreLowBandRatio
-        )
-        let isCandidate = distantLowInputHint || (!features.isLikelySilence
-            && features.rms >= silenceRMS
-            && (nearRMS || nearEnergy)
-            && (hasLowBandHint || hasStrongDistanceLowBandHint || hasSnoreLikeCadence))
-
-        guard isCandidate else { return (false, []) }
-
-        var reasons: [RejectReason] = []
-        if distantLowInputHint {
-            reasons.append(.inputLevelTooLow)
-        }
-        if features.rms < snoreRMS {
-            reasons.append(.belowRmsThreshold)
-        }
-        if features.energy < snoreEnergy {
-            reasons.append(.belowEnergyThreshold)
-        }
-        if features.rms >= lowLevelSnoreRMS,
-           features.rms < snoreRMS {
-            if features.energy < lowLevelSnoreEnergy || relativeEnergy < snoreRelativeEnergyRatio {
-                reasons.append(.belowEnergyThreshold)
-            }
-        }
-        if features.lowFrequencyEnergyRatio < 0.45 {
-            reasons.append(.belowLowBandRatio)
-        }
-        if features.rms >= lowLevelSnoreRMS,
-           features.rms < snoreRMS,
-           features.lowFrequencyEnergyRatio < lowLevelSnoreLowBandRatio {
-            reasons.append(.belowLowBandRatio)
-        }
-        if features.rms >= lowLevelSnoreRMS,
-           features.rms < snoreRMS {
-            if features.zeroCrossingRate > 0.24 ||
-                features.highBandEnergy > 0.18 ||
-                features.spectralCentroid > 950 {
-                reasons.append(.likelyEnvironmentalNoise)
-            }
-        }
-        if features.rms >= snoreRMS,
-           features.rms < 0.05 {
-            if features.lowFrequencyEnergyRatio >= 0.45,
-               features.lowFrequencyEnergyRatio < 0.58 {
-                reasons.append(.belowLowBandRatio)
-            }
-            if features.zeroCrossingRate > 0.28 ||
-                features.highBandEnergy > 0.22 ||
-                features.spectralCentroid > 1_200 {
-                reasons.append(.likelyEnvironmentalNoise)
-            }
-        }
-        if features.zeroCrossingRate > 0.45 ||
-            features.spectralCentroid >= 2_200 ||
-            features.highBandEnergy >= 0.30 {
-            reasons.append(.likelyEnvironmentalNoise)
-        }
-        if features.isLikelySilence {
-            reasons.append(.likelySilence)
-        }
-
-        return (true, uniqueRejectReasons(reasons.isEmpty ? [.unknown] : reasons))
-    }
-
-    private func relativeEnergyRatio(features: AudioFeatures, silenceRMS: Double) -> Double {
-        let floor = max(features.estimatedNoiseLevel, silenceRMS * 0.75, 0.0001)
-        let floorEnergy = max(floor * floor, 0.000_000_01)
-        guard features.energy.isFinite else { return 0 }
-        return max(0, features.energy / floorEnergy)
-    }
-
-    private func uniqueRejectReasons(_ reasons: [RejectReason]) -> [RejectReason] {
-        reasons.reduce(into: [RejectReason]()) { result, reason in
-            if !result.contains(reason) {
-                result.append(reason)
-            }
-        }
     }
 
     private func appendFinite(_ value: Double, to values: inout BoundedFeatureValueSampler) {

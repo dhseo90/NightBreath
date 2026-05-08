@@ -17,6 +17,15 @@ struct AudioDebugViewSourceTests {
         #expect(!source.contains("private var lowBandValues: [Double]"))
     }
 
+    @Test
+    func liveDebugUsesSharedSnoreLikeFeatureObserver() throws {
+        let source = try read("SleepSoundApp/Features/Settings/AudioDebugView.swift")
+
+        #expect(source.contains("SnoreLikeFeatureObserver.observe"))
+        #expect(!source.contains("private func snoreLikeFeatureObservation"))
+        #expect(!source.contains("private func isDistantLowInputSnoreLikeHint"))
+    }
+
     private func read(_ relativePath: String) throws -> String {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         return try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)

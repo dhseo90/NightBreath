@@ -179,6 +179,13 @@ Regression guard:
 - 같은 low-band 조건이라도 peak shape가 있는 코골기 유사 burst는 기존 balanced path를 유지합니다.
 - 이 변경은 Release 기본 profile을 바꾸지 않고, false-positive guard를 먼저 세운 뒤 민감도 profile별 replay 결과를 비교하기 위한 안정화입니다.
 
+## 2026-05-08 shared live/debug snore observation
+
+`AudioDebugView`의 live snore-like feature 카운트와 `DetectorDiagnosticsCollector`의 세션 diagnostics가 같은 `SnoreLikeFeatureObserver`를 사용하도록 정리했습니다.
+
+- DEBUG 화면과 세션 리포트의 `snoreLikeFeatureCandidateCount`, reject reason 분류가 같은 threshold snapshot 기준을 따릅니다.
+- low-input near-miss, low-band 부족, environmental-noise-like feature 분류가 live 화면과 offline/report diagnostics에서 갈라지지 않도록 source test를 추가했습니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.

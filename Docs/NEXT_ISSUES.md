@@ -136,6 +136,7 @@
 - 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집
 - 수집된 diagnostics로 feature 후보 없음, raw 후보 전 제외, smoothing drop, confidence drop, feature scale mismatch를 분류
 - `snoreLikeFeatureRejectReasonCounts`와 p50/p90 feature 분포를 실제 iPhone 배치별로 비교
+- DEBUG live 화면과 세션 report의 snore-like feature/reject reason 값이 같은 `SnoreLikeFeatureObserver` 기준으로 일치하는지 QA
 - `recentAudioReplaySummary`로 최근 미리듣기 buffer를 같은 analyzer에 replay했을 때 raw/final 이벤트가 생기는지 확인
 - `inputLevelAssessment == goodCoverageLowInputLevel` 세션은 민감도 조정보다 iPhone 거리, 마이크 방향, 케이스/침구 가림을 먼저 바꿔 재측정
 - 매우 낮은 RMS의 low-band/낮은 ZCR near-miss가 `balanced`에서는 raw-only 후보로 남고 `conservative`에서는 꺼지는지 실제 배치별로 비교
