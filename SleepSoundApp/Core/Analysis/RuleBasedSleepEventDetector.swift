@@ -139,9 +139,14 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
         let passesLowLevelSnoreThreshold =
             features.rms >= thresholds.lowLevelSnoreRMS &&
             features.energy >= thresholds.lowLevelSnoreEnergy
+        let passesCloseLowMidSnoreThreshold =
+            snoreTexture.passesCloseLowMidGuard &&
+            features.rms >= max(thresholds.lowLevelSnoreRMS, thresholds.snoreRMS * 0.82) &&
+            features.energy >= thresholds.lowLevelSnoreEnergy
         let passesSnoreLevelGate =
             passesStandardSnoreThreshold ||
-            (passesLowLevelSnoreThreshold && snoreTexture.passesDistanceGuard)
+            (passesLowLevelSnoreThreshold && snoreTexture.passesDistanceGuard) ||
+            passesCloseLowMidSnoreThreshold
 
         if passesSnoreLevelGate,
            !hasEnvironmentalNoise,
@@ -282,8 +287,9 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
     private func snoreTextureAssessment(
         for features: AudioFeatures
-    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, relativeEnergy: Double) {
+    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, relativeEnergy: Double) {
         let relativeEnergy = relativeEnergyRatio(for: features)
+        let lowMidEnergy = features.lowBandEnergy + features.midBandEnergy
         let lowLevelTexture =
             features.lowFrequencyEnergyRatio >= thresholds.lowLevelSnoreLowBandRatio &&
             features.zeroCrossingRate <= 0.24 &&
@@ -291,29 +297,41 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             features.midBandEnergy <= 0.36 &&
             features.spectralCentroid <= 950 &&
             relativeEnergy >= thresholds.snoreRelativeEnergyRatio
+        let closeLowMidTexture =
+            features.lowFrequencyEnergyRatio >= 0.40 &&
+            lowMidEnergy >= 0.78 &&
+            features.midBandEnergy <= 0.50 &&
+            features.zeroCrossingRate <= 0.26 &&
+            features.highBandEnergy <= 0.22 &&
+            features.spectralCentroid <= 1_450 &&
+            relativeEnergy >= 1.20
         let basicTexture =
-            features.lowFrequencyEnergyRatio >= 0.45 &&
-            features.zeroCrossingRate <= 0.45 &&
+            closeLowMidTexture ||
             (
-                features.rms >= 0.05 ||
+                features.lowFrequencyEnergyRatio >= 0.45 &&
+                features.zeroCrossingRate <= 0.45 &&
                 (
-                    features.lowFrequencyEnergyRatio >= 0.58 &&
-                    features.zeroCrossingRate <= 0.28 &&
-                    features.highBandEnergy <= 0.22 &&
-                    features.spectralCentroid <= 1_200
+                    features.rms >= 0.05 ||
+                    (
+                        features.lowFrequencyEnergyRatio >= 0.58 &&
+                        features.zeroCrossingRate <= 0.28 &&
+                        features.highBandEnergy <= 0.22 &&
+                        features.spectralCentroid <= 1_200
+                    )
                 )
             )
 
         return (
             passesBasicGuard: basicTexture,
             passesDistanceGuard: lowLevelTexture,
+            passesCloseLowMidGuard: closeLowMidTexture,
             relativeEnergy: relativeEnergy
         )
     }
 
     private func snoreConfidence(
         features: AudioFeatures,
-        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, relativeEnergy: Double),
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, relativeEnergy: Double),
         usedLowLevelGuard: Bool
     ) -> Double {
         let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.45, 0) * 0.50, 0.22)

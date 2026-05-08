@@ -67,6 +67,74 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func detectsCloseLowMidSnoreLikeImitationWithoutLoweringGlobalThreshold() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let rawOutputs = detector.detect(
+            features: makeFeatures(
+                rms: 0.039,
+                energy: 0.00152,
+                peak: 0.075,
+                zeroCrossingRate: 0.17,
+                lowFrequencyEnergyRatio: 0.42,
+                midBandEnergy: 0.43,
+                highBandEnergy: 0.15,
+                spectralCentroid: 1_050,
+                estimatedNoiseLevel: 0.030
+            )
+        )
+        let finalOutputs = configuration.smoothingPolicy.apply(to: rawOutputs)
+
+        #expect(rawOutputs.map(\.eventType).contains(.snore))
+        #expect(finalOutputs.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func closeLowMidSnoreGuardDoesNotPromoteVoiceLikeMidBandOnlyInput() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.039,
+                energy: 0.00152,
+                peak: 0.075,
+                zeroCrossingRate: 0.17,
+                lowFrequencyEnergyRatio: 0.30,
+                midBandEnergy: 0.55,
+                highBandEnergy: 0.15,
+                spectralCentroid: 1_250,
+                estimatedNoiseLevel: 0.030
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func closeLowMidSnoreGuardDoesNotPromoteSteadyRoomHumAtSimilarLevel() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.039,
+                energy: 0.00152,
+                peak: 0.048,
+                zeroCrossingRate: 0.08,
+                lowFrequencyEnergyRatio: 0.52,
+                midBandEnergy: 0.34,
+                highBandEnergy: 0.14,
+                spectralCentroid: 650,
+                estimatedNoiseLevel: 0.039
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func sensitiveProfilesKeepDistantSnoreLikeCandidateAfterSmoothing() {
         let profiles: [DetectorTuningProfile] = [.verySensitive, .sensitive, .balanced]
         let features = makeFeatures(

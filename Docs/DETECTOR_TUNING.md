@@ -120,6 +120,25 @@ False-positive-like guard:
 
 이 검증은 실제 침대 배치의 iPhone feature scale을 대체하지 않습니다. 오늘 밤 실기기 테스트에서는 같은 민감도 preset에서 `rawCandidateCountByType`, `snoreRejectReasonTop`, `rmsP90`, `energyP90`, `lowBandEnergyP90`, `finalEventCountByType`을 함께 기록해야 합니다.
 
+## 2026-05-08 close low-mid snore guard
+
+실제 기기 앞에서 코골기처럼 흉내낸 소리가 전형적인 저주파 코골기보다 mid-band 성분을 더 많이 포함할 수 있다는 피드백을 반영했습니다. 이번 변경은 Release 기본 profile을 `balanced`로 유지하고, 전체 RMS threshold를 낮추지 않은 채 가까운 거리의 low+mid texture 후보만 별도 guard로 raw snore 후보에 올립니다.
+
+추가 guard:
+
+- RMS가 `balanced` snore RMS보다 약간 낮더라도 `rule.lowLevelSnoreRMS` 이상이어야 합니다.
+- energy는 저진폭 floor를 통과해야 합니다.
+- low-band는 0.40 이상, low+mid 합은 0.78 이상이어야 합니다.
+- mid-band가 과하게 높은 음성 유사 입력은 제외합니다.
+- ZCR, high-band, spectral centroid, relative energy guard를 함께 통과해야 합니다.
+
+Regression guard:
+
+- close low+mid snore-like imitation은 raw 후보와 smoothing 이후 final snore로 남아야 합니다.
+- mid-band only voice-like input은 snore가 되지 않아야 합니다.
+- noise floor와 같은 수준의 steady room hum은 snore가 되지 않아야 합니다.
+- Release 기본 profile은 계속 `balanced`입니다.
+
 ## 2026-05-03 이전 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.
