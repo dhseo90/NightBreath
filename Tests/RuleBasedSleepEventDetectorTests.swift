@@ -189,6 +189,55 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func balancedProfileKeepsDistantLowInputSnoreLikeNearMissAsRawOnly() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let rawOutputs = detector.detect(
+            features: makeFeatures(
+                rms: 0.020,
+                energy: 0.00040,
+                peak: 0.042,
+                zeroCrossingRate: 0.06,
+                lowFrequencyEnergyRatio: 0.78,
+                midBandEnergy: 0.14,
+                highBandEnergy: 0.05,
+                spectralCentroid: 260,
+                estimatedNoiseLevel: 0.014
+            )
+        )
+        let finalOutputs = configuration.smoothingPolicy.apply(to: rawOutputs)
+        let snoreOutput = rawOutputs.first { $0.eventType == .snore }
+
+        #expect(snoreOutput != nil)
+        #expect(snoreOutput?.confidence ?? 1 < configuration.minimumConfidence)
+        #expect(snoreOutput?.debugReason?.contains("raw near-miss") == true)
+        #expect(!finalOutputs.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func nearMissGuardDoesNotPromoteSteadyLowFrequencyRoomTone() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.020,
+                energy: 0.00040,
+                peak: 0.028,
+                zeroCrossingRate: 0.06,
+                lowFrequencyEnergyRatio: 0.78,
+                midBandEnergy: 0.14,
+                highBandEnergy: 0.05,
+                spectralCentroid: 260,
+                estimatedNoiseLevel: 0.020
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func allSelectableProfilesKeepCommonNegativeSignalsOutOfSnore() {
         let negativeFixtures = [
             makeFeatures(

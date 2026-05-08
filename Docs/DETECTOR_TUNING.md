@@ -162,6 +162,15 @@ Regression guard:
 - replay에서도 raw 후보가 0개이면 input level, feature scale, raw detector gate를 우선 확인합니다.
 - replay에서 raw 후보는 있지만 final event가 0개이면 smoothing/confidence gate를 우선 확인합니다.
 
+## 2026-05-08 low-input raw near-miss guard
+
+침대 배치에서 실제 코골기처럼 들리지만 RMS/energy가 저진폭 floor보다 낮은 경우를 놓치지 않도록, `balanced` 이하 민감 profile에서만 raw near-miss snore 후보를 남깁니다.
+
+- near-miss 후보는 low-band, 낮은 ZCR, 낮은 high/mid-band, 낮은 centroid, noise 대비 relative energy guard를 통과해야 합니다.
+- `balanced`에서는 confidence를 smoothing threshold 아래로 제한해 final event로 바로 승격하지 않습니다.
+- 이 값은 zero-event 분석에서 “raw 후보 전 0개”와 “raw 후보는 있었지만 confidence/smoothing에서 제외”를 구분하기 위한 diagnostics입니다.
+- `conservative`/`veryConservative` profile에서는 near-miss path를 끄고, steady room tone은 raw snore가 되지 않아야 합니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.

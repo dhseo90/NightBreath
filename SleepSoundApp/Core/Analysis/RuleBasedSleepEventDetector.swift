@@ -143,6 +143,11 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             snoreTexture.passesCloseLowMidGuard &&
             features.rms >= max(thresholds.lowLevelSnoreRMS, thresholds.snoreRMS * 0.82) &&
             features.energy >= thresholds.lowLevelSnoreEnergy
+        let passesDistantNearMissSnoreThreshold =
+            thresholds.snoreRMS <= 0.045 &&
+            snoreTexture.passesDistantNearMissGuard &&
+            features.rms >= max(silenceRMS * 1.4, thresholds.lowLevelSnoreRMS * 0.62) &&
+            features.energy >= max(0.000_03, thresholds.lowLevelSnoreEnergy * 0.18)
         let passesSnoreLevelGate =
             passesStandardSnoreThreshold ||
             (passesLowLevelSnoreThreshold && snoreTexture.passesDistanceGuard) ||
@@ -164,6 +169,21 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
                     debugReason: !passesStandardSnoreThreshold
                         ? "저진폭이지만 noise 대비 상대 energy, 저주파 비율, 낮은 ZCR/high-band guard를 통과한 코골기 후보 placeholder"
                         : "저주파 에너지, RMS, 저진폭 texture guard 기반 코골기 후보 placeholder"
+                )
+            )
+        }
+
+        if !passesSnoreLevelGate,
+           passesDistantNearMissSnoreThreshold,
+           !hasEnvironmentalNoise,
+           snoreTexture.passesBasicGuard {
+            outputs.append(
+                makeOutput(
+                    .snore,
+                    features: features,
+                    confidence: snoreNearMissConfidence(features: features, texture: snoreTexture),
+                    intensity: snoreIntensity(features: features, usedLowLevelGuard: true) * 0.85,
+                    debugReason: "입력 레벨은 낮지만 저주파 texture와 noise 대비 상대 energy가 있어 raw near-miss 코골기 후보로 남깁니다. 기본 profile에서는 smoothing에서 제외될 수 있습니다."
                 )
             )
         }
@@ -287,7 +307,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
     private func snoreTextureAssessment(
         for features: AudioFeatures
-    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, relativeEnergy: Double) {
+    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double) {
         let relativeEnergy = relativeEnergyRatio(for: features)
         let lowMidEnergy = features.lowBandEnergy + features.midBandEnergy
         let lowLevelTexture =
@@ -305,8 +325,16 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             features.highBandEnergy <= 0.22 &&
             features.spectralCentroid <= 1_450 &&
             relativeEnergy >= 1.20
+        let distantNearMissTexture =
+            features.lowFrequencyEnergyRatio >= max(0.70, thresholds.lowLevelSnoreLowBandRatio) &&
+            features.zeroCrossingRate <= 0.18 &&
+            features.highBandEnergy <= 0.16 &&
+            features.midBandEnergy <= 0.30 &&
+            features.spectralCentroid <= 700 &&
+            relativeEnergy >= 1.12
         let basicTexture =
             closeLowMidTexture ||
+            distantNearMissTexture ||
             (
                 features.lowFrequencyEnergyRatio >= 0.45 &&
                 features.zeroCrossingRate <= 0.45 &&
@@ -325,13 +353,14 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             passesBasicGuard: basicTexture,
             passesDistanceGuard: lowLevelTexture,
             passesCloseLowMidGuard: closeLowMidTexture,
+            passesDistantNearMissGuard: distantNearMissTexture,
             relativeEnergy: relativeEnergy
         )
     }
 
     private func snoreConfidence(
         features: AudioFeatures,
-        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, relativeEnergy: Double),
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double),
         usedLowLevelGuard: Bool
     ) -> Double {
         let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.45, 0) * 0.50, 0.22)
@@ -341,6 +370,15 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             : min(features.rms * 1.6, 0.12)
         let base = usedLowLevelGuard ? 0.36 : 0.50
         return min(max(base + lowBandSupport + relativeSupport + amplitudeSupport, 0), 1)
+    }
+
+    private func snoreNearMissConfidence(
+        features: AudioFeatures,
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double)
+    ) -> Double {
+        let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.70, 0) * 0.20, 0.04)
+        let relativeSupport = min(max(texture.relativeEnergy - 1.12, 0) * 0.04, 0.04)
+        return min(max(0.28 + lowBandSupport + relativeSupport, 0.24), 0.34)
     }
 
     private func snoreIntensity(
