@@ -827,7 +827,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
             return "오디오 입력은 일부 수신되었지만 분석된 chunk가 부족해 detector 판단 경로를 제한적으로만 볼 수 있습니다."
         }
         if inputLevelLooksTooLowForPlacement {
-            return "오디오는 충분히 수신됐지만 입력 레벨이 낮아 코골기 후보 기준까지 올라오지 않았습니다. iPhone 배치나 마이크 방향 영향을 확인하세요."
+            return "오디오는 충분히 수신됐지만 입력 레벨이 낮아 코골기 후보 기준까지 올라오지 않았습니다. iPhone을 베개 쪽에 더 가깝게 두고 마이크가 침구에 가려지지 않았는지 확인하세요."
         }
         if snoreRawCandidateCount > 0, snorePostSmoothingEventCount == 0 {
             return "코골기 raw 후보는 있었지만 confidence, 지속 시간 또는 smoothing 기준을 통과한 최종 이벤트가 없었습니다."

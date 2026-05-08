@@ -85,7 +85,7 @@ public struct ZeroEventAnalysis: Codable, Equatable, Sendable {
         if diagnostics.inputLevelLooksTooLowForPlacement {
             return ZeroEventAnalysis(
                 probableReason: .inputLevelTooLowForPlacement,
-                recommendedDebugAction: "오디오는 충분히 수신됐지만 RMS/energy p90/p99가 저진폭 코골기 후보 기준보다 크게 낮았습니다. iPhone을 침대 쪽으로 조금 더 가깝게 두고 마이크가 막히지 않았는지 30초 foreground 입력 테스트로 확인하세요.",
+                recommendedDebugAction: "오디오는 충분히 수신됐지만 RMS/energy p90/p99가 저진폭 코골기 후보 기준보다 크게 낮았습니다. iPhone을 베개 쪽에 더 가깝게 두고 마이크가 침구에 가려지지 않았는지 30초 foreground 입력 테스트로 확인하세요.",
                 confidence: 0.86
             )
         }

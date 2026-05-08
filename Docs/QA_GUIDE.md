@@ -135,7 +135,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - reject reason, raw 후보 수, 최종 이벤트 수 확인
 - threshold 변경 후보를 수동 검토용 보고서로 생성
 
-`OfflineProfileCompare`의 `tuning_report.md`에서는 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Delta From Balanced, Zero Event Stage Breakdown을 순서대로 확인합니다. 특히 Snore / Negative Snapshot은 expected snore hit와 silence/unknown/environmentalNoise negative segment의 final snore 발생률을 함께 보여주므로, 민감 profile에서 누락이 줄어도 소음 구간 코골기 오탐 위험이 늘었는지 먼저 확인합니다.
+`OfflineProfileCompare`의 `tuning_report.md`에서는 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Public Negative Raw Event Mix, Delta From Balanced, Zero Event Stage Breakdown을 순서대로 확인합니다. 특히 Snore / Negative Snapshot은 expected snore hit와 silence/unknown/environmentalNoise negative segment의 final snore 발생률을 함께 보여주므로, 민감 profile에서 누락이 줄어도 소음 구간 코골기 오탐 위험이 늘었는지 먼저 확인합니다. Public Negative Raw Event Mix에서는 final snore가 없어도 cough-like, bruxism-like, movement-like raw 후보가 늘었는지 확인해 transient guard가 약해졌는지 봅니다.
 
 세부 detector/dataset 문서는 `Docs/DETECTOR_TUNING.md`, `Docs/DATASET_REPLAY.md`, `Docs/DATASET_GUIDE.md`, `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
@@ -163,6 +163,8 @@ DEBUG 확인:
 
 - `AudioDebugView`에서 live RMS / energy, current threshold, last raw candidate, last reject reason을 봅니다.
 - feature 분포 p50/p90, 코골기 feature 후보/제외 수, raw candidate count by type과 smoothing 전/후 count가 증가하는지 봅니다.
+- `snore path`의 `raw-only / smoothing-drop / final` 값으로 실제 입력이 어느 단계까지 갔는지 확인합니다.
+- 입력 RMS가 낮게 유지되면 `input placement` 또는 report의 `배치/거리 안내` 문구에 따라 iPhone을 베개 쪽에 더 가깝게 두고 마이크가 침구에 가려지지 않는지 확인합니다.
 - `DatasetReplayView`에서는 synthetic 또는 사용자가 준비한 로컬 짧은 segment로 같은 pipeline count를 비교합니다.
 - DEBUG의 `SleepReportView`, `DetectorTuningView`, `DatasetReplayView`에서 `QA readout 공유`를 눌러 detector diagnostics 텍스트를 private QA note에 붙여 넣을 수 있습니다.
 - 이 과정은 원본 전체 오디오 저장이나 서버 전송 없이 수행합니다.

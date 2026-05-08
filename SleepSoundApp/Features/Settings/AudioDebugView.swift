@@ -88,6 +88,9 @@
               NBDiagnosticItem(title: "RMS / energy p50/p90", value: viewModel.featureDistributionText, status: .neutral),
               NBDiagnosticItem(title: "low band p50/p90", value: viewModel.lowBandDistributionText, status: .neutral),
               NBDiagnosticItem(title: "snore-like feature", value: "\(viewModel.snoreLikeFeatureCandidateCount) / rejected \(viewModel.snoreLikeFeatureRejectedCount)", status: viewModel.snoreLikeFeatureRejectedCount > 0 ? .caution : .debug),
+              NBDiagnosticItem(title: "snore path", value: viewModel.snoreStageText, status: viewModel.snoreSmoothingDropCount > 0 ? .caution : .debug),
+              NBDiagnosticItem(title: "last snore path", value: viewModel.lastSnoreStageText, status: viewModel.lastSnoreStageNeedsAttention ? .caution : .debug),
+              NBDiagnosticItem(title: "input placement", value: viewModel.inputPlacementGuidanceText, status: viewModel.inputPlacementGuidanceNeedsAttention ? .caution : .good),
               NBDiagnosticItem(title: "last raw candidate", value: viewModel.latestRawCandidateText, status: .neutral),
               NBDiagnosticItem(title: "last reject reason", value: viewModel.lastRejectReasonText, status: .caution),
               NBDiagnosticItem(title: "recent raw candidate count", value: viewModel.rawCandidateCountText, status: .neutral),
@@ -204,6 +207,10 @@
     @Published var smoothingDropCount: Int = 0
     @Published var snoreLikeFeatureCandidateCount: Int = 0
     @Published var snoreLikeFeatureRejectedCount: Int = 0
+    @Published var snoreRawOnlyCount: Int = 0
+    @Published var snoreSmoothingDropCount: Int = 0
+    @Published var snoreFinalEventCount: Int = 0
+    @Published var lastSnoreStageText: String = "대기 중"
     @Published var detectorBackend: SleepDetectionBackend = .hybrid
     @Published var coreMLModelStatus: String = "Not installed"
     @Published var modelVersionText: String = CoreMLDetectorConfiguration.default.modelVersion
@@ -322,6 +329,38 @@
       return parts.isEmpty ? "없음" : parts.joined(separator: ", ")
     }
 
+    var snoreStageText: String {
+      "raw-only \(snoreRawOnlyCount) / smoothing-drop \(snoreSmoothingDropCount) / final \(snoreFinalEventCount)"
+    }
+
+    var lastSnoreStageNeedsAttention: Bool {
+      lastSnoreStageText.contains("near-miss") || lastSnoreStageText.contains("smoothing-drop")
+    }
+
+    var inputPlacementGuidanceText: String {
+      guard let latestFeatures else { return "대기 중" }
+
+      let lowInputRMS = max(silenceThreshold * 2.2, snoreThreshold * 0.55)
+      let veryLowRMS = lowInputRMS * 0.25
+      let lowInputEnergy = lowInputRMS * lowInputRMS * 0.65
+
+      if latestFeatures.rms < veryLowRMS,
+         latestFeatures.energy < lowInputEnergy * 0.08 {
+        return "입력이 매우 작습니다. iPhone을 베개 쪽에 더 가깝게 두고 마이크가 침구에 가려지지 않는지 확인하세요."
+      }
+
+      if latestFeatures.rms < lowInputRMS,
+         latestFeatures.lowBandEnergy >= 0.55 {
+        return "저주파 패턴은 보이지만 입력이 작습니다. 침대와 iPhone 거리, 마이크 방향을 짧은 테스트로 확인하세요."
+      }
+
+      return "입력 레벨은 현재 DEBUG 기준에서 확인 가능한 범위입니다."
+    }
+
+    var inputPlacementGuidanceNeedsAttention: Bool {
+      inputPlacementGuidanceText.contains("입력이")
+    }
+
     var tuningProfileText: String {
       DetectorTuningProfile.customDebug.displayName
     }
@@ -348,6 +387,10 @@
       smoothingDropCount = 0
       snoreLikeFeatureCandidateCount = 0
       snoreLikeFeatureRejectedCount = 0
+      snoreRawOnlyCount = 0
+      snoreSmoothingDropCount = 0
+      snoreFinalEventCount = 0
+      lastSnoreStageText = "대기 중"
       latestCoreMLConfidenceText = "대기 중"
       coreMLFallbackCount = 0
       hybridFallbackStatus = "Available"
@@ -473,12 +516,42 @@
       preSmoothingCandidateCount = smoothingDiagnostics.preSmoothingCandidateCount
       postSmoothingEventCount = smoothingDiagnostics.postSmoothingEventCount
       smoothingDropCount = max(0, preSmoothingCandidateCount - postSmoothingEventCount)
+      updateSnoreStageText(
+        outputs: outputs,
+        snoreObservation: snoreObservation,
+        smoothingDiagnostics: smoothingDiagnostics
+      )
       if outputs.isEmpty == false,
          let topReason = smoothingDiagnostics.rejectedCountByReason.sorted(by: { lhs, rhs in
            if lhs.value == rhs.value { return lhs.key.rawValue < rhs.key.rawValue }
            return lhs.value > rhs.value
          }).first?.key {
         lastRejectReasonText = topReason.displayName
+      }
+    }
+
+    private func updateSnoreStageText(
+      outputs: [DetectorOutput],
+      snoreObservation: SnoreLikeFeatureObservation,
+      smoothingDiagnostics: DetectionSmoothingDiagnostics
+    ) {
+      let rawSnoreCount = rawCandidateCountByType[.snore, default: 0]
+      let preSnoreCount = smoothingDiagnostics.preSmoothingCandidateCountByType[.snore, default: 0]
+      let postSnoreCount = smoothingDiagnostics.postSmoothingEventCountByType[.snore, default: 0]
+      snoreFinalEventCount = postSnoreCount
+      snoreSmoothingDropCount = max(0, preSnoreCount - postSnoreCount)
+      snoreRawOnlyCount = max(0, rawSnoreCount - postSnoreCount)
+
+      if outputs.contains(where: { $0.eventType == .snore }) {
+        lastSnoreStageText = postSnoreCount > 0 ? "final" : "raw-only / smoothing-drop"
+      } else if snoreObservation.isCandidate {
+        let reasonText = snoreObservation.rejectReasons
+          .prefix(2)
+          .map(\.displayName)
+          .joined(separator: ", ")
+        lastSnoreStageText = reasonText.isEmpty ? "near-miss" : "near-miss: \(reasonText)"
+      } else {
+        lastSnoreStageText = "no snore-like path"
       }
     }
 

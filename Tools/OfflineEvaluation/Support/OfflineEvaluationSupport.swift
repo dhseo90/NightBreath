@@ -1460,6 +1460,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
   public var expectedSnoreDetectedRecords: Int
   public var snoreNegativeRecords: Int
   public var snoreNegativeWithSnoreEventRecords: Int
+  public var snoreNegativeRawCandidateCountByType: [String: Int]
   public var rawCandidateCount: Int
   public var preSmoothingCandidateCount: Int
   public var postSmoothingEventCount: Int
@@ -1484,6 +1485,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     expectedSnoreDetectedRecords: Int = 0,
     snoreNegativeRecords: Int = 0,
     snoreNegativeWithSnoreEventRecords: Int = 0,
+    snoreNegativeRawCandidateCountByType: [String: Int] = [:],
     rawCandidateCount: Int,
     preSmoothingCandidateCount: Int,
     postSmoothingEventCount: Int,
@@ -1513,6 +1515,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
       max(0, snoreNegativeWithSnoreEventRecords),
       self.snoreNegativeRecords
     )
+    self.snoreNegativeRawCandidateCountByType = snoreNegativeRawCandidateCountByType
     self.rawCandidateCount = max(0, rawCandidateCount)
     self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
     self.postSmoothingEventCount = max(0, postSmoothingEventCount)
@@ -1823,6 +1826,12 @@ public struct OfflineProfileComparisonRunner {
       let zeroEventRecords = validProfileRecords.filter { $0.finalEventCount == 0 }
       let expectedSnoreRecords = validProfileRecords.filter(Self.expectsSnore)
       let snoreNegativeRecords = validProfileRecords.filter(Self.isSnoreNegative)
+      let snoreNegativeRawCandidateCountByType = snoreNegativeRecords.reduce(into: [String: Int]()) {
+        result, record in
+        for (type, count) in record.rawCandidateCountByType {
+          result[type, default: 0] += count
+        }
+      }
 
       return OfflineProfileSummary(
         tuningProfile: profile,
@@ -1833,6 +1842,7 @@ public struct OfflineProfileComparisonRunner {
         expectedSnoreDetectedRecords: expectedSnoreRecords.filter(Self.hasFinalSnoreEvent).count,
         snoreNegativeRecords: snoreNegativeRecords.count,
         snoreNegativeWithSnoreEventRecords: snoreNegativeRecords.filter(Self.hasFinalSnoreEvent).count,
+        snoreNegativeRawCandidateCountByType: snoreNegativeRawCandidateCountByType,
         rawCandidateCount: profileRecords.reduce(0) { $0 + $1.rawCandidateCount },
         preSmoothingCandidateCount: profileRecords.reduce(0) { $0 + $1.preSmoothingCandidateCount },
         postSmoothingEventCount: profileRecords.reduce(0) { $0 + $1.postSmoothingEventCount },
@@ -2031,6 +2041,15 @@ public struct OfflineProfileComparisonRunner {
 
     lines.append(contentsOf: [
       "",
+      "## Public Negative Raw Event Mix",
+      "",
+      "| Profile | Negative Records | Raw Snore | Raw Cough | Raw Bruxism | Raw Movement | Raw Environmental | Top Raw Types | Review Cue |",
+      "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+    ])
+    lines.append(contentsOf: publicNegativeRawEventRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
       "## Delta From Balanced",
       "",
       "| Profile | Final Event Delta | Zero Event Delta | FP-like Delta | FN-like Delta | Review Cue |",
@@ -2147,6 +2166,17 @@ public struct OfflineProfileComparisonRunner {
     }
   }
 
+  private static func publicNegativeRawEventRows(summaries: [OfflineProfileSummary]) -> [String] {
+    guard !summaries.isEmpty else {
+      return ["| none | 0 | 0 | 0 | 0 | 0 | 0 | none | 비교할 public negative record가 없습니다. |"]
+    }
+
+    return summaries.map { summary in
+      let counts = summary.snoreNegativeRawCandidateCountByType
+      return "| \(summary.tuningProfile) | \(summary.snoreNegativeRecords) | \(rawTypeCount(counts, .snore)) | \(rawTypeCount(counts, .coughLike)) | \(rawTypeCount(counts, .bruxismLike)) | \(rawTypeCount(counts, .movementLike)) | \(rawTypeCount(counts, .environmentalNoise)) | \(topRawTypeText(counts)) | \(publicNegativeRawReviewCue(summary)) |"
+    }
+  }
+
   private static func balancedDeltaRows(summaries: [OfflineProfileSummary]) -> [String] {
     guard !summaries.isEmpty else {
       return ["| none | 0 | 0 | 0 | 0 | 비교할 record가 없습니다. |"]
@@ -2191,6 +2221,23 @@ public struct OfflineProfileComparisonRunner {
     return counts.sorted { $0.key < $1.key }.map { "\($0.key): \($0.value)" }.joined(separator: ", ")
   }
 
+  private static func rawTypeCount(_ counts: [String: Int], _ type: SleepEventType) -> Int {
+    counts[type.rawValue, default: 0]
+  }
+
+  private static func topRawTypeText(_ counts: [String: Int]) -> String {
+    let visibleCounts = counts.filter { $0.value > 0 }
+    guard !visibleCounts.isEmpty else { return "none" }
+    return visibleCounts
+      .sorted { lhs, rhs in
+        if lhs.value == rhs.value { return lhs.key < rhs.key }
+        return lhs.value > rhs.value
+      }
+      .prefix(5)
+      .map { "\($0.key): \($0.value)" }
+      .joined(separator: ", ")
+  }
+
   private static func topRejectReasonText(_ reasons: [OfflineEvaluationReasonCount]) -> String {
     guard let reason = reasons.first else { return "none" }
     return "\(reason.reason): \(reason.count)"
@@ -2226,6 +2273,32 @@ public struct OfflineProfileComparisonRunner {
       return "expected snore 누락 record의 reject reason과 smoothing drop을 확인하세요."
     }
     return "현재 labeled set에서는 snore hit와 negative guard가 함께 유지됩니다."
+  }
+
+  private static func publicNegativeRawReviewCue(_ summary: OfflineProfileSummary) -> String {
+    if summary.snoreNegativeRecords == 0 {
+      return "silence/unknown/environmentalNoise public negative segment를 추가하세요."
+    }
+
+    let counts = summary.snoreNegativeRawCandidateCountByType
+    let transientRawCount = rawTypeCount(counts, .coughLike) +
+      rawTypeCount(counts, .bruxismLike) +
+      rawTypeCount(counts, .movementLike)
+    let snoreRawCount = rawTypeCount(counts, .snore)
+
+    if summary.snoreNegativeWithSnoreEventRecords > 0 {
+      return "negative에서 final snore가 생겼습니다. snore guard를 먼저 확인하세요."
+    }
+    if snoreRawCount > 0 {
+      return "negative에서 raw snore가 생겼지만 final까지 가지 않았습니다. smoothing guard를 유지하세요."
+    }
+    if transientRawCount > 0 {
+      return "negative에서 transient raw 후보가 남았습니다. cough/bruxism/movement guard 변화를 추적하세요."
+    }
+    if rawTypeCount(counts, .environmentalNoise) > 0 {
+      return "negative가 환경 소음 raw 후보로만 남았습니다. 코골기 오탐과 분리됐는지 확인하세요."
+    }
+    return "현재 public negative에서는 raw event 후보가 거의 없습니다."
   }
 
   private static func balancedDeltaCue(

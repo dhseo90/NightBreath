@@ -74,6 +74,7 @@ struct OfflineProfileComparisonTests {
     #expect(balanced.expectedSnoreDetectedRecords == 1)
     #expect(balanced.snoreNegativeRecords == 1)
     #expect(balanced.snoreNegativeWithSnoreEventRecords == 0)
+    #expect(balanced.snoreNegativeRawCandidateCountByType.isEmpty)
     #expect(balanced.rawCandidateCount == 2)
     #expect(balanced.zeroEventCount == 1)
     #expect(balanced.zeroEventNoRawCandidateCount == 1)
@@ -83,6 +84,48 @@ struct OfflineProfileComparisonTests {
     #expect(balanced.finalEventCountByType["snore"] == 1)
     #expect(balanced.averageConfidence == 0.7)
     #expect(balanced.topRejectReasons.first?.reason == "belowConfidenceThreshold")
+  }
+
+  @Test
+  func summarizesPublicNegativeRawCandidateMixByProfile() {
+    let records = [
+      makeRecord(
+        profile: "balanced",
+        fileId: "fan-noise",
+        expectedLabels: ["environmentalNoise"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 3,
+        rawCandidateCountByType: ["coughLike": 1, "movementLike": 2]
+      ),
+      makeRecord(
+        profile: "balanced",
+        fileId: "quiet-room",
+        expectedLabels: ["unknown"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 1,
+        rawCandidateCountByType: ["bruxismLike": 1]
+      ),
+      makeRecord(
+        profile: "balanced",
+        fileId: "snore",
+        expectedLabels: ["snore"],
+        finalEventCountByType: ["snore": 1],
+        rawCandidateCount: 1
+      ),
+    ]
+
+    let summary = try! #require(
+      OfflineProfileComparisonRunner.makeProfileSummaries(
+        records: records,
+        findings: OfflineProfileComparisonRunner.makeLabelFindings(records: records)
+      ).first
+    )
+
+    #expect(summary.snoreNegativeRecords == 2)
+    #expect(summary.snoreNegativeRawCandidateCountByType["coughLike"] == 1)
+    #expect(summary.snoreNegativeRawCandidateCountByType["movementLike"] == 2)
+    #expect(summary.snoreNegativeRawCandidateCountByType["bruxismLike"] == 1)
+    #expect(summary.snoreNegativeRawCandidateCountByType["snore"] == nil)
   }
 
   @Test
@@ -207,6 +250,7 @@ struct OfflineProfileComparisonTests {
         expectedLabels: ["unknown"],
         finalEventCountByType: ["environmentalNoise": 1],
         rawCandidateCount: 2,
+        rawCandidateCountByType: ["coughLike": 1, "environmentalNoise": 1],
         rejectReasonTop: [OfflineEvaluationReasonCount(reason: "likelyEnvironmentalNoise", count: 1)]
       ),
     ]
@@ -230,6 +274,9 @@ struct OfflineProfileComparisonTests {
     #expect(report.contains("## Snore / Negative Snapshot"))
     #expect(report.contains("| balanced | 0/1 (0.0%) | 1 | 0/1 (0.0%) | 0 | expected snore 누락 record의 reject reason과 smoothing drop을 확인하세요. |"))
     #expect(report.contains("| sensitive | 1/1 (100.0%) | 0 | 0/1 (0.0%) | 1 | 현재 labeled set에서는 snore hit와 negative guard가 함께 유지됩니다. |"))
+    #expect(report.contains("## Public Negative Raw Event Mix"))
+    #expect(report.contains("| balanced | 1 | 0 | 0 | 0 | 0 | 0 | none | 현재 public negative에서는 raw event 후보가 거의 없습니다. |"))
+    #expect(report.contains("| sensitive | 1 | 0 | 1 | 0 | 0 | 1 | coughLike: 1, environmentalNoise: 1 | negative에서 transient raw 후보가 남았습니다. cough/bruxism/movement guard 변화를 추적하세요. |"))
     #expect(report.contains("## Delta From Balanced"))
     #expect(report.contains("| balanced | 0 | 0 | 0 | 0 | Release 기본 profile 기준선입니다. |"))
     #expect(report.contains("| sensitive | +2 | -2 | +1 | -1 | balanced보다 FP-like가 늘었습니다. Release 기본값 후보로 바로 올리지 마세요. |"))
@@ -284,6 +331,7 @@ struct OfflineProfileComparisonTests {
     expectedLabels: [String],
     finalEventCountByType: [String: Int],
     rawCandidateCount: Int,
+    rawCandidateCountByType: [String: Int]? = nil,
     averageConfidence: Double? = nil,
     rejectReasonTop: [OfflineEvaluationReasonCount] = []
   ) -> OfflineEvaluationRecord {
@@ -299,7 +347,7 @@ struct OfflineProfileComparisonTests {
       expectedLabels: expectedLabels,
       rawCandidateCount: rawCandidateCount,
       averageConfidence: averageConfidence,
-      rawCandidateCountByType: rawCandidateCount > 0 ? ["snore": rawCandidateCount] : [:],
+      rawCandidateCountByType: rawCandidateCountByType ?? (rawCandidateCount > 0 ? ["snore": rawCandidateCount] : [:]),
       preSmoothingCandidateCount: rawCandidateCount,
       postSmoothingEventCount: finalEventCountByType.values.reduce(0, +),
       finalEventCountByType: finalEventCountByType,

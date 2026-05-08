@@ -147,6 +147,8 @@
 - cough/bruxism/movement raw count가 transient guard 이후 공개 negative smoke에서 얼마나 줄었는지 재집계
 - Offline Evaluation으로 verySensitive / sensitive / balanced / conservative / veryConservative profile 비교
 - 긴 public dataset sweep은 `--checkpoint-every`로 partial JSON/CSV를 남기고, 중간 실패 시 checkpoint부터 원인 분석
+- ESC-50 전체 public sweep은 `--checkpoint-every 50`과 profile 5종으로 재실행 완료. local ignored output 기준 balanced도 public negative final snore rate가 높게 나와, 실기기 feedback 전 Release 기본 민감도 상향보다 negative guard 세분화를 우선합니다.
+- `Public Negative Raw Event Mix`에서 cough-like, bruxism-like, movement-like raw 후보와 raw snore가 함께 높게 나오는 category를 분리해 category별 false-positive-like guard를 재검토
 - `Tools/OfflineEvaluation/validate_sample_manifest.py`로 replay manifest schema, 짧은 segment duration, git-tracked audio 참조 여부를 로컬에서 먼저 확인
 - 민감도 preset synthetic guard는 보강 완료. 실제 iPhone 배치별 raw/final count와 false-positive-like negative는 private evidence로 확인 필요
 - Offline Evaluation profile 비교 markdown quick summary 보강 완료

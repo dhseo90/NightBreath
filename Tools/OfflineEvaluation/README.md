@@ -189,9 +189,11 @@ swift run OfflineProfileCompare \
 - `tuning_report.md`
 - `suggested_changes.json`
 
-`tuning_report.md`는 상단에 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Delta From Balanced, Zero Event Stage Breakdown을 포함합니다. profile별 zero-event rate, raw → final count, final event type, top reject reason, possible false-positive-like / false-negative-like count를 한 표에서 비교해 threshold를 조정하기 전에 어느 단계에서 후보가 사라졌는지 먼저 확인할 수 있습니다.
+`tuning_report.md`는 상단에 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Public Negative Raw Event Mix, Delta From Balanced, Zero Event Stage Breakdown을 포함합니다. profile별 zero-event rate, raw → final count, final event type, top reject reason, possible false-positive-like / false-negative-like count를 한 표에서 비교해 threshold를 조정하기 전에 어느 단계에서 후보가 사라졌는지 먼저 확인할 수 있습니다.
 
 Snore / Negative Snapshot은 `expectedLabels`에 `snore`가 있는 segment의 final snore hit와 `silence`/`unknown`/`environmentalNoise` negative segment의 final snore 발생률을 함께 보여줍니다. `Delta From Balanced`는 Release 기본 profile인 `balanced` 대비 final event, zero-event, FP-like, FN-like 변화량을 표시해 sensitive 계열을 Release 기본값으로 올릴 근거가 충분한지 빠르게 확인하게 합니다.
+
+Public Negative Raw Event Mix는 `silence`/`unknown`/`environmentalNoise` public negative segment에서 raw snore, cough-like, bruxism-like, movement-like, environmental noise 후보가 profile별로 얼마나 생겼는지 보여줍니다. final snore가 0이어도 raw transient 후보가 늘면 false-positive guard가 약해졌는지 별도로 확인합니다.
 
 Zero Event Stage Breakdown은 이벤트 0개 record를 `No Raw Candidate`, `Raw But No Final`, `Smoothing Dropped`, `Post Smoothing But No Final`로 나눕니다. 실제 코골이 후보가 feature/raw 단계에서 아예 생기지 않았는지, smoothing에서 사라졌는지, final/report 단계에서 빠졌는지 먼저 분리해서 봅니다.
 

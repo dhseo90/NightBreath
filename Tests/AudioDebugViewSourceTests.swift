@@ -22,6 +22,11 @@ struct AudioDebugViewSourceTests {
         let source = try read("SleepSoundApp/Features/Settings/AudioDebugView.swift")
 
         #expect(source.contains("SnoreLikeFeatureObserver.observe"))
+        #expect(source.contains("snore path"))
+        #expect(source.contains("raw-only"))
+        #expect(source.contains("smoothing-drop"))
+        #expect(source.contains("final"))
+        #expect(source.contains("input placement"))
         #expect(!source.contains("private func snoreLikeFeatureObservation"))
         #expect(!source.contains("private func isDistantLowInputSnoreLikeHint"))
     }

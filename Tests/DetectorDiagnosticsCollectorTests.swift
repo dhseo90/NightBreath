@@ -173,6 +173,7 @@ struct DetectorDiagnosticsCollectorTests {
         #expect(diagnostics.inputLevelLooksTooLowForPlacement)
         #expect(diagnostics.inputLevelAssessment == "goodCoverageLowInputLevel")
         #expect(diagnostics.summaryTextForZeroEvents?.contains("입력 레벨") == true)
+        #expect(diagnostics.summaryTextForZeroEvents?.contains("베개 쪽") == true)
     }
 
     @Test

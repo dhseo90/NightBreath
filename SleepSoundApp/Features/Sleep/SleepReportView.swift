@@ -367,6 +367,7 @@ struct SleepReportView: View {
                 NBDiagnosticItem(title: "post-smoothing by type", value: eventCountText(diagnostics.postSmoothingEventCountByType), status: .debug),
                 NBDiagnosticItem(title: "snore-like feature rejected", value: "\(diagnostics.snoreLikeFeatureRejectedCount)개, \(featureRejectReasonText(diagnostics))", status: diagnostics.snoreLikeFeatureRejectedCount > 0 ? .caution : .good),
                 NBDiagnosticItem(title: "input level assessment", value: diagnostics.inputLevelAssessmentDisplayText, status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .good),
+                NBDiagnosticItem(title: "placement guidance", value: inputPlacementGuidanceText(diagnostics), status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .debug),
                 NBDiagnosticItem(title: "threshold snapshot", value: thresholdSnapshotText(diagnostics), status: .debug),
                 NBDiagnosticItem(title: "RMS min/p50/p90/max", value: "\(shortNumber(diagnostics.rmsMin)) / \(shortNumber(diagnostics.rmsP50)) / \(shortNumber(diagnostics.rmsP90)) / \(shortNumber(diagnostics.rmsMax))", status: .neutral),
                 NBDiagnosticItem(title: "Energy min/p50/p90/max", value: "\(shortNumber(diagnostics.energyMin)) / \(shortNumber(diagnostics.energyP50)) / \(shortNumber(diagnostics.energyP90)) / \(shortNumber(diagnostics.energyMax))", status: .neutral),
@@ -418,6 +419,7 @@ struct SleepReportView: View {
                 NBDiagnosticItem(title: "smoothing 전/후", value: "\(diagnostics.preSmoothingCandidateCount) / \(diagnostics.postSmoothingEventCount)", status: .debug),
                 NBDiagnosticItem(title: "최종 이벤트 수", value: "\(diagnostics.finalEventCountByType.values.reduce(0, +))개", status: .privacy),
                 NBDiagnosticItem(title: "입력 레벨 평가", value: diagnostics.inputLevelAssessmentDisplayText, status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .good),
+                NBDiagnosticItem(title: "배치/거리 안내", value: inputPlacementGuidanceText(diagnostics), status: diagnostics.inputLevelLooksTooLowForPlacement ? .caution : .debug),
                 NBDiagnosticItem(title: "주요 탈락 이유", value: topRejectReasonText(diagnostics), status: .caution),
               ],
                 showsDetails: true
@@ -785,6 +787,16 @@ struct SleepReportView: View {
       .prefix(3)
       .map { reason, count in "\(reason.displayName) \(count)회" }
     return reasons.isEmpty ? "없음" : reasons.joined(separator: ", ")
+  }
+
+  private func inputPlacementGuidanceText(_ diagnostics: DetectorDiagnostics) -> String {
+    if diagnostics.inputLevelLooksTooLowForPlacement {
+      return "입력이 낮습니다. iPhone을 베개 쪽에 더 가깝게 두고 마이크가 침구에 가려지지 않았는지 확인하세요."
+    }
+    if diagnostics.snoreLikeFeatureRejectReasonCounts[.inputLevelTooLow, default: 0] > 0 {
+      return "저진폭 코골기 후보가 있었습니다. 짧은 재테스트에서 iPhone 거리와 방향을 함께 기록하세요."
+    }
+    return "입력 레벨 특이 사항 없음"
   }
 
   private func eventCountText(_ counts: [SleepEventType: Int]) -> String {
