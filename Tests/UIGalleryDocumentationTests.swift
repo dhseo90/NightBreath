@@ -236,6 +236,43 @@ struct UIGalleryDocumentationTests {
   }
 
   @Test
+  func screenshotReviewManifestDoesNotLoosenCanonicalStatus() throws {
+    let statusRows = try screenshotStatusRows()
+    let reviewRows = try reviewManifestRows()
+    let canonicalStatusByAsset = Dictionary(uniqueKeysWithValues: statusRows.compactMap { row -> (String, String)? in
+      guard
+        let rawSource = row["raw_source"],
+        let reviewAsset = row["review_asset"],
+        let status = row["status"],
+        !rawSource.isEmpty,
+        !reviewAsset.isEmpty
+      else {
+        return nil
+      }
+
+      return ("\(rawSource)|\(reviewAsset)", status)
+    })
+
+    var checkedRows = 0
+    for row in reviewRows {
+      let rawSource = row["raw_source"] ?? ""
+      let reviewCrop = row["review_crop"] ?? ""
+      let reviewStatus = row["status"] ?? ""
+      let key = "\(rawSource)|\(reviewCrop)"
+
+      guard let canonicalStatus = canonicalStatusByAsset[key] else { continue }
+
+      checkedRows += 1
+      #expect(
+        reviewStatus == canonicalStatus,
+        "Review sheet status should match screenshot_status.tsv for \(key)."
+      )
+    }
+
+    #expect(checkedRows >= 30)
+  }
+
+  @Test
   func screenshotStatusManifestCoversGalleryAndScreenMapPngReferences() throws {
     let rows = try screenshotStatusRows()
     let manifestPaths = Set(rows.flatMap { row in
@@ -268,6 +305,45 @@ struct UIGalleryDocumentationTests {
 
   private func screenshotStatusRows() throws -> [[String: String]] {
     let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
+    return try tsvRows(from: manifest)
+  }
+
+  private func reviewManifestRows() throws -> [[String: String]] {
+    let root = repositoryRoot()
+    let outputDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+      .appendingPathComponent("nightbreath-screenshot-review-\(UUID().uuidString)")
+    let script = root.appendingPathComponent("Tools/Screenshots/build_screenshot_review_sheet.sh")
+    var environment = ProcessInfo.processInfo.environment
+    environment["SCREENSHOT_REVIEW_OUTPUT_DIR"] = outputDirectory.path
+
+    try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: outputDirectory) }
+
+    let process = Process()
+    let output = Pipe()
+    process.executableURL = script
+    process.currentDirectoryURL = root
+    process.environment = environment
+    process.standardOutput = output
+    process.standardError = output
+
+    try process.run()
+    process.waitUntilExit()
+
+    let outputText = String(
+      data: output.fileHandleForReading.readDataToEndOfFile(),
+      encoding: .utf8
+    ) ?? ""
+    #expect(process.terminationStatus == 0, "Review sheet script failed: \(outputText)")
+
+    let manifest = try String(
+      contentsOf: outputDirectory.appendingPathComponent("screenshot_review_manifest.tsv"),
+      encoding: .utf8
+    )
+    return try tsvRows(from: manifest)
+  }
+
+  private func tsvRows(from manifest: String) throws -> [[String: String]] {
     let rows = manifest
       .split(separator: "\n", omittingEmptySubsequences: true)
       .map { String($0).split(separator: "\t", omittingEmptySubsequences: false).map(String.init) }
