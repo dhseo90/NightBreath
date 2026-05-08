@@ -21,6 +21,7 @@
 - 건강 tab 첫 화면은 최근 날짜 상세, 건강 캘린더, Fitdays 붙여넣기 바로가기를 상단에 배치해 건강 데이터 탐색 단계를 줄였습니다.
 - Fitdays 월간 붙여넣기는 synthetic 31일 comma text preview와 건강 캘린더 detail build를 함께 돌리는 성능 회귀 테스트로 보호합니다.
 - Screenshot review sheet manifest는 canonical `screenshot_status.tsv`보다 느슨한 승인 상태를 표시하지 않도록 회귀 테스트를 추가했습니다.
+- AppState audio processing source test는 UI publish가 chunk마다 발생하지 않고 throttle된 snapshot으로 반영되는 구조를 확인합니다.
 
 ## 완료
 
