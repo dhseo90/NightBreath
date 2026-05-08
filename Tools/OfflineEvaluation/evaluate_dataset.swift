@@ -13,7 +13,8 @@ struct OfflineEvaluationCLI {
         manifestURL: options.manifestURL,
         outputDirectory: options.outputDirectory,
         profiles: options.profiles,
-        backends: options.backends
+        backends: options.backends,
+        checkpointEvery: options.checkpointEvery
       )
 
       print("Offline Evaluation complete")
@@ -35,6 +36,11 @@ struct OfflineEvaluationCLI {
       print("snore candidates: \(result.output.summary.snoreCandidates)")
       print("final snore events: \(result.output.summary.finalSnoreEvents)")
       print("top reject reason: \(result.output.summary.topRejectReason ?? "none")")
+      if let checkpointEvery = options.checkpointEvery {
+        print("checkpoint every: \(checkpointEvery) records")
+        print("checkpoint csv: \(result.checkpointCSVURL?.path ?? "none")")
+        print("checkpoint json: \(result.checkpointJSONURL?.path ?? "none")")
+      }
       print("csv: \(result.csvURL.path)")
       print("json: \(result.jsonURL.path)")
     } catch {
@@ -49,7 +55,7 @@ struct OfflineEvaluationCLI {
 
   private static let usage = """
     Usage:
-      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles verySensitive,sensitive,balanced,conservative,veryConservative --backends ruleBased,coreML,hybrid
+      swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.example.json --output Tools/OfflineEvaluation/output --profiles verySensitive,sensitive,balanced,conservative,veryConservative --backends ruleBased,coreML,hybrid --checkpoint-every 50
 
     Notes:
       - 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
@@ -63,12 +69,14 @@ private struct OfflineEvaluationOptions {
   var outputDirectory: URL
   var profiles: [DetectorTuningProfile]
   var backends: [SleepDetectionBackend]
+  var checkpointEvery: Int?
 
   init(arguments: [String]) throws {
     var manifestPath: String?
     var outputPath = "Tools/OfflineEvaluation/output"
     var profileText = "verySensitive,sensitive,balanced,conservative,veryConservative"
     var backendText = "hybrid"
+    var checkpointEvery: Int?
     var index = 0
 
     while index < arguments.count {
@@ -86,6 +94,13 @@ private struct OfflineEvaluationOptions {
       case "--backends":
         index += 1
         backendText = index < arguments.count ? arguments[index] : backendText
+      case "--checkpoint-every":
+        index += 1
+        if index < arguments.count,
+           let parsedInterval = Int(arguments[index]),
+           parsedInterval > 0 {
+          checkpointEvery = parsedInterval
+        }
       case "--help", "-h":
         throw OfflineEvaluationError.missingManifestPath
       default:
@@ -102,6 +117,7 @@ private struct OfflineEvaluationOptions {
     outputDirectory = Self.url(from: outputPath)
     profiles = try OfflineEvaluationRunner.parseProfiles(profileText)
     backends = try OfflineEvaluationRunner.parseBackends(backendText)
+    self.checkpointEvery = checkpointEvery
   }
 
   private static func url(from path: String) -> URL {

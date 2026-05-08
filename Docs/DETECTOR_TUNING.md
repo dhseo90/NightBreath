@@ -209,6 +209,8 @@ Regression guard:
 5. `balanced`에서 snoring hit가 모두 0이면 feature/detector 병목을 실기기 전 이슈로 봅니다.
 6. negative guard에서 final snore가 늘면 threshold를 더 민감하게 조정하지 않습니다.
 
+긴 ESC-50 sweep은 `OfflineEvaluation --checkpoint-every 50`처럼 checkpoint를 켜고 실행합니다. 중간에 끊겨도 ignored output directory에 `offline_evaluation_*_checkpoint.json/.csv`가 남으며, checkpoint JSON의 `processedRecords`, `totalRecords`, `isComplete`로 QA 진행 상태를 확인합니다.
+
 데이터셋 선택:
 
 - ESC-50: 작은 WAV dataset이라 smoke QA에 적합하지만 CC-BY-NC-3.0 연구/비상업 조건을 확인해야 합니다.

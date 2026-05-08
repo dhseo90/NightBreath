@@ -102,6 +102,45 @@ struct OfflineEvaluationSupportTests {
   }
 
   @Test
+  func evaluationWritesCheckpointOutputForLongRuns() throws {
+    let outputDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(
+      UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: outputDirectory) }
+    let manifestURL = try writeManifest(segments: [
+      makeSegment(filePath: "missing-a.wav", fileId: "missing-a"),
+      makeSegment(filePath: "missing-b.wav", fileId: "missing-b"),
+    ])
+    defer { try? FileManager.default.removeItem(at: manifestURL) }
+    let evaluatedAt = Date(timeIntervalSince1970: 1_800_000_100)
+
+    let result = try OfflineEvaluationRunner().evaluate(
+      manifestURL: manifestURL,
+      outputDirectory: outputDirectory,
+      profiles: [.balanced],
+      backends: [.ruleBased],
+      evaluatedAt: evaluatedAt,
+      checkpointEvery: 1
+    )
+
+    let checkpointJSONURL = try #require(result.checkpointJSONURL)
+    let checkpointCSVURL = try #require(result.checkpointCSVURL)
+    #expect(FileManager.default.fileExists(atPath: checkpointJSONURL.path))
+    #expect(FileManager.default.fileExists(atPath: checkpointCSVURL.path))
+
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let checkpoint = try decoder.decode(
+      OfflineEvaluationCheckpoint.self,
+      from: Data(contentsOf: checkpointJSONURL)
+    )
+    #expect(checkpoint.processedRecords == 2)
+    #expect(checkpoint.totalRecords == 2)
+    #expect(checkpoint.isComplete)
+    #expect(checkpoint.output.summary.failedRecords == 2)
+    #expect(result.output.summary.failedRecords == 2)
+  }
+
+  @Test
   func evaluatesAllRequestedProfiles() throws {
     let audioURL = try writeCAF(
       samples: snoreLikeSamples(duration: 2, sampleRate: 16_000), sampleRate: 16_000)

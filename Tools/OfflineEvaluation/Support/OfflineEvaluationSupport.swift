@@ -734,17 +734,61 @@ public struct OfflineEvaluationRunResult: Equatable, Sendable {
   public var csvURL: URL
   public var jsonURL: URL
   public var validation: OfflineEvaluationManifestValidationResult?
+  public var checkpointCSVURL: URL?
+  public var checkpointJSONURL: URL?
 
   public init(
     output: OfflineEvaluationOutput,
     csvURL: URL,
     jsonURL: URL,
-    validation: OfflineEvaluationManifestValidationResult? = nil
+    validation: OfflineEvaluationManifestValidationResult? = nil,
+    checkpointCSVURL: URL? = nil,
+    checkpointJSONURL: URL? = nil
   ) {
     self.output = output
     self.csvURL = csvURL
     self.jsonURL = jsonURL
     self.validation = validation
+    self.checkpointCSVURL = checkpointCSVURL
+    self.checkpointJSONURL = checkpointJSONURL
+  }
+}
+
+public struct OfflineEvaluationCheckpoint: Codable, Equatable, Sendable {
+  public var evaluatedAt: Date
+  public var processedRecords: Int
+  public var totalRecords: Int
+  public var isComplete: Bool
+  public var output: OfflineEvaluationOutput
+
+  public init(
+    evaluatedAt: Date,
+    processedRecords: Int,
+    totalRecords: Int,
+    isComplete: Bool,
+    output: OfflineEvaluationOutput
+  ) {
+    self.evaluatedAt = evaluatedAt
+    self.processedRecords = max(0, processedRecords)
+    self.totalRecords = max(0, totalRecords)
+    self.isComplete = isComplete
+    self.output = output
+  }
+}
+
+public struct OfflineEvaluationCheckpointResult: Equatable, Sendable {
+  public var checkpoint: OfflineEvaluationCheckpoint
+  public var csvURL: URL
+  public var jsonURL: URL
+
+  public init(
+    checkpoint: OfflineEvaluationCheckpoint,
+    csvURL: URL,
+    jsonURL: URL
+  ) {
+    self.checkpoint = checkpoint
+    self.csvURL = csvURL
+    self.jsonURL = jsonURL
   }
 }
 
@@ -2849,6 +2893,11 @@ public struct OfflineEvaluationRunner {
     self.fileManager = fileManager
   }
 
+  private struct CheckpointedEvaluationRecords {
+    var records: [OfflineEvaluationRecord]
+    var latestCheckpoint: OfflineEvaluationCheckpointResult?
+  }
+
   public func loadManifest(from url: URL) throws -> OfflineEvaluationManifest {
     let data = try Data(contentsOf: url)
     return try JSONDecoder().decode(OfflineEvaluationManifest.self, from: data)
@@ -2869,7 +2918,8 @@ public struct OfflineEvaluationRunner {
     outputDirectory: URL,
     profiles: [DetectorTuningProfile] = [.conservative, .balanced, .sensitive],
     backends: [SleepDetectionBackend] = [.hybrid],
-    evaluatedAt: Date = Date()
+    evaluatedAt: Date = Date(),
+    checkpointEvery: Int? = nil
   ) throws -> OfflineEvaluationRunResult {
     let manifest = try loadManifest(from: manifestURL)
     let validation = validateManifest(
@@ -2881,13 +2931,29 @@ public struct OfflineEvaluationRunner {
       datasetLicenseNote: manifest.datasetLicenseNote,
       segments: validation.validSegments
     )
-    let records = evaluateRecords(
-      manifest: validManifest,
-      manifestDirectory: manifestURL.deletingLastPathComponent(),
-      profiles: profiles,
-      backends: backends,
-      evaluatedAt: evaluatedAt
-    )
+    var latestCheckpoint: OfflineEvaluationCheckpointResult?
+    let records: [OfflineEvaluationRecord]
+    if let checkpointEvery, checkpointEvery > 0 {
+      let checkpointResult = try evaluateRecordsWithCheckpoints(
+        manifest: validManifest,
+        manifestDirectory: manifestURL.deletingLastPathComponent(),
+        outputDirectory: outputDirectory,
+        profiles: profiles,
+        backends: backends,
+        evaluatedAt: evaluatedAt,
+        checkpointEvery: checkpointEvery
+      )
+      records = checkpointResult.records
+      latestCheckpoint = checkpointResult.latestCheckpoint
+    } else {
+      records = evaluateRecords(
+        manifest: validManifest,
+        manifestDirectory: manifestURL.deletingLastPathComponent(),
+        profiles: profiles,
+        backends: backends,
+        evaluatedAt: evaluatedAt
+      )
+    }
     let output = OfflineEvaluationOutput(
       summary: OfflineEvaluationRunSummary(
         records: records,
@@ -2897,6 +2963,8 @@ public struct OfflineEvaluationRunner {
     )
     var result = try write(output: output, to: outputDirectory, evaluatedAt: evaluatedAt)
     result.validation = validation
+    result.checkpointCSVURL = latestCheckpoint?.csvURL
+    result.checkpointJSONURL = latestCheckpoint?.jsonURL
     return result
   }
 
@@ -2924,6 +2992,64 @@ public struct OfflineEvaluationRunner {
     }
   }
 
+  private func evaluateRecordsWithCheckpoints(
+    manifest: OfflineEvaluationManifest,
+    manifestDirectory: URL,
+    outputDirectory: URL,
+    profiles: [DetectorTuningProfile],
+    backends: [SleepDetectionBackend],
+    evaluatedAt: Date,
+    checkpointEvery: Int
+  ) throws -> CheckpointedEvaluationRecords {
+    guard !manifest.segments.isEmpty else {
+      return CheckpointedEvaluationRecords(records: [], latestCheckpoint: nil)
+    }
+
+    let totalRecords = manifest.segments.count * profiles.count * backends.count
+    let interval = max(1, checkpointEvery)
+    var records: [OfflineEvaluationRecord] = []
+    var processedRecords = 0
+    var latestCheckpoint: OfflineEvaluationCheckpointResult?
+
+    for segment in manifest.segments {
+      for profile in profiles {
+        for backend in backends {
+          let record = evaluate(
+            segment: segment,
+            manifestDirectory: manifestDirectory,
+            profile: profile,
+            backend: backend,
+            evaluatedAt: evaluatedAt
+          )
+          records.append(record)
+          processedRecords += 1
+
+          guard processedRecords.isMultiple(of: interval) || processedRecords == totalRecords else {
+            continue
+          }
+
+          let output = OfflineEvaluationOutput(
+            summary: OfflineEvaluationRunSummary(
+              records: records,
+              manifestSegmentCount: manifest.segments.count
+            ),
+            records: records
+          )
+          latestCheckpoint = try writeCheckpoint(
+            output: output,
+            to: outputDirectory,
+            evaluatedAt: evaluatedAt,
+            processedRecords: processedRecords,
+            totalRecords: totalRecords,
+            isComplete: processedRecords == totalRecords
+          )
+        }
+      }
+    }
+
+    return CheckpointedEvaluationRecords(records: records, latestCheckpoint: latestCheckpoint)
+  }
+
   public func write(
     output: OfflineEvaluationOutput,
     to outputDirectory: URL,
@@ -2940,6 +3066,37 @@ public struct OfflineEvaluationRunner {
       try encoder.encode(output).write(to: jsonURL, options: .atomic)
       try Self.makeCSV(records: output.records).write(to: csvURL, atomically: true, encoding: .utf8)
       return OfflineEvaluationRunResult(output: output, csvURL: csvURL, jsonURL: jsonURL)
+    } catch {
+      throw OfflineEvaluationError.failedToWriteOutput(error.localizedDescription)
+    }
+  }
+
+  public func writeCheckpoint(
+    output: OfflineEvaluationOutput,
+    to outputDirectory: URL,
+    evaluatedAt: Date,
+    processedRecords: Int,
+    totalRecords: Int,
+    isComplete: Bool
+  ) throws -> OfflineEvaluationCheckpointResult {
+    do {
+      try fileManager.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
+      let timestamp = Self.fileTimestampFormatter.string(from: evaluatedAt)
+      let checkpoint = OfflineEvaluationCheckpoint(
+        evaluatedAt: evaluatedAt,
+        processedRecords: processedRecords,
+        totalRecords: totalRecords,
+        isComplete: isComplete,
+        output: output
+      )
+      let jsonURL = outputDirectory.appendingPathComponent("offline_evaluation_\(timestamp)_checkpoint.json")
+      let csvURL = outputDirectory.appendingPathComponent("offline_evaluation_\(timestamp)_checkpoint.csv")
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      encoder.dateEncodingStrategy = .iso8601
+      try encoder.encode(checkpoint).write(to: jsonURL, options: .atomic)
+      try Self.makeCSV(records: output.records).write(to: csvURL, atomically: true, encoding: .utf8)
+      return OfflineEvaluationCheckpointResult(checkpoint: checkpoint, csvURL: csvURL, jsonURL: jsonURL)
     } catch {
       throw OfflineEvaluationError.failedToWriteOutput(error.localizedDescription)
     }

@@ -87,7 +87,8 @@ swift run OfflineEvaluation \
   --manifest Tools/OfflineEvaluation/output/esc50_manifest.json \
   --output Tools/OfflineEvaluation/output \
   --profiles verySensitive,sensitive,balanced,conservative,veryConservative \
-  --backends ruleBased
+  --backends ruleBased \
+  --checkpoint-every 50
 
 swift run OfflineProfileCompare \
   --input Tools/OfflineEvaluation/output/offline_evaluation_YYYYMMDD_HHMMSS.json \
@@ -125,6 +126,8 @@ backend도 쉼표로 나열할 수 있습니다.
 
 예를 들어 같은 segment를 세 backend로 평가하려면 `--backends ruleBased,coreML,hybrid`를 사용합니다.
 
+긴 public dataset sweep은 `--checkpoint-every N`을 함께 사용합니다. 도구는 N개 record마다 `offline_evaluation_YYYYMMDD_HHMMSS_checkpoint.json`과 `.csv`를 덮어써서 중간 결과를 남깁니다. 마지막 checkpoint에는 `isComplete: true`, `processedRecords`, `totalRecords`가 포함됩니다.
+
 ## Output
 
 도구는 같은 timestamp로 CSV와 JSON을 저장합니다.
@@ -151,7 +154,7 @@ CSV 주요 컬럼:
 - `mainDisturbanceReason`
 - `errorMessage`
 
-JSON은 summary와 record 전체를 보존합니다. CSV는 spreadsheet 비교용으로 납작하게 저장합니다.
+JSON은 summary와 record 전체를 보존합니다. CSV는 spreadsheet 비교용으로 납작하게 저장합니다. Checkpoint JSON은 partial output wrapper이므로 긴 실행이 끊기면 `output.records`와 `processedRecords`를 먼저 확인합니다.
 
 ## 터미널 요약
 
@@ -169,6 +172,7 @@ JSON은 summary와 record 전체를 보존합니다. CSV는 spreadsheet 비교�
 - snore candidates
 - final snore events
 - top reject reason
+- checkpoint csv/json output path, `--checkpoint-every` 사용 시
 - csv/json output path
 
 ## Profile 비교
