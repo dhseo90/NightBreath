@@ -814,12 +814,14 @@ final class AppState: ObservableObject {
 
         let generation = audioProcessingGeneration
         let previousTask = audioProcessingTask
-        audioProcessingTask = Task(priority: .utility) { [weak self] in
+        audioProcessingTask = Task.detached(priority: .utility) { [weak self] in
             await previousTask?.value
             guard !Task.isCancelled else { return }
 
             let snapshot = await processor.process(chunk: chunk)
-            self?.applyAudioProcessingSnapshot(snapshot, generation: generation)
+            await MainActor.run { [weak self] in
+                self?.applyAudioProcessingSnapshot(snapshot, generation: generation)
+            }
         }
     }
 
