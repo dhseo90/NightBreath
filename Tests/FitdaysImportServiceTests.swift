@@ -248,6 +248,60 @@ struct FitdaysImportServiceTests {
     }
 
     @Test
+    func fullMonthPastedCommaTextParsesAndBuildsCalendarQuickly() throws {
+        let pastedText = syntheticFullMonthFitdaysCommaText()
+        let startedAt = Date()
+
+        let result = try service.previewImport(fromPastedText: pastedText)
+        let builder = HealthCalendarBuilder()
+        let monthDate = date(2026, 5, 15)
+        let summaries = builder.summaries(
+            forMonthContaining: monthDate,
+            samples: result.samples,
+            sleepReports: [],
+            calendar: calendar
+        )
+        let detail = builder.detailData(
+            for: monthDate,
+            samples: result.samples,
+            sleepReports: [],
+            calendar: calendar
+        )
+        let elapsed = Date().timeIntervalSince(startedAt)
+
+        #expect(result.batch.fileName == "fitdays_pasted_monthly_text.tsv")
+        #expect(result.batch.sourceName == "Fitdays 붙여넣기")
+        #expect(result.batch.rowCount == 31)
+        #expect(result.batch.sampleCount == 31 * 12)
+        #expect(result.skippedRowCount == 0)
+        #expect(result.rowErrors.isEmpty)
+        #expect(result.unknownColumns == ["심박수 지표"])
+        #expect(Set(result.samples.map(\.metricID)) == [
+            .bodyMass,
+            .bodyMassIndex,
+            .bodyFatPercentage,
+            .subcutaneousFatPercentage,
+            .visceralFatLevel,
+            .bodyWaterPercentage,
+            .skeletalMuscleMass,
+            .muscleMass,
+            .boneMass,
+            .proteinPercentage,
+            .basalMetabolicRate,
+            .metabolicAge,
+        ])
+        #expect(result.samples.allSatisfy { $0.sourceType == .fitdaysCSV })
+        #expect(result.samples.allSatisfy { $0.sourceName == "Fitdays 붙여넣기" })
+        #expect(summaries.count == 42)
+        #expect(summaries.filter { calendar.component(.month, from: $0.date) == 5 && $0.hasBodyComposition }.count == 31)
+        #expect(detail.summary.hasBodyComposition)
+        #expect(detail.samples.count == 12)
+        #expect(detail.bodyCompositionSamples.count == 3)
+        #expect(detail.fitdaysExtendedSamples.count == 9)
+        #expect(elapsed < 1.5, "Full-month Fitdays paste preview and calendar build took \(elapsed)s")
+    }
+
+    @Test
     func looseDateParserDoesNotTreatMetricDecimalsAsMeasurementDates() throws {
         let pastedText = """
         BMI 23.1
@@ -487,6 +541,17 @@ struct FitdaysImportServiceTests {
         return calendar
     }
 
+    private func date(_ year: Int, _ month: Int, _ day: Int, hour: Int = 8) -> Date {
+        DateComponents(
+            calendar: calendar,
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: year,
+            month: month,
+            day: day,
+            hour: hour
+        ).date!
+    }
+
     private func fixtureURL() -> URL {
         URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("Tests/Fixtures/Fitdays/sample_fitdays_export.csv")
@@ -500,6 +565,46 @@ struct FitdaysImportServiceTests {
     private func temporaryFileURL(fileName: String) -> URL {
         URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("\(UUID().uuidString)-\(fileName)")
+    }
+
+    private func syntheticFullMonthFitdaysCommaText() -> String {
+        let header = "짜,체중,BMI,체지방률,피하지방,심박수,심박수 지표,내장 지방지수,체내수분량,골격근량 (클릭필수),근육량(클릭필수),골질량,단백질,기초대사량 (BMR),신체나이,"
+        let rows = (1...31).map { day in
+            let hour = 5 + day % 3
+            let minute = 20 + day % 30
+            let bodyMass = 80.0 + Double(day) * 0.07
+            let bmi = 27.0 + Double(day % 4) * 0.1
+            let bodyFat = 25.0 + Double(day % 5) * 0.2
+            let subcutaneousFat = 20.0 + Double(day % 4) * 0.2
+            let visceralFat = 10.0 + Double(day % 3) * 0.1
+            let bodyWater = 52.0 + Double(day % 5) * 0.2
+            let skeletalMuscle = 33.0 + Double(day % 4) * 0.1
+            let muscleMass = 55.0 + Double(day % 5) * 0.2
+            let boneMass = 3.00 + Double(day % 2) * 0.01
+            let protein = 17.0 + Double(day % 4) * 0.1
+            let basalMetabolicRate = 1_600 + day
+            let metabolicAge = 39 + day % 3
+
+            return String(
+                format: "%02d:%02d 2026/05/%02d,%.2fkg,%.1f,%.1f%%,%.1f%%,--,--,%.1f,%.1f%%,%.1f%%,%.1fkg,%.2fkg,%.1f%%,%dkcal,%d,",
+                hour,
+                minute,
+                day,
+                bodyMass,
+                bmi,
+                bodyFat,
+                subcutaneousFat,
+                visceralFat,
+                bodyWater,
+                skeletalMuscle,
+                muscleMass,
+                boneMass,
+                protein,
+                basalMetabolicRate,
+                metabolicAge
+            )
+        }
+        return ([header] + rows).joined(separator: "\n")
     }
 
     private func sourceContents(_ relativePath: String) throws -> String {
