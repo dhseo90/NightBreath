@@ -90,7 +90,7 @@
               NBDiagnosticItem(title: "snore-like feature", value: "\(viewModel.snoreLikeFeatureCandidateCount) / rejected \(viewModel.snoreLikeFeatureRejectedCount)", status: viewModel.snoreLikeFeatureRejectedCount > 0 ? .caution : .debug),
               NBDiagnosticItem(title: "last raw candidate", value: viewModel.latestRawCandidateText, status: .neutral),
               NBDiagnosticItem(title: "last reject reason", value: viewModel.lastRejectReasonText, status: .caution),
-              NBDiagnosticItem(title: "raw candidate count", value: viewModel.rawCandidateCountText, status: .neutral),
+              NBDiagnosticItem(title: "recent raw candidate count", value: viewModel.rawCandidateCountText, status: .neutral),
               NBDiagnosticItem(title: "smoothing 전/후", value: "\(viewModel.preSmoothingCandidateCount) / \(viewModel.postSmoothingEventCount)", status: .debug),
               NBDiagnosticItem(title: "smoothing drop", value: "\(viewModel.smoothingDropCount)개", status: viewModel.smoothingDropCount > 0 ? .caution : .good),
               NBDiagnosticItem(title: "tuning profile", value: viewModel.tuningProfileText, status: .debug),
@@ -231,9 +231,10 @@
     private var detector: RuleBasedSleepEventDetector
     private var coreMLDetector: CoreMLSleepEventDetector
     private var rawOutputs: [DetectorOutput] = []
-    private var rmsValues: [Double] = []
-    private var energyValues: [Double] = []
-    private var lowBandValues: [Double] = []
+    private var rmsValues = AudioDebugValueSampler(maxStoredValueCount: 7_200)
+    private var energyValues = AudioDebugValueSampler(maxStoredValueCount: 7_200)
+    private var lowBandValues = AudioDebugValueSampler(maxStoredValueCount: 7_200)
+    private let maxDebugRawOutputCount = 720
 
     init(
       audioSessionManager: AudioSessionManaging = AudioSessionManager(),
@@ -302,14 +303,14 @@
     }
 
     var featureDistributionText: String {
-      let rms = SummaryStats.make(values: rmsValues)
-      let energy = SummaryStats.make(values: energyValues)
+      let rms = rmsValues.summary()
+      let energy = energyValues.summary()
       guard rms.count > 0 else { return "대기 중" }
       return "\(format(rms.p50, digits: 4))/\(format(rms.p90, digits: 4)) · \(format(energy.p50, digits: 6))/\(format(energy.p90, digits: 6))"
     }
 
     var lowBandDistributionText: String {
-      let lowBand = SummaryStats.make(values: lowBandValues)
+      let lowBand = lowBandValues.summary()
       guard lowBand.count > 0 else { return "대기 중" }
       return "\(format(lowBand.p50, digits: 3)) / \(format(lowBand.p90, digits: 3))"
     }
@@ -339,9 +340,9 @@
       latestFeatures = nil
       rawCandidateCountByType.removeAll()
       rawOutputs.removeAll()
-      rmsValues.removeAll(keepingCapacity: true)
-      energyValues.removeAll(keepingCapacity: true)
-      lowBandValues.removeAll(keepingCapacity: true)
+      rmsValues.removeAll()
+      energyValues.removeAll()
+      lowBandValues.removeAll()
       preSmoothingCandidateCount = 0
       postSmoothingEventCount = 0
       smoothingDropCount = 0
@@ -464,6 +465,7 @@
       }
 
       rawOutputs.append(contentsOf: outputs)
+      trimRawOutputsForLiveDebug()
       let smoothingDiagnostics = smoothingPolicy.applyWithDiagnostics(to: rawOutputs).diagnostics
       preSmoothingCandidateCount = smoothingDiagnostics.preSmoothingCandidateCount
       postSmoothingEventCount = smoothingDiagnostics.postSmoothingEventCount
@@ -475,6 +477,11 @@
          }).first?.key {
         lastRejectReasonText = topReason.displayName
       }
+    }
+
+    private func trimRawOutputsForLiveDebug() {
+      guard rawOutputs.count > maxDebugRawOutputCount else { return }
+      rawOutputs.removeFirst(rawOutputs.count - maxDebugRawOutputCount)
     }
 
     private func snoreLikeFeatureObservation(
@@ -596,6 +603,37 @@
         hybridFallbackStatus = "예측 실패 → rule-based fallback"
         coreMLFallbackCount += 1
       }
+    }
+  }
+
+  private struct AudioDebugValueSampler {
+    private let maxStoredValueCount: Int
+    private var observedValueCount = 0
+    private var values: [Double] = []
+
+    init(maxStoredValueCount: Int) {
+      self.maxStoredValueCount = max(1, maxStoredValueCount)
+    }
+
+    mutating func append(_ value: Double) {
+      guard value.isFinite else { return }
+
+      observedValueCount += 1
+      if values.count < maxStoredValueCount {
+        values.append(value)
+        return
+      }
+
+      values[observedValueCount % maxStoredValueCount] = value
+    }
+
+    mutating func removeAll() {
+      observedValueCount = 0
+      values.removeAll(keepingCapacity: true)
+    }
+
+    func summary() -> SummaryStats {
+      SummaryStats.make(values: values, totalCount: observedValueCount)
     }
   }
 

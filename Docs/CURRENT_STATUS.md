@@ -11,6 +11,13 @@
 - 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 실제 개인 오디오/CSV fixture 추가는 하지 않았습니다.
 - 현재 안정화 기준은 `git diff --check`, `swift test --no-parallel`, generic iOS Debug build입니다.
 
+## 2026-05-08 Simulator-first Stability Follow-up
+
+수면 시작 직후 UI가 느려지고 장시간 세션 중 종료될 수 있다는 실기기 피드백 이후, 실기기 없이 검증 가능한 장시간 처리 guard를 우선 보강했습니다.
+
+- `SleepAudioProcessingPipeline`은 5시간 synthetic chunk 세션 finalize가 bounded state로 빠르게 끝나는 회귀 테스트를 추가했습니다.
+- DEBUG `AudioDebugView`는 live RMS/energy/low-band 분포를 bounded sampler로 요약하고, smoothing 진단용 raw output은 최근 후보만 유지합니다.
+
 ## 완료
 
 - SwiftUI 앱 구조
