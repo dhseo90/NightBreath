@@ -241,7 +241,7 @@ SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,debugTools Tools/Screenshots/
 
 ## Detail / Pending Screenshot
 
-수동 navigation이 필요했던 상세 화면은 별도 launch scenario로 직접 열 수 있습니다. 파일이 생성되어도 visual QA 전에는 `screenshot pending` 상태로 유지합니다.
+수동 navigation이 필요했던 상세 화면은 별도 launch scenario로 직접 열 수 있습니다. 파일이 생성되어도 visual QA 전에는 `captured, quality review pending` 상태로 유지하고, README/App Store/user-facing 문서에는 렌더링하지 않습니다.
 
 ```bash
 Tools/Screenshots/capture_detail_screenshots.sh

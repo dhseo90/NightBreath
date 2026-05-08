@@ -22,6 +22,7 @@
 - Fitdays 월간 붙여넣기는 synthetic 31일 comma text preview와 건강 캘린더 detail build를 함께 돌리는 성능 회귀 테스트로 보호합니다.
 - Screenshot review sheet manifest는 canonical `screenshot_status.tsv`보다 느슨한 승인 상태를 표시하지 않도록 회귀 테스트를 추가했습니다.
 - AppState audio processing source test는 UI publish가 chunk마다 발생하지 않고 throttle된 snapshot으로 반영되는 구조를 확인합니다.
+- Trend, morning/evening check-in, Daily Health Card export/share state, report empty, SimulatorScenarioView screenshot은 직접 launch scenario로 캡처했고 visual QA 전까지 quality review pending/internal-only 상태로 유지합니다.
 
 ## 완료
 
@@ -169,7 +170,7 @@
 - Screenshot manifest/schema/local file reference validation gate
 - README screenshot 후보 blocked/recapture 상태와 문서 source-of-truth 정렬
 - user-facing screenshot launch scenario의 내부 QA source badge 노출 방지
-- 수동 navigation이 필요했던 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면에 DEBUG launch scenario 추가
+- 수동 navigation이 필요했던 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면에 DEBUG launch scenario와 captured screenshot 후보 추가
 
 ## 현재 개발 전략
 

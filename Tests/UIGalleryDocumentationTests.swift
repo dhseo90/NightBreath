@@ -66,24 +66,26 @@ struct UIGalleryDocumentationTests {
   }
 
   @Test
-  func pendingCaptureQueueDoesNotCreateBrokenImageMarkdown() throws {
+  func directScenarioCaptureQueueDoesNotCreateBrokenImageMarkdown() throws {
+    let root = repositoryRoot()
     let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
-    let pendingPaths = [
-      "Docs/Screenshots/Home/trend-dashboard.png",
-      "Docs/Screenshots/Sleep/morning-check-in.png",
-      "Docs/Screenshots/DailyRhythm/evening-check-in.png",
-      "Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png",
-      "Docs/Screenshots/EdgeStates/report-empty.png",
-      "Docs/Screenshots/Debug/simulator-scenario.png",
+    let capturedPaths = [
+      "Docs/Screenshots/Home/cropped/trend-dashboard.png",
+      "Docs/Screenshots/Sleep/cropped/morning-check-in.png",
+      "Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png",
+      "Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png",
+      "Docs/Screenshots/EdgeStates/cropped/report-empty.png",
+      "Docs/Screenshots/Debug/cropped/simulator-scenario.png",
     ]
 
-    #expect(uiGallery.contains("Pending Capture Queue"))
+    #expect(uiGallery.contains("Direct Scenario Capture Queue"))
 
-    for path in pendingPaths {
+    for path in capturedPaths {
       let galleryRelativePath = path.replacingOccurrences(of: "Docs/", with: "")
 
-      #expect(uiGallery.contains(path), "\(path) should stay in the pending queue.")
-      #expect(!uiGallery.contains("](\(galleryRelativePath))"), "\(path) should not be linked as an image until the file exists.")
+      #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent(path).path), "\(path) should exist.")
+      #expect(uiGallery.contains(path), "\(path) should stay in the direct scenario capture queue.")
+      #expect(!uiGallery.contains("](\(galleryRelativePath))"), "\(path) should not be linked as an image until visual QA passes.")
     }
   }
 

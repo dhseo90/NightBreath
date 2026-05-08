@@ -34,10 +34,16 @@ ITEMS=(
   "Health|Blood pressure dashboard|Docs/Screenshots/Health/blood_pressure_dashboard_light.png|Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png|captured, quality review pending"
   "Health|Body composition dashboard|Docs/Screenshots/Health/body_composition_dashboard_light.png|Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png|captured, quality review pending"
   "Health|Cross metric dashboard|Docs/Screenshots/Health/cross_metric_dashboard_light.png|Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png|captured, quality review pending"
+  "Home|Trend dashboard|Docs/Screenshots/Home/trend-dashboard.png|Docs/Screenshots/Home/cropped/trend-dashboard.png|captured, quality review pending"
+  "Sleep|Morning check-in|Docs/Screenshots/Sleep/morning-check-in.png|Docs/Screenshots/Sleep/cropped/morning-check-in.png|captured, quality review pending"
+  "Daily Rhythm|Evening check-in|Docs/Screenshots/DailyRhythm/evening-check-in.png|Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png|captured, quality review pending"
+  "Daily Rhythm|Daily Health Card export preview|Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png|Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png|captured, quality review pending"
+  "EdgeStates|Report empty state|Docs/Screenshots/EdgeStates/report-empty.png|Docs/Screenshots/EdgeStates/cropped/report-empty.png|captured, quality review pending"
   "Privacy|Privacy settings|Docs/Screenshots/Privacy/privacy_settings_light.png|Docs/Screenshots/Privacy/cropped/privacy_settings_light.png|captured, quality review pending"
   "Privacy|Onboarding|Docs/Screenshots/Privacy/onboarding_light.png|Docs/Screenshots/Privacy/cropped/onboarding_light.png|captured, quality review pending"
   "Privacy|Device placement|Docs/Screenshots/Privacy/device_placement_guide_light.png|Docs/Screenshots/Privacy/cropped/device_placement_guide_light.png|captured, quality review pending"
   "Privacy|Calibration|Docs/Screenshots/Privacy/calibration_light.png|Docs/Screenshots/Privacy/cropped/calibration_light.png|captured, quality review pending"
+  "Debug|Simulator scenario view|Docs/Screenshots/Debug/simulator-scenario.png|Docs/Screenshots/Debug/cropped/simulator-scenario.png|internal-only, quality review pending"
 )
 
 relative_to_review_dir() {

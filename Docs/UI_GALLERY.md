@@ -18,7 +18,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했지만, 2026-05-07 문서/이미지 리뷰에서 품질 문제가 확인되어 release-approved 상태가 아닙니다. 기존 파일은 재캡처 기준을 잡기 위한 후보이며, 직접 launch scenario가 없거나 수동 navigation이 필요한 상세 화면은 `screenshot pending`으로 유지합니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했지만, 2026-05-07 문서/이미지 리뷰에서 품질 문제가 확인되어 release-approved 상태가 아닙니다. 기존 파일은 재캡처 기준을 잡기 위한 후보이며, 수동 navigation이 필요했던 상세 화면도 직접 launch scenario로 캡처해 quality review pending 상태로 관리합니다.
 
 ## Screenshot Quality Gate
 
@@ -54,7 +54,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | Sleep/Edge direct scenario | mixed, see manifest | sleep recording은 비현실적 duration/state mismatch로 recapture required, edge states는 quality review pending |
 | DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
 | App Store 후보 8개 | blocked, recapture required | raw/review-cropped에 내부 QA label 노출 가능성이 있어 재캡처 전 사용 금지 |
-| 직접 scenario 추가, 캡처 대기 | screenshot pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
+| 직접 scenario 상세 캡처 | captured/internal-only, quality review pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
 
 ## App Store Screenshot Candidate Flow
 
@@ -75,18 +75,18 @@ App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합�
 
 모든 후보는 mock/synthetic data 기반이어야 하며, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
 
-## Pending Capture Queue
+## Direct Scenario Capture Queue
 
-아래 항목은 simulator 직접 launch scenario는 준비했지만 아직 capture 파일이 없어 `screenshot pending`으로 유지합니다. 파일이 실제로 생성되기 전까지 image markdown을 추가하지 않습니다.
+아래 항목은 simulator 직접 launch scenario로 캡처했고, visual QA 전까지 image markdown을 추가하지 않습니다. DEBUG-only 화면은 internal-only로 유지합니다.
 
-| 항목 | 필요한 작업 |
-| --- | --- |
-| `TrendDashboardView` | `ScreenshotTrendDashboardScenario` |
-| `MorningCheckInView` | `ScreenshotMorningCheckInScenario` |
-| `EveningCheckInView` | `ScreenshotEveningCheckInScenario` |
-| `DailyHealthCardPreviewView` export/share state | `ScreenshotDailyHealthCardExportScenario` |
-| Report empty state | `ScreenshotReportEmptyScenario` |
-| `SimulatorScenarioView` | `ScreenshotSimulatorScenario` |
+| 항목 | 상태 | Review crop |
+| --- | --- | --- |
+| `TrendDashboardView` | captured, quality review pending | `Docs/Screenshots/Home/cropped/trend-dashboard.png` |
+| `MorningCheckInView` | captured, quality review pending | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` |
+| `EveningCheckInView` | captured, quality review pending | `Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png` |
+| `DailyHealthCardPreviewView` export/share state | captured, quality review pending | `Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png` |
+| Report empty state | captured, quality review pending | `Docs/Screenshots/EdgeStates/cropped/report-empty.png` |
+| `SimulatorScenarioView` | internal-only, quality review pending | `Docs/Screenshots/Debug/cropped/simulator-scenario.png` |
 
 ## 예시 데이터 사용 원칙
 
@@ -128,7 +128,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `HomeDashboardView` | 종합 평가와 최근 상태 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, 주요 이벤트, Daily Rhythm 진입점 | 수면 시작, 최근 리포트, 수면 트렌드, 건강 tab 상세 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
-| `TrendDashboardView` | 7일/30일/90일 수면 소리 흐름 | 수면 소리 점수, 코골기 시간, 측정 품질 추세 | 기간 선택 | 낮은 측정 품질은 배지와 문장으로 구분 | `ScreenshotTrendDashboardScenario` | `Docs/Screenshots/Home/trend-dashboard.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| `TrendDashboardView` | 7일/30일/90일 수면 소리 흐름 | 수면 소리 점수, 코골기 시간, 측정 품질 추세 | 기간 선택 | 낮은 측정 품질은 배지와 문장으로 구분 | `ScreenshotTrendDashboardScenario` | `Docs/Screenshots/Home/cropped/trend-dashboard.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Sleep Flow
 
@@ -138,7 +138,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md` |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | blocked, recapture required | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
-| `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningCheckInScenario` | `Docs/Screenshots/Sleep/morning-check-in.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningCheckInScenario` | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Daily Rhythm
 
@@ -146,10 +146,10 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `MorningBriefView` | 오늘 아침 리포트 | 지난밤 요약, 수면 소리 점수, 아침 컨디션, 예시 아침 건강 데이터, 데이터 준비 상태와 제한 항목 | 수면 리포트와 Daily Rhythm 흐름 확인 | 개인 참고용 리포트이며 건강 상태를 단정하지 않음 | `ScreenshotMorningBriefScenario` | `Docs/Screenshots/README/cropped/morning_brief_light.png` | blocked, recapture required | Release | `Docs/PRODUCT_DIRECTION.md` |
 | `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, component score, data quality, 데이터 준비 상태, Daily Insight | 하루 리듬 요약 확인 | 웰니스/개인 참고용 점수이며 인과관계를 의미하지 않음 | `ScreenshotDailyRhythmScenario` | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | blocked, recapture required | Release | `Docs/DAILY_RHYTHM_SCORE.md` |
-| `EveningCheckInView` | 저녁 컨디션 기록 | 피로도, 스트레스, 기분, 생활 태그, 메모 | 예시/in-memory 체크인 저장 | 생활 태그는 개인 패턴 참고용 | `ScreenshotEveningCheckInScenario` | `Docs/Screenshots/DailyRhythm/evening-check-in.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| `EveningCheckInView` | 저녁 컨디션 기록 | 피로도, 스트레스, 기분, 생활 태그, 메모 | 예시/in-memory 체크인 저장 | 생활 태그는 개인 패턴 참고용 | `ScreenshotEveningCheckInScenario` | `Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 | `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | Release | `Docs/DAILY_HEALTH_CARD.md` |
 | `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, 예시 카드 미리보기 | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | Release | `Docs/DAILY_HEALTH_CARD.md` |
-| `DailyHealthCardPreviewView` export/share state | export/share 확인 흐름 | export preview, privacy level, 포함 항목, `DailyHealthCardExportConfirmationSheet`, 공유 완료/취소/실패 state | 이미지 만들기, 시스템 공유, 취소, 다시 시도 | 자동 공유 없음, 서버 업로드 없음, 외부 SDK 없음, local path와 파일명 미표시 | `ScreenshotDailyHealthCardExportScenario` | `Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png` | screenshot pending | Release | `Docs/DAILY_HEALTH_CARD.md`, `Docs/PRIVACY_STORAGE_AUDIT.md` |
+| `DailyHealthCardPreviewView` export/share state | export/share 확인 흐름 | export preview, privacy level, 포함 항목, `DailyHealthCardExportConfirmationSheet`, 공유 완료/취소/실패 state | 이미지 만들기, 시스템 공유, 취소, 다시 시도 | 자동 공유 없음, 서버 업로드 없음, 외부 SDK 없음, local path와 파일명 미표시 | `ScreenshotDailyHealthCardExportScenario` | `Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png` | quality review pending | Release | `Docs/DAILY_HEALTH_CARD.md`, `Docs/PRIVACY_STORAGE_AUDIT.md` |
 
 ## Health Dashboard
 
@@ -179,7 +179,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Report empty state | 수면 리포트 없음 | 수면 기록 후 리포트 생성 안내 | 수면 시작 | 예시 state로만 문서화 | `ScreenshotReportEmptyScenario` | `Docs/Screenshots/EdgeStates/report-empty.png` | screenshot pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| Report empty state | 수면 리포트 없음 | 수면 기록 후 리포트 생성 안내 | 수면 시작 | 예시 state로만 문서화 | `ScreenshotReportEmptyScenario` | `Docs/Screenshots/EdgeStates/cropped/report-empty.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 | Timeline empty state | detector 기준 통과 이벤트 없음 | 이벤트가 없는 이유와 zero-event 안내 | 리포트로 돌아가기 | 이벤트 없음은 특정 건강 상태 해석이 아님 | `ScreenshotZeroEventScenario` | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | quality review pending | Release | `Docs/QA_GUIDE.md` |
 | Low audio coverage state | 낮은 측정 품질 | 오디오 커버리지, 제한 안내 | 재측정 안내 확인 | 색상만으로 표시하지 않고 배지/문장 병행 | `ScreenshotLowCoverageScenario` | `Docs/Screenshots/EdgeStates/cropped/low_coverage_report_light.png` | quality review pending | Release | `Docs/QA_GUIDE.md` |
 | Health permission empty state | 건강 데이터 권한 없음 | read-only 연결 필요 안내 | 건강 데이터 연결 | 권한 거부 시 수면 기능은 계속 사용 가능 | `ScreenshotHealthPermissionEmptyScenario` | `Docs/Screenshots/EdgeStates/cropped/health_permission_empty_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
@@ -196,6 +196,6 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `DatasetReplayView` | 로컬/synthetic audio replay 검증 | replay 상태, diagnostics, 후보/이벤트 수 | replay 실행 | 개인 오디오 파일은 repo나 screenshot에 포함하지 않음 | `ScreenshotDatasetReplayScenario` | `Docs/Screenshots/Debug/cropped/dataset_replay_light.png` | quality review pending | DEBUG only | `Docs/DATASET_REPLAY.md` |
 | `DetectorTuningView` | detector profile 확인 | backend, tuning profile, fallback, threshold | profile 선택 | 결과는 개발 검증용이며 사용자 판단 문구로 쓰지 않음 | `ScreenshotDebugScenario` | `Docs/Screenshots/Debug/cropped/detector_tuning_light.png` | quality review pending | DEBUG only | `Docs/DETECTOR_TUNING.md` |
-| `SimulatorScenarioView` | 예시 scenario 적용 | scenario 목록, screenshot preset, 적용 상태, 화면 진입 링크 | scenario 적용/해제 | screenshot과 UI QA는 예시 데이터 기반 | `ScreenshotSimulatorScenario` | `Docs/Screenshots/Debug/simulator-scenario.png` | screenshot pending | DEBUG only | `Docs/QA_GUIDE.md` |
+| `SimulatorScenarioView` | 예시 scenario 적용 | scenario 목록, screenshot preset, 적용 상태, 화면 진입 링크 | scenario 적용/해제 | screenshot과 UI QA는 예시 데이터 기반 | `ScreenshotSimulatorScenario` | `Docs/Screenshots/Debug/cropped/simulator-scenario.png` | internal-only, quality review pending | DEBUG only | `Docs/QA_GUIDE.md` |
 | `AudioDebugView` | 오디오 입력/debug output 확인 | RMS, energy, detector output | 입력 상태 확인 | 원본 전체 오디오 저장을 암시하지 않음 | `ScreenshotAudioDebugScenario` | `Docs/Screenshots/Debug/cropped/audio_debug_light.png` | quality review pending | DEBUG only | `Docs/UI_SCREEN_MAP.md` |
 | `SampleCaptureView` | 짧은 개발용 샘플 캡처 | 샘플 수, 저장 경로, capture 상태 | 짧은 샘플 캡처 | 실제 screenshot에는 개인 오디오 파일명이나 샘플 내용을 노출하지 않음 | `ScreenshotSampleCaptureScenario` | `Docs/Screenshots/Debug/cropped/sample_capture_light.png` | quality review pending | DEBUG only | `Docs/QA_GUIDE.md` |

@@ -97,7 +97,7 @@ UI Gallery crop 위치:
 
 ## UI Gallery 직접 캡처 screenshot
 
-다음 파일은 DEBUG simulator에서 `--nightbreath-screenshot-scenario` launch argument로 바로 진입 가능한 pending 화면을 캡처한 것입니다. 원본은 각 폴더에 보존하고, UI Gallery에는 `cropped/` 버전을 우선 사용합니다.
+다음 파일은 DEBUG simulator에서 `--nightbreath-screenshot-scenario` launch argument로 바로 진입 가능한 상세/edge/DEBUG 화면을 캡처한 것입니다. 원본은 각 폴더에 보존하고, UI Gallery에는 `cropped/` 버전을 우선 사용합니다.
 
 - `Sleep/sleep_recording_light.png`
 - `Privacy/privacy_settings_light.png`
@@ -139,6 +139,11 @@ UI Gallery crop 위치:
 - `Debug/cropped/sample_capture_light.png`
 - `Debug/cropped/dataset_replay_light.png`
 - `Debug/cropped/simulator-scenario.png`
+- `Home/cropped/trend-dashboard.png`
+- `Sleep/cropped/morning-check-in.png`
+- `DailyRhythm/cropped/evening-check-in.png`
+- `DailyRhythm/cropped/daily-health-card-export-preview.png`
+- `EdgeStates/cropped/report-empty.png`
 
 Release onboarding/privacy와 DEBUG 전용 검증 화면은 다음 스크립트로 직접 캡처합니다.
 
@@ -152,7 +157,7 @@ Tools/Screenshots/capture_support_screenshots.sh
 SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
 ```
 
-수동 navigation이 필요했던 상세/pending 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다.
+수동 navigation이 필요했던 상세 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다. 파일이 생성되어도 visual QA 전에는 README/App Store/user-facing 문서에 렌더링하지 않습니다.
 
 ```bash
 Tools/Screenshots/capture_detail_screenshots.sh

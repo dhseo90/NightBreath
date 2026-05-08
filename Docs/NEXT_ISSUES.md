@@ -170,7 +170,7 @@
 - onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 simulator direct scenario 후보 파일이 있으나 DEBUG-only는 internal-only로 유지합니다.
 - App Store raw/review-cropped 후보 8개는 기존 파일에 내부 `Simulator QA` label 노출 가능성이 있어 blocked/re-capture required 상태입니다. 새 screenshot launch scenario는 public source copy를 사용하지만 기존 이미지는 재캡처 전까지 승인하지 않습니다.
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
-- trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 직접 launch scenario를 추가했습니다. 실제 파일 캡처와 visual QA 전까지는 `screenshot pending` 항목으로 유지
+- trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 직접 launch scenario와 simulator capture 후보를 추가했습니다. visual QA 전까지는 quality review pending/internal-only 상태로 유지
 - 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA와 App Store export PNG 확인 절차 유지
 - `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 `release-approved` 후보만 README/App Store/user-facing 문서에 렌더링
 - screenshot 경로나 상태 변경 시 `Tools/Screenshots/validate_screenshot_manifest.sh`로 manifest schema, 파일 존재 여부, UI 문서 PNG 참조 등록 여부를 먼저 확인

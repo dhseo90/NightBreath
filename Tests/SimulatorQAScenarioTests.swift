@@ -176,7 +176,7 @@ struct SimulatorQAScenarioTests {
   }
 
   @Test
-  func pendingScreenshotScreensHaveDirectLaunchScenarios() throws {
+  func directScreenshotScreensHaveLaunchScenariosAndReviewCrops() throws {
     let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
     let simulatorScenarioView = try sourceContents("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift")
     let detailCaptureScript = try sourceContents("Tools/Screenshots/capture_detail_screenshots.sh")
@@ -193,8 +193,9 @@ struct SimulatorQAScenarioTests {
     ]
 
     #expect(screenshotGuide.contains("capture_detail_screenshots.sh"))
-    #expect(uiGallery.contains("직접 scenario 추가, 캡처 대기"))
-    #expect(uiGallery.contains("simulator 직접 launch scenario는 준비"))
+    #expect(detailCaptureScript.contains("crop_screenshot_top.sh"))
+    #expect(uiGallery.contains("직접 scenario 상세 캡처"))
+    #expect(uiGallery.contains("simulator 직접 launch scenario로 캡처"))
 
     for (rawValue, scenarioName, destination, screenshotPath) in expectedReleaseScenarios {
       #expect(screenshotScenarios.contains("case \(rawValue)"), "\(scenarioName) should be a screenshot launch case.")

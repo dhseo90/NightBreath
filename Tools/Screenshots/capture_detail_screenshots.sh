@@ -57,12 +57,18 @@ for item in "${CAPTURES[@]}"; do
   sleep "$WAIT_SECONDS"
   "$XCRUN_BIN" simctl io "$DEVICE" screenshot "$output"
   echo "Saved $output_rel"
+
+  output_name="$(basename "$output_rel")"
+  output_dir="$(dirname "$output_rel")"
+  crop_dir="$REPO_ROOT/$output_dir/cropped"
+  mkdir -p "$crop_dir"
+  "$SCRIPT_DIR/crop_screenshot_top.sh" "$output" "$crop_dir/$output_name"
 done
 
 cat <<EOF
 Detail screenshot capture complete.
 
-Generated candidates remain screenshot pending until visual QA approves them:
+Generated candidates remain captured, quality review pending until visual QA approves them:
   Docs/Screenshots/Home
   Docs/Screenshots/Sleep
   Docs/Screenshots/DailyRhythm
