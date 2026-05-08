@@ -152,6 +152,25 @@ Regression guard:
 
 이 변경은 전체 밤 원본 오디오 저장과 무관하며, retained chunk feature summary만 계산합니다.
 
+## Public dataset smoke QA
+
+실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.
+
+권장 순서:
+
+1. ESC-50을 로컬에 준비합니다. `snoring` class 40개와 negative guard category를 포함한 작은 smoke QA로 사용합니다.
+2. `Tools/OfflineEvaluation/make_esc50_manifest.py`로 `Tools/OfflineEvaluation/output/esc50_manifest.json`을 생성합니다.
+3. `OfflineEvaluation`을 `verySensitive,sensitive,balanced,conservative,veryConservative` profile로 실행합니다.
+4. `OfflineProfileCompare`로 `Snore / Negative Snapshot`, `Delta From Balanced`, `Zero Event Stage Breakdown`을 확인합니다.
+5. `balanced`에서 snoring hit가 모두 0이면 feature/detector 병목을 실기기 전 이슈로 봅니다.
+6. negative guard에서 final snore가 늘면 threshold를 더 민감하게 조정하지 않습니다.
+
+데이터셋 선택:
+
+- ESC-50: 작은 WAV dataset이라 smoke QA에 적합하지만 CC-BY-NC-3.0 연구/비상업 조건을 확인해야 합니다.
+- FSD50K: 규모가 크고 Freesound 기반 label이 풍부하지만 clip별 라이선스와 multi-label 정리가 필요합니다.
+- Kaggle snoring dataset: snore/non-snore 수량은 좋지만 license가 Unknown이면 local-only 참고로만 사용합니다.
+
 ## 2026-05-03 이전 로컬 Report 판독
 
 2026-05-03 로컬 `Tools/OfflineEvaluation/output/tuning_report.md`와 `offline_evaluation_20260503_030614.json`을 확인했습니다.

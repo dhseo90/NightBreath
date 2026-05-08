@@ -396,6 +396,81 @@ struct OfflineEvaluationSupportTests {
     #expect(outputText.contains("Missing local files: 3"))
   }
 
+  @Test
+  func esc50ManifestScriptBuildsPublicDatasetSmokeManifestWithoutDownloadingAudio() throws {
+    let root = repositoryRoot()
+    let script = root.appendingPathComponent("Tools/OfflineEvaluation/make_esc50_manifest.py")
+    let scriptSource = try sourceContents("Tools/OfflineEvaluation/make_esc50_manifest.py")
+    let toolGuide = try sourceContents("Tools/OfflineEvaluation/README.md")
+    let tempRoot = FileManager.default.temporaryDirectory
+      .appendingPathComponent("NightBreathESC50Manifest-\(UUID().uuidString)", isDirectory: true)
+    let esc50Root = tempRoot.appendingPathComponent("ESC-50-master", isDirectory: true)
+    let metaRoot = esc50Root.appendingPathComponent("meta", isDirectory: true)
+    let audioRoot = esc50Root.appendingPathComponent("audio", isDirectory: true)
+    let outputURL = tempRoot.appendingPathComponent("output/esc50_manifest.json")
+    defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+    try FileManager.default.createDirectory(at: metaRoot, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(at: audioRoot, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(
+      at: outputURL.deletingLastPathComponent(),
+      withIntermediateDirectories: true
+    )
+    let metadata = """
+      filename,fold,target,category,esc10,src_file,take
+      1-100001-A-0.wav,1,0,snoring,False,100001,A
+      1-100002-A-1.wav,1,1,breathing,False,100002,A
+      1-100003-A-2.wav,1,2,coughing,False,100003,A
+      1-100004-A-3.wav,1,3,dog,True,100004,A
+      """
+    try metadata.write(to: metaRoot.appendingPathComponent("esc50.csv"), atomically: true, encoding: .utf8)
+    for filename in ["1-100001-A-0.wav", "1-100002-A-1.wav", "1-100003-A-2.wav"] {
+      FileManager.default.createFile(
+        atPath: audioRoot.appendingPathComponent(filename).path,
+        contents: Data()
+      )
+    }
+
+    #expect(FileManager.default.fileExists(atPath: script.path))
+    #expect(scriptSource.contains("never downloads audio"))
+    #expect(scriptSource.contains("expected_labels=[\"snore\"]"))
+    #expect(toolGuide.contains("make_esc50_manifest.py"))
+
+    let process = Process()
+    let output = Pipe()
+    process.executableURL = script
+    process.currentDirectoryURL = root
+    process.arguments = [
+      "--esc50-root", esc50Root.path,
+      "--output", outputURL.path,
+      "--max-negative-per-category", "1"
+    ]
+    process.standardOutput = output
+    process.standardError = output
+
+    try process.run()
+    process.waitUntilExit()
+
+    let data = output.fileHandleForReading.readDataToEndOfFile()
+    let outputText = String(data: data, encoding: .utf8) ?? ""
+    #expect(process.terminationStatus == 0, "Script failed: \(outputText)")
+
+    let manifest = try OfflineEvaluationRunner().loadManifest(from: outputURL)
+    let validation = OfflineEvaluationRunner().validateManifest(
+      manifest,
+      manifestDirectory: outputURL.deletingLastPathComponent()
+    )
+
+    #expect(manifest.datasetName == "esc50-public-snore-smoke-qa")
+    #expect(manifest.datasetLicenseNote?.contains("CC-BY-NC-3.0") == true)
+    #expect(manifest.segments.count == 3)
+    #expect(manifest.segments.filter { $0.expectedLabels == ["snore"] }.count == 1)
+    #expect(manifest.segments.filter { $0.expectedLabels == ["unknown"] }.count == 2)
+    #expect(manifest.segments.allSatisfy { !$0.localFilePath.hasPrefix("/") })
+    #expect(validation.validSegmentCount == 3)
+    #expect(validation.missingFiles.isEmpty)
+  }
+
   private func makeSegment(
     filePath: String,
     fileId: String,

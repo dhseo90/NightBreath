@@ -61,6 +61,44 @@ Tools/OfflineEvaluation/validate_sample_manifest.py \
 
 기본 gate는 JSON schema, label, recording type, segment duration, git-tracked audio 참조 여부를 확인합니다. 실제 파일이 아직 준비되지 않은 경로는 missing count로만 보고하며, 파일 존재까지 강제하려면 `--require-files`를 추가합니다. 짧은 DEBUG/replay 샘플 기준은 기본 30초 이하이며 `OFFLINE_MANIFEST_MAX_SEGMENT_SECONDS`로 더 좁힐 수 있습니다.
 
+## Public Dataset Smoke QA
+
+실제 iPhone 재테스트 전 detector가 최소한 공개 snoring dataset에서 raw/final event를 만드는지 확인할 수 있습니다. 앱이나 도구는 공개 데이터셋을 자동 다운로드하지 않습니다. 사용자가 직접 받은 dataset root를 `Datasets/` 또는 repo 밖 경로에 두고, 변환기로 manifest만 생성합니다.
+
+우선 권장 dataset:
+- ESC-50: `snoring` class 40개, 5초 WAV, CC-BY-NC-3.0 연구/비상업 라이선스입니다. 작은 smoke QA에 적합합니다.
+- FSD50K: 더 큰 Freesound 기반 dataset이며 `Snoring`/negative label을 더 넓게 구성할 수 있지만 clip별 Creative Commons 라이선스를 함께 확인해야 합니다.
+- Kaggle snoring dataset: snore/non-snore 수량은 많지만 license가 Unknown으로 표시될 수 있어 local-only 참고용으로만 다룹니다.
+
+ESC-50 manifest 생성:
+
+```bash
+python3 Tools/OfflineEvaluation/make_esc50_manifest.py \
+  --esc50-root Datasets/ESC-50-master \
+  --output Tools/OfflineEvaluation/output/esc50_manifest.json
+```
+
+생성된 manifest는 `snoring` clip을 `expectedLabels: ["snore"]`로, 선택한 non-snoring category를 `expectedLabels: ["unknown"]`, `negativeLabels: ["snore"]`로 매핑합니다. 오디오 파일은 manifest에 path로만 참조하고 repository에 추가하지 않습니다.
+
+실행:
+
+```bash
+swift run OfflineEvaluation \
+  --manifest Tools/OfflineEvaluation/output/esc50_manifest.json \
+  --output Tools/OfflineEvaluation/output \
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative \
+  --backends ruleBased
+
+swift run OfflineProfileCompare \
+  --input Tools/OfflineEvaluation/output/offline_evaluation_YYYYMMDD_HHMMSS.json \
+  --output Tools/OfflineEvaluation/output
+```
+
+판정:
+- `balanced`에서 ESC-50 snoring segment의 final snore hit가 0에 가까우면 실기기 전 detector 병목으로 봅니다.
+- negative guard에서 final snore가 많이 나오면 threshold를 더 민감하게 올리면 안 됩니다.
+- `verySensitive`에서만 snore hit가 생기고 negative도 같이 튀면 Release 기본값 변경 근거가 부족합니다.
+
 ## 실행
 
 ```bash

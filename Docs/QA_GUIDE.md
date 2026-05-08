@@ -204,6 +204,46 @@ Replay 연결:
 - 같은 파일을 `Tools/OfflineEvaluation/sample_manifest.example.json`을 복사한 manifest의 `localFilePath`로 지정할 수 있습니다.
 - `snore` expected segment만 보지 말고 `silence`, `unknown`, `environmentalNoise` 같은 negative segment도 함께 넣어 false-positive-like 위험을 같이 봅니다.
 
+## 공개 데이터셋 기반 detector smoke QA
+
+실제 iPhone 재테스트 전 detector가 공개 snoring 데이터에서도 이벤트를 만들지 못하는지 먼저 확인합니다. 공개 오디오 파일은 repository에 추가하지 않고, `Datasets/` 또는 repo 밖 로컬 경로에 둡니다.
+
+ESC-50 smoke 절차:
+
+1. ESC-50 dataset을 로컬에 준비합니다. `meta/esc50.csv`와 `audio/*.wav`가 있어야 합니다.
+2. manifest를 생성합니다.
+
+```bash
+python3 Tools/OfflineEvaluation/make_esc50_manifest.py \
+  --esc50-root Datasets/ESC-50-master \
+  --output Tools/OfflineEvaluation/output/esc50_manifest.json
+```
+
+3. Offline Evaluation을 실행합니다.
+
+```bash
+swift run OfflineEvaluation \
+  --manifest Tools/OfflineEvaluation/output/esc50_manifest.json \
+  --output Tools/OfflineEvaluation/output \
+  --profiles verySensitive,sensitive,balanced,conservative,veryConservative \
+  --backends ruleBased
+```
+
+4. Profile 비교를 생성합니다.
+
+```bash
+swift run OfflineProfileCompare \
+  --input Tools/OfflineEvaluation/output/offline_evaluation_YYYYMMDD_HHMMSS.json \
+  --output Tools/OfflineEvaluation/output
+```
+
+확인 항목:
+
+- `balanced`에서 ESC-50 `snoring` segment의 final snore hit가 0에 가까우면 실기기 전 detector/feature 병목으로 봅니다.
+- `rawCandidateCountByType.snore`는 있으나 final snore가 없으면 smoothing/drop 기준을 확인합니다.
+- negative guard segment에서 final snore가 증가하면 민감도 상향 또는 threshold 완화는 보류합니다.
+- 공개 dataset 결과는 개발용 smoke QA이며 실제 iPhone 배치/마이크/overnight 안정성 검증을 대체하지 않습니다.
+
 2026-05-05 detector smoke 항목:
 
 - 앱 `설정` 탭 → `측정 준비` → `코골기 감지 민감도`에서 preset이 `많이 민감`, `민감`, `보통`, `둔감`, `많이 둔감` 5단계로 표시되는지 확인합니다.
