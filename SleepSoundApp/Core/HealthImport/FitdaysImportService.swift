@@ -97,6 +97,107 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
     }
 }
 
+public enum FitdaysManualMetricEntryError: LocalizedError, Equatable, Sendable {
+    case unsupportedMetric
+    case invalidValue
+
+    public var errorDescription: String? {
+        switch self {
+        case .unsupportedMetric:
+            "Fitdays 고유 지표로 분리된 항목만 수동 입력할 수 있습니다."
+        case .invalidValue:
+            "0 이상의 숫자 값을 입력해 주세요."
+        }
+    }
+}
+
+public enum FitdaysManualMetricEntryBuilder {
+    public static let sourceName = "Fitdays 수동 입력"
+    public static let batchFileNamePrefix = "fitdays-manual"
+
+    public static let supportedMetricIDs: [UnifiedHealthMetricID] = [
+        .bodyWaterPercentage,
+        .visceralFatLevel,
+        .visceralFatPercentage,
+        .skeletalMuscleMass,
+        .muscleMass,
+        .boneMass,
+        .mineralMass,
+        .basalMetabolicRate,
+        .proteinPercentage,
+        .subcutaneousFatPercentage,
+        .metabolicAge,
+        .bodyScore,
+        .obesityLevel,
+    ]
+
+    public static func supportedMetadata(catalog: MetricCatalog = .default) -> [MetricDisplayMetadata] {
+        supportedMetricIDs.compactMap { metadata in
+            catalog.metadata(for: metadata)
+        }
+    }
+
+    public static func makeSample(
+        metricID: UnifiedHealthMetricID,
+        value: Double,
+        measuredAt: Date,
+        notes: String? = nil,
+        catalog: MetricCatalog = .default,
+        createdAt: Date = Date()
+    ) throws -> UnifiedHealthMetricSample {
+        guard supportedMetricIDs.contains(metricID),
+              let metadata = catalog.metadata(for: metricID),
+              metadata.isExtendedLocalOnly,
+              !metadata.isHealthKitBacked else {
+            throw FitdaysManualMetricEntryError.unsupportedMetric
+        }
+
+        guard value.isFinite, value >= 0 else {
+            throw FitdaysManualMetricEntryError.invalidValue
+        }
+
+        return UnifiedHealthMetricSample(
+            metricID: metricID,
+            value: value,
+            unit: metadata.unit,
+            measuredAt: measuredAt,
+            sourceType: .manual,
+            sourceName: sourceName,
+            externalRecordId: manualRecordID(metricID: metricID, measuredAt: measuredAt),
+            notes: notes?.nilIfBlank,
+            createdAt: createdAt
+        )
+    }
+
+    public static func makeBatch(
+        for sample: UnifiedHealthMetricSample,
+        importedAt: Date = Date()
+    ) -> ImportBatch {
+        ImportBatch(
+            sourceName: sourceName,
+            sourceType: .manual,
+            importedAt: importedAt,
+            fileName: "\(batchFileNamePrefix)-\(sample.metricID.rawValue)-\(Int(sample.measuredAt.timeIntervalSince1970))",
+            rowCount: 1,
+            sampleCount: 1,
+            skippedRowCount: 0,
+            errorCount: 0,
+            notes: "사용자가 직접 입력한 Fitdays 고유 지표입니다. HealthKit에 쓰지 않습니다."
+        )
+    }
+
+    private static func manualRecordID(metricID: UnifiedHealthMetricID, measuredAt: Date) -> String {
+        "\(batchFileNamePrefix)-\(metricID.rawValue)-\(Int((measuredAt.timeIntervalSince1970 * 1_000).rounded()))"
+    }
+}
+
+private extension String {
+    var nilIfBlank: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
 public enum FitdaysImportFilePolicy {
     public static let supportedFileExtensions = ["csv", "tsv", "txt"]
     public static let supportedContentTypeIdentifiers = [
@@ -140,12 +241,12 @@ public enum FitdaysImportFallbackGuidance {
     public static let exportUnavailableSteps = [
         "Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다.",
         "Apple 건강앱에 동기화된 표준 지표를 HealthKit read-only로 먼저 봅니다.",
-        "HealthKit에 없는 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 후속 기능으로 분리합니다.",
+        "HealthKit에 없는 Fitdays 고유 지표는 사용자가 직접 입력한 로컬 수동 샘플로 저장할 수 있습니다.",
         "실제 메뉴 경로, 파일명, 계정 정보는 repository가 아니라 private QA note에만 기록합니다.",
     ]
 
     public static let healthDashboardFallbackTitle = "Apple 건강앱 read-only로 계속 보기"
-    public static let localOnlyFollowUpTitle = "Fitdays 고유 지표는 후속 로컬 입력으로 분리"
+    public static let localOnlyFollowUpTitle = "Fitdays 고유 지표는 로컬 수동 입력으로 저장"
     public static let prohibitedApproaches = [
         "Fitdays 서버/API 직접 연결",
         "Fitdays 계정 로그인",

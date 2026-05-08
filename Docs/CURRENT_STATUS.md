@@ -100,6 +100,7 @@
 - Fitdays 월별 데이터 복사 텍스트 붙여넣기 import preview
 - Fitdays 월별 붙여넣기 compact date / Korean alias parser regression
 - Fitdays import 미리보기 판단 섹션
+- Fitdays 고유 지표 로컬 수동 입력
 - Fitdays 저장된 가져오기 기록/삭제 UI
 - Fitdays 저장 완료 후 최신 가져온 날짜 상세 바로가기
 - Fitdays 저장된 batch별 최신 날짜 상세 바로가기
@@ -212,7 +213,7 @@
 - 실제 개인 Fitdays CSV 장기 검증
 - 실제 Fitdays CSV import manual QA
 - 실제 Fitdays 앱 내 CSV/export 메뉴 확인
-- Fitdays 고유 지표 로컬 수동 입력 기능
+- Fitdays 고유 지표 로컬 수동 입력 실제 데이터 UX 확인
 - 실제 `.mlmodel` 앱 bundle 적용. 적용 전 `Docs/CORE_ML_MODEL_INTEGRATION.md` gate 통과 필요
 - detector 성능 확정 검증
 - 실제 iPhone 장시간 overnight 안정성 검증

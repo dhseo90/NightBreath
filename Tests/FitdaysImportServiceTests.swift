@@ -42,7 +42,7 @@ struct FitdaysImportServiceTests {
         #expect(combined.contains("저장 가능한 샘플이 없습니다."))
         #expect(combined.contains("파일 구조를 확인하거나"))
         #expect(combined.contains("Fitdays 앱을 더 파고들거나 로그인/API 연결을 만들지 않습니다."))
-        #expect(combined.contains("HealthKit에 없는 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 후속 기능으로 분리합니다."))
+        #expect(combined.contains("HealthKit에 없는 Fitdays 고유 지표는 사용자가 직접 입력한 로컬 수동 샘플로 저장할 수 있습니다."))
         #expect(combined.contains("private QA note"))
         #expect(FitdaysImportFallbackGuidance.prohibitedApproaches.contains("Fitdays 서버/API 직접 연결"))
         #expect(FitdaysImportFallbackGuidance.prohibitedApproaches.contains("UI scraping"))

@@ -204,7 +204,7 @@ Health Dashboard edge state 원칙:
 
 Import result UI 원칙:
 
-- `FitdaysImportView`는 파일 선택, 가져오기 미리보기, 결과, 저장된 가져오기 기록, skipped row, unknown column, error count를 분리해 보여줍니다.
+- `FitdaysImportView`는 파일 선택, 월별 붙여넣기, Fitdays 고유 지표 수동 입력, 가져오기 미리보기, 결과, 저장된 가져오기 기록, skipped row, unknown column, error count를 분리해 보여줍니다.
 - unknown column은 실패가 아니라 mapping rule 확장 후보로 안내합니다.
 - invalid row는 전체 import를 막기보다 건너뛰고 결과에서 row count를 명확히 보여줍니다.
 - 실제 개인 CSV 파일명이나 local path는 screenshot과 README 대표 이미지에 노출하지 않습니다.
@@ -288,7 +288,7 @@ Fitdays extended metric 표시명 원칙:
 - `HealthCalendarView`: `CalendarDayCell`, source/data-quality indicator, `NBPrivacyNoticeCard`로 월별 데이터 존재 여부와 날짜 선택 흐름을 보여줍니다.
 - `DailyMeasurementDetailView`: `NBReportSection`, `NBMetricCard`, `NBListRow`, `NBEmptyStateView`로 날짜별 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표를 section 단위로 정리합니다.
 - `MetricDetailView`: `MetricChartView`, `MetricSummaryCard`, 기간 picker, source filter, 원본 샘플 목록으로 지표 하나의 흐름을 자세히 보여줍니다.
-- `FitdaysImportView`: `NBReportSection`, `NBPrivacyNoticeCard`, `NBMetricCard`, `NBEmptyStateView`, file importer trigger로 사용자가 직접 선택한 파일 기반 import 상태를 정리합니다.
+- `FitdaysImportView`: `NBReportSection`, `NBPrivacyNoticeCard`, `NBMetricCard`, `NBEmptyStateView`, file importer trigger, Picker, DatePicker로 사용자가 직접 선택한 파일/붙여넣기/수동 입력 기반 import 상태를 정리합니다.
 - `BloodPressureDashboardView`: 최근 수축기/이완기 혈압, 측정 시각, 데이터 출처, 추세와 데이터 없음 상태를 `NBMetricCard`, `NBListRow`, `NBEmptyStateView` 중심으로 표시합니다.
 - `BodyCompositionDashboardView`: 체중, 체지방률, BMI, 제지방량과 추세를 `NBMetricCard`와 `NBReportSection`으로 정리합니다.
 - `CrossMetricDashboardView`: 수면 소리 지표와 건강 지표 비교, 매칭 샘플 개수, 데이터 부족 상태, 인과관계 아님 안내를 `NBMetricCard`, `NBStatusBadge`, `NBEmptyStateView`, `NBPrivacyNoticeCard`로 표시합니다.

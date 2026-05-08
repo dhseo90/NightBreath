@@ -27,6 +27,14 @@ struct FitdaysImportView: View {
   @State private var savedSampleCountsByBatchID: [UUID: Int] = [:]
   @State private var batchPendingDeletion: ImportBatch?
   @State private var isDeleteBatchAlertPresented = false
+  @State private var manualMetricID: UnifiedHealthMetricID = .bodyWaterPercentage
+  @State private var manualValueText = ""
+  @State private var manualMeasuredAt = Date()
+  @State private var manualNotes = ""
+  @State private var manualDuplicateSummary: UnifiedHealthMetricImportDuplicateSummary?
+  @State private var allowsManualDuplicateOverwrite = false
+  @State private var manualStatusMessage: String?
+  @State private var manualErrorMessage: String?
 
   init(
     service: FitdaysImportService = FitdaysImportService(),
@@ -50,6 +58,7 @@ struct FitdaysImportView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         headerSection
         pastedTextSection
+        manualInputSection
 
         if let importResult {
           resultSection(importResult)
@@ -224,6 +233,81 @@ struct FitdaysImportView: View {
     }
   }
 
+  private var manualInputSection: some View {
+    NBReportSection(title: "Fitdays 고유 지표 수동 입력", systemImage: "square.and.pencil") {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        Text("CSV/export가 없을 때 체수분률, 내장지방 레벨처럼 HealthKit에서 직접 읽지 않는 Fitdays 고유 지표를 값 하나씩 로컬로 저장합니다.")
+          .font(NBTypography.callout)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+
+        Picker("지표", selection: $manualMetricID) {
+          ForEach(FitdaysManualMetricEntryBuilder.supportedMetadata()) { metadata in
+            Text("\(metadata.displayNameKo) · \(metadata.unit)")
+              .tag(metadata.metricID)
+          }
+        }
+        .pickerStyle(.menu)
+        .accessibilityLabel("Fitdays 수동 입력 지표 선택")
+
+        HStack(spacing: NBSpacing.small) {
+          TextField("값", text: $manualValueText)
+            .keyboardType(.decimalPad)
+            .textFieldStyle(.roundedBorder)
+            .accessibilityLabel("Fitdays 수동 입력 값")
+
+          Text(selectedManualMetricMetadata?.unit ?? "")
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.secondaryText)
+            .frame(minWidth: 58, alignment: .trailing)
+        }
+
+        DatePicker("측정 시각", selection: $manualMeasuredAt, displayedComponents: [.date, .hourAndMinute])
+          .font(NBTypography.callout)
+
+        TextField("메모 선택 입력", text: $manualNotes, axis: .vertical)
+          .lineLimit(2...4)
+          .textFieldStyle(.roundedBorder)
+          .accessibilityLabel("Fitdays 수동 입력 메모")
+
+        if let manualDuplicateSummary, manualDuplicateSummary.hasChangedDuplicates {
+          Toggle(isOn: $allowsManualDuplicateOverwrite) {
+            VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+              Text("같은 측정 시각의 기존 수동 값을 이번 값으로 교체")
+                .font(NBTypography.footnote.weight(.semibold))
+                .foregroundStyle(NBColor.primaryText)
+              Text("끄면 저장하지 않습니다. 켜면 같은 지표와 측정 시각의 수동 입력값을 새 값으로 바꿉니다.")
+                .font(NBTypography.caption)
+                .foregroundStyle(NBColor.secondaryText)
+            }
+          }
+          .tint(NBColor.warning)
+        }
+
+        Button {
+          saveManualMetricInput()
+        } label: {
+          Label("수동 입력 로컬 저장", systemImage: "tray.and.arrow.down")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+
+        if let manualStatusMessage {
+          NBStatusBadge(manualStatusMessage, kind: .good, systemImage: "checkmark.circle.fill")
+        }
+
+        if let manualErrorMessage {
+          NBStatusBadge(manualErrorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
+        }
+
+        Text("수동 입력 값은 수동 입력 source로만 저장되며 HealthKit에 쓰지 않습니다. Fitdays 서버/API, 로그인, 자동 동기화는 사용하지 않습니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+
   private var policySection: some View {
     NBPrivacyNoticeCard(
       title: "로컬 파일 import",
@@ -280,8 +364,8 @@ struct FitdaysImportView: View {
 
         NBListRow(
           title: FitdaysImportFallbackGuidance.localOnlyFollowUpTitle,
-          value: "보류",
-          subtitle: "CSV/export 파일이 없으면 체수분률, 내장지방 레벨 같은 Fitdays 고유 지표는 수동 입력 또는 로컬 입력 기능으로 분리합니다.",
+          value: "수동 입력",
+          subtitle: "CSV/export 파일이 없어도 체수분률, 내장지방 레벨 같은 Fitdays 고유 지표는 사용자가 직접 입력해 로컬에 저장할 수 있습니다.",
           systemImage: "square.and.pencil",
           tint: NBColor.mistTeal
         )
@@ -776,6 +860,10 @@ struct FitdaysImportView: View {
     duplicateSummary?.hasChangedDuplicates == true && !allowsChangedDuplicateOverwrite
   }
 
+  private var selectedManualMetricMetadata: MetricDisplayMetadata? {
+    MetricCatalog.default.metadata(for: manualMetricID)
+  }
+
   private func clearPastedText() {
     pastedExportText = ""
     visiblePastedExportText = ""
@@ -792,6 +880,82 @@ struct FitdaysImportView: View {
     lastSaveConfirmation = nil
     statusMessage = nil
     errorMessage = nil
+  }
+
+  private func saveManualMetricInput() {
+    manualStatusMessage = nil
+    manualErrorMessage = nil
+
+    guard let value = parseManualValue(manualValueText) else {
+      manualErrorMessage = "0 이상의 숫자 값을 입력해 주세요."
+      return
+    }
+
+    do {
+      let sample = try FitdaysManualMetricEntryBuilder.makeSample(
+        metricID: manualMetricID,
+        value: value,
+        measuredAt: manualMeasuredAt,
+        notes: manualNotes
+      )
+      let duplicateSummary = UnifiedHealthMetricImportDuplicateSummary(
+        existingSamples: repository.fetchSamples(),
+        incomingSamples: [sample]
+      )
+
+      if duplicateSummary.hasChangedDuplicates && !allowsManualDuplicateOverwrite {
+        manualDuplicateSummary = duplicateSummary
+        manualErrorMessage = "같은 측정 시각의 기존 수동 입력값과 다릅니다. 교체 여부를 선택해 주세요."
+        return
+      }
+
+      let batch = FitdaysManualMetricEntryBuilder.makeBatch(for: sample)
+      var sampleForSave = sample
+      sampleForSave.importBatchId = batch.id.uuidString
+      try repository.save(batch: batch, samples: [sampleForSave])
+      manualDuplicateSummary = nil
+      allowsManualDuplicateOverwrite = false
+      manualValueText = ""
+      manualNotes = ""
+      manualStatusMessage = manualSaveSuccessMessage(sample: sampleForSave, duplicateSummary: duplicateSummary)
+      statusMessage = manualStatusMessage
+      errorMessage = nil
+      reloadSavedImports()
+    } catch {
+      manualErrorMessage = userFacingManualInputErrorMessage(error)
+    }
+  }
+
+  private func parseManualValue(_ text: String) -> Double? {
+    let normalizedText = text
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .replacingOccurrences(of: ",", with: ".")
+    guard let value = Double(normalizedText), value.isFinite, value >= 0 else {
+      return nil
+    }
+    return value
+  }
+
+  private func manualSaveSuccessMessage(
+    sample: UnifiedHealthMetricSample,
+    duplicateSummary: UnifiedHealthMetricImportDuplicateSummary
+  ) -> String {
+    let metricName = selectedManualMetricMetadata?.displayNameKo ?? sample.metricID.rawValue
+    if duplicateSummary.hasChangedDuplicates {
+      return "\(metricName) 수동 입력값을 새 값으로 교체했습니다."
+    }
+    if duplicateSummary.hasDuplicates {
+      return "\(metricName) 수동 입력값을 같은 값으로 다시 저장했습니다."
+    }
+    return "\(metricName) 수동 입력값을 로컬에 저장했습니다."
+  }
+
+  private func userFacingManualInputErrorMessage(_ error: Error) -> String {
+    guard let manualError = error as? FitdaysManualMetricEntryError,
+          let description = manualError.errorDescription else {
+      return "수동 입력 저장에 실패했습니다: \(error.localizedDescription)"
+    }
+    return description
   }
 
   private func stagePastedText(_ text: String, statusPrefix: String?) {

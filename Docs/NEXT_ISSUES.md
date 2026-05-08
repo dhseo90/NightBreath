@@ -63,7 +63,7 @@
 - 붙여넣기 입력, 미리보기, 저장 버튼은 가까운 위치로 정리했고 저장 완료 메시지는 저장 버튼 근처에 표시합니다. 실제 Fitdays 월별 텍스트로 manual QA 필요
 - 중복 import는 같은 source type, metric, measuredAt 기준으로 정리하고, 값이 다른 중복은 새 붙여넣기 기준 교체를 사용자가 명시해야 저장합니다.
 - 저장된 가져오기 기록은 현재 저장소 기준 샘플 수와 삭제 흐름을 제공하며, 실제 파일명/local path는 표시하지 않습니다.
-- Fitdays 고유 지표는 manual input 또는 로컬 입력 기능 follow-up으로 분리
+- Fitdays 고유 지표 로컬 수동 입력은 구현 완료. 실제 개인 값은 repository에 남기지 말고, private QA note로 입력 UX와 중복 교체 흐름만 확인
 - 실제 Fitdays CSV/export file을 확보한 경우에만 수동 import QA
 - 실제 Fitdays 월별 데이터 복사 텍스트를 확보한 경우 붙여넣기 preview/import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
