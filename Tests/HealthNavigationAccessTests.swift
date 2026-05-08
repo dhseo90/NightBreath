@@ -43,6 +43,28 @@ struct HealthNavigationAccessTests {
     }
 
     @Test
+    func healthDashboardUsesPersistedEveningCheckInsForCalendarAndDetail() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
+
+        #expect(contents.contains("calendarEveningCheckIns"))
+        #expect(contents.contains("appState.eveningCheckIns"))
+        #expect(contents.contains("eveningCheckIns: calendarEveningCheckIns"))
+        #expect(!contents.contains("eveningCheckIns: []"))
+    }
+
+    @Test
+    func eveningCheckInViewSavesThroughAppStatePersistence() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/DailyRhythm/EveningCheckInView.swift")
+
+        #expect(contents.contains("@EnvironmentObject private var appState: AppState"))
+        #expect(contents.contains("appState.eveningCheckIn(for: Date())"))
+        #expect(contents.contains("appState.saveEveningCheckIn(checkIn)"))
+        #expect(contents.contains("기기 안 로컬 저장"))
+        #expect(!contents.contains("화면 안에서만 임시로 보관"))
+        #expect(!contents.contains("TODO: Wire this to a local Daily Rhythm repository"))
+    }
+
+    @Test
     func sleepTabProvidesStartAndRecentResultAccess() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Sleep/SleepStartView.swift")
 

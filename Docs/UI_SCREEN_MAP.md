@@ -23,7 +23,7 @@
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 두통 여부, 입마름 여부, 목아픔 여부, 기억나는 중간 각성 횟수, 메모 | 체크인 저장 |
 | `MorningBriefView` | 오늘 아침 리포트 | 지난밤 수면 요약, 수면 소리 점수, 측정 품질, 아침 컨디션, 예시 아침 혈압/체중/체성분, 데이터 준비 상태, 제한 항목, 개인 참고용 안내 | 수면 리포트와 Daily Rhythm 흐름 확인 |
 | `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, data quality, 데이터 준비 상태, 수면/회복/활동/혈압/체성분 component, Daily Insight 목록, 인과관계 아님 안내 | 하루 리듬 요약 확인 |
-| `EveningCheckInView` | 저녁 컨디션 기록 | 하루 피로도, 스트레스, optional 기분, 카페인/음주/야식/운동/낮잠, 메모 | 예시/in-memory 체크인 저장 |
+| `EveningCheckInView` | 저녁 컨디션 기록 | 하루 피로도, 스트레스, optional 기분, 카페인/음주/야식/운동/낮잠, 메모 | 기기 안 로컬 체크인 저장, 같은 날짜 기록 불러오기 |
 | `DailyHealthCardView` | 하루 리듬 카드 표시 | 날짜, 오늘의 리듬 점수, 수면 소리 점수, 측정 품질, 핵심 지표, 한 줄 요약, 개인 참고용 문구 | 카드 UI 확인 |
 | `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level 선택, 예시 리포트 기반 카드 미리보기 | template/privacy level 전환 |
 | `PrivacySettingsView` | 로컬 저장과 개인정보 설정 | 이벤트 오디오 샘플 opt-in, 저장된 샘플 수, 총 시간, 용량, orphan 샘플 수, feedback 데이터 상태, 전체 밤 원본 오디오 저장 안 함, 서버 전송 없음 | 이벤트 샘플 저장 토글, orphan 샘플 정리, 전체 이벤트 샘플 삭제, feedback 삭제 |

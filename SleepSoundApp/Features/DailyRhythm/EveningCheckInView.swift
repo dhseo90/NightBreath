@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct EveningCheckInView: View {
+  @EnvironmentObject private var appState: AppState
+
   @State private var fatigueScore = 3
   @State private var stressScore = 3
   @State private var hasMoodScore = false
@@ -11,6 +13,7 @@ struct EveningCheckInView: View {
   @State private var exercise = false
   @State private var nap = false
   @State private var memo = ""
+  @State private var didLoadExisting = false
   @State private var savedCheckIn: EveningCheckIn?
 
   var body: some View {
@@ -27,6 +30,7 @@ struct EveningCheckInView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("저녁 체크인")
+    .onAppear(perform: loadExistingIfNeeded)
   }
 
   private var header: some View {
@@ -39,7 +43,12 @@ struct EveningCheckInView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
-        NBStatusBadge("기기 안 예시 저장", kind: .neutral, systemImage: "sparkles")
+        HStack(spacing: NBSpacing.xs) {
+          NBStatusBadge("기기 안 로컬 저장", kind: .neutral, systemImage: "lock.shield")
+          if savedCheckIn != nil {
+            NBStatusBadge("저장됨", kind: .good, systemImage: "checkmark.circle")
+          }
+        }
       }
     }
   }
@@ -118,7 +127,7 @@ struct EveningCheckInView: View {
       } else {
         NBEmptyStateView(
           title: "아직 저장된 체크인이 없습니다",
-          message: "이번 단계에서는 저장 구조가 없어 화면 안에서만 임시로 보관합니다.",
+          message: "저장하면 이 기기 안에 로컬로 보관되고 건강 캘린더의 해당 날짜에 함께 표시됩니다.",
           systemImage: "tray"
         )
       }
@@ -153,10 +162,30 @@ struct EveningCheckInView: View {
     }
   }
 
+  private func loadExistingIfNeeded() {
+    guard !didLoadExisting else { return }
+    didLoadExisting = true
+
+    guard let checkIn = appState.eveningCheckIn(for: Date()) else { return }
+    fatigueScore = checkIn.fatigueScore
+    stressScore = checkIn.stressScore
+    hasMoodScore = checkIn.moodScore != nil
+    moodScore = checkIn.moodScore ?? 3
+    caffeine = checkIn.caffeine
+    alcohol = checkIn.alcohol
+    lateMeal = checkIn.lateMeal
+    exercise = checkIn.exercise
+    nap = checkIn.nap
+    memo = checkIn.memo
+    savedCheckIn = checkIn
+  }
+
   private func saveCheckIn() {
-    // TODO: Wire this to a local Daily Rhythm repository when persistence is added.
-    savedCheckIn = EveningCheckIn(
-      date: Date(),
+    let now = Date()
+    let existingCheckIn = appState.eveningCheckIn(for: now)
+    let checkIn = EveningCheckIn(
+      id: existingCheckIn?.id ?? UUID(),
+      date: now,
       fatigueScore: fatigueScore,
       stressScore: stressScore,
       moodScore: hasMoodScore ? moodScore : nil,
@@ -165,8 +194,12 @@ struct EveningCheckInView: View {
       lateMeal: lateMeal,
       exercise: exercise,
       nap: nap,
-      memo: memo
+      memo: memo,
+      createdAt: existingCheckIn?.createdAt ?? now,
+      updatedAt: now
     )
+    appState.saveEveningCheckIn(checkIn)
+    savedCheckIn = checkIn
   }
 }
 
@@ -176,6 +209,12 @@ struct EveningCheckInView_Previews: PreviewProvider {
     NavigationStack {
       EveningCheckInView()
     }
+    .environmentObject(
+      AppState(
+        repository: InMemorySleepRepository(),
+        eveningCheckInRepository: InMemoryEveningCheckInRepository()
+      )
+    )
   }
 }
 #endif

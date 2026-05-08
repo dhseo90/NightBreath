@@ -27,7 +27,7 @@ NightBreath / 밤숨은 iPhone 온디바이스 수면 소리 리포트에서 시
 - Fitdays CSV/export file을 사용자가 직접 선택해 가져오는 local import 구조
 - `HealthMetricsOverviewView`, `HealthCalendarView`, `DailyMeasurementDetailView`, `MetricDetailView` 기반 건강 지표 탐색 화면
 - `DailyRhythmScoreCalculator`, `DailyInsightGenerator`, `DailyRhythmReportBuilder`
-- `MorningBriefView`, `DailyRhythmReportView`, `EveningCheckInView`
+- `MorningBriefView`, `DailyRhythmReportView`, 기기 안 로컬 저장 기반 `EveningCheckInView`
 - `DailyHealthCardView`, `DailyHealthCardPreviewView`, 카드 template/privacy level 구조
 
 이 구현은 mock data, 실제 HealthKit read-only adapter, Fitdays 로컬 전용 import data를 분리합니다. HealthKit 쓰기, 서버 전송, 외부 SDK는 포함하지 않습니다.

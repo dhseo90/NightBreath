@@ -333,6 +333,8 @@ Fitdays import sample은 로컬 저장소에 저장되는 데이터이고, Apple
 
 날짜를 선택하면 캘린더 화면 안에서 `DailyMeasurementDetailContent`가 바로 펼쳐져 해당 날짜의 수면, 체크인, 혈압, 체성분, Fitdays 확장 지표, 활동, 앱 계산 지표, 데이터 출처를 카테고리별로 보여줍니다. 별도의 상세 화면인 `DailyMeasurementDetailView`도 같은 content를 재사용하므로 건강 tab의 최근 날짜 직행과 캘린더 inline 상세가 같은 기준으로 보입니다.
 
+저녁 체크인은 `EveningCheckInRepository`의 기기 안 JSON 저장소에만 보관합니다. HealthKit에 쓰지 않고, 서버나 외부 API로 전송하지 않으며, 건강 캘린더와 날짜 상세에는 같은 날짜의 로컬 체크인으로만 표시합니다.
+
 ## Metric Detail
 
 `MetricDetailView`는 metric 하나를 자세히 보는 화면입니다.

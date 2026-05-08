@@ -20,6 +20,7 @@
 - AppState의 chunk별 feature/detector processing task는 detached utility task로 실행하고, UI snapshot 반영만 MainActor로 되돌립니다.
 - 건강 tab 첫 화면은 최근 날짜 상세, 건강 캘린더, Fitdays 붙여넣기 바로가기를 상단에 배치해 건강 데이터 탐색 단계를 줄였습니다.
 - Fitdays 월간 붙여넣기는 synthetic 31일 comma text preview와 건강 캘린더 detail build를 함께 돌리는 성능 회귀 테스트로 보호합니다.
+- EveningCheckIn은 화면 안 임시 상태가 아니라 기기 안 JSON 저장소에 로컬 저장하고, HealthCalendar/DailyMeasurementDetail의 저녁 체크인 section에 연결합니다.
 - Screenshot review sheet manifest는 canonical `screenshot_status.tsv`보다 느슨한 승인 상태를 표시하지 않도록 회귀 테스트를 추가했습니다.
 - AppState audio processing source test는 UI publish가 chunk마다 발생하지 않고 throttle된 snapshot으로 반영되는 구조를 확인합니다.
 - Trend, morning/evening check-in, Daily Health Card export/share state, report empty, SimulatorScenarioView screenshot은 직접 launch scenario로 캡처했고 visual QA 전까지 quality review pending/internal-only 상태로 유지합니다.
@@ -117,6 +118,7 @@
 - 월 건강 캘린더
 - HealthCalendarView
 - DailyMeasurementDetailView
+- 저녁 체크인 로컬 persistence와 건강 캘린더 연결
 - 하단 건강 tab의 HealthDashboardView 직접 진입
 - 건강 tab 첫 화면의 최근 날짜 상세 CTA
 - 하단 tab 역할 정리: 홈=종합 평가, 수면=측정/결과, 건강=HealthKit+수면+Fitdays 데이터 허브, 설정=앱 설정

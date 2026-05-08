@@ -42,6 +42,7 @@
 - 혈압/체성분 dashboard의 7일/30일/90일 추세 copy와 empty state 재점검
 - Cross Metric 화면의 matched sample 부족 상태와 낮은 오디오 커버리지 표시는 no-match / low-coverage-excluded / included-count-shortfall로 분리 완료. 실제 데이터로 manual QA 필요
 - Daily Rhythm Report와 Morning Brief의 데이터 준비 상태/제한 항목 표시를 실제 사용 흐름에서 확인
+- 저녁 체크인 로컬 저장은 구현 완료. 실제 사용 흐름에서 같은 날짜 저장/재진입/건강 캘린더 표시가 자연스러운지 manual QA 필요
 
 주의:
 

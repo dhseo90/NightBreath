@@ -120,6 +120,11 @@ struct HealthDashboardView: View {
     calendarReports.compactMap { appState.checkIn(for: $0.sessionId) }
   }
 
+  private var calendarEveningCheckIns: [EveningCheckIn] {
+    let cutoff = Calendar.current.date(byAdding: .day, value: -healthKitDashboardLookbackDays, to: Date()) ?? .distantPast
+    return appState.eveningCheckIns.filter { $0.date >= cutoff }
+  }
+
   private var appComputedCalendarSamples: [UnifiedHealthMetricSample] {
     calendarReports.flatMap { report in
       [
@@ -254,7 +259,7 @@ struct HealthDashboardView: View {
             samples: unifiedDashboardSamples,
             sleepReports: calendarReports,
             morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: [],
+            eveningCheckIns: calendarEveningCheckIns,
             permissionState: permissionState,
             isPreviewData: isPreviewData
           )
@@ -356,7 +361,7 @@ struct HealthDashboardView: View {
             samples: unifiedDashboardSamples,
             sleepReports: calendarReports,
             morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: []
+            eveningCheckIns: calendarEveningCheckIns
           )
 
           NavigationLink {
@@ -380,7 +385,7 @@ struct HealthDashboardView: View {
             samples: unifiedDashboardSamples,
             sleepReports: calendarReports,
             morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: [],
+            eveningCheckIns: calendarEveningCheckIns,
             permissionState: permissionState,
             isPreviewData: isPreviewData
           )

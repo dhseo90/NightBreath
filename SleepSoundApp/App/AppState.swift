@@ -83,6 +83,7 @@ final class AppState: ObservableObject {
     @Published var latestEvents: [SleepEvent]
     @Published var latestReport: NightReport
     @Published var morningCheckIn: MorningCheckIn
+    @Published private(set) var eveningCheckIns: [EveningCheckIn]
     @Published var latestReportSource: SleepReportSource = .sample
     @Published var recentReports: [NightReport]
     @Published var audioCaptureState: AudioCaptureState = .idle
@@ -113,6 +114,7 @@ final class AppState: ObservableObject {
     #endif
 
     private let repository: any SleepRepository
+    private let eveningCheckInRepository: any EveningCheckInRepositoryProtocol
     private let audioSessionManager: AudioSessionManaging
     private let audioCaptureService: AudioCaptureServiceProtocol
     private var sleepAnalyzer: SleepAnalyzer
@@ -137,6 +139,7 @@ final class AppState: ObservableObject {
 
     init(
         repository: any SleepRepository = JSONFileSleepRepository(),
+        eveningCheckInRepository: any EveningCheckInRepositoryProtocol = JSONEveningCheckInRepository(),
         audioSessionManager: AudioSessionManaging = AudioSessionManager(),
         audioCaptureService: AudioCaptureServiceProtocol? = nil,
         sleepAnalyzer: SleepAnalyzer? = nil,
@@ -155,8 +158,10 @@ final class AppState: ObservableObject {
         let initialReport = hasStoredBundle ? storedReport ?? sampleBundle.2 : sampleBundle.2
         let initialCheckIn = repository.checkIn(for: initialReport.sessionId) ?? sampleBundle.3
         let initialRecentReports = repository.recentReports(days: 7)
+        let initialEveningCheckIns = eveningCheckInRepository.all()
 
         self.repository = repository
+        self.eveningCheckInRepository = eveningCheckInRepository
         self.audioSessionManager = audioSessionManager
         self.audioCaptureService = audioCaptureService ?? AudioCaptureService(sessionManager: audioSessionManager)
         self.sleepAnalyzer = sleepAnalyzer ?? initialDetectorTuningProfile.configuration.makeSleepAnalyzer()
@@ -168,6 +173,7 @@ final class AppState: ObservableObject {
         self.latestEvents = initialEvents
         self.latestReport = initialReport
         self.morningCheckIn = initialCheckIn
+        self.eveningCheckIns = initialEveningCheckIns
         self.latestReportSource = hasStoredBundle ? .deviceAnalysis : .sample
         self.recentReports = initialRecentReports
         self.microphonePermissionState = audioSessionManager.microphonePermissionState()
@@ -237,6 +243,22 @@ final class AppState: ObservableObject {
             return morningCheckIn
         }
         return repository.checkIn(for: sessionId)
+    }
+
+    func eveningCheckIn(for date: Date, calendar: Calendar = .current) -> EveningCheckIn? {
+        if let cached = eveningCheckIns
+            .filter({ calendar.isDate($0.date, inSameDayAs: date) })
+            .sorted(by: { lhs, rhs in
+                if lhs.updatedAt == rhs.updatedAt {
+                    return lhs.id.uuidString < rhs.id.uuidString
+                }
+                return lhs.updatedAt > rhs.updatedAt
+            })
+            .first {
+            return cached
+        }
+
+        return eveningCheckInRepository.latest(on: date, calendar: calendar)
     }
 
     var currentDetectorBackend: SleepDetectionBackend {
@@ -602,6 +624,11 @@ final class AppState: ObservableObject {
     func saveMorningCheckIn(_ checkIn: MorningCheckIn) {
         morningCheckIn = checkIn
         repository.save(checkIn: checkIn)
+    }
+
+    func saveEveningCheckIn(_ checkIn: EveningCheckIn) {
+        eveningCheckInRepository.save(checkIn)
+        eveningCheckIns = eveningCheckInRepository.all()
     }
 
     func deleteLatestSession() {
