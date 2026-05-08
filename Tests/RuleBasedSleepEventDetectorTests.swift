@@ -238,6 +238,50 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func steadyMechanicalLowBandNoiseDoesNotBecomeSnoreRawCandidate() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.070,
+                energy: 0.00490,
+                peak: 0.085,
+                zeroCrossingRate: 0.07,
+                lowFrequencyEnergyRatio: 0.78,
+                midBandEnergy: 0.14,
+                highBandEnergy: 0.08,
+                spectralCentroid: 320,
+                estimatedNoiseLevel: 0.068
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
+    func snoreLikePeakShapeStillBecomesSnoreWhenLowBandDominant() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.070,
+                energy: 0.00490,
+                peak: 0.160,
+                zeroCrossingRate: 0.07,
+                lowFrequencyEnergyRatio: 0.78,
+                midBandEnergy: 0.14,
+                highBandEnergy: 0.08,
+                spectralCentroid: 320,
+                estimatedNoiseLevel: 0.068
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func allSelectableProfilesKeepCommonNegativeSignalsOutOfSnore() {
         let negativeFixtures = [
             makeFeatures(

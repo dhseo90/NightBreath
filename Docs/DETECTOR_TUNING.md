@@ -171,6 +171,14 @@ Regression guard:
 - 이 값은 zero-event 분석에서 “raw 후보 전 0개”와 “raw 후보는 있었지만 confidence/smoothing에서 제외”를 구분하기 위한 diagnostics입니다.
 - `conservative`/`veryConservative` profile에서는 near-miss path를 끄고, steady room tone은 raw snore가 되지 않아야 합니다.
 
+## 2026-05-08 steady low-band false-positive guard
+
+공개 negative smoke에서 기계음/팬/공조음처럼 낮은 저주파가 계속 깔리는 segment가 snore raw 후보로 올라올 수 있어, snore texture guard에 steady mechanical noise block을 추가했습니다.
+
+- noise floor와 RMS가 거의 같고, relative energy가 낮으며, low-band는 크지만 peak/RMS 대비가 약한 경우 raw snore 후보로 올리지 않습니다.
+- 같은 low-band 조건이라도 peak shape가 있는 코골기 유사 burst는 기존 balanced path를 유지합니다.
+- 이 변경은 Release 기본 profile을 바꾸지 않고, false-positive guard를 먼저 세운 뒤 민감도 profile별 replay 결과를 비교하기 위한 안정화입니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.

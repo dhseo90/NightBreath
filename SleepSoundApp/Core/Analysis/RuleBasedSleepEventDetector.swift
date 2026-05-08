@@ -155,7 +155,8 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         if passesSnoreLevelGate,
            !hasEnvironmentalNoise,
-           snoreTexture.passesBasicGuard {
+           snoreTexture.passesBasicGuard,
+           !snoreTexture.isLikelySteadyMechanicalNoise {
             outputs.append(
                 makeOutput(
                     .snore,
@@ -176,7 +177,8 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
         if !passesSnoreLevelGate,
            passesDistantNearMissSnoreThreshold,
            !hasEnvironmentalNoise,
-           snoreTexture.passesBasicGuard {
+           snoreTexture.passesBasicGuard,
+           !snoreTexture.isLikelySteadyMechanicalNoise {
             outputs.append(
                 makeOutput(
                     .snore,
@@ -307,9 +309,11 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
     private func snoreTextureAssessment(
         for features: AudioFeatures
-    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double) {
+    ) -> (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, isLikelySteadyMechanicalNoise: Bool, relativeEnergy: Double) {
         let relativeEnergy = relativeEnergyRatio(for: features)
         let lowMidEnergy = features.lowBandEnergy + features.midBandEnergy
+        let peakContrast = max(0, features.peak - features.rms)
+        let peakToRMSRatio = features.rms > 0 ? features.peak / features.rms : 0
         let lowLevelTexture =
             features.lowFrequencyEnergyRatio >= thresholds.lowLevelSnoreLowBandRatio &&
             features.zeroCrossingRate <= 0.24 &&
@@ -348,19 +352,34 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
                     )
                 )
             )
+        let isLowBandSteadyTexture =
+            features.lowFrequencyEnergyRatio >= 0.70 &&
+            features.zeroCrossingRate <= 0.12 &&
+            features.highBandEnergy <= 0.12 &&
+            features.midBandEnergy <= 0.22 &&
+            features.spectralCentroid <= 520
+        let lacksTransientShape =
+            peakContrast <= max(0.012, features.rms * 0.35) &&
+            peakToRMSRatio <= 1.55
+        let isLikelySteadyMechanicalNoise =
+            features.estimatedNoiseLevel >= features.rms * 0.88 &&
+            relativeEnergy <= 1.18 &&
+            isLowBandSteadyTexture &&
+            lacksTransientShape
 
         return (
             passesBasicGuard: basicTexture,
             passesDistanceGuard: lowLevelTexture,
             passesCloseLowMidGuard: closeLowMidTexture,
             passesDistantNearMissGuard: distantNearMissTexture,
+            isLikelySteadyMechanicalNoise: isLikelySteadyMechanicalNoise,
             relativeEnergy: relativeEnergy
         )
     }
 
     private func snoreConfidence(
         features: AudioFeatures,
-        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double),
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, isLikelySteadyMechanicalNoise: Bool, relativeEnergy: Double),
         usedLowLevelGuard: Bool
     ) -> Double {
         let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.45, 0) * 0.50, 0.22)
@@ -374,7 +393,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
     private func snoreNearMissConfidence(
         features: AudioFeatures,
-        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, relativeEnergy: Double)
+        texture: (passesBasicGuard: Bool, passesDistanceGuard: Bool, passesCloseLowMidGuard: Bool, passesDistantNearMissGuard: Bool, isLikelySteadyMechanicalNoise: Bool, relativeEnergy: Double)
     ) -> Double {
         let lowBandSupport = min(max(features.lowFrequencyEnergyRatio - 0.70, 0) * 0.20, 0.04)
         let relativeSupport = min(max(texture.relativeEnergy - 1.12, 0) * 0.04, 0.04)
