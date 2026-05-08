@@ -93,6 +93,22 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         var outputs: [DetectorOutput] = []
         let peakContrast = max(0, features.peak - features.rms)
+        let peakToRMSRatio = features.rms > 0 ? features.peak / features.rms : 0
+        let hasTransientAboveNoise =
+            features.estimatedNoiseLevel < features.rms * 0.88 ||
+            peakToRMSRatio >= 2.0
+        let hasCoughImpulseShape =
+            peakContrast >= max(0.08, features.rms * 0.85) &&
+            peakToRMSRatio >= 2.0 &&
+            hasTransientAboveNoise
+        let hasFrictionImpulseShape =
+            peakContrast >= max(0.035, features.rms * 0.75) &&
+            peakToRMSRatio >= 2.2 &&
+            hasTransientAboveNoise
+        let hasMovementImpulseShape =
+            peakContrast >= max(0.04, features.rms * 0.50) &&
+            peakToRMSRatio >= 1.7 &&
+            hasTransientAboveNoise
         let isBroadbandNoise =
             features.zeroCrossingRate >= 0.42 ||
             features.spectralCentroid >= 2_200 ||
@@ -104,10 +120,17 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             features.rms >= noiseRMS ||
             features.peak >= 0.65 ||
             features.estimatedNoiseLevel >= noiseRMS
+        let isHighBroadbandInput =
+            isBroadbandNoise &&
+            (
+                features.rms >= noiseRMS * 0.72 ||
+                features.peak >= 0.35 ||
+                features.energy >= noiseRMS * noiseRMS * 0.50
+            )
 
         // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
         // 큰 broadband noise나 지속적인 외부 소음은 수면 이벤트보다 환경 소음 후보로 우선 표시합니다.
-        if isVeryLoudInput,
+        if isVeryLoudInput || isHighBroadbandInput,
            isBroadbandNoise || isSustainedExternalNoise || features.rms >= noiseRMS * 1.25 {
             outputs.append(
                 makeOutput(
@@ -196,6 +219,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
            features.rms >= 0.03,
            features.peak >= 0.22,
            peakContrast >= 0.08,
+           hasCoughImpulseShape,
            features.zeroCrossingRate >= 0.10 || features.midBandEnergy >= 0.20 || features.highBandEnergy >= 0.18 {
             outputs.append(
                 makeOutput(
@@ -214,6 +238,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             features.rms >= 0.025 &&
             features.peak >= 0.10 &&
             peakContrast >= 0.03 &&
+            hasFrictionImpulseShape &&
             features.lowFrequencyEnergyRatio <= 0.45 &&
             (features.zeroCrossingRate >= 0.24 || features.highBandEnergy >= 0.24 || features.spectralCentroid >= 1_700)
 
@@ -275,6 +300,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         if features.rms >= 0.015,
            features.peak >= 0.15,
+           hasMovementImpulseShape,
            outputs.isEmpty {
             outputs.append(
                 makeOutput(

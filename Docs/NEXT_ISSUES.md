@@ -144,6 +144,7 @@
 - RMS 0.045 미만 snore 후보는 `rule.lowLevelSnore*`/relative-energy/low-band/ZCR/high-band/centroid guard 통과 여부를 QA 기록에 남김
 - 침대 위 충전 상태 거리에서 snore raw 후보가 생기는지, 같은 배치의 조용한 구간/주변 소음 negative에서 snore raw 후보가 늘지 않는지 확인
 - 공개 negative에서 fan/HVAC/mechanical 저주파가 steady noise guard로 raw snore에 들어오지 않는지 profile별로 재집계
+- cough/bruxism/movement raw count가 transient guard 이후 공개 negative smoke에서 얼마나 줄었는지 재집계
 - Offline Evaluation으로 verySensitive / sensitive / balanced / conservative / veryConservative profile 비교
 - `Tools/OfflineEvaluation/validate_sample_manifest.py`로 replay manifest schema, 짧은 segment duration, git-tracked audio 참조 여부를 로컬에서 먼저 확인
 - 민감도 preset synthetic guard는 보강 완료. 실제 iPhone 배치별 raw/final count와 false-positive-like negative는 private evidence로 확인 필요

@@ -186,6 +186,16 @@ Regression guard:
 - DEBUG 화면과 세션 리포트의 `snoreLikeFeatureCandidateCount`, reject reason 분류가 같은 threshold snapshot 기준을 따릅니다.
 - low-input near-miss, low-band 부족, environmental-noise-like feature 분류가 live 화면과 offline/report diagnostics에서 갈라지지 않도록 source test를 추가했습니다.
 
+## 2026-05-08 non-snore transient guards
+
+공개 negative smoke에서 snore 외 이벤트도 raw count가 많이 나올 수 있어, cough-like, bruxism-like, movement-like 후보에 transient shape guard를 추가했습니다.
+
+- cough-like는 짧고 강한 peak/RMS 대비와 noise floor 대비 transient가 있어야 raw 후보가 됩니다.
+- bruxism-like는 고주파 마찰 texture만으로는 부족하고, 국소적인 peak shape가 있어야 합니다.
+- movement-like는 다른 raw 후보가 비어 있을 때도 steady moderate input만으로 올라오지 않도록 peak contrast를 요구합니다.
+- high-energy broadband 입력은 cough/bruxism/movement보다 environmentalNoise raw 후보로 먼저 남깁니다.
+- 이 변경은 진단 표현을 추가하지 않고, rule-based placeholder의 과검출을 줄이기 위한 QA guard입니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.

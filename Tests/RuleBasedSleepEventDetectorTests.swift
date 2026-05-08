@@ -460,6 +460,26 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func highEnergyBroadbandNoiseBecomesEnvironmentalNoiseNotMovementOnly() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                rms: 0.220,
+                energy: 0.0484,
+                peak: 0.380,
+                zeroCrossingRate: 0.52,
+                lowFrequencyEnergyRatio: 0.20,
+                midBandEnergy: 0.25,
+                highBandEnergy: 0.45,
+                spectralCentroid: 2_800,
+                estimatedNoiseLevel: 0.180
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.environmentalNoise))
+        #expect(!output.map(\.eventType).contains(.movementLike))
+    }
+
+    @Test
     func detectsCoughLikeShortBurstCandidate() {
         let output = RuleBasedSleepEventDetector().detect(
             features: makeFeatures(
@@ -476,6 +496,26 @@ struct RuleBasedSleepEventDetectorTests {
 
         #expect(output.map(\.eventType).contains(.coughLike))
         #expect(output.first { $0.eventType == .coughLike }?.debugReason?.contains("placeholder") == true)
+    }
+
+    @Test
+    func steadyBroadbandInputDoesNotBecomeCoughLikeCandidate() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 1.0,
+                rms: 0.120,
+                energy: 0.0144,
+                peak: 0.225,
+                zeroCrossingRate: 0.18,
+                lowFrequencyEnergyRatio: 0.24,
+                midBandEnergy: 0.42,
+                highBandEnergy: 0.28,
+                spectralCentroid: 1_800,
+                estimatedNoiseLevel: 0.115
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.coughLike))
     }
 
     @Test
@@ -515,6 +555,46 @@ struct RuleBasedSleepEventDetectorTests {
         #expect(output.map(\.eventType).contains(.bruxismLike))
         #expect(output.first { $0.eventType == .bruxismLike }?.debugReason?.contains("사용자 확인") == true)
         #expect(output.first { $0.eventType == .bruxismLike }?.debugReason?.contains("임시 rule-based") == true)
+    }
+
+    @Test
+    func steadyHighFrequencyHissDoesNotBecomeBruxismLikeCandidate() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 0.8,
+                rms: 0.055,
+                energy: 0.0030,
+                peak: 0.120,
+                zeroCrossingRate: 0.58,
+                lowFrequencyEnergyRatio: 0.22,
+                midBandEnergy: 0.18,
+                highBandEnergy: 0.54,
+                spectralCentroid: 2_200,
+                estimatedNoiseLevel: 0.054
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.bruxismLike))
+    }
+
+    @Test
+    func steadyModerateInputDoesNotBecomeMovementLikeCandidate() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 1.0,
+                rms: 0.100,
+                energy: 0.0100,
+                peak: 0.155,
+                zeroCrossingRate: 0.04,
+                lowFrequencyEnergyRatio: 0.30,
+                midBandEnergy: 0.10,
+                highBandEnergy: 0.60,
+                spectralCentroid: 2_500,
+                estimatedNoiseLevel: 0.098
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.movementLike))
     }
 
     @Test
