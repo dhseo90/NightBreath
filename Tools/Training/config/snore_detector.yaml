@@ -36,3 +36,15 @@ output:
   evaluation_json_filename: snore_evaluation.json
   evaluation_markdown_filename: snore_evaluation.md
   feature_export_filename: snore_features.csv
+
+future_log_mel:
+  status: placeholder
+  schema_version: log_mel_v0_placeholder
+  sample_rate: 16000
+  window_size_ms: 25.0
+  hop_size_ms: 10.0
+  frame_count: 300
+  mel_bin_count: 64
+  min_frequency_hz: 50.0
+  max_frequency_hz: 8000.0
+  note: 현재 snore baseline 학습 입력은 위 feature_columns입니다. log-mel은 shape contract만 고정하며 extractor와 모델 학습은 별도 검토 후 진행합니다.

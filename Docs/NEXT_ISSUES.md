@@ -13,6 +13,7 @@
 5. Legal/App Review 최종 재확인
 6. detector threshold tuning with real data
 7. Core ML model 실제 앱 target 적용. `Docs/CORE_ML_MODEL_INTEGRATION.md` gate와 실제 iPhone smoke evidence 확보 후 진행
+8. log-mel spectrogram extractor/model 검토. 현재는 `log_mel_v0_placeholder` shape contract만 고정했고, 실제 extraction/training은 충분한 local reviewed sample과 false-positive-like 검토 후 별도 진행
 
 ## Release / App Store 준비
 

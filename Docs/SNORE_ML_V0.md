@@ -60,6 +60,21 @@ duration
 
 앱의 `ModelInputAdapter`도 동일한 이름과 순서로 Core ML 입력을 만듭니다.
 
+## Future log-mel placeholder
+
+log-mel 기반 모델은 아직 활성화하지 않습니다. 현재 repository에는 향후 Core ML 입력 후보를 검토하기 위한 shape-only schema만 둡니다.
+
+```text
+schema_version: log_mel_v0_placeholder
+sample_rate: 16000
+window_size_ms: 25
+hop_size_ms: 10
+input_shape: 300 x 64
+status: placeholder
+```
+
+`Tools/Training/audio_features.py`의 `extract_log_mel_spectrogram()`은 의도적으로 `NotImplementedError`를 발생시킵니다. `build_log_mel_placeholder_tensor()`는 테스트용 0-filled tensor만 만들며 학습 데이터로 사용하지 않습니다. 이 경로는 원본 오디오를 저장하지 않고, 네트워크나 외부 API를 사용하지 않습니다.
+
 ## 학습
 
 ```sh

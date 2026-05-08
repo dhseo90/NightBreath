@@ -9,6 +9,7 @@ for synthetic tests and future local-only experiments.
 from __future__ import annotations
 
 import math
+from dataclasses import asdict, dataclass
 from typing import Iterable
 
 
@@ -22,6 +23,43 @@ FEATURE_COLUMNS = [
     "highBandEnergy",
     "duration",
 ]
+
+
+@dataclass(frozen=True)
+class LogMelSpectrogramSpec:
+    """Document the future local-only spectrogram input contract.
+
+    This is intentionally a schema placeholder. The current training scripts
+    still use FEATURE_COLUMNS above, and this spec must not be treated as an
+    enabled model input until a reviewed log-mel extractor is added.
+    """
+
+    schema_version: str = "log_mel_v0_placeholder"
+    status: str = "placeholder"
+    sample_rate: int = 16_000
+    window_size_ms: float = 25.0
+    hop_size_ms: float = 10.0
+    frame_count: int = 300
+    mel_bin_count: int = 64
+    min_frequency_hz: float = 50.0
+    max_frequency_hz: float = 8_000.0
+    power_floor_db: float = -80.0
+    normalization: str = "per_sample_log_power_0_1_placeholder"
+    purpose: str = "future local-only Core ML input contract"
+
+    @property
+    def input_shape(self) -> list[int]:
+        return [self.frame_count, self.mel_bin_count]
+
+    def to_metadata(self) -> dict[str, object]:
+        metadata = asdict(self)
+        metadata["input_shape"] = self.input_shape
+        metadata["stores_raw_audio"] = False
+        metadata["requires_network"] = False
+        return metadata
+
+
+DEFAULT_LOG_MEL_SPEC = LogMelSpectrogramSpec()
 
 
 def safe_float(value: object, default: float = 0.0) -> float:
@@ -89,6 +127,29 @@ def extract_basic_features(
     }
 
 
+def log_mel_placeholder_metadata(
+    spec: LogMelSpectrogramSpec = DEFAULT_LOG_MEL_SPEC,
+) -> dict[str, object]:
+    """Return commit-safe metadata for the future log-mel path."""
+
+    return spec.to_metadata()
+
+
+def build_log_mel_placeholder_tensor(
+    spec: LogMelSpectrogramSpec = DEFAULT_LOG_MEL_SPEC,
+    fill: float = 0.0,
+) -> list[list[float]]:
+    """Build a shape-only tensor for tests and documentation examples.
+
+    The tensor does not encode audio and must not be used for model training.
+    It exists so shape consumers can be tested without adding personal audio or
+    enabling a not-yet-reviewed extractor.
+    """
+
+    value = clamp(fill)
+    return [[value for _ in range(spec.mel_bin_count)] for _ in range(spec.frame_count)]
+
+
 def extract_log_mel_spectrogram(*_: object, **__: object) -> list[list[float]]:
     """Placeholder for a future local-only log-mel feature path.
 
@@ -98,7 +159,8 @@ def extract_log_mel_spectrogram(*_: object, **__: object) -> list[list[float]]:
     """
 
     raise NotImplementedError(
-        "log-mel spectrogram extraction is intentionally left for a later Core ML training step"
+        "log-mel spectrogram extraction is intentionally disabled. "
+        "Use log_mel_placeholder_metadata() for the reviewed placeholder schema."
     )
 
 

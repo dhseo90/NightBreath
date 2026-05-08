@@ -23,7 +23,7 @@
 - 학습/평가 속도가 빠릅니다.
 - 나중에 Core ML 변환 전 baseline 성능을 확인하기 좋습니다.
 
-log-mel spectrogram 기반 모델은 더 많은 데이터가 쌓인 뒤 진행합니다. 현재는 `audio_features.py`에 TODO placeholder만 있습니다.
+log-mel spectrogram 기반 모델은 더 많은 데이터가 쌓인 뒤 진행합니다. 현재는 `audio_features.py`에 shape-only placeholder schema만 두고, 실제 extraction/training은 의도적으로 비활성화했습니다.
 
 ## 데이터 준비
 
@@ -197,6 +197,25 @@ duration
 ```sh
 Tools/Training/validate_coreml_integration_gate.sh
 ```
+
+## Future log-mel placeholder
+
+현재 snore baseline 학습 입력은 scalar feature table입니다. `audio_features.py`에는 future Core ML 후보를 위한 log-mel schema만 고정해 둡니다.
+
+```text
+schema_version: log_mel_v0_placeholder
+sample_rate: 16000
+window_size_ms: 25
+hop_size_ms: 10
+input_shape: 300 x 64
+status: placeholder
+```
+
+주의:
+- `extract_log_mel_spectrogram()`은 아직 `NotImplementedError`를 발생시킵니다.
+- `build_log_mel_placeholder_tensor()`는 shape 테스트용 0-filled tensor만 만들며 학습에 사용하지 않습니다.
+- 이 placeholder는 raw audio를 저장하지 않고, 네트워크나 외부 API를 필요로 하지 않습니다.
+- 실제 extractor를 구현할 때도 개인 오디오 파일은 repo 밖 또는 gitignore 경로에만 둡니다.
 
 ## 최소 권장 샘플 수
 
