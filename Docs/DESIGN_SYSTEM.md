@@ -362,15 +362,21 @@ Original SwiftUI icon:
 Original SwiftUI illustration:
 
 - `NBBreathWaveIllustration`
+- `NBOnboardingIntroIllustration`
 - `NBMoonBreathIllustration`
 - `NBMoonSleepIllustration`
 - `NBPrivacyOnDeviceIllustration`
 - `NBDevicePlacementIllustration`
+- `NBEventAudioSamplesIllustration`
+- `NBMicrophonePermissionIllustration`
+- `NBCalibrationCheckIllustration`
 - `NBSleepReportIllustration`
 - `NBHealthDashboardIllustration`
+- `NBEmptyReportIllustration`
+- `NBEmptyTimelineIllustration`
 - `NBIllustration(kind:)`
 
-Illustration은 onboarding, device placement guide, privacy notice, empty report, empty timeline 상태에서 사용합니다. 실제 bitmap asset이 아니라 SwiftUI `Shape`, `Path`, `Circle`, `RoundedRectangle`, SF Symbols 기반의 original placeholder입니다.
+Illustration은 onboarding, device placement guide, privacy notice, empty report, empty timeline 상태에서 사용합니다. 실제 bitmap asset이 아니라 SwiftUI `Shape`, `Path`, `Circle`, `RoundedRectangle`, SF Symbols 기반의 original placeholder입니다. 온보딩 주요 단계는 공용 파형 이미지를 반복하지 않고 소개, 이벤트 샘플, 마이크 권한, 캘리브레이션 전용 placeholder를 연결합니다.
 
 온보딩 illustration 제작 원칙과 최종 bitmap 교체 기준은 `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md`에서 관리합니다.
 

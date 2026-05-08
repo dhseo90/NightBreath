@@ -225,19 +225,19 @@ private enum OnboardingStep: Int, CaseIterable, Identifiable {
   var illustration: NBIllustrationKind {
     switch self {
     case .intro:
-      .moonBreath
+      .onboardingIntro
     case .privacy:
       .privacyOnDevice
     case .noFullNightAudio:
       .sleepReport
     case .eventSamples:
-      .breath
+      .eventAudioSamples
     case .placement:
       .devicePlacement
     case .microphone:
-      .privacyOnDevice
+      .microphonePermission
     case .calibration:
-      .breath
+      .calibrationCheck
     }
   }
 

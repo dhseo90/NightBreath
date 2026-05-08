@@ -10,21 +10,29 @@
 
 | 이름 | SwiftUI View | 목적 | Asset placeholder |
 | --- | --- | --- | --- |
-| 달 + 숨결 파형 | `NBMoonBreathIllustration` | 첫 온보딩, 브랜드 첫인상 | `Illustrations/onboarding_breath_placeholder` |
+| 온보딩 소개 | `NBOnboardingIntroIllustration` | 첫 온보딩, 브랜드 첫인상 | `Illustrations/onboarding_breath_placeholder` |
+| 달 + 숨결 파형 | `NBMoonBreathIllustration` | 수면 소리 흐름 보조 illustration | `Illustrations/onboarding_breath_placeholder` |
 | 온디바이스 프라이버시 | `NBPrivacyOnDeviceIllustration` | 로컬 분석, 서버 전송 없음 안내 | `Illustrations/onboarding_privacy_placeholder` |
 | 기기 배치 | `NBDevicePlacementIllustration` | 머리맡 주변 iPhone 배치 안내 | `Illustrations/onboarding_device_placement_placeholder` |
+| 이벤트 오디오 샘플 | `NBEventAudioSamplesIllustration` | opt-in 짧은 샘플 저장 안내 | `Illustrations/event_audio_samples_placeholder` |
+| 마이크 권한 | `NBMicrophonePermissionIllustration` | 마이크 접근과 로컬 처리 안내 | `Illustrations/microphone_permission_placeholder` |
+| 캘리브레이션 확인 | `NBCalibrationCheckIllustration` | 입력 baseline 확인 안내 | `Illustrations/calibration_check_placeholder` |
 | 수면 리포트 | `NBSleepReportIllustration` | 리포트 없음, 리포트 소개 | `Illustrations/empty_report_placeholder` |
 | 건강 대시보드 | `NBHealthDashboardIllustration` | HealthKit read-only 확장 방향 | 별도 bitmap 필요 시 future slot 추가 |
+| 리포트 없음 | `NBEmptyReportIllustration` | 수면 기록 전 empty state | `Illustrations/empty_report_placeholder` |
+| 타임라인 없음 | `NBEmptyTimelineIllustration` | 이벤트 없음 empty state | `Illustrations/empty_timeline_placeholder` |
 | 호흡 파형 | `NBBreathWaveIllustration` | 이벤트 샘플, empty timeline, 소리 흐름 | `Illustrations/empty_timeline_placeholder` |
 
 ## 화면 연결
 
 - `OnboardingView`
-  - Intro: `NBIllustration(kind: .moonBreath)`
+  - Intro: `NBIllustration(kind: .onboardingIntro)`
   - Privacy: `NBIllustration(kind: .privacyOnDevice)`
   - 전체 밤 오디오 미저장: `NBIllustration(kind: .sleepReport)`
-  - 이벤트 샘플: `NBIllustration(kind: .breath)`
+  - 이벤트 샘플: `NBIllustration(kind: .eventAudioSamples)`
   - 기기 배치: `NBIllustration(kind: .devicePlacement)`
+  - 마이크 권한: `NBIllustration(kind: .microphonePermission)`
+  - 캘리브레이션: `NBIllustration(kind: .calibrationCheck)`
 - `DevicePlacementGuideView`
   - 기기 배치 안내에서 SwiftUI original illustration을 사용합니다.
 - Empty state

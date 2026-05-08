@@ -13,6 +13,26 @@ struct OnboardingCopyTests {
     }
 
     @Test
+    func onboardingUsesPurposeBuiltIllustrations() throws {
+        let onboarding = try read("SleepSoundApp/Features/Onboarding/OnboardingView.swift")
+        let illustrations = try read("SleepSoundApp/Core/Design/NBIllustration.swift")
+        let guide = try read("Docs/ONBOARDING_ILLUSTRATION_GUIDE.md")
+
+        #expect(onboarding.contains(".onboardingIntro"))
+        #expect(onboarding.contains(".eventAudioSamples"))
+        #expect(onboarding.contains(".microphonePermission"))
+        #expect(onboarding.contains(".calibrationCheck"))
+        #expect(illustrations.contains("struct NBOnboardingIntroIllustration"))
+        #expect(illustrations.contains("struct NBEventAudioSamplesIllustration"))
+        #expect(illustrations.contains("struct NBMicrophonePermissionIllustration"))
+        #expect(illustrations.contains("struct NBCalibrationCheckIllustration"))
+        #expect(illustrations.contains("struct NBEmptyReportIllustration"))
+        #expect(illustrations.contains("struct NBEmptyTimelineIllustration"))
+        #expect(guide.contains("NBOnboardingIntroIllustration"))
+        #expect(guide.contains("NBEmptyTimelineIllustration"))
+    }
+
+    @Test
     func onboardingCopyAvoidsRestrictedClinicalTerms() throws {
         let paths = [
             "SleepSoundApp/Features/Onboarding/OnboardingView.swift",
