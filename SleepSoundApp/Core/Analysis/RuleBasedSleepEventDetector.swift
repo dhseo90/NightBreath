@@ -127,6 +127,34 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
                 features.peak >= 0.35 ||
                 features.energy >= noiseRMS * noiseRMS * 0.50
             )
+        let isSnoreDominantLowBandTexture =
+            features.lowFrequencyEnergyRatio >= 0.70 &&
+            features.zeroCrossingRate <= 0.16 &&
+            features.highBandEnergy <= 0.16 &&
+            features.spectralCentroid <= 700
+        let isCoughDominantTransient =
+            hasCoughImpulseShape &&
+            features.duration <= 1.8 &&
+            features.peak >= 0.22 &&
+            (
+                features.midBandEnergy >= 0.28 ||
+                features.highBandEnergy >= 0.20 ||
+                features.zeroCrossingRate >= 0.16 ||
+                features.spectralCentroid >= 1_200
+            )
+        let isMovementDominantTransient =
+            hasMovementImpulseShape &&
+            features.duration <= 2.4 &&
+            features.peak >= 0.20 &&
+            features.lowFrequencyEnergyRatio <= 0.62 &&
+            (
+                features.zeroCrossingRate >= 0.35 ||
+                features.highBandEnergy >= 0.20 ||
+                features.spectralCentroid >= 1_250
+            )
+        let shouldSuppressSnoreForTransient =
+            isCoughDominantTransient ||
+            (isMovementDominantTransient && !isSnoreDominantLowBandTexture)
 
         // 임시 로직이며 추후 실제 데이터/ML 모델로 대체 예정입니다.
         // 큰 broadband noise나 지속적인 외부 소음은 수면 이벤트보다 환경 소음 후보로 우선 표시합니다.
@@ -178,6 +206,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
 
         if passesSnoreLevelGate,
            !hasEnvironmentalNoise,
+           !shouldSuppressSnoreForTransient,
            snoreTexture.passesBasicGuard,
            !snoreTexture.isLikelySteadyMechanicalNoise {
             outputs.append(
@@ -200,6 +229,7 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
         if !passesSnoreLevelGate,
            passesDistantNearMissSnoreThreshold,
            !hasEnvironmentalNoise,
+           !shouldSuppressSnoreForTransient,
            snoreTexture.passesBasicGuard,
            !snoreTexture.isLikelySteadyMechanicalNoise {
             outputs.append(
@@ -392,13 +422,22 @@ public struct RuleBasedSleepEventDetector: SleepEventDetector {
             relativeEnergy <= 1.18 &&
             isLowBandSteadyTexture &&
             lacksTransientShape
+        let isLikelySustainedMachineNoise =
+            features.rms >= noiseRMS * 0.38 &&
+            features.estimatedNoiseLevel >= features.rms * 0.72 &&
+            relativeEnergy <= 1.65 &&
+            features.lowFrequencyEnergyRatio >= 0.50 &&
+            features.zeroCrossingRate <= 0.24 &&
+            features.highBandEnergy <= 0.20 &&
+            features.spectralCentroid <= 1_050 &&
+            peakToRMSRatio <= 1.85
 
         return (
             passesBasicGuard: basicTexture,
             passesDistanceGuard: lowLevelTexture,
             passesCloseLowMidGuard: closeLowMidTexture,
             passesDistantNearMissGuard: distantNearMissTexture,
-            isLikelySteadyMechanicalNoise: isLikelySteadyMechanicalNoise,
+            isLikelySteadyMechanicalNoise: isLikelySteadyMechanicalNoise || isLikelySustainedMachineNoise,
             relativeEnergy: relativeEnergy
         )
     }

@@ -23,11 +23,19 @@
       Section("민감도 레벨") {
         Picker("현재 민감도", selection: profileBinding) {
           ForEach(DetectorTuningProfile.debugSelectableProfiles) { profile in
-            Text(profile.displayName).tag(profile)
+            Text(profile.debugSelectionDisplayName).tag(profile)
           }
         }
         .pickerStyle(.menu)
         .disabled(appState.isRecording)
+
+        if appState.detectorTuningProfile.isDebugComparisonOnly {
+          NBStatusBadge("DEBUG 비교용", kind: .caution, systemImage: "exclamationmark.triangle")
+
+          Text("Release 기본값은 계속 보통입니다. 민감 계열은 코골기 후보 누락 비교용이며, 조용한 방/공조음 false-positive를 함께 확인한 뒤 해석하세요.")
+            .font(.footnote)
+            .foregroundStyle(NBColor.secondaryText)
+        }
 
         Text(appState.detectorTuningProfile.koreanDescription)
           .font(.footnote)

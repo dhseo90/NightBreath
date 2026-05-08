@@ -603,6 +603,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
   public var datasetName: String
   public var fileId: String
   public var filePath: String
+  public var sourceCategory: String?
   public var segmentStartSeconds: TimeInterval
   public var segmentDurationSeconds: TimeInterval
   public var expectedLabels: [String]
@@ -630,6 +631,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
     datasetName: String,
     fileId: String,
     filePath: String,
+    sourceCategory: String? = nil,
     segmentStartSeconds: TimeInterval,
     segmentDurationSeconds: TimeInterval,
     expectedLabels: [String],
@@ -656,6 +658,7 @@ public struct OfflineEvaluationRecord: Codable, Equatable, Sendable {
     self.datasetName = datasetName
     self.fileId = fileId
     self.filePath = filePath
+    self.sourceCategory = sourceCategory
     self.segmentStartSeconds = max(0, segmentStartSeconds)
     self.segmentDurationSeconds = max(0, segmentDurationSeconds)
     self.expectedLabels = expectedLabels
@@ -1451,6 +1454,40 @@ public struct OfflineProfileLabelFinding: Codable, Equatable, Sendable {
   }
 }
 
+public struct OfflineNegativeCategorySummary: Codable, Equatable, Sendable {
+  public var profile: String
+  public var category: String
+  public var recordCount: Int
+  public var finalSnoreRecordCount: Int
+  public var finalSnoreEventCount: Int
+  public var rawSnoreCount: Int
+  public var rawCoughLikeCount: Int
+  public var rawBruxismLikeCount: Int
+  public var rawMovementLikeCount: Int
+
+  public init(
+    profile: String,
+    category: String,
+    recordCount: Int,
+    finalSnoreRecordCount: Int,
+    finalSnoreEventCount: Int,
+    rawSnoreCount: Int,
+    rawCoughLikeCount: Int,
+    rawBruxismLikeCount: Int,
+    rawMovementLikeCount: Int
+  ) {
+    self.profile = profile
+    self.category = category.isEmpty ? "uncategorized" : category
+    self.recordCount = max(0, recordCount)
+    self.finalSnoreRecordCount = max(0, finalSnoreRecordCount)
+    self.finalSnoreEventCount = max(0, finalSnoreEventCount)
+    self.rawSnoreCount = max(0, rawSnoreCount)
+    self.rawCoughLikeCount = max(0, rawCoughLikeCount)
+    self.rawBruxismLikeCount = max(0, rawBruxismLikeCount)
+    self.rawMovementLikeCount = max(0, rawMovementLikeCount)
+  }
+}
+
 public struct OfflineProfileSummary: Codable, Equatable, Sendable {
   public var tuningProfile: String
   public var totalEvaluatedSegments: Int
@@ -1461,6 +1498,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
   public var snoreNegativeRecords: Int
   public var snoreNegativeWithSnoreEventRecords: Int
   public var snoreNegativeRawCandidateCountByType: [String: Int]
+  public var snoreNegativeCategoryHotspots: [OfflineNegativeCategorySummary]?
   public var rawCandidateCount: Int
   public var preSmoothingCandidateCount: Int
   public var postSmoothingEventCount: Int
@@ -1486,6 +1524,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
     snoreNegativeRecords: Int = 0,
     snoreNegativeWithSnoreEventRecords: Int = 0,
     snoreNegativeRawCandidateCountByType: [String: Int] = [:],
+    snoreNegativeCategoryHotspots: [OfflineNegativeCategorySummary] = [],
     rawCandidateCount: Int,
     preSmoothingCandidateCount: Int,
     postSmoothingEventCount: Int,
@@ -1516,6 +1555,7 @@ public struct OfflineProfileSummary: Codable, Equatable, Sendable {
       self.snoreNegativeRecords
     )
     self.snoreNegativeRawCandidateCountByType = snoreNegativeRawCandidateCountByType
+    self.snoreNegativeCategoryHotspots = snoreNegativeCategoryHotspots
     self.rawCandidateCount = max(0, rawCandidateCount)
     self.preSmoothingCandidateCount = max(0, preSmoothingCandidateCount)
     self.postSmoothingEventCount = max(0, postSmoothingEventCount)
@@ -1843,6 +1883,10 @@ public struct OfflineProfileComparisonRunner {
         snoreNegativeRecords: snoreNegativeRecords.count,
         snoreNegativeWithSnoreEventRecords: snoreNegativeRecords.filter(Self.hasFinalSnoreEvent).count,
         snoreNegativeRawCandidateCountByType: snoreNegativeRawCandidateCountByType,
+        snoreNegativeCategoryHotspots: snoreNegativeCategoryHotspots(
+          profile: profile,
+          records: snoreNegativeRecords
+        ),
         rawCandidateCount: profileRecords.reduce(0) { $0 + $1.rawCandidateCount },
         preSmoothingCandidateCount: profileRecords.reduce(0) { $0 + $1.preSmoothingCandidateCount },
         postSmoothingEventCount: profileRecords.reduce(0) { $0 + $1.postSmoothingEventCount },
@@ -2050,6 +2094,15 @@ public struct OfflineProfileComparisonRunner {
 
     lines.append(contentsOf: [
       "",
+      "## Public Negative Category Hotspots",
+      "",
+      "| Profile | Category | Records | Final Snore Records | Final Snore Events | Raw Snore | Raw Cough | Raw Bruxism | Raw Movement | Review Cue |",
+      "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+    ])
+    lines.append(contentsOf: publicNegativeCategoryHotspotRows(summaries: comparison.profileSummaries))
+
+    lines.append(contentsOf: [
+      "",
       "## Delta From Balanced",
       "",
       "| Profile | Final Event Delta | Zero Event Delta | FP-like Delta | FN-like Delta | Review Cue |",
@@ -2177,6 +2230,17 @@ public struct OfflineProfileComparisonRunner {
     }
   }
 
+  private static func publicNegativeCategoryHotspotRows(summaries: [OfflineProfileSummary]) -> [String] {
+    let hotspots = summaries.flatMap { $0.snoreNegativeCategoryHotspots ?? [] }
+    guard !hotspots.isEmpty else {
+      return ["| none | uncategorized | 0 | 0 | 0 | 0 | 0 | 0 | 0 | ESC-50 category 정보가 있는 public negative record를 먼저 생성하세요. |"]
+    }
+
+    return hotspots.map { hotspot in
+      "| \(hotspot.profile) | \(hotspot.category) | \(hotspot.recordCount) | \(hotspot.finalSnoreRecordCount) | \(hotspot.finalSnoreEventCount) | \(hotspot.rawSnoreCount) | \(hotspot.rawCoughLikeCount) | \(hotspot.rawBruxismLikeCount) | \(hotspot.rawMovementLikeCount) | \(publicNegativeCategoryReviewCue(hotspot)) |"
+    }
+  }
+
   private static func balancedDeltaRows(summaries: [OfflineProfileSummary]) -> [String] {
     guard !summaries.isEmpty else {
       return ["| none | 0 | 0 | 0 | 0 | 비교할 record가 없습니다. |"]
@@ -2301,6 +2365,20 @@ public struct OfflineProfileComparisonRunner {
     return "현재 public negative에서는 raw event 후보가 거의 없습니다."
   }
 
+  private static func publicNegativeCategoryReviewCue(_ hotspot: OfflineNegativeCategorySummary) -> String {
+    if hotspot.finalSnoreRecordCount > 0 {
+      return "이 category에서 final snore가 생깁니다. threshold 완화 전 category별 guard를 먼저 확인하세요."
+    }
+    if hotspot.rawSnoreCount > 0 {
+      return "raw snore가 남지만 final은 막혔습니다. smoothing guard가 유지되는지 비교하세요."
+    }
+    let transientCount = hotspot.rawCoughLikeCount + hotspot.rawBruxismLikeCount + hotspot.rawMovementLikeCount
+    if transientCount > 0 {
+      return "transient raw 후보가 많습니다. cough/movement와 snore 동시 승격 여부를 확인하세요."
+    }
+    return "category별 raw/final snore 위험은 낮게 보입니다."
+  }
+
   private static func balancedDeltaCue(
     summary: OfflineProfileSummary,
     balanced: OfflineProfileSummary
@@ -2415,6 +2493,60 @@ public struct OfflineProfileComparisonRunner {
 
   private static func hasFinalSnoreEvent(_ record: OfflineEvaluationRecord) -> Bool {
     record.finalEventCountByType[SleepEventType.snore.rawValue, default: 0] > 0
+  }
+
+  private static func snoreNegativeCategoryHotspots(
+    profile: String,
+    records: [OfflineEvaluationRecord]
+  ) -> [OfflineNegativeCategorySummary] {
+    let grouped = Dictionary(grouping: records) { record in
+      normalizedCategory(record.sourceCategory)
+    }
+
+    return grouped.map { category, records in
+      let rawCounts = records.reduce(into: [String: Int]()) { result, record in
+        for (type, count) in record.rawCandidateCountByType {
+          result[type, default: 0] += count
+        }
+      }
+      return OfflineNegativeCategorySummary(
+        profile: profile,
+        category: category,
+        recordCount: records.count,
+        finalSnoreRecordCount: records.filter(Self.hasFinalSnoreEvent).count,
+        finalSnoreEventCount: records.reduce(0) {
+          $0 + $1.finalEventCountByType[SleepEventType.snore.rawValue, default: 0]
+        },
+        rawSnoreCount: rawTypeCount(rawCounts, .snore),
+        rawCoughLikeCount: rawTypeCount(rawCounts, .coughLike),
+        rawBruxismLikeCount: rawTypeCount(rawCounts, .bruxismLike),
+        rawMovementLikeCount: rawTypeCount(rawCounts, .movementLike)
+      )
+    }
+    .sorted { lhs, rhs in
+      if lhs.finalSnoreRecordCount != rhs.finalSnoreRecordCount {
+        return lhs.finalSnoreRecordCount > rhs.finalSnoreRecordCount
+      }
+      if lhs.rawSnoreCount != rhs.rawSnoreCount {
+        return lhs.rawSnoreCount > rhs.rawSnoreCount
+      }
+      let lhsTransient = lhs.rawCoughLikeCount + lhs.rawBruxismLikeCount + lhs.rawMovementLikeCount
+      let rhsTransient = rhs.rawCoughLikeCount + rhs.rawBruxismLikeCount + rhs.rawMovementLikeCount
+      if lhsTransient != rhsTransient {
+        return lhsTransient > rhsTransient
+      }
+      if lhs.recordCount != rhs.recordCount {
+        return lhs.recordCount > rhs.recordCount
+      }
+      return lhs.category < rhs.category
+    }
+    .prefix(12)
+    .map { $0 }
+  }
+
+  private static func normalizedCategory(_ category: String?) -> String {
+    let value = category?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return value.isEmpty ? "uncategorized" : value
   }
 
   private static func normalizedLabels(_ labels: [String]) -> Set<String> {
@@ -3227,6 +3359,7 @@ public struct OfflineEvaluationRunner {
       "detectorBackend",
       "tuningProfile",
       "fileId",
+      "sourceCategory",
       "segmentStartSeconds",
       "segmentDurationSeconds",
       "receivedAudioSeconds",
@@ -3256,6 +3389,7 @@ public struct OfflineEvaluationRunner {
         record.detectorBackend,
         record.tuningProfile,
         record.fileId,
+        record.sourceCategory ?? "",
         Self.format(record.segmentStartSeconds),
         Self.format(record.segmentDurationSeconds),
         Self.format(record.receivedAudioSeconds),
@@ -3423,6 +3557,7 @@ public struct OfflineEvaluationRunner {
       datasetName: segment.datasetName,
       fileId: segment.fileId,
       filePath: segment.localFilePath,
+      sourceCategory: Self.sourceCategory(from: segment),
       segmentStartSeconds: segment.segmentStartSeconds,
       segmentDurationSeconds: segment.segmentDurationSeconds,
       expectedLabels: segment.expectedLabels
@@ -3435,6 +3570,17 @@ public struct OfflineEvaluationRunner {
       return URL(fileURLWithPath: expandedPath)
     }
     return manifestDirectory.appendingPathComponent(expandedPath).standardizedFileURL
+  }
+
+  private static func sourceCategory(from segment: OfflineEvaluationManifestSegment) -> String? {
+    let notes = segment.notes ?? ""
+    guard let range = notes.range(of: "category=") else { return nil }
+    let rawCategory = notes[range.upperBound...]
+      .prefix { character in
+        !character.isWhitespace && character != "," && character != ";"
+      }
+    let category = rawCategory.trimmingCharacters(in: .whitespacesAndNewlines)
+    return category.isEmpty ? nil : String(category)
   }
 
   private func typeDictionary(_ values: [SleepEventType: Int]) -> [String: Int] {

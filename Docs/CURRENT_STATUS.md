@@ -75,6 +75,7 @@
 - Detector Offline Evaluation profile 비교 markdown quick summary
 - Detector Offline Evaluation snore/negative snapshot과 balanced delta markdown summary
 - Detector Offline Evaluation zero-event stage breakdown markdown summary
+- Detector Offline Evaluation public negative category hotspot markdown summary
 - ESC-50 public dataset local manifest generator for detector smoke QA
 - DEBUG detector diagnostics QA readout 공유
 - snore baseline/backend comparison 도구
@@ -84,6 +85,7 @@
 - Core ML model target 적용 전 dry-run validation gate
 - Recording 화면 UI refresh throttle과 상세 diagnostics collapse
 - close low+mid snore-like texture guard와 voice-like/steady hum negative regression
+- cough/movement dominant transient가 snore로 동시에 승격되는 경로 guard
 - retained input chunk 전체를 보는 spectral feature extraction과 delayed snore chunk regression
 - Simulator QA scenarios
 - Real-device QA runbook preflight/redaction/failure triage

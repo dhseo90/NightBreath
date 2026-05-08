@@ -196,6 +196,26 @@ Regression guard:
 - high-energy broadband 입력은 cough/bruxism/movement보다 environmentalNoise raw 후보로 먼저 남깁니다.
 - 이 변경은 진단 표현을 추가하지 않고, rule-based placeholder의 과검출을 줄이기 위한 QA guard입니다.
 
+## 2026-05-09 public negative category hotspot guard
+
+ESC-50 전체 sweep에서 public negative의 raw snore/cough/movement가 어느 category에 몰리는지 보기 위해 `OfflineProfileCompare` report에 `Public Negative Category Hotspots`를 추가했습니다.
+
+- `OfflineEvaluationRecord.sourceCategory`는 ESC-50 manifest notes의 `category=` 값을 보존합니다.
+- Category Hotspots는 `silence`/`unknown`/`environmentalNoise` negative record를 category별로 묶고 raw snore, cough-like, bruxism-like, movement-like, final snore record/event 수를 보여줍니다.
+- 특정 category에서 final snore가 높으면 Release 기본 profile을 민감하게 올리지 않고 해당 category guard를 먼저 봅니다.
+- cough-like 또는 movement-like transient가 snore로 동시에 승격되는 경로를 줄이기 위해, low-band가 충분히 지배적이지 않은 짧고 강한 transient는 snore 후보보다 cough/movement 후보로 분리합니다.
+- `helicopter`, `washing_machine`, `engine`처럼 높은 RMS의 지속 기계성 저주파 texture는 noise floor와 peak/RMS 대비를 함께 보아 snore raw 후보에서 제외합니다.
+- low-band dominant snore-like burst는 기존 snore path를 유지합니다.
+- DEBUG 설정 UI는 `verySensitive`/`sensitive` 선택지를 `DEBUG 비교`로 표시해 Release 기본값이 계속 `balanced`임을 분리합니다.
+
+Local ESC-50 all-category sample sweep 결과:
+
+- 대상: 285 segments, 5 profiles, rule-based backend, generated output은 gitignore 경로에만 저장
+- latest guard 전: snore candidates 2,381, final snore events 1,282
+- latest guard 후: snore candidates 2,059, final snore events 1,021
+- residual hotspot: `washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm` category는 여전히 final snore가 남아 추가 category별 guard 검토가 필요합니다.
+- sensitive/verySensitive는 negative FP-like delta가 계속 증가하므로 Release 기본값으로 올리지 않습니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.
@@ -290,8 +310,9 @@ swift run OfflineProfileCompare \
 2. `Recall / Risk Matrix`: raw → final 후보 수, final event type, top reject reason을 profile별로 비교합니다.
 3. `Snore / Negative Snapshot`: expected snore segment가 final snore로 남았는지와 silence/unknown/environmentalNoise negative segment에서 final snore가 생겼는지를 같이 봅니다.
 4. `Public Negative Raw Event Mix`: public negative segment에서 raw snore, cough-like, bruxism-like, movement-like 후보가 얼마나 생겼는지 봅니다.
-5. `Delta From Balanced`: Release 기본 `balanced` 대비 final event, zero-event, FP-like, FN-like 증감을 확인합니다.
-6. `Zero Event Stage Breakdown`: raw 후보 없음, raw 후보는 있었지만 final 없음, smoothing drop, post-smoothing 이후 final 누락을 분리합니다.
+5. `Public Negative Category Hotspots`: ESC-50 `category=` 기준으로 final snore 또는 raw transient가 몰리는 negative 그룹을 봅니다.
+6. `Delta From Balanced`: Release 기본 `balanced` 대비 final event, zero-event, FP-like, FN-like 증감을 확인합니다.
+7. `Zero Event Stage Breakdown`: raw 후보 없음, raw 후보는 있었지만 final 없음, smoothing drop, post-smoothing 이후 final 누락을 분리합니다.
 
 `Snore / Negative Snapshot`과 `Delta From Balanced`에서 sensitive 계열의 누락 감소가 보이더라도 negative segment의 final snore 발생률 또는 FP-like delta가 늘면 Release 기본값으로 바로 올리지 않습니다.
 

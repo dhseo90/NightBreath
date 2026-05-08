@@ -260,6 +260,28 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func sustainedMachineLikeLowBandNoiseDoesNotBecomeSnoreRawCandidate() {
+        let configuration = DetectorTuningProfile.balanced.configuration
+        let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
+
+        let output = detector.detect(
+            features: makeFeatures(
+                rms: 0.120,
+                energy: 0.0144,
+                peak: 0.170,
+                zeroCrossingRate: 0.12,
+                lowFrequencyEnergyRatio: 0.62,
+                midBandEnergy: 0.22,
+                highBandEnergy: 0.16,
+                spectralCentroid: 700,
+                estimatedNoiseLevel: 0.100
+            )
+        )
+
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func snoreLikePeakShapeStillBecomesSnoreWhenLowBandDominant() {
         let configuration = DetectorTuningProfile.balanced.configuration
         let detector = RuleBasedSleepEventDetector(thresholds: configuration.ruleBasedThresholds)
@@ -499,6 +521,27 @@ struct RuleBasedSleepEventDetectorTests {
     }
 
     @Test
+    func coughDominantTransientDoesNotAlsoBecomeSnore() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 0.7,
+                rms: 0.060,
+                energy: 0.0036,
+                peak: 0.300,
+                zeroCrossingRate: 0.19,
+                lowFrequencyEnergyRatio: 0.50,
+                midBandEnergy: 0.34,
+                highBandEnergy: 0.18,
+                spectralCentroid: 1_300,
+                estimatedNoiseLevel: 0.025
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.coughLike))
+        #expect(!output.map(\.eventType).contains(.snore))
+    }
+
+    @Test
     func steadyBroadbandInputDoesNotBecomeCoughLikeCandidate() {
         let output = RuleBasedSleepEventDetector().detect(
             features: makeFeatures(
@@ -516,6 +559,27 @@ struct RuleBasedSleepEventDetectorTests {
         )
 
         #expect(!output.map(\.eventType).contains(.coughLike))
+    }
+
+    @Test
+    func movementDominantTransientDoesNotAlsoBecomeSnore() {
+        let output = RuleBasedSleepEventDetector().detect(
+            features: makeFeatures(
+                duration: 1.0,
+                rms: 0.060,
+                energy: 0.0036,
+                peak: 0.205,
+                zeroCrossingRate: 0.38,
+                lowFrequencyEnergyRatio: 0.55,
+                midBandEnergy: 0.23,
+                highBandEnergy: 0.22,
+                spectralCentroid: 1_400,
+                estimatedNoiseLevel: 0.022
+            )
+        )
+
+        #expect(output.map(\.eventType).contains(.movementLike))
+        #expect(!output.map(\.eventType).contains(.snore))
     }
 
     @Test

@@ -16,6 +16,16 @@ struct DetectorThresholdConfigurationTests {
     }
 
     @Test
+    func sensitiveProfilesAreLabeledAsDebugComparisonOnly() {
+        #expect(DetectorTuningProfile.verySensitive.isDebugComparisonOnly)
+        #expect(DetectorTuningProfile.sensitive.isDebugComparisonOnly)
+        #expect(!DetectorTuningProfile.balanced.isDebugComparisonOnly)
+        #expect(DetectorTuningProfile.verySensitive.debugSelectionDisplayName.contains("DEBUG 비교"))
+        #expect(DetectorTuningProfile.sensitive.debugSelectionDisplayName.contains("DEBUG 비교"))
+        #expect(DetectorTuningProfile.balanced.debugSelectionDisplayName == "보통")
+    }
+
+    @Test
     func profileThresholdsStayOrderedBySensitivity() {
         let verySensitive = DetectorTuningProfile.verySensitive.configuration
         let sensitive = DetectorTuningProfile.sensitive.configuration

@@ -129,6 +129,57 @@ struct OfflineProfileComparisonTests {
   }
 
   @Test
+  func summarizesPublicNegativeCategoryHotspotsByProfile() {
+    let records = [
+      makeRecord(
+        profile: "balanced",
+        fileId: "coughing-a",
+        expectedLabels: ["unknown"],
+        finalEventCountByType: ["snore": 1],
+        rawCandidateCount: 3,
+        rawCandidateCountByType: ["snore": 1, "coughLike": 2],
+        sourceCategory: "coughing"
+      ),
+      makeRecord(
+        profile: "balanced",
+        fileId: "coughing-b",
+        expectedLabels: ["unknown"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 1,
+        rawCandidateCountByType: ["coughLike": 1],
+        sourceCategory: "coughing"
+      ),
+      makeRecord(
+        profile: "balanced",
+        fileId: "wind-a",
+        expectedLabels: ["environmentalNoise"],
+        finalEventCountByType: [:],
+        rawCandidateCount: 2,
+        rawCandidateCountByType: ["movementLike": 2],
+        sourceCategory: "wind"
+      ),
+    ]
+
+    let summary = try! #require(
+      OfflineProfileComparisonRunner.makeProfileSummaries(
+        records: records,
+        findings: OfflineProfileComparisonRunner.makeLabelFindings(records: records)
+      ).first
+    )
+    let hotspots = summary.snoreNegativeCategoryHotspots ?? []
+    let coughing = try! #require(hotspots.first { $0.category == "coughing" })
+    let wind = try! #require(hotspots.first { $0.category == "wind" })
+
+    #expect(hotspots.first?.category == "coughing")
+    #expect(coughing.recordCount == 2)
+    #expect(coughing.finalSnoreRecordCount == 1)
+    #expect(coughing.finalSnoreEventCount == 1)
+    #expect(coughing.rawSnoreCount == 1)
+    #expect(coughing.rawCoughLikeCount == 3)
+    #expect(wind.rawMovementLikeCount == 2)
+  }
+
+  @Test
   func summarizesSnoreNegativeRiskForEnvironmentalNoiseLabels() {
     let records = [
       makeRecord(
@@ -251,6 +302,7 @@ struct OfflineProfileComparisonTests {
         finalEventCountByType: ["environmentalNoise": 1],
         rawCandidateCount: 2,
         rawCandidateCountByType: ["coughLike": 1, "environmentalNoise": 1],
+        sourceCategory: "coughing",
         rejectReasonTop: [OfflineEvaluationReasonCount(reason: "likelyEnvironmentalNoise", count: 1)]
       ),
     ]
@@ -277,6 +329,8 @@ struct OfflineProfileComparisonTests {
     #expect(report.contains("## Public Negative Raw Event Mix"))
     #expect(report.contains("| balanced | 1 | 0 | 0 | 0 | 0 | 0 | none | 현재 public negative에서는 raw event 후보가 거의 없습니다. |"))
     #expect(report.contains("| sensitive | 1 | 0 | 1 | 0 | 0 | 1 | coughLike: 1, environmentalNoise: 1 | negative에서 transient raw 후보가 남았습니다. cough/bruxism/movement guard 변화를 추적하세요. |"))
+    #expect(report.contains("## Public Negative Category Hotspots"))
+    #expect(report.contains("| sensitive | coughing | 1 | 0 | 0 | 0 | 1 | 0 | 0 | transient raw 후보가 많습니다. cough/movement와 snore 동시 승격 여부를 확인하세요. |"))
     #expect(report.contains("## Delta From Balanced"))
     #expect(report.contains("| balanced | 0 | 0 | 0 | 0 | Release 기본 profile 기준선입니다. |"))
     #expect(report.contains("| sensitive | +2 | -2 | +1 | -1 | balanced보다 FP-like가 늘었습니다. Release 기본값 후보로 바로 올리지 마세요. |"))
@@ -332,6 +386,7 @@ struct OfflineProfileComparisonTests {
     finalEventCountByType: [String: Int],
     rawCandidateCount: Int,
     rawCandidateCountByType: [String: Int]? = nil,
+    sourceCategory: String? = nil,
     averageConfidence: Double? = nil,
     rejectReasonTop: [OfflineEvaluationReasonCount] = []
   ) -> OfflineEvaluationRecord {
@@ -342,6 +397,7 @@ struct OfflineProfileComparisonTests {
       datasetName: "unit-test",
       fileId: fileId,
       filePath: "local-only.caf",
+      sourceCategory: sourceCategory,
       segmentStartSeconds: 0,
       segmentDurationSeconds: 10,
       expectedLabels: expectedLabels,

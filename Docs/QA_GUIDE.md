@@ -135,7 +135,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 - reject reason, raw 후보 수, 최종 이벤트 수 확인
 - threshold 변경 후보를 수동 검토용 보고서로 생성
 
-`OfflineProfileCompare`의 `tuning_report.md`에서는 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Public Negative Raw Event Mix, Delta From Balanced, Zero Event Stage Breakdown을 순서대로 확인합니다. 특히 Snore / Negative Snapshot은 expected snore hit와 silence/unknown/environmentalNoise negative segment의 final snore 발생률을 함께 보여주므로, 민감 profile에서 누락이 줄어도 소음 구간 코골기 오탐 위험이 늘었는지 먼저 확인합니다. Public Negative Raw Event Mix에서는 final snore가 없어도 cough-like, bruxism-like, movement-like raw 후보가 늘었는지 확인해 transient guard가 약해졌는지 봅니다.
+`OfflineProfileCompare`의 `tuning_report.md`에서는 Quick Comparison, Recall / Risk Matrix, Snore / Negative Snapshot, Public Negative Raw Event Mix, Public Negative Category Hotspots, Delta From Balanced, Zero Event Stage Breakdown을 순서대로 확인합니다. 특히 Snore / Negative Snapshot은 expected snore hit와 silence/unknown/environmentalNoise negative segment의 final snore 발생률을 함께 보여주므로, 민감 profile에서 누락이 줄어도 소음 구간 코골기 오탐 위험이 늘었는지 먼저 확인합니다. Public Negative Raw Event Mix에서는 final snore가 없어도 cough-like, bruxism-like, movement-like raw 후보가 늘었는지 확인해 transient guard가 약해졌는지 봅니다. Public Negative Category Hotspots에서는 ESC-50 `category=` 기준으로 raw snore/cough/movement가 몰리는 negative 그룹을 먼저 분해합니다.
 
 세부 detector/dataset 문서는 `Docs/DETECTOR_TUNING.md`, `Docs/DATASET_REPLAY.md`, `Docs/DATASET_GUIDE.md`, `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
@@ -244,6 +244,7 @@ swift run OfflineProfileCompare \
 - `balanced`에서 ESC-50 `snoring` segment의 final snore hit가 0에 가까우면 실기기 전 detector/feature 병목으로 봅니다.
 - `rawCandidateCountByType.snore`는 있으나 final snore가 없으면 smoothing/drop 기준을 확인합니다.
 - negative guard segment에서 final snore가 증가하면 민감도 상향 또는 threshold 완화는 보류합니다.
+- Public Negative Category Hotspots에서 특정 ESC-50 category에 final snore가 몰리면 해당 category의 guard를 먼저 보강하고, sensitive/verySensitive를 Release 기본값으로 올리지 않습니다.
 - 공개 dataset 결과는 개발용 smoke QA이며 실제 iPhone 배치/마이크/overnight 안정성 검증을 대체하지 않습니다.
 
 2026-05-05 detector smoke 항목:

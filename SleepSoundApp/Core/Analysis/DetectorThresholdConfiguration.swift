@@ -50,6 +50,19 @@ public enum DetectorTuningProfile: String, CaseIterable, Codable, Identifiable, 
         }
     }
 
+    public var debugSelectionDisplayName: String {
+        isDebugComparisonOnly ? "\(displayName) · DEBUG 비교" : displayName
+    }
+
+    public var isDebugComparisonOnly: Bool {
+        switch self {
+        case .verySensitive, .sensitive:
+            true
+        case .balanced, .conservative, .veryConservative, .customDebug:
+            false
+        }
+    }
+
     public var koreanDescription: String {
         switch self {
         case .verySensitive:

@@ -144,11 +144,13 @@
 - RMS 0.045 미만 snore 후보는 `rule.lowLevelSnore*`/relative-energy/low-band/ZCR/high-band/centroid guard 통과 여부를 QA 기록에 남김
 - 침대 위 충전 상태 거리에서 snore raw 후보가 생기는지, 같은 배치의 조용한 구간/주변 소음 negative에서 snore raw 후보가 늘지 않는지 확인
 - 공개 negative에서 fan/HVAC/mechanical 저주파가 steady noise guard로 raw snore에 들어오지 않는지 profile별로 재집계
-- cough/bruxism/movement raw count가 transient guard 이후 공개 negative smoke에서 얼마나 줄었는지 재집계
+- Public Negative Category Hotspots report 보강 완료. 다음 ESC-50 sweep에서는 category별 final snore/raw transient 감소 여부를 이 표로 비교
+- cough/movement dominant transient가 snore와 동시에 승격되는 경로 guard 보강 완료. 다음 공개 negative smoke에서 raw/final snore 감소 여부를 재집계
+- ESC-50 all-category sample sweep에서 latest guard 후 snore candidates 2,381 → 2,059, final snore events 1,282 → 1,021로 감소. `washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm` residual hotspot은 남음
 - Offline Evaluation으로 verySensitive / sensitive / balanced / conservative / veryConservative profile 비교
 - 긴 public dataset sweep은 `--checkpoint-every`로 partial JSON/CSV를 남기고, 중간 실패 시 checkpoint부터 원인 분석
 - ESC-50 전체 public sweep은 `--checkpoint-every 50`과 profile 5종으로 재실행 완료. local ignored output 기준 balanced도 public negative final snore rate가 높게 나와, 실기기 feedback 전 Release 기본 민감도 상향보다 negative guard 세분화를 우선합니다.
-- `Public Negative Raw Event Mix`에서 cough-like, bruxism-like, movement-like raw 후보와 raw snore가 함께 높게 나오는 category를 분리해 category별 false-positive-like guard를 재검토
+- `Public Negative Raw Event Mix`와 `Public Negative Category Hotspots`로 cough-like, bruxism-like, movement-like raw 후보와 raw snore가 함께 높게 나오는 category를 분리해 category별 false-positive-like guard를 재검토
 - `Tools/OfflineEvaluation/validate_sample_manifest.py`로 replay manifest schema, 짧은 segment duration, git-tracked audio 참조 여부를 로컬에서 먼저 확인
 - 민감도 preset synthetic guard는 보강 완료. 실제 iPhone 배치별 raw/final count와 false-positive-like negative는 private evidence로 확인 필요
 - Offline Evaluation profile 비교 markdown quick summary 보강 완료
