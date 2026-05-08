@@ -32,9 +32,9 @@ struct HealthDashboardView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
+        recentMeasurementShortcutSection
         stateNotice
         dataStateSection
-        recentMeasurementShortcutSection
         dashboardEntrySection
 
         if dataStateSummary.shouldShowEmptyState {
@@ -344,39 +344,72 @@ struct HealthDashboardView: View {
 
   @ViewBuilder
   private var recentMeasurementShortcutSection: some View {
-    if let latestDate = healthCalendarLatestDate {
-      let detailData = calendarBuilder.detailData(
-        for: latestDate,
-        samples: unifiedDashboardSamples,
-        sleepReports: calendarReports,
-        morningCheckIns: calendarMorningCheckIns,
-        eveningCheckIns: []
-      )
+    NBReportSection(
+      title: "바로가기",
+      subtitle: "자주 보는 건강 데이터 화면을 한 번에 엽니다.",
+      systemImage: "arrow.up.right.square"
+    ) {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        if let latestDate = healthCalendarLatestDate {
+          let detailData = calendarBuilder.detailData(
+            for: latestDate,
+            samples: unifiedDashboardSamples,
+            sleepReports: calendarReports,
+            morningCheckIns: calendarMorningCheckIns,
+            eveningCheckIns: []
+          )
 
-      NBReportSection(title: "최근 날짜 바로가기", systemImage: "calendar.badge.clock") {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
           NavigationLink {
             DailyMeasurementDetailView(
               detailData: detailData,
               allSamples: unifiedDashboardSamples
             )
           } label: {
-            HealthDashboardEntryCard(
+            HealthDashboardShortcutCard(
               title: "최근 날짜 자세히 보기",
               subtitle: "수면, 혈압, 체성분, Fitdays import를 한 날짜에서 확인",
               systemImage: "calendar.badge.clock",
-              tint: NBColor.dawn,
-              sampleCount: detailData.summary.sampleCount,
-              latestDate: detailData.date
+              tint: NBColor.dawn
             )
           }
           .buttonStyle(.plain)
-
-          Text("최근 날짜는 로컬 import, Apple 건강앱 read-only 샘플, 밤숨 앱 계산 지표 중 가장 최신 측정일 기준입니다.")
-            .font(NBTypography.caption)
-            .foregroundStyle(NBColor.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
         }
+
+        NavigationLink {
+          HealthCalendarView(
+            samples: unifiedDashboardSamples,
+            sleepReports: calendarReports,
+            morningCheckIns: calendarMorningCheckIns,
+            eveningCheckIns: [],
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardShortcutCard(
+            title: "건강 캘린더",
+            subtitle: "날짜별 수면·건강·체크인 데이터 보기",
+            systemImage: "calendar",
+            tint: NBColor.privacyTint
+          )
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+          FitdaysImportView()
+        } label: {
+          HealthDashboardShortcutCard(
+            title: "Fitdays 붙여넣기",
+            subtitle: "월별 복사 텍스트나 CSV 파일을 로컬로 저장",
+            systemImage: "doc.on.clipboard",
+            tint: NBColor.mistTeal
+          )
+        }
+        .buttonStyle(.plain)
+
+        Text("최근 날짜는 로컬 import, Apple 건강앱 read-only 샘플, 밤숨 앱 계산 지표 중 가장 최신 측정일 기준입니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -699,5 +732,49 @@ private struct HealthDashboardEntryCard: View {
       return "샘플 \(sampleCount)개"
     }
     return "샘플 \(sampleCount)개 · 최근 \(SleepFormatters.shortDate(latestDate))"
+  }
+}
+
+private struct HealthDashboardShortcutCard: View {
+  let title: String
+  let subtitle: String
+  let systemImage: String
+  let tint: Color
+
+  var body: some View {
+    HStack(spacing: NBSpacing.medium) {
+      Image(systemName: systemImage)
+        .font(.headline)
+        .foregroundStyle(tint)
+        .frame(width: 32, height: 32)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: NBCornerRadius.small))
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+          .font(NBTypography.callout.weight(.semibold))
+          .foregroundStyle(NBColor.primaryText)
+          .lineLimit(1)
+        Text(subtitle)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      Spacer(minLength: NBSpacing.small)
+
+      Image(systemName: "chevron.right")
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(NBColor.tertiaryText)
+        .accessibilityHidden(true)
+    }
+    .padding(NBSpacing.small)
+    .background(NBColor.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: NBCornerRadius.small))
+    .overlay {
+      RoundedRectangle(cornerRadius: NBCornerRadius.small)
+        .stroke(NBColor.border.opacity(0.7), lineWidth: 1)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(title), \(subtitle)")
   }
 }

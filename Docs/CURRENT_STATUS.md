@@ -18,6 +18,7 @@
 - `SleepAudioProcessingPipeline`은 5시간 synthetic chunk 세션 finalize가 bounded state로 빠르게 끝나는 회귀 테스트를 추가했습니다.
 - DEBUG `AudioDebugView`는 live RMS/energy/low-band 분포를 bounded sampler로 요약하고, smoothing 진단용 raw output은 최근 후보만 유지합니다.
 - AppState의 chunk별 feature/detector processing task는 detached utility task로 실행하고, UI snapshot 반영만 MainActor로 되돌립니다.
+- 건강 tab 첫 화면은 최근 날짜 상세, 건강 캘린더, Fitdays 붙여넣기 바로가기를 상단에 배치해 건강 데이터 탐색 단계를 줄였습니다.
 
 ## 완료
 

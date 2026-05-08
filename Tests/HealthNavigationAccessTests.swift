@@ -23,12 +23,18 @@ struct HealthNavigationAccessTests {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
 
         #expect(contents.contains("recentMeasurementShortcutSection"))
-        #expect(contents.contains("최근 날짜 바로가기"))
+        #expect(contents.contains("title: \"바로가기\""))
         #expect(contents.contains("최근 날짜 자세히 보기"))
+        #expect(contents.contains("HealthDashboardShortcutCard"))
+        #expect(contents.contains("Fitdays 붙여넣기"))
         #expect(contents.contains("DailyMeasurementDetailView("))
         #expect(contents.contains("calendarBuilder.detailData"))
         #expect(contents.contains("healthCalendarLatestDate"))
         #expect(contents.contains("가장 최신 측정일 기준"))
+
+        let bodyShortcut = try #require(contents.range(of: "recentMeasurementShortcutSection")?.lowerBound)
+        let bodyDataState = try #require(contents.range(of: "dataStateSection")?.lowerBound)
+        #expect(bodyShortcut < bodyDataState)
 
         let sectionStart = try #require(contents.range(of: "private var recentMeasurementShortcutSection")?.lowerBound)
         let sectionEnd = try #require(contents.range(of: "private var dataStateSection")?.lowerBound)
