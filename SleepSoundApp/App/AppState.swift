@@ -518,6 +518,9 @@ final class AppState: ObservableObject {
         let completedSession = makeCompletedSession(from: session, endedAt: endedAt)
         let processor = audioProcessingPipeline
         let pendingProcessingTask = audioProcessingTask
+        let replayAnalyzer = sleepAnalyzer
+        let replayThresholds = currentDetectorThresholdSnapshot
+        let recentChunksForReplay = recentAudioBuffer.snapshot()
 
         cancelPendingEventAudioSnippetTasks()
         audioCaptureMetrics.recordAnalyzerFinalizeStarted(at: Date())
@@ -532,6 +535,13 @@ final class AppState: ObservableObject {
         sleepFinalizationTask?.cancel()
         sleepFinalizationTask = Task { [weak self] in
             await pendingProcessingTask?.value
+            let recentReplaySummary = recentChunksForReplay.isEmpty
+                ? nil
+                : replayAnalyzer.makeReplayDetectionSummary(
+                    label: "recent-audio-debug-preview",
+                    chunks: recentChunksForReplay,
+                    thresholdsSnapshot: replayThresholds
+                )
 
             let result: SleepAudioProcessingFinalizationResult
             if let processor {
@@ -554,6 +564,7 @@ final class AppState: ObservableObject {
                 completedSession: completedSession,
                 finalizationResult: result,
                 processor: processor,
+                recentReplaySummary: recentReplaySummary,
                 debugPreview: debugPreview
             )
         }
@@ -563,6 +574,7 @@ final class AppState: ObservableObject {
         completedSession: SleepSession,
         finalizationResult: SleepAudioProcessingFinalizationResult,
         processor: SleepAudioProcessingPipeline?,
+        recentReplaySummary: ReplayDetectionSummary?,
         debugPreview: EventAudioSnippet?
     ) async {
         guard activeSession?.id == completedSession.id else {
@@ -589,10 +601,15 @@ final class AppState: ObservableObject {
             captureMetrics: audioCaptureMetrics
         )
         audioCaptureMetrics.recordReportGenerationFinished(at: Date())
-        let diagnostics = await processor?.finalizeDiagnostics(
+        var diagnostics = await processor?.finalizeDiagnostics(
             endedAt: completedSession.endedAt ?? Date(),
             finalEvents: events,
             finalMetrics: audioCaptureMetrics
+        )
+        attachRecentReplaySummary(
+            recentReplaySummary,
+            to: &diagnostics,
+            finalEventCount: events.count
         )
         report.detectorDiagnostics = diagnostics
 
@@ -620,6 +637,24 @@ final class AppState: ObservableObject {
         refreshRecentReports()
         refreshEventAudioStorageStats()
         recordDebugLifecycleEvent("sleep report finalized")
+    }
+
+    private func attachRecentReplaySummary(
+        _ replaySummary: ReplayDetectionSummary?,
+        to diagnostics: inout DetectorDiagnostics?,
+        finalEventCount: Int
+    ) {
+        guard let replaySummary else { return }
+        diagnostics?.recentAudioReplaySummary = replaySummary
+        diagnostics?.notes.append("Recent audio replay summary: \(replaySummary.briefText)")
+
+        if replaySummary.finalEventCount > 0, finalEventCount == 0 {
+            diagnostics?.notes.append("Recent audio replay produced final events while the full session report had zero events; check live pipeline, smoothing window, and report aggregation.")
+        } else if replaySummary.rawCandidateCount == 0, replaySummary.chunkCount > 0 {
+            diagnostics?.notes.append("Recent audio replay produced no raw candidates; check input level, feature scale, and raw detector gates.")
+        } else if replaySummary.rawCandidateCount > 0, replaySummary.finalEventCount == 0 {
+            diagnostics?.notes.append("Recent audio replay produced raw candidates but no final events; check smoothing and confidence gates.")
+        }
     }
 
     func saveMorningCheckIn(_ checkIn: MorningCheckIn) {

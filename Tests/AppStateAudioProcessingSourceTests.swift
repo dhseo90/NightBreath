@@ -30,6 +30,20 @@ struct AppStateAudioProcessingSourceTests {
     }
 
     @Test
+    func stopFinalizationReplaysRecentAudioForLiveOfflineParityDiagnostics() throws {
+        let source = try read("SleepSoundApp/App/AppState.swift")
+        let diagnosticsSource = try read("SleepSoundApp/Core/Analysis/DetectorDiagnostics.swift")
+
+        #expect(source.contains("let recentChunksForReplay = recentAudioBuffer.snapshot()"))
+        #expect(source.contains("makeReplayDetectionSummary("))
+        #expect(source.contains("attachRecentReplaySummary("))
+        #expect(source.contains("recentAudioReplaySummary"))
+        #expect(diagnosticsSource.contains("public var recentAudioReplaySummary: ReplayDetectionSummary?"))
+        #expect(diagnosticsSource.contains("recentReplayRawCandidateCountByType"))
+        #expect(diagnosticsSource.contains("recentReplayFinalEventCountByType"))
+    }
+
+    @Test
     func recordingViewKeepsClockAndDiagnosticsLightweight() throws {
         let source = try read("SleepSoundApp/Features/Sleep/SleepRecordingView.swift")
 

@@ -364,6 +364,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var latestPauseCandidateRejectedReason: String?
     public var latestFeatureDebugSummary: String?
     public var latestRawCandidateDebugSummary: String?
+    public var recentAudioReplaySummary: ReplayDetectionSummary?
     public var notes: [String]
 
     public init(
@@ -418,6 +419,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         latestPauseCandidateRejectedReason: String? = nil,
         latestFeatureDebugSummary: String? = nil,
         latestRawCandidateDebugSummary: String? = nil,
+        recentAudioReplaySummary: ReplayDetectionSummary? = nil,
         notes: [String] = []
     ) {
         self.sessionId = sessionId
@@ -471,6 +473,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         self.latestPauseCandidateRejectedReason = latestPauseCandidateRejectedReason
         self.latestFeatureDebugSummary = latestFeatureDebugSummary
         self.latestRawCandidateDebugSummary = latestRawCandidateDebugSummary
+        self.recentAudioReplaySummary = recentAudioReplaySummary
         self.notes = notes
     }
 
@@ -532,6 +535,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
             latestPauseCandidateRejectedReason: try container.decodeIfPresent(String.self, forKey: .latestPauseCandidateRejectedReason),
             latestFeatureDebugSummary: try container.decodeIfPresent(String.self, forKey: .latestFeatureDebugSummary),
             latestRawCandidateDebugSummary: try container.decodeIfPresent(String.self, forKey: .latestRawCandidateDebugSummary),
+            recentAudioReplaySummary: try container.decodeIfPresent(ReplayDetectionSummary.self, forKey: .recentAudioReplaySummary),
             notes: try container.decodeIfPresent([String].self, forKey: .notes) ?? []
         )
     }
@@ -588,6 +592,7 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
         case latestPauseCandidateRejectedReason
         case latestFeatureDebugSummary
         case latestRawCandidateDebugSummary
+        case recentAudioReplaySummary
         case notes
     }
 
@@ -783,6 +788,8 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "snoreRejectReasonTop",
             "rejectReasonTop",
             "inputLevelAssessment",
+            "recentReplayRawCandidateCountByType",
+            "recentReplayFinalEventCountByType",
             "zeroEventSummary",
         ] {
             lines.append("| \(key) | \(rows[key] ?? "") |")
@@ -856,6 +863,8 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "snoreRejectReasonTop": diagnostics.snoreRejectReasonTop?.rawValue ?? "",
             "rejectReasonTop": diagnostics.topRejectReasons.prefix(5).map { "\($0.0.rawValue):\($0.1)" }.joined(separator: ";"),
             "inputLevelAssessment": diagnostics.inputLevelAssessment,
+            "recentReplayRawCandidateCountByType": diagnostics.recentAudioReplaySummary.map { eventCountText($0.rawCandidateCountByType) } ?? "",
+            "recentReplayFinalEventCountByType": diagnostics.recentAudioReplaySummary.map { eventCountText($0.finalEventCountByType) } ?? "",
             "rmsP50": number(diagnostics.rmsP50),
             "rmsP90": number(diagnostics.rmsP90),
             "energyP50": number(diagnostics.energyP50),
@@ -896,6 +905,8 @@ public struct DetectorDiagnosticsQAReadout: Sendable {
             "snoreRejectReasonTop",
             "rejectReasonTop",
             "inputLevelAssessment",
+            "recentReplayRawCandidateCountByType",
+            "recentReplayFinalEventCountByType",
             "rmsP50",
             "rmsP90",
             "energyP50",
@@ -1187,6 +1198,7 @@ public final class DetectorDiagnosticsCollector {
             latestPauseCandidateRejectedReason: sequenceSummary.latestPauseCandidateRejectedReason,
             latestFeatureDebugSummary: latestFeatureDebugSummary,
             latestRawCandidateDebugSummary: latestRawCandidateDebugSummary,
+            recentAudioReplaySummary: nil,
             notes: notes
         )
     }

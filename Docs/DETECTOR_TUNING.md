@@ -152,6 +152,16 @@ Regression guard:
 
 이 변경은 전체 밤 원본 오디오 저장과 무관하며, retained chunk feature summary만 계산합니다.
 
+## 2026-05-08 recent audio replay parity diagnostics
+
+실제 iPhone에서 최근 오디오 미리듣기에는 코골기처럼 들리지만 리포트 이벤트가 0개인 경우를 분리하기 위해, 종료 시점의 bounded recent audio buffer를 같은 `SleepAnalyzer`로 다시 replay한 요약을 `DetectorDiagnostics.recentAudioReplaySummary`에 남깁니다.
+
+- 이 replay는 전체 밤 원본 오디오 저장이 아니며, 기존 recent buffer의 짧은 bounded chunk만 사용합니다.
+- 저장되는 값은 raw/final event count, reject reason, RMS/energy summary 같은 diagnostics입니다.
+- replay에서 final event가 있는데 전체 세션 report가 0개이면 live pipeline, smoothing window, report aggregation 경로를 우선 확인합니다.
+- replay에서도 raw 후보가 0개이면 input level, feature scale, raw detector gate를 우선 확인합니다.
+- replay에서 raw 후보는 있지만 final event가 0개이면 smoothing/confidence gate를 우선 확인합니다.
+
 ## Public dataset smoke QA
 
 실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.

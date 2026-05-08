@@ -68,6 +68,7 @@
 		00000000000000000000023A /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000014E /* UserSettings.swift */; };
 		00000000000000000000023B /* EventAudioStorageStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000150 /* EventAudioStorageStats.swift */; };
 		00000000000000000000023C /* DetectorDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000151 /* DetectorDiagnostics.swift */; };
+		0000000000000000000002A4 /* ReplayDetectionSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001D4 /* ReplayDetectionSummary.swift */; };
 		0000000000000000000002A2 /* SleepAudioProcessingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0000000000000000000001D2 /* SleepAudioProcessingPipeline.swift */; };
 		00000000000000000000023D /* DetectorThresholdConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000153 /* DetectorThresholdConfiguration.swift */; };
 		00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000154 /* ZeroEventAnalysis.swift */; };
@@ -241,6 +242,7 @@
 		000000000000000000000150 /* EventAudioStorageStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventAudioStorageStats.swift; sourceTree = "<group>"; };
 		000000000000000000000151 /* DetectorDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorDiagnostics.swift; sourceTree = "<group>"; };
 		000000000000000000000152 /* DetectorDiagnosticsCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorDiagnosticsCollectorTests.swift; sourceTree = "<group>"; };
+		0000000000000000000001D4 /* ReplayDetectionSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReplayDetectionSummary.swift; sourceTree = "<group>"; };
 		000000000000000000000153 /* DetectorThresholdConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorThresholdConfiguration.swift; sourceTree = "<group>"; };
 		000000000000000000000154 /* ZeroEventAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZeroEventAnalysis.swift; sourceTree = "<group>"; };
 		000000000000000000000155 /* DetectorTuningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorTuningView.swift; sourceTree = "<group>"; };
@@ -519,6 +521,7 @@
 				00000000000000000000012D /* SleepEventDetector.swift */,
 					000000000000000000000138 /* SleepDetectionBackend.swift */,
 					000000000000000000000151 /* DetectorDiagnostics.swift */,
+					0000000000000000000001D4 /* ReplayDetectionSummary.swift */,
 					0000000000000000000001D2 /* SleepAudioProcessingPipeline.swift */,
 					000000000000000000000153 /* DetectorThresholdConfiguration.swift */,
 				000000000000000000000154 /* ZeroEventAnalysis.swift */,
@@ -818,6 +821,7 @@
 				000000000000000000000205 /* DetectorOutput.swift in Sources */,
 				000000000000000000000227 /* SleepEventDetector.swift in Sources */,
 				00000000000000000000023C /* DetectorDiagnostics.swift in Sources */,
+				0000000000000000000002A4 /* ReplayDetectionSummary.swift in Sources */,
 				00000000000000000000023D /* DetectorThresholdConfiguration.swift in Sources */,
 				00000000000000000000023E /* ZeroEventAnalysis.swift in Sources */,
 				000000000000000000000253 /* BreathingActivityEstimator.swift in Sources */,
