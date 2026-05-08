@@ -87,6 +87,63 @@ struct SleepAudioProcessingPipelineTests {
         #expect(diagnostics.rmsSummary.max > diagnostics.rmsSummary.min)
     }
 
+    @Test
+    func fiveHourSyntheticSessionFinalizesWithBoundedProcessingState() async throws {
+        let sessionId = UUID()
+        let startedAt = Date(timeIntervalSince1970: 30_000)
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer()
+        let pipeline = SleepAudioProcessingPipeline(
+            sessionId: sessionId,
+            startedAt: startedAt,
+            analyzer: analyzer,
+            detectorBackend: analyzer.detectorBackend.displayName,
+            modelInstalled: analyzer.isModelInstalled,
+            thresholdsSnapshot: analyzer.thresholdsSnapshot,
+            tuningProfile: DetectorTuningProfile.balanced.displayName,
+            eventAudioSampleStorageEnabled: false
+        )
+        let chunkDuration = 5.0
+        let chunkCount = Int((5 * 60 * 60) / chunkDuration)
+
+        for index in 0..<chunkCount {
+            let chunk = makeQuietSummaryOnlyChunk(
+                startedAt: startedAt.addingTimeInterval(Double(index) * chunkDuration),
+                duration: chunkDuration
+            )
+            _ = await pipeline.process(chunk: chunk)
+        }
+
+        var stopMetrics = await pipeline.metricsSnapshot()
+        let endedAt = startedAt.addingTimeInterval(Double(chunkCount) * chunkDuration)
+        stopMetrics.stop(at: endedAt)
+        stopMetrics.recordAnalyzerFinalizeStarted(at: endedAt)
+
+        let finalizeStarted = Date()
+        let result = await pipeline.finalize(endedAt: endedAt, stopMetrics: stopMetrics)
+        let finalizeElapsed = Date().timeIntervalSince(finalizeStarted)
+        let events = DetectorOutputMapper.makeEvents(from: result.smoothedOutputs, sessionId: sessionId)
+        var finalMetrics = result.metrics
+        finalMetrics.recordReportGenerationStarted(at: endedAt)
+        finalMetrics.recordReportGenerationFinished(at: endedAt)
+        let diagnostics = try #require(await pipeline.finalizeDiagnostics(
+            endedAt: endedAt,
+            finalEvents: events,
+            finalMetrics: finalMetrics
+        ))
+
+        #expect(finalizeElapsed < 1.5)
+        #expect(result.metrics.receivedChunkCount == chunkCount)
+        #expect(result.metrics.analyzedChunkCount == chunkCount)
+        #expect(result.metrics.receivedAudioSeconds == Double(chunkCount) * chunkDuration)
+        #expect(result.metrics.analyzedAudioSeconds == Double(chunkCount) * chunkDuration)
+        #expect(result.allOutputs.count < 25)
+        #expect(result.smoothedOutputs.isEmpty)
+        #expect(diagnostics.analyzedChunkCount == chunkCount)
+        #expect(diagnostics.rmsSummary.count == chunkCount)
+        #expect(diagnostics.energySummary.count == chunkCount)
+        #expect(diagnostics.eventAudioSampleStorageEnabled == false)
+    }
+
     private func makeSnoreLikeChunk(startedAt: Date) -> AudioChunk {
         let sampleRate = 16_000.0
         let frameCount = 1_600
@@ -129,6 +186,21 @@ struct SleepAudioProcessingPipelineTests {
             highBandEnergy: 0.08,
             estimatedNoiseLevel: rms,
             isLikelySilence: rms < 0.01
+        )
+    }
+
+    private func makeQuietSummaryOnlyChunk(
+        startedAt: Date,
+        duration: TimeInterval
+    ) -> AudioChunk {
+        AudioChunk(
+            timestamp: startedAt,
+            sampleRate: 16_000,
+            channelCount: 1,
+            frameCount: Int(16_000 * duration),
+            duration: duration,
+            rms: 0.002,
+            samples: []
         )
     }
 }
