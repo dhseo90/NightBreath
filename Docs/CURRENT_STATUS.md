@@ -81,6 +81,7 @@
 - Snore ML future log-mel shape-only placeholder schema
 - multiclass event classifier 준비 도구
 - Core ML model target 적용 전 dry-run validation gate
+- Recording 화면 UI refresh throttle과 상세 diagnostics collapse
 - Simulator QA scenarios
 - Real-device QA runbook preflight/redaction/failure triage
 - Regression Test Suite

@@ -3,6 +3,8 @@ import SwiftUI
 struct SleepRecordingView: View {
   @EnvironmentObject private var appState: AppState
   @Environment(\.scenePhase) private var scenePhase
+  @State private var clockDate = Date()
+  @State private var showsDetailedDiagnostics = false
 
   var body: some View {
     ScrollView {
@@ -18,8 +20,21 @@ struct SleepRecordingView: View {
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .task(id: appState.activeSession?.id) { [hasSession = appState.activeSession != nil] in
+      guard hasSession else { return }
+      await runRecordingClock()
+    }
     .onChange(of: scenePhase) { _, newPhase in
       appState.recordDebugLifecycleEvent("scene phase: \(scenePhaseText(newPhase))")
+    }
+  }
+
+  private func runRecordingClock() async {
+    while !Task.isCancelled {
+      await MainActor.run {
+        clockDate = Date()
+      }
+      try? await Task.sleep(nanoseconds: 1_000_000_000)
     }
   }
 
@@ -34,15 +49,13 @@ struct SleepRecordingView: View {
           .font(.title.bold())
           .foregroundStyle(NBColor.primaryText)
 
-        TimelineView(.periodic(from: session.startedAt, by: 1)) { context in
-          Text(
-            SleepFormatters.compactDurationString(
-              displayedSessionElapsed(for: session, at: context.date)
-            )
+        Text(
+          SleepFormatters.compactDurationString(
+            displayedSessionElapsed(for: session, at: clockDate)
           )
-          .font(.system(size: 42, weight: .bold, design: .rounded))
-          .monospacedDigit()
-        }
+        )
+        .font(.system(size: 42, weight: .bold, design: .rounded))
+        .monospacedDigit()
 
         Text(appState.sleepRecordingPhase.message)
           .font(.callout)
@@ -55,7 +68,7 @@ struct SleepRecordingView: View {
         }
 
         audioCaptureStatus
-        measurementStatus(session: session)
+        measurementStatus(session: session, asOf: clockDate)
 
         NBPrivacyNoticeCard(
           title: "저장 정책",
@@ -74,122 +87,136 @@ struct SleepRecordingView: View {
     }
   }
 
-  private func measurementStatus(session: SleepSession) -> some View {
-    TimelineView(.periodic(from: session.startedAt, by: 1)) { context in
-      let metrics = appState.audioCaptureMetrics.snapshot(at: context.date)
+  private func measurementStatus(session: SleepSession, asOf date: Date) -> some View {
+    let metrics = appState.audioCaptureMetrics.snapshot(at: date)
+    let shouldShowDetails = showsDetailedDiagnostics || metrics.stopRequestedAt != nil
 
-      NBReportSection(title: "측정 상태", systemImage: "waveform.badge.magnifyingglass") {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small
-          ) {
-            MeasurementStatusTile(
-              title: "세션 경과",
-              value: SleepFormatters.compactDurationString(metrics.sessionElapsedSeconds),
-              systemImage: "clock",
-              tint: NBColor.sleep
-            )
-            MeasurementStatusTile(
-              title: "오디오 수신",
-              value: SleepFormatters.compactDurationString(metrics.receivedAudioSeconds),
-              systemImage: "waveform",
-              tint: NBColor.breath
-            )
-            MeasurementStatusTile(
-              title: "분석 시간",
-              value: SleepFormatters.compactDurationString(metrics.analyzedAudioSeconds),
-              systemImage: "waveform.path.ecg",
-              tint: NBColor.audioTint
-            )
-            MeasurementStatusTile(
-              title: "녹음 커버리지",
-              value: percentString(metrics.audioCoverageRatio),
-              systemImage: "gauge.with.dots.needle.67percent",
-              tint: coverageTint(metrics.audioCoverageRatio),
-              status: coverageStatus(metrics.audioCoverageRatio)
-            )
-          }
+    return NBReportSection(title: "측정 상태", systemImage: "waveform.badge.magnifyingglass") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        LazyVGrid(
+          columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small
+        ) {
+          MeasurementStatusTile(
+            title: "세션 경과",
+            value: SleepFormatters.compactDurationString(metrics.sessionElapsedSeconds),
+            systemImage: "clock",
+            tint: NBColor.sleep
+          )
+          MeasurementStatusTile(
+            title: "오디오 수신",
+            value: SleepFormatters.compactDurationString(metrics.receivedAudioSeconds),
+            systemImage: "waveform",
+            tint: NBColor.breath
+          )
+          MeasurementStatusTile(
+            title: "분석 시간",
+            value: SleepFormatters.compactDurationString(metrics.analyzedAudioSeconds),
+            systemImage: "waveform.path.ecg",
+            tint: NBColor.audioTint
+          )
+          MeasurementStatusTile(
+            title: "녹음 커버리지",
+            value: percentString(metrics.audioCoverageRatio),
+            systemImage: "gauge.with.dots.needle.67percent",
+            tint: coverageTint(metrics.audioCoverageRatio),
+            status: coverageStatus(metrics.audioCoverageRatio)
+          )
+        }
 
-          HStack(spacing: NBSpacing.sm) {
-            NBStatusBadge(coverageDescription(metrics.audioCoverageRatio), kind: coverageStatus(metrics.audioCoverageRatio), systemImage: "waveform")
-            NBStatusBadge(
-              appState.isEventAudioSampleStorageEnabled ? "이벤트 샘플 저장 켜짐" : "이벤트 샘플 저장 꺼짐",
-              kind: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy,
-              systemImage: appState.isEventAudioSampleStorageEnabled ? "waveform.circle" : "lock.shield"
-            )
-          }
+        HStack(spacing: NBSpacing.sm) {
+          NBStatusBadge(coverageDescription(metrics.audioCoverageRatio), kind: coverageStatus(metrics.audioCoverageRatio), systemImage: "waveform")
+          NBStatusBadge(
+            appState.isEventAudioSampleStorageEnabled ? "이벤트 샘플 저장 켜짐" : "이벤트 샘플 저장 꺼짐",
+            kind: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy,
+            systemImage: appState.isEventAudioSampleStorageEnabled ? "waveform.circle" : "lock.shield"
+          )
+        }
 
-          MeasurementStatusRow(
-            title: "마지막 오디오 입력", value: optionalTime(metrics.lastChunkReceivedAt))
-          MeasurementStatusRow(title: "마지막 분석", value: optionalTime(metrics.lastChunkAnalyzedAt))
-          MeasurementStatusRow(
-            title: "마지막 이벤트 감지", value: optionalTime(appState.latestDetectedEventAt))
-          MeasurementStatusRow(title: "오디오 chunk 수", value: "\(metrics.receivedChunkCount)개")
-          MeasurementStatusRow(title: "분석 chunk 수", value: "\(metrics.analyzedChunkCount)개")
-          MeasurementStatusRow(
-            title: "종료 후 입력 chunk",
-            value: "\(metrics.chunksReceivedAfterStopRequest)개"
-          )
-          MeasurementStatusRow(
-            title: "종료 후 입력 시간",
-            value: SleepFormatters.compactDurationString(metrics.secondsReceivingAudioAfterStopRequest)
-          )
-          if metrics.stopRequestedAt != nil {
-            MeasurementStatusRow(title: "종료 버튼 탭", value: optionalTime(metrics.stopButtonTappedAt))
-            MeasurementStatusRow(title: "종료 요청", value: optionalTime(metrics.stopRequestedAt))
-            MeasurementStatusRow(title: "캡처 중단 시작", value: optionalTime(metrics.captureStopStartedAt))
-            MeasurementStatusRow(title: "Input tap 제거", value: optionalTime(metrics.inputTapRemovedAt))
-            MeasurementStatusRow(title: "Audio engine 정지", value: optionalTime(metrics.audioEngineStoppedAt))
-            MeasurementStatusRow(title: "Audio session 비활성화", value: optionalTime(metrics.audioSessionDeactivatedAt))
-            MeasurementStatusRow(title: "Capture task 종료", value: optionalTime(metrics.captureTaskCancelledAt))
-            MeasurementStatusRow(title: "Analyzer finalize 시작", value: optionalTime(metrics.analyzerFinalizeStartedAt))
-            MeasurementStatusRow(title: "Analyzer finalize 완료", value: optionalTime(metrics.analyzerFinalizeFinishedAt))
-            MeasurementStatusRow(title: "리포트 생성 시작", value: optionalTime(metrics.reportGenerationStartedAt))
-            MeasurementStatusRow(title: "리포트 생성 완료", value: optionalTime(metrics.reportGenerationFinishedAt))
-            if let forceStopReason = metrics.forceStopReason {
-              MeasurementStatusRow(title: "Force stop", value: forceStopReason)
-            }
-          }
-          MeasurementStatusRow(title: "오디오 중단 횟수", value: "\(metrics.interruptionCount)회")
-          MeasurementStatusRow(
-            title: "가장 긴 입력 공백",
-            value: SleepFormatters.compactDurationString(metrics.longestChunkGapSeconds)
-          )
-          MeasurementStatusRow(
-            title: "현재 입력 공백",
-            value: SleepFormatters.compactDurationString(metrics.currentChunkGapSeconds)
-          )
-          MeasurementStatusRow(title: "앱 상태", value: scenePhaseDisplayText)
-          MeasurementStatusRow(title: "캡처 상태", value: appState.audioCaptureState.displayText)
-          MeasurementStatusRow(
-            title: "마이크 권한", value: appState.microphonePermissionState.displayText)
-          MeasurementStatusRow(title: "Background audio mode", value: backgroundAudioModeText)
-          MeasurementStatusRow(title: "Detector backend", value: appState.currentDetectorBackend.displayName)
-          MeasurementStatusRow(title: "Tuning profile", value: appState.detectorTuningProfile.displayName)
-          MeasurementStatusRow(title: "Debug mode", value: debugModeText)
-          MeasurementStatusRow(title: "원본 전체 오디오 저장", value: "꺼짐")
-          MeasurementStatusRow(
-            title: "이벤트 오디오 샘플 저장",
-            value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐"
-          )
+        MeasurementStatusRow(
+          title: "마지막 오디오 입력", value: optionalTime(metrics.lastChunkReceivedAt))
+        MeasurementStatusRow(title: "마지막 분석", value: optionalTime(metrics.lastChunkAnalyzedAt))
+        MeasurementStatusRow(
+          title: "현재 입력 공백",
+          value: SleepFormatters.compactDurationString(metrics.currentChunkGapSeconds)
+        )
 
-          #if DEBUG
-            if !appState.debugLifecycleLog.isEmpty {
-              VStack(alignment: .leading, spacing: 4) {
-                Text("최근 lifecycle 로그")
-                  .font(.caption)
-                  .foregroundStyle(.secondary)
-                ForEach(Array(appState.debugLifecycleLog.suffix(5)), id: \.self) { entry in
-                  Text(entry)
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                }
-              }
-            }
-          #endif
+        Button {
+          showsDetailedDiagnostics.toggle()
+        } label: {
+          Label(shouldShowDetails ? "상세 진단 접기" : "상세 진단 보기", systemImage: shouldShowDetails ? "chevron.up" : "chevron.down")
+        }
+        .buttonStyle(.nbSecondary)
+
+        if shouldShowDetails {
+          detailedMeasurementRows(metrics: metrics)
         }
       }
     }
+  }
+
+  @ViewBuilder
+  private func detailedMeasurementRows(metrics: AudioCaptureMetrics) -> some View {
+    MeasurementStatusRow(
+      title: "마지막 이벤트 감지", value: optionalTime(appState.latestDetectedEventAt))
+    MeasurementStatusRow(title: "오디오 chunk 수", value: "\(metrics.receivedChunkCount)개")
+    MeasurementStatusRow(title: "분석 chunk 수", value: "\(metrics.analyzedChunkCount)개")
+    MeasurementStatusRow(
+      title: "종료 후 입력 chunk",
+      value: "\(metrics.chunksReceivedAfterStopRequest)개"
+    )
+    MeasurementStatusRow(
+      title: "종료 후 입력 시간",
+      value: SleepFormatters.compactDurationString(metrics.secondsReceivingAudioAfterStopRequest)
+    )
+    if metrics.stopRequestedAt != nil {
+      MeasurementStatusRow(title: "종료 버튼 탭", value: optionalTime(metrics.stopButtonTappedAt))
+      MeasurementStatusRow(title: "종료 요청", value: optionalTime(metrics.stopRequestedAt))
+      MeasurementStatusRow(title: "캡처 중단 시작", value: optionalTime(metrics.captureStopStartedAt))
+      MeasurementStatusRow(title: "Input tap 제거", value: optionalTime(metrics.inputTapRemovedAt))
+      MeasurementStatusRow(title: "Audio engine 정지", value: optionalTime(metrics.audioEngineStoppedAt))
+      MeasurementStatusRow(title: "Audio session 비활성화", value: optionalTime(metrics.audioSessionDeactivatedAt))
+      MeasurementStatusRow(title: "Capture task 종료", value: optionalTime(metrics.captureTaskCancelledAt))
+      MeasurementStatusRow(title: "Analyzer finalize 시작", value: optionalTime(metrics.analyzerFinalizeStartedAt))
+      MeasurementStatusRow(title: "Analyzer finalize 완료", value: optionalTime(metrics.analyzerFinalizeFinishedAt))
+      MeasurementStatusRow(title: "리포트 생성 시작", value: optionalTime(metrics.reportGenerationStartedAt))
+      MeasurementStatusRow(title: "리포트 생성 완료", value: optionalTime(metrics.reportGenerationFinishedAt))
+      if let forceStopReason = metrics.forceStopReason {
+        MeasurementStatusRow(title: "Force stop", value: forceStopReason)
+      }
+    }
+    MeasurementStatusRow(title: "오디오 중단 횟수", value: "\(metrics.interruptionCount)회")
+    MeasurementStatusRow(
+      title: "가장 긴 입력 공백",
+      value: SleepFormatters.compactDurationString(metrics.longestChunkGapSeconds)
+    )
+    MeasurementStatusRow(title: "앱 상태", value: scenePhaseDisplayText)
+    MeasurementStatusRow(title: "캡처 상태", value: appState.audioCaptureState.displayText)
+    MeasurementStatusRow(
+      title: "마이크 권한", value: appState.microphonePermissionState.displayText)
+    MeasurementStatusRow(title: "Background audio mode", value: backgroundAudioModeText)
+    MeasurementStatusRow(title: "Detector backend", value: appState.currentDetectorBackend.displayName)
+    MeasurementStatusRow(title: "Tuning profile", value: appState.detectorTuningProfile.displayName)
+    MeasurementStatusRow(title: "Debug mode", value: debugModeText)
+    MeasurementStatusRow(title: "원본 전체 오디오 저장", value: "꺼짐")
+    MeasurementStatusRow(
+      title: "이벤트 오디오 샘플 저장",
+      value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐"
+    )
+
+    #if DEBUG
+      if !appState.debugLifecycleLog.isEmpty {
+        VStack(alignment: .leading, spacing: 4) {
+          Text("최근 lifecycle 로그")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          ForEach(Array(appState.debugLifecycleLog.suffix(5)), id: \.self) { entry in
+            Text(entry)
+              .font(.caption2.monospacedDigit())
+              .foregroundStyle(.secondary)
+          }
+        }
+      }
+    #endif
   }
 
   private var audioCaptureStatus: some View {

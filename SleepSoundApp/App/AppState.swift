@@ -127,6 +127,7 @@ final class AppState: ObservableObject {
     private var audioProcessingTask: Task<Void, Never>?
     private var audioProcessingGeneration: UInt64 = 0
     private var lastAudioProcessingUIUpdateAt: Date?
+    private let audioProcessingUIRefreshInterval: TimeInterval = 1.0
     private var sleepFinalizationTask: Task<Void, Never>?
     private var captureStopSafetyTask: Task<Void, Never>?
     private var savedAudioSnippets: [EventAudioSnippet] = []
@@ -868,8 +869,7 @@ final class AppState: ObservableObject {
 
         let now = Date()
         let shouldRefreshUI = lastAudioProcessingUIUpdateAt == nil ||
-            now.timeIntervalSince(lastAudioProcessingUIUpdateAt ?? now) >= 0.75 ||
-            snapshot.latestDetectedEventText != nil
+            now.timeIntervalSince(lastAudioProcessingUIUpdateAt ?? now) >= audioProcessingUIRefreshInterval
         guard shouldRefreshUI else { return }
 
         audioCaptureMetrics = snapshot.metrics

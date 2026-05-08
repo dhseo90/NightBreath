@@ -272,17 +272,20 @@ xcrun xctrace list devices
 1. 앱을 foreground에 둡니다.
 2. `수면 시작`을 탭합니다.
 3. 30초 동안 대기하며 실제 오디오 수신 시간이 증가하는지 봅니다.
-4. `수면 종료`를 탭합니다.
-5. 1~2초 안에 audio chunk 수신이 멈추는지 확인합니다.
-6. `chunksReceivedAfterStopRequest`가 0 또는 매우 작은 값인지 기록합니다.
-7. 종료 이후 `actual audio received time` 또는 `receivedAudioDuration`이 계속 증가하지 않는지 확인합니다.
-8. 리포트 생성은 capture stop 이후 계속 진행될 수 있음을 확인합니다.
+4. 기록 중 화면을 아래로 스크롤해도 스크롤이 멈칫거리거나 초 표시가 빠르게/느리게 튀지 않는지 확인합니다.
+5. 코골기 유사 소리처럼 후보 이벤트가 계속 잡히는 상황에서도 recording 화면이 매 chunk마다 버벅이지 않는지 확인합니다.
+6. `수면 종료`를 탭합니다.
+7. 1~2초 안에 audio chunk 수신이 멈추는지 확인합니다.
+8. `chunksReceivedAfterStopRequest`가 0 또는 매우 작은 값인지 기록합니다.
+9. 종료 이후 `actual audio received time` 또는 `receivedAudioDuration`이 계속 증가하지 않는지 확인합니다.
+10. 리포트 생성은 capture stop 이후 계속 진행될 수 있음을 확인합니다.
 
 통과 기준:
 
 - `captureStopStartedAt`, `audioEngineStoppedAt`, `lastAudioChunkReceivedAt`가 stop tap 직후 순서상 가깝게 남습니다.
 - 종료 후 실제 오디오 수신 시간이 계속 증가하지 않습니다.
 - 리포트 생성이 늦어져도 캡처 상태는 먼저 종료됩니다.
+- 수면 기록 중 스크롤과 초 표시가 안정적으로 유지됩니다.
 
 ### Test 2. Double stop tap
 
