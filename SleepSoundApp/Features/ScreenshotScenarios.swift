@@ -219,7 +219,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .fitdaysImport:
       "Fitdays CSV를 로컬에서 가져오기"
     case .fitdaysImportResult:
-      "Fitdays CSV import 결과 확인"
+      "Fitdays 로컬 가져오기 결과 확인"
     case .healthMetricsOverview:
       "모든 건강 지표를 출처와 함께"
     case .healthCalendar:
@@ -304,7 +304,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .fitdaysImport:
       "파일 선택 CTA, 로컬 import 원칙, HealthKit write 없음 안내가 보이게 캡처합니다."
     case .fitdaysImportResult:
-      "예시 import 결과, 생성 샘플 수, 알 수 없는 column, 미리보기 목록이 보이게 캡처합니다."
+      "로컬 가져오기 결과, 생성 샘플 수, 지원하지 않는 열, 미리보기 목록이 보이게 캡처합니다."
     case .healthMetricsOverview:
       "HealthKit 기반 지표와 Fitdays 로컬 전용 지표, 기간 선택, 카테고리 row가 보이게 캡처합니다."
     case .healthCalendar:
@@ -314,7 +314,7 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
     case .metricDetail:
       "체수분률 상세 화면의 기간 선택, source filter, 그래프, 샘플 목록이 보이게 캡처합니다."
     case .importError:
-      "invalid CSV와 unknown column을 안내하는 import edge state를 캡처합니다."
+      "invalid CSV와 지원하지 않는 열을 안내하는 import edge state를 캡처합니다."
     case .localOnlyMetric:
       "기초대사량 같은 Fitdays 로컬 전용 지표 설명과 샘플 목록이 보이게 캡처합니다."
     case .healthPermissionEmpty:
@@ -786,21 +786,21 @@ enum ScreenshotScenarioFactory {
     let fitdaysSamples = makeScreenshotHealthSamples(referenceDate: referenceDate)
       .filter { $0.sourceType == .fitdaysCSV }
     let batch = ImportBatch(
-      sourceName: "Fitdays CSV Import",
+      sourceName: "Fitdays 로컬 가져오기",
       sourceType: .fitdaysCSV,
       importedAt: referenceDate,
-      fileName: "fitdays_example_export.csv",
+      fileName: "사용자가 선택한 로컬 파일",
       rowCount: 4,
       sampleCount: fitdaysSamples.count,
       skippedRowCount: 1,
       errorCount: 1,
-      notes: "Screenshot scenario example import result"
+      notes: "공개 검수용 로컬 가져오기 결과입니다."
     )
 
     return FitdaysImportResult(
       batch: batch,
       samples: fitdaysSamples,
-      unknownColumns: ["Device Nickname"],
+      unknownColumns: ["지원하지 않는 열"],
       rowErrors: [
         FitdaysImportRowError(rowNumber: 5, message: "측정시간 값을 해석하지 못했습니다."),
       ]

@@ -88,9 +88,9 @@ public enum FitdaysImportError: LocalizedError, Equatable, Sendable {
         case .emptyFile:
             "가져올 CSV 데이터가 없습니다."
         case .missingDateColumn:
-            "측정일 column을 찾을 수 없습니다."
+            "측정일 열을 찾을 수 없습니다."
         case .noSupportedMetricColumns:
-            "가져올 수 있는 건강 지표 column을 찾을 수 없습니다."
+            "가져올 수 있는 건강 지표 열을 찾을 수 없습니다."
         case .noImportableSamples:
             "저장할 수 있는 건강 지표 샘플이 없습니다."
         }
@@ -233,7 +233,7 @@ public enum FitdaysImportFallbackGuidance {
     public static let emptyStateMessage = "CSV 또는 text 기반 export 파일을 확보한 경우에만 선택합니다. 파일이 없어도 Apple 건강앱 read-only 지표와 수면 소리 리포트는 계속 사용할 수 있습니다."
     public static let supportedFileSummary = "지원 파일: .csv, .tsv, .txt"
     public static let supportedPasteSummary = "Fitdays 월별 데이터 복사 텍스트도 붙여넣어 미리볼 수 있습니다."
-    public static let noImportablePreviewMessage = "저장 가능한 샘플이 없습니다. 측정일과 지원 지표 column이 있는 짧은 CSV/TSV export인지 확인해 주세요."
+    public static let noImportablePreviewMessage = "저장 가능한 샘플이 없습니다. 측정일과 지원 지표 열이 있는 짧은 CSV/TSV export인지 확인해 주세요."
     public static let importErrorRecoveryMessage = "파일 구조를 확인하거나, export 메뉴를 찾지 못했다면 Apple 건강앱 read-only 경로를 먼저 사용해 주세요."
 
     public static let exportUnavailableTitle = "CSV/export 메뉴를 찾지 못한 경우"

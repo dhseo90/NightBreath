@@ -17,7 +17,7 @@ appstore-privacy	2026-05-09	Codex	release-approved	Privacy policy screen has no 
 appstore-zero-event	2026-05-09	Codex	release-approved	Zero-event report reads as measurement context, not health diagnosis; export dimension QA passed	Use as simulator-approved App Store source; 실기기 QA remains outside this run
 health-overview	2026-05-09	Codex	release-approved	Health overview contact sheet passed crop, chart label, source badge, and privacy review	Render in UI Gallery only; keep out of README/App Store
 health-fitdays	2026-05-09	Codex	release-approved	Fitdays empty import view passed local import copy and no local path/privacy review	Render in UI Gallery only; keep out of README/App Store
-health-fitdays-result	2026-05-09	Codex	blocked	Import result shows fixture-like internal content	Recapture with public copy and no fixture filename
+health-fitdays-result	2026-05-09	Codex	release-approved	Recaptured public local import result copy has no fixture filename, local path, personal data, or server/API implication	Render in UI Gallery only; keep out of README/App Store
 health-fitdays-error	2026-05-09	Codex	release-approved	Fitdays import error view passed user-facing error copy and no local path/privacy review	Render in UI Gallery only; keep out of README/App Store
 health-calendar	2026-05-09	Codex	release-approved	Health calendar contact sheet passed crop, calendar dot, selected panel, and privacy review	Render in UI Gallery only; keep out of README/App Store
 health-daily-detail	2026-05-09	Codex	release-approved	Daily measurement detail contact sheet passed spacing, source badge, and privacy review	Render in UI Gallery only; keep out of README/App Store
@@ -26,13 +26,19 @@ health-metric-basal	2026-05-09	Codex	release-approved	Local-only metric detail c
 health-blood-pressure	2026-05-09	Codex	release-approved	Blood pressure dashboard contact sheet passed non-diagnostic copy and trend chart crop review	Render in UI Gallery only; keep out of README/App Store
 health-body-composition	2026-05-09	Codex	release-approved	Body composition dashboard contact sheet passed value framing, chart, and privacy review	Render in UI Gallery only; keep out of README/App Store
 health-cross-metric	2026-05-09	Codex	release-approved	Cross metric dashboard contact sheet passed causality boundary and chart crop review	Render in UI Gallery only; keep out of README/App Store
+edge-zero-event	2026-05-09	Codex	release-approved	Zero-event report crop shows measurement context and avoids diagnosis language	Render in UI Gallery only; keep out of README/App Store
+edge-low-coverage	2026-05-09	Codex	release-approved	Low-coverage report crop frames the issue as measurement quality and keeps metrics readable	Render in UI Gallery only; keep out of README/App Store
+edge-event-audio-off	2026-05-09	Codex	release-approved	Event audio storage off crop shows OFF state, zero saved samples, local deletion, and no full-night audio storage copy	Render in UI Gallery only; keep out of README/App Store
+edge-health-permission-empty	2026-05-09	Codex	release-approved	Health permission empty crop keeps HealthKit read-only boundary and local import fallback visible	Render in UI Gallery only; keep out of README/App Store
+edge-metric-detail-empty	2026-05-09	Codex	release-approved	Metric detail empty crop shows no-data state without diagnosis or causality implication	Render in UI Gallery only; keep out of README/App Store
+edge-cross-metric-insufficient	2026-05-09	Codex	release-approved	Cross-metric insufficient crop shows comparison limits and no causality claim	Render in UI Gallery only; keep out of README/App Store
 detail-trend	2026-05-09	Codex	ui-gallery-candidate	Trend dashboard can stay UI Gallery only until contact sheet approval	Check segmented control and trend chart crop
 detail-morning-checkin	2026-05-09	Codex	ui-gallery-candidate	Morning check-in can stay UI Gallery only until contact sheet approval	Check form spacing and CTA visibility
 detail-evening-checkin	2026-05-09	Codex	ui-gallery-candidate	Evening check-in can stay UI Gallery only until contact sheet approval	Check tag grid and save CTA visibility
 detail-card-export	2026-05-09	Codex	ui-gallery-candidate	Daily health card export preview can stay UI Gallery only until contact sheet approval	Check export confirmation copy and button visibility
-detail-report-empty	2026-05-09	Codex	ui-gallery-candidate	Report empty state can stay UI Gallery only until contact sheet approval	Check empty state copy and start flow clarity
-privacy-settings	2026-05-09	Codex	ui-gallery-candidate	Privacy settings can stay UI Gallery only until contact sheet approval	Check opt-in, deletion, and no-server copy visibility
-privacy-onboarding	2026-05-09	Codex	ui-gallery-candidate	Onboarding can stay UI Gallery only until contact sheet approval	Check first-run privacy copy and button crop
-privacy-device-placement	2026-05-09	Codex	ui-gallery-candidate	Device placement can stay UI Gallery only until contact sheet approval	Check placement steps and calibration CTA crop
-privacy-calibration	2026-05-09	Codex	ui-gallery-candidate	Calibration can stay UI Gallery only until contact sheet approval	Check level state, progress, and CTA visibility
+detail-report-empty	2026-05-09	Codex	release-approved	Report empty state crop shows start flow and pre-report privacy copy without personal data	Render in UI Gallery only; keep out of README/App Store
+privacy-settings	2026-05-09	Codex	release-approved	Privacy settings crop keeps no-server/no-account/no-SDK/full-audio policy visible	Render in UI Gallery only; keep out of README/App Store
+privacy-onboarding	2026-05-09	Codex	release-approved	Onboarding crop keeps first-run sleep sound report value prop and reference-only framing visible	Render in UI Gallery only; keep out of README/App Store
+privacy-device-placement	2026-05-09	Codex	release-approved	Device placement crop keeps bedside, mic, and charging guidance readable	Render in UI Gallery only; keep out of README/App Store
+privacy-calibration	2026-05-09	Codex	release-approved	Calibration crop keeps input state, target time, coverage, and CTA readable	Render in UI Gallery only; keep out of README/App Store
 debug-simulator	2026-05-09	Codex	internal-only	DEBUG simulator scenario must not render in Release or App Store docs	Track path only and keep internal-only

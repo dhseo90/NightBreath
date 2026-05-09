@@ -125,7 +125,7 @@ NightBreath가 허용하는 Fitdays 관련 데이터 유입 경로는 다음 네
    - 사용자가 Files, iCloud Drive, AirDrop, Mail 등으로 확보한 CSV/TSV 또는 structured text export file을 `FitdaysImportView`에서 직접 선택합니다.
    - CSV/export 파일이 없다면 이 경로는 사용하지 않습니다.
    - `fileImporter`는 CSV/text 기반 type을 열 수 있지만, preview validation을 통과한 structured export만 저장할 수 있습니다.
-   - unknown column은 warning, invalid row는 skipped row로 처리합니다.
+   - 지원하지 않는 열은 warning, invalid 행은 건너뛴 행으로 처리합니다.
 3. Fitdays 월별 데이터 복사 -> 앱 내부 붙여넣기 import
    - 사용자가 Fitdays에서 직접 복사한 월별 데이터 텍스트를 `FitdaysImportView`의 붙여넣기 입력칸에 넣고 미리봅니다.
    - parser는 `짜` date column, `HH:mm yyyy/MM/dd` time-first date, 단위 suffix, header annotation, `--` placeholder를 로컬에서만 처리합니다.
@@ -203,11 +203,11 @@ Importer 설계 원칙:
 - 붙여넣기 mapping은 `짜`, `체내수분량`, `골질량`, `골격근량 (클릭필수)`, `근육량(클릭필수)`, `기초대사량 (BMR)` 같은 실제 월별 복사 header 변형을 synthetic regression으로 확인합니다.
 - `--`처럼 측정되지 않은 값은 오류가 아니라 빈 metric으로 건너뜁니다.
 - 큰 월별 붙여넣기 텍스트는 전체 원문을 TextEditor에 계속 렌더링하지 않고, 화면에는 행/문자 수와 앞부분 preview만 표시합니다. 미리보기 parsing은 UI thread 밖에서 수행해 붙여넣기 직후 화면이 멈추지 않게 합니다.
-- unknown column은 전체 실패가 아니라 warning으로 남깁니다.
-- invalid row는 전체 import 실패가 아니라 skipped row와 row error로 남깁니다.
+- 지원하지 않는 열은 전체 실패가 아니라 warning으로 남깁니다.
+- invalid 행은 전체 import 실패가 아니라 건너뛴 행과 row error로 남깁니다.
 - date column이 없거나 structured export로 해석할 수 없는 text 파일은 저장 전에 실패합니다.
-- 측정일 column은 있지만 지원 지표 column이 없는 text 파일은 저장 전에 실패합니다.
-- 지원 지표 column이 있어도 import 가능한 샘플이 0개인 파일은 저장하지 않습니다.
+- 측정일 열은 있지만 지원 지표 열이 없는 text 파일은 저장 전에 실패합니다.
+- 지원 지표 열이 있어도 import 가능한 샘플이 0개인 파일은 저장하지 않습니다.
 - CSV/TSV delimiter, decimal separator, 날짜/시간 format, localized column name, UTF-8 BOM, 단위 suffix 차이를 regression test로 점검합니다.
 - 같은 `sourceName + fileName`을 다시 가져오면 duplicate import handling으로 이전 batch와 해당 sample을 교체합니다.
 - 다른 file 또는 다시 붙여넣은 월별 데이터에서 같은 source type, metric, measuredAt이 들어오면 중복 sample key 기준으로 기존 sample을 제거하고 새 import 값을 유지합니다.
@@ -226,7 +226,7 @@ V1에서는 Share Extension을 바로 추가하지 않고 document type/open-in�
 
 - `Info.plist`에 CSV/TSV/plain text document type을 등록합니다.
 - 앱 root에서 `onOpenURL`로 file URL을 받아 `FitdaysImportView` preview sheet로 연결합니다.
-- 같은 `FitdaysImportService` validation을 사용해 unsupported extension, missing date column, invalid row, unknown column을 처리합니다.
+- 같은 `FitdaysImportService` validation을 사용해 unsupported extension, missing date column, invalid 행, 지원하지 않는 열을 처리합니다.
 - 원본 파일은 읽기 입력으로만 사용하고, import 결과만 로컬 `ImportBatch`와 `UnifiedHealthMetricSample`로 저장합니다.
 
 Share Extension 후보:
@@ -239,17 +239,17 @@ Share Extension 후보:
 
 가져오기 결과는 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 로컬 저장소에 보관합니다. 원본 CSV 파일 자체는 repository나 screenshot asset으로 보관하지 않습니다.
 
-`FitdaysImportView`의 미리보기는 저장 전 단계입니다. `미리보기 판단` 섹션에서 처리한 row, 저장 가능한 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여주고, 사용자가 `로컬에 저장`을 누르기 전에는 저장소에 쓰지 않습니다.
+`FitdaysImportView`의 미리보기는 저장 전 단계입니다. `미리보기 판단` 섹션에서 처리한 행, 저장 가능한 샘플, 건너뛴 행 해석, 확인 필요 행, 지원하지 않는 열을 분리해 보여주고, 사용자가 `로컬에 저장`을 누르기 전에는 저장소에 쓰지 않습니다.
 
 붙여넣기 flow에서는 월별 텍스트 입력 바로 아래에 저장 전 미리보기와 저장 버튼을 배치합니다. 저장이 끝나면 저장 버튼 근처에 저장 완료 메시지와 처리 시각을 표시해, 사용자가 저장 여부를 헤더나 다른 섹션에서 다시 찾지 않아도 되게 합니다. 저장 완료 상태에서는 `가져온 최신 날짜 바로 보기`로 새로 가져온 샘플의 최신 측정일 `DailyMeasurementDetailView`에 곧장 들어갈 수 있습니다.
 
-저장된 가져오기 기록은 같은 화면의 `저장된 가져오기` 섹션에서 확인합니다. 이 섹션은 현재 저장소 기준 샘플 수, 처리 row, 건너뜀/오류 count, `이 가져오기 최신 날짜 보기` shortcut을 보여주고, 삭제 시 해당 `importBatchId`를 가진 로컬 샘플을 함께 제거합니다. 실제 파일명과 local path는 개인 정보가 섞일 수 있으므로 목록에 표시하지 않습니다.
+저장된 가져오기 기록은 같은 화면의 `저장된 가져오기` 섹션에서 확인합니다. 이 섹션은 현재 저장소 기준 샘플 수, 처리 행, 건너뜀/오류 count, `이 가져오기 최신 날짜 보기` shortcut을 보여주고, 삭제 시 해당 `importBatchId`를 가진 로컬 샘플을 함께 제거합니다. 실제 파일명과 local path는 개인 정보가 섞일 수 있으므로 목록에 표시하지 않습니다.
 
 검증해야 할 상태:
 
 - valid CSV preview/result
 - invalid date/time row skip
-- unknown column warning
+- 지원하지 않는 열 warning
 - duplicate import handling
 - `저장된 가져오기` 목록과 batch 삭제 시 관련 sample 삭제
 - 실제 파일명과 실제 개인 수치가 문서/screenshot에 노출되지 않음

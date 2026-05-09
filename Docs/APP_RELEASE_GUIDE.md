@@ -113,6 +113,7 @@ Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드�
 | 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | release-approved | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
 
 최근 visual QA 기록은 `Docs/Screenshots/VISUAL_QA_2026-05-09.md`를 확인합니다.
+Release evidence summary는 `Docs/Release/RELEASE_READINESS_EVIDENCE.md`에서 screenshot/copy/gate 상태를 한 장으로 확인합니다.
 
 App Store marketing capture source:
 
@@ -211,7 +212,7 @@ TestFlight 전 확인:
 - 화면 잠금/백그라운드 녹음 확인
 - HealthKit read-only 권한 흐름 확인
 - 권한 거부/일부 허용/데이터 없음 상태 확인
-- Fitdays CSV import valid/invalid/unknown column 확인
+- Fitdays CSV import valid/invalid/지원하지 않는 열 확인
 - 이벤트 오디오 샘플 opt-in ON/OFF 확인
 - 개인정보/저장소 설정 확인
 - App Store copy와 screenshot에 민감정보가 없는지 확인
@@ -237,11 +238,12 @@ TestFlight blocking gate:
 ```sh
 Tools/Release/audit_release_copy.sh
 Tools/Docs/validate_readme_links.sh
+Tools/UI/validate_navigation_chrome.sh
 Tools/Screenshots/validate_app_store_export_manifest.sh
 Tools/Screenshots/validate_app_store_release_approval.sh
 ```
 
-`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/Screenshots/validate_app_store_export_manifest.sh`는 App Store Connect export manifest와 size별 visual evidence를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다.
+`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/UI/validate_navigation_chrome.sh`는 tab/back 정책과 주요 flow/screenshot scenario 진입점을 확인합니다. `Tools/Screenshots/validate_app_store_export_manifest.sh`는 App Store Connect export manifest와 size별 visual evidence를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
@@ -255,6 +257,7 @@ Tools/Screenshots/validate_app_store_release_approval.sh
 - App Store screenshot을 `release-approved`로 바꾸려면 8개 전체 세트가 `copy/crop/privacy/export` checklist 증거를 가져야 합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
 - 루트 README가 주요 sub README를 모두 연결하고, README 내부 문서/이미지 링크가 깨지지 않는지 확인합니다.
+- 주요 루트 화면 CTA와 release-facing detail 화면의 뒤로가기/하단 tab 정책, screenshot scenario 진입점이 유지되는지 확인합니다.
 
 이 자동 gate는 실제 iPhone stop/background/overnight QA를 대체하지 않습니다. 자동 gate 통과 후에도 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 manual evidence를 별도로 기록합니다.
 

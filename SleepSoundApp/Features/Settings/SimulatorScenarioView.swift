@@ -566,12 +566,13 @@ struct ScreenshotScenarioDestinationView: View {
       FitdaysImportView(
         repository: InMemoryUnifiedHealthMetricSampleRepository(),
         initialImportResult: ScreenshotScenarioFactory.makeScreenshotFitdaysImportResult(referenceDate: appState.latestReport.generatedAt),
-        initialStatusMessage: "저장 전 예시 미리보기를 만들었습니다."
+        initialStatusMessage: "저장 전 미리보기를 만들었습니다.",
+        prioritizesInitialImportResult: true
       )
     case .importError:
       FitdaysImportView(
         repository: InMemoryUnifiedHealthMetricSampleRepository(),
-        initialErrorMessage: "예시 CSV의 측정일 column을 확인할 수 없습니다."
+        initialErrorMessage: "CSV의 측정일 열을 확인할 수 없습니다."
       )
     case .healthMetricsOverview:
       HealthMetricsOverviewView(

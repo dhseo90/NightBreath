@@ -520,8 +520,12 @@ struct AppStoreReadinessTests {
 
         #expect(FileManager.default.fileExists(atPath: navigationChromeGatePath.path))
         #expect(navigationChromeGate.contains("Navigation chrome validation passed"))
+        #expect(navigationChromeGate.contains("Major flow smoke validation passed"))
+        #expect(navigationChromeGate.contains("ROOT_SCREEN_SMOKE_CHECKS"))
+        #expect(navigationChromeGate.contains("SCREENSHOT_DESTINATION_CHECKS"))
         #expect(navigationChromeGate.contains("Home dashboard must not push SleepStartView"))
         #expect(navigationChromeGate.contains("Feature screens must not hide the system back chevron"))
+        #expect(navigationChromeGate.contains("prioritizesInitialImportResult: true"))
         #expect(homeDashboard.contains("TabView(selection: $selectedTab)"))
         #expect(homeDashboard.contains("selectedTab = .sleep"))
         #expect(homeDashboard.contains("selectedTab = .health"))

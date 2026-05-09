@@ -11,6 +11,8 @@ struct ReleaseReadinessGateTests {
         let reviewAudit = try contents("Docs/APP_REVIEW_AUDIT.md", root: root)
         let privacyAudit = try contents("Docs/PRIVACY_STORAGE_AUDIT.md", root: root)
         let qaGuide = try contents("Docs/QA_GUIDE.md", root: root)
+        let releaseReadme = try contents("Docs/Release/README.md", root: root)
+        let releaseEvidence = try contents("Docs/Release/RELEASE_READINESS_EVIDENCE.md", root: root)
         let releaseAuditScript = try contents("Tools/Release/audit_release_copy.sh", root: root)
         let combinedReleaseDocs = [
             releaseGuide,
@@ -18,6 +20,8 @@ struct ReleaseReadinessGateTests {
             reviewAudit,
             privacyAudit,
             qaGuide,
+            releaseReadme,
+            releaseEvidence,
         ].joined(separator: "\n")
 
         #expect(releaseGuide.contains("Automated Release Readiness Gate"))
@@ -29,14 +33,26 @@ struct ReleaseReadinessGateTests {
         #expect(releaseGuide.contains("HealthKitReadOnlyPolicy"))
         #expect(releaseGuide.contains("Tools/Release/audit_release_copy.sh"))
         #expect(releaseGuide.contains("Tools/Docs/validate_readme_links.sh"))
+        #expect(releaseGuide.contains("Tools/UI/validate_navigation_chrome.sh"))
         #expect(releaseGuide.contains("Tools/Screenshots/validate_app_store_release_approval.sh"))
+        #expect(releaseGuide.contains("Docs/Release/RELEASE_READINESS_EVIDENCE.md"))
         #expect(releaseGuide.contains("REQUIRE_APP_STORE_RELEASE_APPROVED=1"))
+        #expect(releaseReadme.contains("RELEASE_READINESS_EVIDENCE.md"))
+        #expect(releaseEvidence.contains("Release Readiness Evidence"))
+        #expect(releaseEvidence.contains("README 대표 8장"))
+        #expect(releaseEvidence.contains("docs-preview-only"))
+        #expect(releaseEvidence.contains("App Store 후보 8장"))
+        #expect(releaseEvidence.contains("simulator `release-approved`"))
+        #expect(releaseEvidence.contains("App Store Connect upload preview"))
+        #expect(releaseEvidence.contains("manual pending"))
+        #expect(releaseEvidence.contains("Tools/UI/validate_navigation_chrome.sh"))
         #expect(releaseAuditScript.contains("--filter ReleaseReadiness"))
         #expect(releaseAuditScript.contains("--filter AppStoreReadiness"))
         #expect(releaseAuditScript.contains("--filter UIGalleryDocumentation"))
         #expect(releaseAuditScript.contains("--filter SimulatorQAScenario"))
         #expect(releaseAuditScript.contains("--filter PrivacyCopySafety"))
         #expect(releaseAuditScript.contains("--filter HealthKitReadOnlyPolicy"))
+        #expect(releaseAuditScript.contains("Tools/UI/validate_navigation_chrome.sh"))
         #expect(productCopy.contains("Primary Locale: ko-KR"))
         #expect(productCopy.contains("Secondary Locale: en-US"))
         #expect(productCopy.contains("서버 업로드나 클라우드 처리를 사용하지 않습니다"))
@@ -73,6 +89,7 @@ struct ReleaseReadinessGateTests {
             "Docs/Health/README.md",
             "Docs/QA/README.md",
             "Docs/Release/README.md",
+            "Docs/Release/RELEASE_READINESS_EVIDENCE.md",
             "Docs/Screenshots/README.md",
             "Docs/UI_GALLERY.md",
             "Docs/UI_SCREEN_MAP.md",

@@ -23,6 +23,7 @@
 - App Store Connect용 screenshot size/export 절차와 manifest validation gate 정리 완료. 제출 직전 App Store Connect 화면에서 업로드/미리보기 최종 확인 필요
 - App Store product page copy 최종 다듬기 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
+- `Docs/Release/RELEASE_READINESS_EVIDENCE.md`로 screenshot/export/hard gate/copy 상태를 한 장으로 통합 완료
 - Release readiness 자동 gate 테스트 추가 완료. TestFlight 후보 전 반복 실행 필요
 - TestFlight 내부 테스트 체크리스트 정리 완료, 실제 내부 테스트 실행은 TestFlight build와 실기기 필요
 - App Review 관점에서 HealthKit read-only, 개인정보, 비의료 목적 문구 audit 문서화 완료, 제출 직전 최종 재확인 필요
@@ -59,7 +60,7 @@
 - `FitdaysImportFallbackGuidance`와 `FitdaysImportView`의 read-only fallback UX 보강 완료
 - `.csv`, `.tsv`, `.txt` 지원 안내와 sample 0개 preview recovery 안내 보강 완료
 - 월별 붙여넣기 parser는 compact date, 주요 한국어 alias, `짜` date column, time-first date, annotated header, `--` placeholder regression을 포함합니다. 새 구조가 확인되면 개인값을 제거한 synthetic fixture만 추가합니다.
-- import preview는 처리 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column을 분리해 보여줍니다.
+- import preview는 처리 행, 저장 가능 샘플, 건너뛴 행 해석, 확인 필요 행, 지원하지 않는 열을 분리해 보여줍니다.
 - 큰 월별 붙여넣기는 화면에 전체 원문을 계속 렌더링하지 않고 요약/앞부분 preview만 표시하며, parsing은 UI thread 밖에서 수행합니다.
 - 붙여넣기 입력, 미리보기, 저장 버튼은 가까운 위치로 정리했고 저장 완료 메시지는 저장 버튼 근처에 표시합니다. 실제 Fitdays 월별 텍스트로 manual QA 필요
 - 중복 import는 같은 source type, metric, measuredAt 기준으로 정리하고, 값이 다른 중복은 새 붙여넣기 기준 교체를 사용자가 명시해야 저장합니다.
@@ -69,8 +70,8 @@
 - 실제 Fitdays 월별 데이터 복사 텍스트를 확보한 경우 붙여넣기 preview/import QA
 - 실제 Fitdays share/export에서 Open in NightBreath가 표시되는지 iPhone에서 확인
 - Share Extension 필요 여부는 실제 export/share 경로가 확인된 뒤 결정
-- invalid CSV/TSV, unknown column, 날짜 parsing 실패, 중복 import 처리 확인
-- 지원 지표 column 없음, import 가능한 sample 0개인 파일을 저장 전에 거부하는지 확인
+- invalid CSV/TSV, 지원하지 않는 열, 날짜 parsing 실패, 중복 import 처리 확인
+- 지원 지표 열 없음, import 가능한 sample 0개인 파일을 저장 전에 거부하는지 확인
 - import result, batch 삭제, extended metric sample 삭제 흐름은 구현되어 있으며 실제 Fitdays 파일/붙여넣기 데이터로 manual QA 필요
 - HealthKit 기반 지표와 Fitdays 로컬 전용 지표 배지/출처 표시는 `Fitdays CSV · 로컬`과 내부 ID 숨김 기준으로 보강 완료. 실제 데이터로 manual QA 필요
 - HealthMetricsOverviewView category grouping 회귀 테스트 보강 완료
@@ -174,14 +175,15 @@
 ## UI Gallery / Screenshot
 
 - README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있으며 루트 README에서 문서 preview로 렌더링합니다.
-- README screenshot은 crop 정렬, 주요 content 가독성, 내부 QA label 노출 여부를 다시 본 뒤 release-approved 승격 여부를 판단합니다.
+- README screenshot은 2026-05-09 기준 문서 preview 유지로 판정했습니다. release-approved 승격은 하지 않습니다.
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 UI Gallery 전용 release-approved로 승격했습니다. README/App Store 대표 이미지로는 사용하지 않습니다.
-- SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.
-- 혈압, 체성분, 교차 보기 health screenshot은 UI Gallery 전용 release-approved로 승격했습니다. health/metric/cross edge state는 별도 pending 상태로 유지합니다.
-- onboarding/device/calibration, replay/audio/sample capture 상세 screenshot은 simulator direct scenario 후보 파일이 있으나 DEBUG-only는 internal-only로 유지합니다.
+- PrivacySettings, zero-event, low-coverage, event audio storage off, health permission empty, metric detail empty, cross metric insufficient, onboarding/device/calibration, report empty는 UI Gallery 전용 release-approved로 승격했습니다.
+- SleepRecording은 재캡처 전까지 blocked 상태로 유지합니다.
+- DEBUG replay/audio/sample capture/detector/simulator scenario screenshot은 internal-only로 유지합니다.
 - App Store raw/review-cropped 후보 8개는 2026-05-09에 재캡처, contact sheet visual QA, 88개 export dimension QA, hard gate를 통과해 release-approved입니다.
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
-- trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 직접 launch scenario와 simulator capture 후보를 추가했습니다. visual QA 전까지는 quality review pending/internal-only 상태로 유지
+- trend, morning/evening check-in, Daily Health Card export/share state는 직접 launch scenario와 simulator capture 후보를 추가했지만 visual QA 전까지 quality review pending 상태로 유지합니다. simulator scenario 화면은 internal-only 상태로 유지합니다.
+- `Tools/UI/validate_navigation_chrome.sh`는 tab/back 정책과 주요 루트 CTA, screenshot scenario destination smoke를 함께 확인합니다.
 - 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA, `Tools/Screenshots/validate_app_store_export_manifest.sh`, hard gate 확인 절차 유지
 - `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 README preview와 App Store/release-approved 후보를 분리
 - screenshot 경로나 상태 변경 시 `Tools/Screenshots/validate_screenshot_manifest.sh`로 manifest schema, 파일 존재 여부, UI 문서 PNG 참조 등록 여부를 먼저 확인

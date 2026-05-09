@@ -9,6 +9,7 @@ struct FitdaysImportView: View {
   private let repository: any UnifiedHealthMetricSampleRepositoryProtocol
   private let initialFileURL: URL?
   private let initialFileStatusMessage: String?
+  private let prioritizesInitialImportResult: Bool
 
   @State private var isFileImporterPresented = false
   @State private var importResult: FitdaysImportResult?
@@ -42,12 +43,14 @@ struct FitdaysImportView: View {
     initialFileURL: URL? = nil,
     initialImportResult: FitdaysImportResult? = nil,
     initialStatusMessage: String? = nil,
-    initialErrorMessage: String? = nil
+    initialErrorMessage: String? = nil,
+    prioritizesInitialImportResult: Bool = false
   ) {
     self.service = service
     self.repository = repository
     self.initialFileURL = initialFileURL
     self.initialFileStatusMessage = initialStatusMessage
+    self.prioritizesInitialImportResult = prioritizesInitialImportResult
     _importResult = State(initialValue: initialImportResult)
     _statusMessage = State(initialValue: initialStatusMessage)
     _errorMessage = State(initialValue: initialErrorMessage)
@@ -56,16 +59,21 @@ struct FitdaysImportView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        headerSection
-        pastedTextSection
-        manualInputSection
-
-        if let importResult {
-          resultSection(importResult)
-          previewDiagnosticsSection(importResult)
-          previewSection(importResult)
+        if prioritizesInitialImportResult, let importResult {
+          importResultSections(importResult)
+          headerSection
+          pastedTextSection
+          manualInputSection
         } else {
-          emptyState
+          headerSection
+          pastedTextSection
+          manualInputSection
+
+          if let importResult {
+            importResultSections(importResult)
+          } else {
+            emptyState
+          }
         }
 
         savedBatchesSection
@@ -102,6 +110,13 @@ struct FitdaysImportView: View {
     } message: {
       Text("이 기록으로 저장된 로컬 샘플도 함께 삭제합니다. 원본 파일은 앱에 저장하지 않았기 때문에 삭제 대상이 아닙니다.")
     }
+  }
+
+  @ViewBuilder
+  private func importResultSections(_ result: FitdaysImportResult) -> some View {
+    resultSection(result)
+    previewDiagnosticsSection(result)
+    previewSection(result)
   }
 
   private var headerSection: some View {
@@ -399,7 +414,7 @@ struct FitdaysImportView: View {
           )
 
           NBMetricCard(
-            title: "건너뛴 row",
+            title: "건너뛴 행",
             value: "\(result.skippedRowCount)",
             systemImage: "arrow.uturn.forward",
             tint: result.skippedRowCount > 0 ? NBColor.warning : NBColor.success,
@@ -409,7 +424,7 @@ struct FitdaysImportView: View {
 
         if !result.unknownColumns.isEmpty {
           VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-            Text("알 수 없는 column")
+            Text("지원하지 않는 열")
               .font(NBTypography.caption.weight(.semibold))
               .foregroundStyle(NBColor.primaryText)
             Text(result.unknownColumns.joined(separator: ", "))
@@ -425,7 +440,7 @@ struct FitdaysImportView: View {
               .font(NBTypography.caption.weight(.semibold))
               .foregroundStyle(NBColor.primaryText)
             ForEach(result.rowErrors.prefix(4)) { error in
-              Text("Row \(error.rowNumber): \(error.message)")
+              Text("\(error.rowNumber)행: \(error.message)")
                 .font(NBTypography.footnote)
                 .foregroundStyle(NBColor.secondaryText)
             }
@@ -497,7 +512,7 @@ struct FitdaysImportView: View {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           NBMetricCard(
-            title: "처리한 row",
+            title: "처리한 행",
             value: "\(result.batch.rowCount)",
             systemImage: "tablecells",
             tint: NBColor.mistTeal,
@@ -523,9 +538,9 @@ struct FitdaysImportView: View {
 
         if result.skippedRowCount > 0 {
           diagnosticTextBlock(
-            title: "건너뛴 row 해석",
+            title: "건너뛴 행 해석",
             messages: [
-              "\(result.skippedRowCount)개 row는 저장 가능한 지표 샘플로 바뀌지 않았습니다.",
+              "\(result.skippedRowCount)개 행은 저장 가능한 지표 샘플로 바뀌지 않았습니다.",
               "빈 값, 측정일 누락, 지원하지 않는 지표명, 숫자 해석 실패 가능성을 확인해 주세요.",
             ]
           )
@@ -533,19 +548,19 @@ struct FitdaysImportView: View {
 
         if !result.rowErrors.isEmpty {
           VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-            Text("확인 필요 row")
+            Text("확인 필요 행")
               .font(NBTypography.caption.weight(.semibold))
               .foregroundStyle(NBColor.primaryText)
 
             ForEach(Array(result.rowErrors.prefix(6))) { error in
-              Text("Row \(error.rowNumber): \(error.message)")
+              Text("\(error.rowNumber)행: \(error.message)")
                 .font(NBTypography.footnote)
                 .foregroundStyle(NBColor.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             }
 
             if result.rowErrors.count > 6 {
-              Text("외 \(result.rowErrors.count - 6)개 row")
+              Text("외 \(result.rowErrors.count - 6)개 행")
                 .font(NBTypography.caption)
                 .foregroundStyle(NBColor.secondaryText)
             }
@@ -554,10 +569,10 @@ struct FitdaysImportView: View {
 
         if !result.unknownColumns.isEmpty {
           diagnosticTextBlock(
-            title: "지원하지 않는 column",
+            title: "지원하지 않는 열",
             messages: [
               result.unknownColumns.joined(separator: ", "),
-              "이 column은 저장하지 않고, 지원 지표만 로컬 샘플로 변환합니다.",
+              "이 열은 저장하지 않고, 지원 지표만 로컬 샘플로 변환합니다.",
             ]
           )
         }
@@ -630,7 +645,7 @@ struct FitdaysImportView: View {
         )
 
         NBMetricCard(
-          title: "처리 row",
+          title: "처리 행",
           value: "\(batch.rowCount)",
           systemImage: "tablecells",
           tint: NBColor.privacyTint,
@@ -642,7 +657,7 @@ struct FitdaysImportView: View {
           value: "\(batch.skippedRowCount)",
           systemImage: "arrow.uturn.forward",
           tint: batch.skippedRowCount > 0 ? NBColor.warning : NBColor.success,
-          footnote: "row"
+          footnote: "행"
         )
 
         NBMetricCard(
@@ -650,7 +665,7 @@ struct FitdaysImportView: View {
           value: "\(batch.errorCount)",
           systemImage: "exclamationmark.triangle",
           tint: batch.errorCount > 0 ? NBColor.warning : NBColor.success,
-          footnote: "row"
+          footnote: "행"
         )
       }
 

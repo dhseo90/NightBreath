@@ -226,8 +226,13 @@ struct SimulatorQAScenarioTests {
     #expect(!screenshotScenarios.contains("Simulator 예시 기록"))
     #expect(!screenshotScenarios.contains("Simulator 예시 수면 소리 리포트입니다."))
     #expect(!screenshotScenarios.contains("synthetic_fitdays_preview.csv"))
+    #expect(!screenshotScenarios.contains("fitdays_example_export.csv"))
+    #expect(!screenshotScenarios.contains("Device Nickname"))
+    #expect(!screenshotScenarios.contains("Screenshot scenario example import result"))
     #expect(!calibrationView.contains("Simulator 예시 입력"))
-    #expect(screenshotScenarios.contains("fitdays_example_export.csv"))
+    #expect(screenshotScenarios.contains("Fitdays 로컬 가져오기"))
+    #expect(screenshotScenarios.contains("사용자가 선택한 로컬 파일"))
+    #expect(screenshotScenarios.contains("공개 검수용 로컬 가져오기 결과입니다."))
   }
 
   @Test

@@ -45,7 +45,7 @@ struct UIGalleryDocumentationTests {
 
     #expect(uiGallery.contains("Privacy/Support"))
     #expect(uiGallery.contains("DEBUG observability"))
-    #expect(screenMap.contains("captured, quality review pending"))
+    #expect(screenMap.contains("UI Gallery 전용 release-approved"))
     #expect(screenMap.contains("internal-only, quality review pending"))
     #expect(!screenMap.contains("onboarding/device/calibration pending"))
     #expect(!screenMap.contains("replay/audio/sample capture pending"))
@@ -144,7 +144,7 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("DEBUG observability"))
     #expect(uiGallery.contains("Sleep recording"))
     #expect(uiGallery.contains("health-fitdays-result"))
-    #expect(uiGallery.contains("fixture filename"))
+    #expect(uiGallery.contains("결과 copy 공개용 문구"))
     #expect(uiGallery.contains("edge-event-audio-off"))
     #expect(uiGallery.contains("debug-simulator"))
     #expect(uiGallery.contains("image markdown을 추가하지 않습니다"))
@@ -191,6 +191,8 @@ struct UIGalleryDocumentationTests {
     var healthApprovedCount = 0
     var readmePreviewCount = 0
     var debugInternalCount = 0
+    var edgeApprovedCount = 0
+    var privacyApprovedCount = 0
     var releaseApprovedCount = 0
 
     for row in dataRows {
@@ -214,6 +216,12 @@ struct UIGalleryDocumentationTests {
       if group == "Health", status == "release-approved" {
         healthApprovedCount += 1
       }
+      if group == "EdgeStates", status == "release-approved" {
+        edgeApprovedCount += 1
+      }
+      if group == "Privacy", status == "release-approved" {
+        privacyApprovedCount += 1
+      }
       if group == "README", status == "captured, quality review pending" {
         readmePreviewCount += 1
       }
@@ -229,10 +237,12 @@ struct UIGalleryDocumentationTests {
 
     #expect(appStoreBlockedCount == 0)
     #expect(appStoreApprovedCount == 8)
-    #expect(healthApprovedCount == 10)
+    #expect(healthApprovedCount == 11)
+    #expect(edgeApprovedCount == 7)
+    #expect(privacyApprovedCount == 4)
     #expect(readmePreviewCount == 8)
     #expect(debugInternalCount >= 4)
-    #expect(releaseApprovedCount == 18)
+    #expect(releaseApprovedCount == 30)
   }
 
   @Test
@@ -319,8 +329,10 @@ struct UIGalleryDocumentationTests {
 
     #expect(visualReview.contains("id\treviewed_on\treviewer\tdecision\treason\tnext_action"))
     #expect(visualReview.contains("appstore-home\t2026-05-09\tCodex\trelease-approved"))
-    #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\tblocked"))
+    #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("health-fitdays-error\t2026-05-09\tCodex\trelease-approved"))
+    #expect(visualReview.contains("edge-event-audio-off\t2026-05-09\tCodex\trelease-approved"))
+    #expect(visualReview.contains("privacy-settings\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))
     #expect(screenshotGuide.contains("screenshot_visual_review.tsv"))
     #expect(toolGuide.contains("screenshot_visual_review.tsv"))

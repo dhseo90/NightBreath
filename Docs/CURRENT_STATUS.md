@@ -31,7 +31,10 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 
 - README 대표 8개는 문서 preview로 유지하고 `release-approved`로 승격하지 않았습니다.
 - App Store raw 8개와 review-cropped 이미지를 재캡처하고, size별 export 88개 dimension QA와 release approval hard gate를 통과했습니다.
-- Health/Fitdays gallery 후보 중 문서 노출 가능한 항목은 UI Gallery 전용 `release-approved`로 승격했고, fixture filename 문제가 있는 `health-fitdays-result`만 계속 격리합니다.
+- Health/Fitdays gallery 후보 중 문서 노출 가능한 항목은 UI Gallery 전용 `release-approved`로 승격했고, `health-fitdays-result`도 공개용 copy 재캡처 기준으로 승인했습니다.
+- Edge/Privacy/Support gallery 후보는 simulator crop 기준으로 문서 노출 가능 항목을 UI Gallery 전용 `release-approved`로 분류했습니다. DEBUG 화면과 `sleep-recording`은 계속 격리합니다.
+- README 대표 8장, App Store 후보 8장, Health/Fitdays/Edge/Privacy/Support gallery, App Store Connect pending 항목은 `Docs/Release/RELEASE_READINESS_EVIDENCE.md`에 한 장으로 묶었습니다.
+- `Tools/UI/validate_navigation_chrome.sh`를 tab/back 정책뿐 아니라 주요 루트 CTA와 screenshot scenario destination smoke까지 확인하도록 확장했습니다.
 - Calibration과 Event audio storage off support screenshot을 simulator에서 재캡처/검수했습니다.
 - 실제 iPhone Debug build와 install은 성공했지만, 기기 잠금 상태로 launch/시각 검수는 보류했습니다.
 - `Tools/Docs/validate_readme_links.sh`를 추가해 루트 README와 주요 sub README의 문서/이미지 링크를 자동 검증합니다.

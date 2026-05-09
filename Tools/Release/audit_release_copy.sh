@@ -6,6 +6,8 @@ cd "$ROOT_DIR"
 
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
+Tools/UI/validate_navigation_chrome.sh
+
 /usr/bin/xcrun swift test \
   --filter ReleaseReadiness \
   --filter AppStoreReadiness \

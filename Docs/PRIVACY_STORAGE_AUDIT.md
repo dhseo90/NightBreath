@@ -217,7 +217,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - `ImportBatch`와 `UnifiedHealthMetricSample` 저장
 - HealthKit 표준 지표가 CSV에 포함된 경우에도 `sourceType == fitdaysCSV`로 저장
 - synthetic fixture와 mock scenario를 이용한 테스트와 screenshot
-- unknown column warning, invalid row skip, unsupported extension 실패, missing date 실패, 지원 지표 column 없음 실패, import 가능한 sample 없음 실패, duplicate import replacement
+- 지원하지 않는 열 warning, invalid 행 skip, unsupported extension 실패, missing date 실패, 지원 지표 열 없음 실패, import 가능한 sample 없음 실패, duplicate import replacement
 
 제한 사항:
 
@@ -238,7 +238,7 @@ Fitdays 확장 체성분 지표는 HealthKit으로 읽으려 하지 않고, 사�
 - pasted monthly text는 사용자 명시 버튼 또는 직접 입력 후 같은 parser와 preview validation을 통과해야 저장할 수 있습니다.
 - 앱은 `.csv`, `.tsv`, `.txt` 외의 파일을 Fitdays import 입력으로 처리하지 않습니다.
 - CSV 구조가 맞지 않는 plain text file은 저장 전에 실패합니다.
-- 측정일 column은 있지만 지원 지표 column이 없는 text 파일과 import 가능한 sample이 0개인 파일은 저장하지 않습니다.
+- 측정일 열은 있지만 지원 지표 열이 없는 text 파일과 import 가능한 sample이 0개인 파일은 저장하지 않습니다.
 - import 결과는 `Application Support/NightBreath/imported-health-metrics.json`의 `ImportBatch`와 `UnifiedHealthMetricSample`로 묶어 관리합니다.
 - batch 단위 삭제가 필요한 경우 `importBatchId`로 관련 sample을 함께 삭제할 수 있게 설계합니다.
 - extended metric sample은 sourceType/sourceName/importBatchId를 함께 저장해 HealthKit read-only sample과 구분합니다.

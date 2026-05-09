@@ -29,6 +29,7 @@ README 대표 screenshot과 App Store screenshot은 별도로 관리합니다.
 - App Store export manifest와 size별 visual evidence는 `Tools/Screenshots/validate_app_store_export_manifest.sh`로 검증합니다.
 - App Store 8개 후보를 `release-approved`로 승격하기 전에는 `Tools/Screenshots/validate_app_store_release_approval.sh`를 실행합니다.
 - 제출 직전 hard gate는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh`로 실행합니다.
+- 현재 release evidence 요약은 `Docs/Release/RELEASE_READINESS_EVIDENCE.md`에서 한 장으로 확인합니다.
 
 ## 문서 링크 gate
 
@@ -51,5 +52,6 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | [APP_RELEASE_GUIDE](../APP_RELEASE_GUIDE.md) | release checklist와 gate |
 | [APP_REVIEW_AUDIT](../APP_REVIEW_AUDIT.md) | App Review 관점 audit |
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | ko-KR/en-US product page copy 후보 |
+| [RELEASE_READINESS_EVIDENCE](RELEASE_READINESS_EVIDENCE.md) | screenshot/copy/gate evidence summary |
 | [REVIEW_UPLOAD_SET](../REVIEW_UPLOAD_SET.md) | review/upload 후보 묶음 |
 | [TESTFLIGHT_INTERNAL_TEST_PLAN](../TESTFLIGHT_INTERNAL_TEST_PLAN.md) | TestFlight 내부 테스트 계획 |

@@ -582,15 +582,15 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 6. 그래도 export 파일을 확보할 수 없으면 Apple 건강앱 read-only 표준 지표만 사용하고, Fitdays 고유 지표는 manual input follow-up으로 남깁니다.
 7. `FitdaysImportView`에 파일이 없어도 괜찮다는 fallback 섹션, CSV/export 메뉴를 찾지 못한 경우의 안내, 건강 데이터 대시보드 진입이 보이는지 확인합니다.
 8. 사용자가 명시적으로 파일을 선택하거나 월별 데이터 텍스트를 붙여넣고 미리보기를 눌렀을 때만 import preview가 시작되는지 확인합니다.
-9. valid CSV/TSV 또는 월별 데이터 복사 텍스트에서 preview, result, 샘플 개수, skipped row, unknown column이 표시되는지 확인합니다.
-10. invalid date/time row가 앱을 멈추지 않고 skipped row로 처리되는지 확인합니다.
+9. valid CSV/TSV 또는 월별 데이터 복사 텍스트에서 preview, result, 샘플 개수, 건너뛴 행, 지원하지 않는 열이 표시되는지 확인합니다.
+10. invalid date/time 행이 앱을 멈추지 않고 건너뛴 행으로 처리되는지 확인합니다.
 11. localized column name, 단위 suffix, 날짜/시간 형식 차이가 flexible mapping으로 처리되는지 확인합니다.
 12. HealthKit 표준 지표가 CSV에 있어도 `sourceType == fitdaysCSV`로 보이는지 확인합니다.
 13. Fitdays 확장 지표는 HealthKit 기반이 아니라 로컬 전용으로 설명되는지 확인합니다.
-14. 저장 후 `저장된 가져오기` 섹션에 기록, 현재 저장소 기준 샘플 수, 처리 row, 건너뜀/오류 count가 표시되는지 확인합니다.
+14. 저장 후 `저장된 가져오기` 섹션에 기록, 현재 저장소 기준 샘플 수, 처리 행, 건너뜀/오류 count가 표시되는지 확인합니다.
 15. 가져오기 기록 삭제를 실행하면 해당 `importBatchId`의 sample도 함께 사라지고 원본 파일명/local path는 UI에 표시되지 않는지 확인합니다.
 16. 지표 상세 화면에서 Fitdays CSV 샘플이 `Fitdays CSV · 로컬` badge와 로컬 import 설명으로 표시되고 raw `importBatchId`가 보이지 않는지 확인합니다.
-17. `미리보기 판단` 섹션에서 처리한 row, 저장 가능 샘플, 건너뛴 row 해석, 확인 필요 row, 지원하지 않는 column이 구분되는지 확인합니다.
+17. `미리보기 판단` 섹션에서 처리한 행, 저장 가능 샘플, 건너뛴 행 해석, 확인 필요 행, 지원하지 않는 열이 구분되는지 확인합니다.
 18. Files 앱에서 `.csv`, `.tsv` 또는 `.txt` synthetic export file을 NightBreath로 열었을 때 Fitdays import preview sheet로 연결되는지 확인합니다.
 19. `FitdaysImportView`의 `월별 데이터 붙여넣기`에서 `클립보드 붙여넣고 미리보기`를 눌러 synthetic TSV/text table preview가 생성되는지 확인합니다.
 20. 직접 입력칸에 붙여넣은 뒤 `입력 내용 미리보기`를 눌러도 같은 preview가 생성되는지 확인합니다.
@@ -603,8 +603,8 @@ Fitdays 공식 문서상 Progress Report, History Records, Data Reports, data ex
 27. 값이 다른 중복이 있으면 `값이 다른 중복은 새 붙여넣기 기준으로 교체` 선택 전에는 저장 버튼이 비활성 또는 저장 차단되는지 확인합니다.
 28. 중복 교체 저장 후 같은 metric과 측정시각의 기존 샘플이 중복으로 남지 않고 최신 import 값 하나만 남는지 확인합니다.
 29. 빈 붙여넣기, unsupported extension 또는 structured export로 해석할 수 없는 text file은 저장 전에 거부되는지 확인합니다.
-30. 측정일 column은 있지만 지원 지표 column이 없는 text file은 저장 전에 거부되는지 확인합니다.
-31. 지원 지표 column은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
+30. 측정일 열은 있지만 지원 지표 열이 없는 text file은 저장 전에 거부되는지 확인합니다.
+31. 지원 지표 열은 있지만 import 가능한 sample이 0개인 file은 저장되지 않는지 확인합니다.
 32. Open in flow와 붙여넣기 flow에서도 실제 local path가 UI나 screenshot에 표시되지 않는지 확인합니다.
 33. Fitdays 로그인, 서버/API 직접 연결, 자동 동기화, 비공식 연결 방식이 추가되지 않았는지 확인합니다.
 
