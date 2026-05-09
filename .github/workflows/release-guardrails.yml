@@ -36,5 +36,11 @@ jobs:
       - name: Audit trademark and affiliation copy
         run: Tools/Release/audit_trademark_copy.sh
 
+      - name: Validate dependency inventory
+        run: Tools/Release/validate_dependency_inventory.sh
+
       - name: Audit public repository privacy
         run: Tools/Release/audit_public_repo_privacy.sh
+
+      - name: Run public repository privacy negative test
+        run: Tools/Release/test_public_repo_privacy_negative.sh

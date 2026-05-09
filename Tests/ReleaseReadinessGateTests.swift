@@ -14,6 +14,7 @@ struct ReleaseReadinessGateTests {
         let releaseReadme = try contents("Docs/Release/README.md", root: root)
         let releaseEvidence = try contents("Docs/Release/RELEASE_READINESS_EVIDENCE.md", root: root)
         let releaseAuditScript = try contents("Tools/Release/audit_release_copy.sh", root: root)
+        let workflow = try contents(".github/workflows/release-guardrails.yml", root: root)
         let combinedReleaseDocs = [
             releaseGuide,
             productCopy,
@@ -67,7 +68,12 @@ struct ReleaseReadinessGateTests {
         #expect(releaseAuditScript.contains("--filter SimulatorQAScenario"))
         #expect(releaseAuditScript.contains("--filter PrivacyCopySafety"))
         #expect(releaseAuditScript.contains("--filter HealthKitReadOnlyPolicy"))
+        #expect(releaseAuditScript.contains("Tools/Release/validate_dependency_inventory.sh"))
+        #expect(releaseAuditScript.contains("Tools/Release/test_public_repo_privacy_negative.sh"))
         #expect(releaseAuditScript.contains("Tools/UI/validate_navigation_chrome.sh"))
+        #expect(workflow.contains("name: Licensing and Artifact Guardrails"))
+        #expect(workflow.contains("Tools/Release/validate_dependency_inventory.sh"))
+        #expect(workflow.contains("Tools/Release/test_public_repo_privacy_negative.sh"))
         #expect(productCopy.contains("Primary Locale: ko-KR"))
         #expect(productCopy.contains("Secondary Locale: en-US"))
         #expect(productCopy.contains("서버 업로드나 클라우드 처리를 사용하지 않습니다"))
@@ -121,6 +127,9 @@ struct ReleaseReadinessGateTests {
             "Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md",
             "Docs/PRIVACY_STORAGE_AUDIT.md",
             "Docs/QA_GUIDE.md",
+            "CONTRIBUTING.md",
+            "SECURITY.md",
+            "SUPPORT.md",
         ]
         let forbiddenPromisePhrases = [
             "수면무호흡증을 진단합니다",
@@ -154,6 +163,73 @@ struct ReleaseReadinessGateTests {
             for phrase in forbiddenPromisePhrases {
                 #expect(!document.contains(phrase), "\(path) contains forbidden release-facing promise: \(phrase)")
             }
+        }
+    }
+
+    @Test
+    func publicRepositoryOperationalDocsAndTemplatesStaySafe() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let contributing = try contents("CONTRIBUTING.md", root: root)
+        let security = try contents("SECURITY.md", root: root)
+        let support = try contents("SUPPORT.md", root: root)
+        let issueConfig = try contents(".github/ISSUE_TEMPLATE/config.yml", root: root)
+        let bugTemplate = try contents(".github/ISSUE_TEMPLATE/bug_report.yml", root: root)
+        let featureTemplate = try contents(".github/ISSUE_TEMPLATE/feature_request.yml", root: root)
+        let uiTemplate = try contents(".github/ISSUE_TEMPLATE/ui_ux_review.yml", root: root)
+        let privacyTemplate = try contents(".github/ISSUE_TEMPLATE/privacy_security.yml", root: root)
+
+        #expect(contributing.contains("HealthKit read-only"))
+        #expect(contributing.contains("mixed-license"))
+        #expect(contributing.contains("Do not add:"))
+        #expect(contributing.contains("Run `Tools/Release/audit_release_copy.sh`"))
+        #expect(security.contains("GitHub private vulnerability reporting"))
+        #expect(security.contains("Do not include:"))
+        #expect(security.contains("HealthKit use must remain read-only"))
+        #expect(support.contains("Use GitHub Issues"))
+        #expect(support.contains("Not Medical Support"))
+        #expect(issueConfig.contains("blank_issues_enabled: false"))
+
+        for template in [bugTemplate, featureTemplate, uiTemplate, privacyTemplate] {
+            #expect(template.contains("needs-triage"))
+            #expect(template.contains("validations:"))
+        }
+
+        #expect(bugTemplate.contains("personal health data"))
+        #expect(featureTemplate.contains("no server upload"))
+        #expect(uiTemplate.contains("mock/synthetic data"))
+        #expect(privacyTemplate.contains("GitHub private vulnerability reporting"))
+    }
+
+    @Test
+    func dependencyInventoryValidationIsPartOfReleaseGuardrails() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let script = try contents("Tools/Release/validate_dependency_inventory.sh", root: root)
+        let publicPrivacyNegativeTest = try contents("Tools/Release/test_public_repo_privacy_negative.sh", root: root)
+        let workflow = try contents(".github/workflows/release-guardrails.yml", root: root)
+        let releaseAudit = try contents("Tools/Release/audit_release_copy.sh", root: root)
+        let dependencies = try contents("Docs/DEPENDENCIES.md", root: root)
+        let notices = try contents("THIRD_PARTY_NOTICES.md", root: root)
+        let requirements = try contents("Tools/Training/requirements.txt", root: root)
+
+        #expect(script.contains("Package.swift"))
+        #expect(script.contains("XCRemoteSwiftPackageReference"))
+        #expect(script.contains("actions/checkout@v6"))
+        #expect(script.contains("Tools/Training/requirements.txt"))
+        #expect(publicPrivacyNegativeTest.contains("expected public repo privacy audit to fail"))
+        #expect(publicPrivacyNegativeTest.contains("tracked audio artifact"))
+        #expect(workflow.contains("Validate dependency inventory"))
+        #expect(workflow.contains("Run public repository privacy negative test"))
+        #expect(releaseAudit.contains("Tools/Release/validate_dependency_inventory.sh"))
+        #expect(releaseAudit.contains("Tools/Release/test_public_repo_privacy_negative.sh"))
+
+        for line in requirements.split(separator: "\n") where !line.isEmpty {
+            let parts = line.split(separator: ">=", maxSplits: 1).map(String.init)
+            #expect(parts.count == 2, "Unexpected requirement format: \(line)")
+            guard parts.count == 2 else { continue }
+            let package = parts[0]
+            let version = parts[1]
+            #expect(dependencies.contains("`\(package)` | `>=\(version)`"))
+            #expect(notices.contains("`\(package)` | `>=\(version)`"))
         }
     }
 

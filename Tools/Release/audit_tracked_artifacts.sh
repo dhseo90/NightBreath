@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -n "${NIGHTBREATH_REPO_ROOT:-}" ]]; then
+  ROOT_DIR="$(cd "$NIGHTBREATH_REPO_ROOT" && pwd)"
+else
+  ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
 cd "$ROOT_DIR"
 
 blocked_entries=()

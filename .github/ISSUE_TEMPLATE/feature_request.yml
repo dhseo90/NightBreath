@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest a privacy-preserving NightBreath feature.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests must preserve NightBreath's local-first scope: no server upload, no cloud analysis, no external analytics SDK, no ads, no account system, and HealthKit read-only.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+      description: What user workflow should improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest useful change.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Product area
+      options:
+        - Sleep sound report
+        - Daily Rhythm
+        - HealthKit read-only dashboard
+        - Fitdays local import
+        - Privacy/storage
+        - Documentation/release
+        - Developer tooling
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and safety notes
+      description: Explain how this stays on-device and avoids medical claims.
+      placeholder: "No network calls, no HealthKit write, no personal data in repo fixtures."
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Scope boundaries
+      options:
+        - label: This does not require server upload, cloud processing, account login, ads, or external analytics.
+          required: true
+        - label: This does not require writing NightBreath data to HealthKit.
+          required: true
+        - label: This does not request a definitive medical diagnosis or treatment recommendation.
+          required: true

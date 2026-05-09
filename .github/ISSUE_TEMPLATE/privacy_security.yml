@@ -1,0 +1,46 @@
+name: Privacy or security concern
+description: Report a privacy, local storage, licensing, or security concern without posting secrets.
+title: "[Privacy/Security]: "
+labels: ["privacy", "security", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not post secrets, tokens, private health exports, real audio, local file paths, device identifiers, or exploit details that would put users at risk. Use GitHub private vulnerability reporting if it is available for this repository.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Concern category
+      options:
+        - Privacy copy or expectation
+        - Local storage or deletion
+        - HealthKit read-only boundary
+        - Fitdays local import boundary
+        - Licensing or third-party notice
+        - Security vulnerability
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Share only the minimum safe detail needed to triage.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Possible impact
+      description: What privacy, safety, or licensing boundary could be affected?
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Public issue safety
+      options:
+        - label: I did not include secrets, private health data, real audio, local paths, device identifiers, or exploit instructions.
+          required: true
+        - label: I understand NightBreath should stay on-device, HealthKit read-only, and non-diagnostic.
+          required: true

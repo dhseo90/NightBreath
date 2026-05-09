@@ -1,0 +1,46 @@
+name: UI/UX review
+description: Report a UI, copy, navigation, or visual QA issue.
+title: "[UI/UX]: "
+labels: ["ui-ux", "needs-triage"]
+body:
+  - type: textarea
+    id: screen
+    attributes:
+      label: Screen or flow
+      description: Name the tab, screen, or documented screenshot scenario.
+      placeholder: "Home tab, Sleep tab, Health dashboard, Privacy settings, README screenshot..."
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: UX issue
+      description: Describe the visual, navigation, copy, spacing, feedback, or accessibility problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected experience
+      description: What should feel clearer, faster, safer, or easier?
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence type
+      options:
+        - Simulator screenshot with mock data
+        - README/App Store screenshot review
+        - Code review
+        - Manual observation without personal data
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: screenshot_safety
+    attributes:
+      label: Screenshot safety
+      options:
+        - label: Any attached screenshot uses mock/synthetic data or has personal data fully removed.
+          required: true

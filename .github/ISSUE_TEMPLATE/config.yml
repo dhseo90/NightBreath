@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation and release checklist
+    url: https://github.com/dhseo90/NightBreath/blob/main/Docs/Release/README.md
+    about: Review the release, privacy, and licensing boundaries before opening an issue.

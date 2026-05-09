@@ -11,7 +11,9 @@ Tools/Training/validate_coreml_integration_gate.sh
 Tools/Training/validate_model_provenance_gate.sh
 Tools/Training/test_model_provenance_gate_negative.sh
 Tools/Release/audit_trademark_copy.sh
+Tools/Release/validate_dependency_inventory.sh
 Tools/Release/audit_public_repo_privacy.sh
+Tools/Release/test_public_repo_privacy_negative.sh
 Tools/UI/validate_navigation_chrome.sh
 
 /usr/bin/xcrun swift test \

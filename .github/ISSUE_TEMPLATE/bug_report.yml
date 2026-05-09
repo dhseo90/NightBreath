@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a reproducible app or tooling bug without personal health or audio data.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do not attach personal health exports, real audio recordings, device identifiers, logs with local paths, or private screenshots.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use synthetic or mock data only.
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Sleep recording/report
+        - Daily Rhythm
+        - Health dashboard
+        - Fitdays local import
+        - Privacy/settings
+        - Screenshots/docs
+        - Tooling/tests
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I did not include personal health data, real audio, private file paths, account details, or device identifiers.
+          required: true
+        - label: I understand NightBreath is a wellness/reference app and this issue is not asking for medical diagnosis or treatment advice.
+          required: true
