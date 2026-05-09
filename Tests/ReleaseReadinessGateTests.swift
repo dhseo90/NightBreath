@@ -52,6 +52,9 @@ struct ReleaseReadinessGateTests {
         #expect(releaseEvidence.contains("evidence note id"))
         #expect(releaseEvidence.contains("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"))
         #expect(releaseEvidence.contains("hold until ASC manual preview"))
+        #expect(releaseEvidence.contains("Real Device Simulator Substitute Evidence"))
+        #expect(releaseEvidence.contains("Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md"))
+        #expect(releaseEvidence.contains("not run; simulator/local substitute passed"))
         #expect(releaseEvidence.contains("01_home_dashboard_light.png"))
         #expect(releaseEvidence.contains("08_zero_event_report_light.png"))
         #expect(releaseEvidence.contains("Tools/UI/validate_navigation_chrome.sh"))
@@ -111,6 +114,7 @@ struct ReleaseReadinessGateTests {
             "Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md",
             "Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md",
             "Docs/REAL_DEVICE_QA_RUNBOOK.md",
+            "Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md",
             "Docs/PRIVACY_STORAGE_AUDIT.md",
             "Docs/QA_GUIDE.md",
         ]

@@ -794,6 +794,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"),
             encoding: .utf8
         )
+        let realDeviceSubstitute = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md"),
+            encoding: .utf8
+        )
         let nextIssues = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/NEXT_ISSUES.md"),
             encoding: .utf8
@@ -829,6 +833,15 @@ struct AppStoreReadinessTests {
         #expect(qaGuide.contains("Preflight Without Device"))
         #expect(qaGuide.contains("Evidence Redaction Checklist"))
         #expect(testFlightPlan.contains("Docs/REAL_DEVICE_QA_RUNBOOK.md"))
+        #expect(runbook.contains("Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md"))
+        #expect(realDeviceSubstitute.contains("actual iPhone foreground/background/overnight | not run"))
+        #expect(realDeviceSubstitute.contains("HealthKit permission dialog | not run"))
+        #expect(realDeviceSubstitute.contains("Fitdays app export menu | not run"))
+        #expect(realDeviceSubstitute.contains("local substitute pass; real-device manual QA pending"))
+        #expect(realDeviceSubstitute.contains("SleepAudioProcessingPipeline"))
+        #expect(realDeviceSubstitute.contains("HealthKitReadOnlyPolicy"))
+        #expect(realDeviceSubstitute.contains("FitdaysImport"))
+        #expect(realDeviceSubstitute.contains("simulator screenshots captured outside repository; not committed"))
         #expect(nextIssues.contains("실제 iPhone smoke result template"))
 
         let forbiddenPhrases = [

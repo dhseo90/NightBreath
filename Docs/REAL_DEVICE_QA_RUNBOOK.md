@@ -21,6 +21,7 @@
 - repository에는 실제 개인 오디오 파일, 실제 개인 CSV/export 파일, 실제 local path가 staged 상태로 남아 있지 않은지 확인합니다.
 - 이벤트 오디오 샘플 저장은 기본 OFF이며, opt-in을 켤 때만 짧은 샘플이 저장된다는 점을 테스트 전 메모에 표시합니다.
 - 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 의료 진단 표현이 이번 빌드 범위에 없는지 확인합니다.
+- 실기기 없이 대체 가능한 simulator/local 결과는 `Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md`에 별도 기록하고, 실제 iPhone 결과와 섞지 않습니다.
 
 ## Evidence Redaction Checklist
 

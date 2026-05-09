@@ -74,11 +74,20 @@
 | TestFlight local preflight | local substitute passed | `Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md` |
 | TestFlight install/run | manual pending | 실제 TestFlight 설치와 첫 실행은 실기기 필요 |
 
+## Real Device Simulator Substitute Evidence
+
+| 항목 | 상태 | evidence |
+| --- | --- | --- |
+| actual iPhone foreground/background/overnight | not run; simulator/local substitute passed | `Docs/REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md` |
+| HealthKit permission dialog | not run; simulator/local substitute passed | `healthPermissionEmpty` simulator scenario와 `HealthKitReadOnlyPolicy` focused tests |
+| Fitdays app export menu | not run; simulator/local substitute passed | `fitdaysImport` simulator scenario와 Fitdays parser/import focused tests |
+| Event audio sample off/default UI | simulator substitute passed | `eventAudioStorageOff` simulator scenario와 storage policy coverage |
+
 ## Manual Pending
 
-- 실제 iPhone foreground/background/overnight QA
-- 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인
-- 실제 Fitdays export/share 노출 확인
+- 실제 iPhone foreground/background/overnight QA. Simulator/local substitute는 통과했지만 실제 기기 evidence는 미확인
+- 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인. Simulator/mock state substitute는 통과했지만 실제 permission dialog는 미확인
+- 실제 Fitdays export/share 노출 확인. Local import substitute는 통과했지만 실제 Fitdays app export menu는 미확인
 - App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview. 로컬 대체 QA는 통과했지만 실제 ASC 화면은 미확인
 - TestFlight 내부 테스트 실행과 private evidence 기록. 로컬 preflight와 repository 밖 draft 생성은 통과했지만 실제 TestFlight 설치/실행은 실기기 필요
 

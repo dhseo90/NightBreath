@@ -59,3 +59,4 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | [TESTFLIGHT_INTERNAL_TEST_PLAN](../TESTFLIGHT_INTERNAL_TEST_PLAN.md) | TestFlight 내부 테스트 계획 |
 | [TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE](../TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md) | TestFlight private evidence 작성 템플릿 |
 | [TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE](../TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md) | 실기기 없이 가능한 TestFlight local preflight evidence |
+| [REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE](../REAL_DEVICE_SIMULATOR_SUBSTITUTE_EVIDENCE.md) | 실제 iPhone 전 대체 가능한 simulator/local QA evidence |
