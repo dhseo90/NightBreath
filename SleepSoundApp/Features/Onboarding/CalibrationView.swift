@@ -65,9 +65,7 @@ struct CalibrationView: View {
             audioCoverageRatio: audioCoverageRatio
           )
 
-          Text(statusMessage)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+          calibrationFeedbackView
 
           if let result {
             CalibrationResultCard(result: result)
@@ -84,6 +82,69 @@ struct CalibrationView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .topLeading)
+  }
+
+  private var calibrationFeedbackView: some View {
+    NBInlineStatus(
+      title: calibrationStatusTitle,
+      detail: statusMessage,
+      kind: calibrationStatusKind,
+      systemImage: calibrationStatusIcon,
+      isLoading: isRunning
+    )
+  }
+
+  private var calibrationStatusTitle: String {
+    if isRunning {
+      return "캘리브레이션 요청됨 · 확인 중"
+    }
+    guard let result else {
+      return "캘리브레이션 대기 중"
+    }
+    switch result.calibrationQuality {
+    case .good:
+      return "캘리브레이션 완료"
+    case .highNoise, .weakInput, .microphonePossiblyBlocked, .retryRecommended:
+      return "캘리브레이션 확인 필요"
+    }
+  }
+
+  private var calibrationStatusKind: NBStatusKind {
+    if isRunning {
+      return .privacy
+    }
+    guard let result else {
+      return .neutral
+    }
+    switch result.calibrationQuality {
+    case .good:
+      return .good
+    case .highNoise, .weakInput, .retryRecommended:
+      return .warning
+    case .microphonePossiblyBlocked:
+      return .danger
+    }
+  }
+
+  private var calibrationStatusIcon: String {
+    if isRunning {
+      return "waveform"
+    }
+    guard let result else {
+      return "clock"
+    }
+    switch result.calibrationQuality {
+    case .good:
+      return "checkmark.circle"
+    case .highNoise:
+      return "speaker.wave.3"
+    case .weakInput:
+      return "waveform.badge.minus"
+    case .microphonePossiblyBlocked:
+      return "mic.slash"
+    case .retryRecommended:
+      return "arrow.clockwise"
+    }
   }
 
   private func startCalibration() {

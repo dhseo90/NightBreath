@@ -97,6 +97,42 @@ struct NBStatusBadge: View {
   }
 }
 
+struct NBInlineStatus: View {
+  let title: String
+  let detail: String
+  let kind: NBStatusKind
+  let systemImage: String
+  var isLoading = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xs) {
+      HStack(spacing: NBSpacing.sm) {
+        if isLoading {
+          ProgressView()
+            .controlSize(.small)
+            .tint(kind.tint)
+            .accessibilityHidden(true)
+        }
+
+        NBStatusBadge(title, kind: kind, systemImage: systemImage)
+      }
+
+      Text(detail)
+        .font(NBTypography.caption)
+        .foregroundStyle(NBColor.secondaryText)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(NBSpacing.sm)
+    .background(kind.tint.opacity(0.08), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous)
+        .stroke(kind.tint.opacity(0.18), lineWidth: 1)
+    )
+    .accessibilityElement(children: .combine)
+  }
+}
+
 #if DEBUG
 struct NBStatusBadge_Previews: PreviewProvider {
   static var previews: some View {
@@ -105,6 +141,12 @@ struct NBStatusBadge_Previews: PreviewProvider {
       NBStatusBadge("오디오 커버리지 낮음", kind: .warning)
       NBStatusBadge("이벤트 샘플 저장 꺼짐", kind: .privacy)
       NBStatusBadge("DEBUG", kind: .debug)
+      NBInlineStatus(
+        title: "새로고침 완료",
+        detail: "버튼을 누른 결과와 완료 시간을 같은 자리에서 확인합니다.",
+        kind: .good,
+        systemImage: "checkmark.circle"
+      )
     }
     .padding()
     .background(NBColor.background)

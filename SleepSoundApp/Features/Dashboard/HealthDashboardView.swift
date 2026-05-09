@@ -15,6 +15,7 @@ struct HealthDashboardView: View {
   @State private var importedUnifiedSamples: [UnifiedHealthMetricSample] = []
   @State private var isLoading = false
   @State private var statusMessage: String?
+  @State private var refreshFeedback: HealthDataRefreshFeedback = .idle
   @State private var hasRequestedHealthKitReadAccess: Bool
 
   init(
@@ -160,13 +161,14 @@ struct HealthDashboardView: View {
         Button {
           connectHealthData()
         } label: {
-          Label(
-            isLoading ? "건강앱 읽는 중" : healthConnectButtonTitle,
-            systemImage: "heart.text.square"
-          )
+          healthConnectButtonLabel
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
         .disabled(isLoading || !service.isAvailable)
+        .opacity(isLoading || !service.isAvailable ? 0.68 : 1)
+        .accessibilityHint(isLoading ? "이미 건강 데이터를 읽는 중입니다." : "Apple 건강앱 read-only 데이터를 요청합니다.")
+
+        healthDataRefreshFeedbackView
 
         if !service.isAvailable {
           Text(service.authorizationStatusDescription())
@@ -182,6 +184,61 @@ struct HealthDashboardView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
       }
+    }
+  }
+
+  @ViewBuilder
+  private var healthConnectButtonLabel: some View {
+    HStack(spacing: NBSpacing.sm) {
+      if isLoading {
+        ProgressView()
+          .controlSize(.small)
+          .tint(.white)
+        Text("건강앱 읽는 중")
+      } else {
+        Image(systemName: healthConnectButtonIcon)
+          .imageScale(.medium)
+        Text(healthConnectButtonTitle)
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .accessibilityElement(children: .combine)
+  }
+
+  @ViewBuilder
+  private var healthDataRefreshFeedbackView: some View {
+    switch refreshFeedback {
+    case .idle:
+      if hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted {
+        NBInlineStatus(
+          title: "아직 이번 화면에서 새로고침 전",
+          detail: "버튼을 누르면 진행 중 표시와 완료 시간이 여기에 남습니다.",
+          kind: .neutral,
+          systemImage: "clock"
+        )
+      }
+    case let .reading(message):
+      NBInlineStatus(
+        title: message,
+        detail: "완료되기 전까지 버튼은 비활성화됩니다.",
+        kind: .privacy,
+        systemImage: "arrow.triangle.2.circlepath",
+        isLoading: true
+      )
+    case let .finished(sampleCount, completedAt):
+      NBInlineStatus(
+        title: "새로고침 완료 · \(SleepFormatters.shortTime(completedAt))",
+        detail: "HealthKit 샘플 \(sampleCount)개를 최근 1년 범위에서 읽었습니다.",
+        kind: sampleCount > 0 ? .good : .caution,
+        systemImage: sampleCount > 0 ? "checkmark.circle" : "tray"
+      )
+    case let .blocked(message):
+      NBInlineStatus(
+        title: "새로고침 완료 안 됨",
+        detail: message,
+        kind: .caution,
+        systemImage: "exclamationmark.circle"
+      )
     }
   }
 
@@ -514,8 +571,14 @@ struct HealthDashboardView: View {
   }
 
   private func connectHealthData() {
+    guard !isLoading else {
+      return
+    }
+
     isLoading = true
-    statusMessage = nil
+    let isRefresh = hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
+    refreshFeedback = .reading(message: isRefresh ? "새로고침 요청됨 · 읽는 중" : "건강 데이터 연결 요청됨 · 읽는 중")
+    statusMessage = "Apple 건강앱 read-only 데이터를 읽기 시작했습니다."
 
     Task {
       let nextPermissionState = await service.requestReadPermission()
@@ -533,6 +596,7 @@ struct HealthDashboardView: View {
         hasRequestedHealthKitReadAccess = nextPermissionState == .readRequestCompleted
         userSettings.hasRequestedHealthKitReadAccess = hasRequestedHealthKitReadAccess
         statusMessage = message(for: nextPermissionState, sampleCount: fetchedSamples.count)
+        refreshFeedback = feedback(for: nextPermissionState, sampleCount: fetchedSamples.count, completedAt: Date())
         isLoading = false
       }
     }
@@ -549,6 +613,7 @@ struct HealthDashboardView: View {
     hasRequestedHealthKitReadAccess = true
     permissionState = .readRequestCompleted
     isLoading = true
+    refreshFeedback = .reading(message: "이전 연결 상태 확인 중 · 읽는 중")
     statusMessage = "이전에 연결한 Apple 건강앱 데이터를 다시 읽고 있습니다."
 
     Task {
@@ -557,6 +622,7 @@ struct HealthDashboardView: View {
       await MainActor.run {
         healthSamples = fetchedSamples
         statusMessage = message(for: .readRequestCompleted, sampleCount: fetchedSamples.count)
+        refreshFeedback = .finished(sampleCount: fetchedSamples.count, completedAt: Date())
         isLoading = false
       }
     }
@@ -605,6 +671,29 @@ struct HealthDashboardView: View {
     hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
       ? "건강 데이터 새로고침"
       : "건강 데이터 연결"
+  }
+
+  private var healthConnectButtonIcon: String {
+    hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
+      ? "arrow.triangle.2.circlepath"
+      : "heart.text.square"
+  }
+
+  private func feedback(
+    for state: HealthMetricPermissionState,
+    sampleCount: Int,
+    completedAt: Date
+  ) -> HealthDataRefreshFeedback {
+    switch state {
+    case .readRequestCompleted:
+      .finished(sampleCount: sampleCount, completedAt: completedAt)
+    case .denied:
+      .blocked(message: "건강 데이터 읽기 권한이 허용되지 않았습니다. 설정 앱에서 권한을 확인한 뒤 다시 눌러 주세요.")
+    case .unavailable:
+      .blocked(message: "이 기기에서는 건강 데이터 읽기를 사용할 수 없습니다.")
+    case .notRequested, .mockDataOnly:
+      .blocked(message: "건강 데이터 연결이 아직 완료되지 않았습니다.")
+    }
   }
 
   private var healthKitFetchSummary: String? {
@@ -703,6 +792,13 @@ struct HealthDashboardView: View {
     .compactMap { $0 }
     .max()
   }
+}
+
+private enum HealthDataRefreshFeedback {
+  case idle
+  case reading(message: String)
+  case finished(sampleCount: Int, completedAt: Date)
+  case blocked(message: String)
 }
 
 private struct HealthDashboardEntryCard: View {

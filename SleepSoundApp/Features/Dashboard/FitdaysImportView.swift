@@ -154,11 +154,21 @@ struct FitdaysImportView: View {
           .foregroundStyle(NBColor.secondaryText)
 
         if let statusMessage {
-          NBStatusBadge(statusMessage, kind: .good, systemImage: "checkmark.circle")
+          NBInlineStatus(
+            title: statusMessage,
+            detail: "파일 선택, 붙여넣기, 저장, 삭제 결과는 이 화면 안에서 바로 확인할 수 있습니다.",
+            kind: .good,
+            systemImage: "checkmark.circle"
+          )
         }
 
         if let errorMessage {
-          NBStatusBadge(errorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
+          NBInlineStatus(
+            title: "Fitdays 작업 완료 안 됨",
+            detail: errorMessage,
+            kind: .warning,
+            systemImage: "exclamationmark.triangle"
+          )
         }
       }
     }
@@ -233,12 +243,13 @@ struct FitdaysImportView: View {
         }
 
         if isPreviewingPaste {
-          HStack(spacing: NBSpacing.small) {
-            ProgressView()
-            Text("붙여넣은 데이터를 분석하는 중입니다.")
-              .font(NBTypography.footnote)
-              .foregroundStyle(NBColor.secondaryText)
-          }
+          NBInlineStatus(
+            title: "미리보기 요청됨 · 분석 중",
+            detail: "붙여넣은 데이터를 로컬에서 분석하는 중입니다. 완료되기 전까지 관련 버튼은 비활성화됩니다.",
+            kind: .privacy,
+            systemImage: "doc.on.clipboard",
+            isLoading: true
+          )
         }
 
         Text("붙여넣은 원문은 앱 밖이나 서버로 보내지 않고, 저장 버튼을 누른 뒤에도 변환된 로컬 샘플만 기기 안에 보관합니다.")
@@ -309,11 +320,21 @@ struct FitdaysImportView: View {
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
 
         if let manualStatusMessage {
-          NBStatusBadge(manualStatusMessage, kind: .good, systemImage: "checkmark.circle.fill")
+          NBInlineStatus(
+            title: "수동 입력 저장 완료",
+            detail: manualStatusMessage,
+            kind: .good,
+            systemImage: "checkmark.circle.fill"
+          )
         }
 
         if let manualErrorMessage {
-          NBStatusBadge(manualErrorMessage, kind: .warning, systemImage: "exclamationmark.triangle")
+          NBInlineStatus(
+            title: "수동 입력 저장 완료 안 됨",
+            detail: manualErrorMessage,
+            kind: .warning,
+            systemImage: "exclamationmark.triangle"
+          )
         }
 
         Text("수동 입력 값은 수동 입력 source로만 저장되며 HealthKit에 쓰지 않습니다. Fitdays 서버/API, 로그인, 자동 동기화는 사용하지 않습니다.")
@@ -470,8 +491,9 @@ struct FitdaysImportView: View {
         .disabled(result.samples.isEmpty || isPreviewingPaste || requiresChangedDuplicateConfirmation)
 
         if let lastSaveConfirmation {
-          NBStatusBadge(
-            lastSaveConfirmation.displayMessage,
+          NBInlineStatus(
+            title: lastSaveConfirmation.displayMessage,
+            detail: "변환된 샘플만 기기 안 로컬 저장소에 저장했습니다.",
             kind: .good,
             systemImage: "checkmark.circle.fill"
           )

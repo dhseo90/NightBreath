@@ -22,6 +22,7 @@ struct AccessibilityRegressionTests {
         #expect(listRow.contains(".accessibilityElement(children: .ignore)"))
         #expect(listRow.contains(".accessibilityLabel(accessibilityLabelText ?? defaultAccessibilityLabel)"))
         #expect(listRow.contains(".accessibilityHidden(true)"))
+        #expect(statusBadge.contains("struct NBInlineStatus"))
         #expect(statusBadge.contains(".accessibilityElement(children: .combine)"))
         #expect(statusBadge.contains(".accessibilityHidden(true)"))
         #expect(metricCard.contains(".accessibilityElement(children: .ignore)"))

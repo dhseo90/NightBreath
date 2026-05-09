@@ -103,6 +103,8 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("appState.eveningCheckIn(for: Date())"))
         #expect(contents.contains("appState.saveEveningCheckIn(checkIn)"))
         #expect(contents.contains("기기 안 로컬 저장"))
+        #expect(contents.contains("저녁 체크인 저장 완료"))
+        #expect(contents.contains("NBInlineStatus"))
         #expect(!contents.contains("화면 안에서만 임시로 보관"))
         #expect(!contents.contains("TODO: Wire this to a local Daily Rhythm repository"))
     }
@@ -123,6 +125,9 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("SleepTimelineView(report: appState.latestReport"))
         #expect(contents.contains("TrendDashboardView()"))
         #expect(contents.contains("NBPrimaryButton(title: startButtonTitle"))
+        #expect(contents.contains("sleepStartActionFeedbackView"))
+        #expect(contents.contains("수면 시작 요청됨 · 권한 확인 중"))
+        #expect(contents.contains("수면 시작 완료 안 됨"))
 
         let startContentStart = try #require(contents.range(of: "private var startContent")?.lowerBound)
         let latestResult = try #require(contents.range(of: "latestResultSection", range: startContentStart..<contents.endIndex)?.lowerBound)

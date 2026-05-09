@@ -116,6 +116,8 @@ struct FitdaysManualMetricEntryTests {
 
         #expect(viewSource.contains("Fitdays 고유 지표 수동 입력"))
         #expect(viewSource.contains("FitdaysManualMetricEntryBuilder.makeSample"))
+        #expect(viewSource.contains("수동 입력 저장 완료"))
+        #expect(viewSource.contains("수동 입력 저장 완료 안 됨"))
         #expect(viewSource.contains("source로만 저장되며 HealthKit에 쓰지 않습니다"))
         #expect(serviceSource.contains("sourceType: .manual"))
         #expect(docs.contains("사용자가 직접 입력한 로컬 샘플"))

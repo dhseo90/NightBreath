@@ -582,6 +582,8 @@ struct AppStoreReadinessTests {
         #expect(calibration.contains("if showsTitle"))
         #expect(calibration.contains(".navigationTitle(\"30초 캘리브레이션\")"))
         #expect(calibration.contains(".toolbar(.hidden, for: .tabBar)"))
+        #expect(calibration.contains("calibrationFeedbackView"))
+        #expect(calibration.contains("캘리브레이션 요청됨 · 확인 중"))
     }
 
     @Test

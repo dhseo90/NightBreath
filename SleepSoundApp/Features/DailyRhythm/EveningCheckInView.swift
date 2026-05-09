@@ -100,9 +100,18 @@ struct EveningCheckInView: View {
       Button {
         saveCheckIn()
       } label: {
-        Label("저녁 체크인 저장", systemImage: "checkmark.circle.fill")
+        Label(savedCheckIn == nil ? "저녁 체크인 저장" : "저녁 체크인 다시 저장", systemImage: "checkmark.circle.fill")
       }
       .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.sleepTint))
+
+      if let savedCheckIn {
+        NBInlineStatus(
+          title: "저녁 체크인 저장 완료 · \(SleepFormatters.shortTime(savedCheckIn.updatedAt))",
+          detail: "저장한 컨디션과 생활 태그가 건강 캘린더의 오늘 날짜에 반영됩니다.",
+          kind: .good,
+          systemImage: "checkmark.circle.fill"
+        )
+      }
 
       if let savedCheckIn {
         NBReportSection(title: "저장된 체크인", systemImage: "checkmark.seal") {

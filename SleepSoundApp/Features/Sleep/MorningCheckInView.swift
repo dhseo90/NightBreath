@@ -223,13 +223,24 @@ struct MorningCheckInView: View {
   }
 
   private var saveButton: some View {
-    NBPrimaryButton(
-      title: saved ? "저장됨" : "체크인 저장",
-      systemImage: saved ? "checkmark.circle.fill" : "tray.and.arrow.down"
-    ) {
-      save()
+    VStack(alignment: .leading, spacing: NBSpacing.sm) {
+      NBPrimaryButton(
+        title: saved ? "저장됨" : "체크인 저장",
+        systemImage: saved ? "checkmark.circle.fill" : "tray.and.arrow.down"
+      ) {
+        save()
+      }
+      .accessibilityLabel(saved ? "아침 체크인 저장됨" : "아침 체크인 저장")
+
+      if saved {
+        NBInlineStatus(
+          title: "아침 체크인 저장 완료",
+          detail: "저장한 컨디션 기록이 이 수면 리포트와 기기 안 로컬 데이터에 반영됩니다.",
+          kind: .good,
+          systemImage: "checkmark.circle.fill"
+        )
+      }
     }
-    .accessibilityLabel(saved ? "아침 체크인 저장됨" : "아침 체크인 저장")
   }
 
   private func loadExistingIfNeeded() {

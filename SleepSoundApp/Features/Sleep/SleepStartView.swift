@@ -61,6 +61,7 @@ struct SleepStartView: View {
           appState.startSleepSession()
         }
 
+        sleepStartActionFeedbackView
         setupSummaryCard
         latestResultSection
 
@@ -143,17 +144,59 @@ struct SleepStartView: View {
           .font(.callout)
           .foregroundStyle(NBColor.secondaryText)
 
-        if appState.isPreparingCapture {
-          Label(appState.audioCaptureState.displayText, systemImage: "waveform")
-            .font(.caption)
-            .foregroundStyle(NBColor.secondaryText)
-        }
-
         if let message = appState.audioCaptureMessage {
           Text(message)
             .font(.caption)
             .foregroundStyle(NBColor.danger)
         }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var sleepStartActionFeedbackView: some View {
+    if appState.isFinalizingSleepSession {
+      NBInlineStatus(
+        title: "수면 기록 정리 중",
+        detail: "캡처를 마무리하고 아침 리포트를 준비하고 있습니다.",
+        kind: .privacy,
+        systemImage: "arrow.triangle.2.circlepath",
+        isLoading: true
+      )
+    } else {
+      switch appState.audioCaptureState {
+      case .requestingPermission:
+        NBInlineStatus(
+          title: "수면 시작 요청됨 · 권한 확인 중",
+          detail: "마이크 권한 확인이 끝날 때까지 버튼은 잠시 비활성화됩니다.",
+          kind: .privacy,
+          systemImage: "mic.badge.plus",
+          isLoading: true
+        )
+      case .ready:
+        NBInlineStatus(
+          title: "캡처 준비 완료",
+          detail: "오디오 캡처 세션을 열고 수면 기록 화면으로 전환합니다.",
+          kind: .good,
+          systemImage: "checkmark.circle"
+        )
+      case .stopping:
+        NBInlineStatus(
+          title: "캡처 종료 요청됨",
+          detail: "수면 기록을 저장 가능한 리포트로 정리하고 있습니다.",
+          kind: .privacy,
+          systemImage: "stop.circle",
+          isLoading: true
+        )
+      case .failed(let message):
+        NBInlineStatus(
+          title: "수면 시작 완료 안 됨",
+          detail: message,
+          kind: .warning,
+          systemImage: "exclamationmark.triangle"
+        )
+      case .idle, .capturing(_), .stopped:
+        EmptyView()
       }
     }
   }
