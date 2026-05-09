@@ -8,6 +8,7 @@
 
 - 공개 데이터셋을 자동 다운로드하지 않습니다.
 - 개인 오디오 파일을 git에 커밋하지 않습니다.
+- 공개 dataset을 repository 또는 배포 archive에 포함하는 경우 upstream license와 attribution을 유지합니다.
 - 서버 업로드, 외부 API 호출, 클라우드 학습을 하지 않습니다.
 - 앱 target에 `.mlmodel`을 자동으로 추가하지 않습니다.
 - 이번 범위는 코골기 감지만 다룹니다.
@@ -75,7 +76,7 @@ Tools/Training/output/
 *.m4a
 ```
 
-학습용 output과 개인 오디오 파일은 repo에 올리지 않습니다.
+학습용 output과 개인 오디오 파일은 repo에 올리지 않습니다. 공개 dataset을 포함 배포하는 경우 해당 dataset은 NightBreath Apache-2.0 범위가 아니라 upstream license를 유지합니다. ESC-50 전체 dataset은 CC BY-NC 3.0이므로 상업 앱, 유료 제품, 상업 모델 학습/배포와 연결할 때 별도 검토가 필요합니다.
 
 ## 설치
 

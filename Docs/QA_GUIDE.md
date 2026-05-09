@@ -121,7 +121,8 @@ Dataset Replay는 실제 마이크 없이 synthetic audio 또는 로컬 오디�
 원칙:
 
 - 공개 데이터셋을 자동 다운로드하지 않습니다.
-- 공개/개인 오디오 파일을 repo에 커밋하지 않습니다.
+- 공개 오디오 파일은 기본 workflow에서 repo에 커밋하지 않습니다. 포함 배포가 필요한 공개 dataset은 upstream license와 attribution을 유지합니다.
+- 개인 오디오 파일은 repo에 커밋하지 않습니다.
 - 로컬 파일은 사용자가 직접 준비합니다.
 - 최종 실사용 검증은 실제 iPhone에서 별도로 진행합니다.
 
@@ -208,7 +209,7 @@ Replay 연결:
 
 ## 공개 데이터셋 기반 detector smoke QA
 
-실제 iPhone 재테스트 전 detector가 공개 snoring 데이터에서도 이벤트를 만들지 못하는지 먼저 확인합니다. 공개 오디오 파일은 repository에 추가하지 않고, `Datasets/` 또는 repo 밖 로컬 경로에 둡니다.
+실제 iPhone 재테스트 전 detector가 공개 snoring 데이터에서도 이벤트를 만들지 못하는지 먼저 확인합니다. 기본 workflow에서는 공개 오디오 파일을 repository에 추가하지 않고, `Datasets/` 또는 repo 밖 로컬 경로에 둡니다. 공개 dataset을 포함 배포하는 경우에는 upstream license와 attribution을 유지하고 [LICENSING](LICENSING.md)의 mixed-license 경계를 따릅니다.
 
 ESC-50 smoke 절차:
 

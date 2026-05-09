@@ -65,3 +65,5 @@ V1은 정확도 확정보다 앱 구조, 개인정보 원칙, 테스트 가능�
 | [CURRENT_STATUS](../CURRENT_STATUS.md) | 현재 구현/미구현 상태 |
 | [NEXT_ISSUES](../NEXT_ISSUES.md) | 다음 이슈 후보 |
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | App Store용 제품 문구 후보 |
+| [LICENSING](../LICENSING.md) | Apache-2.0 코드 범위와 ESC-50/ESC-10 dataset license 경계 |
+| [DEPENDENCIES](../DEPENDENCIES.md) | 외부 dependency 이름, version constraint, 라이선스 inventory |

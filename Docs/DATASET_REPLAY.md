@@ -5,7 +5,8 @@ Dataset Replay는 실제 iPhone 마이크를 쓰지 않고도 detector, smoothin
 ## 원칙
 
 - 공개 데이터셋은 자동 다운로드하지 않습니다.
-- 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
+- 공개 오디오 파일은 기본 workflow에서 repository에 커밋하지 않습니다. 포함 배포가 필요한 공개 dataset은 upstream license와 attribution을 유지합니다.
+- 개인 오디오 파일은 repository에 커밋하지 않습니다.
 - 데이터셋 라이선스는 사용자가 직접 확인해야 합니다.
 - Dataset Replay는 detector 개발과 회귀 테스트용입니다.
 - 공개 데이터 또는 로컬 파일은 실제 iPhone 마이크, 방 위치, 충전 상태, 화면 잠금 상태와 다를 수 있습니다.
@@ -53,7 +54,7 @@ DEBUG 빌드에서 `설정 > 개발 > Dataset Replay`로 들어가 synthetic pat
 
 ## Manifest
 
-`PublicDatasetManifest`는 로컬 파일 경로와 expected/negative label을 기록하기 위한 모델입니다. 실제 오디오 파일은 포함하지 않고, 라이선스 메모와 segment 정보를 별도로 남기는 용도입니다.
+`PublicDatasetManifest`는 로컬 파일 경로와 expected/negative label을 기록하기 위한 모델입니다. 실제 오디오 파일은 포함하지 않고, 라이선스 메모와 segment 정보를 별도로 남기는 용도입니다. 공개 dataset을 repository 또는 배포 archive에 포함하는 경우에도 manifest와 dataset license notice를 분리해 관리합니다.
 
 manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANIFEST_GUIDE.md`를 참고합니다.
 
@@ -61,7 +62,7 @@ manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANI
 
 ## Git 보호
 
-다음 경로와 확장자는 gitignore 대상입니다.
+다음 경로와 확장자는 기본 workflow에서 gitignore 대상입니다.
 
 - `Datasets/`
 - `Samples/Public/`
@@ -71,4 +72,4 @@ manifest 작성법과 Offline Evaluation validation 규칙은 `Docs/DATASET_MANI
 - `*.caf`
 - `*.m4a`
 
-예외가 필요한 아주 작은 테스트 fixture가 생긴다면, 별도 검토 후 명시적으로 추가해야 합니다.
+예외가 필요한 아주 작은 테스트 fixture나 공개 dataset 포함 배포가 생긴다면, 별도 검토 후 upstream license, attribution, NonCommercial 여부를 `LICENSE`, `THIRD_PARTY_NOTICES.md`, [LICENSING](LICENSING.md)에 맞춰 명시합니다.

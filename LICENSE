@@ -1,0 +1,47 @@
+NightBreath Mixed License
+=========================
+
+NightBreath / Bamsum is a mixed-license repository.
+
+Unless a file, directory, or third-party notice states otherwise, NightBreath
+source code, tests, local development tools, project-owned documentation, and
+project-owned app assets are licensed under the Apache License, Version 2.0.
+The Apache License text is available in:
+
+  LICENSES/Apache-2.0.txt
+
+Third-party datasets and third-party materials keep their upstream licenses.
+They are not relicensed under Apache-2.0 by this repository.
+
+ESC-50 Dataset
+--------------
+
+If this repository is distributed with `Datasets/ESC-50-master/**`, those files
+remain third-party dataset content from the ESC-50 project.
+
+The ESC-50 dataset as a whole is distributed by its upstream project under the
+Creative Commons Attribution-NonCommercial 3.0 license. The ESC-10 subset is
+distributed under Creative Commons Attribution 3.0.
+
+NightBreath does not relicense ESC-50 or ESC-10 dataset files. The Apache
+License, Version 2.0 does not apply to `Datasets/ESC-50-master/**`.
+
+See:
+
+  LICENSES/CC-BY-NC-3.0.txt
+  LICENSES/CC-BY-3.0.txt
+  THIRD_PARTY_NOTICES.md
+
+Commercial Use Notice
+---------------------
+
+Apache-2.0 applies only to the NightBreath-owned code and materials described
+above. Any use of ESC-50 content must comply with the ESC-50 upstream license,
+including the NonCommercial restriction for the full ESC-50 dataset.
+
+Model and Dataset Outputs
+-------------------------
+
+Generated model files, evaluation outputs, personal samples, and local dataset
+manifests may have separate provenance and licensing constraints. Do not treat
+them as Apache-2.0 unless they are explicitly reviewed and marked as such.

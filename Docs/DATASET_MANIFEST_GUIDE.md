@@ -2,12 +2,12 @@
 
 NightBreath / 밤숨의 dataset manifest는 detector 개발과 Offline Evaluation을 위해 로컬 오디오 파일 위치와 짧은 segment label을 기록하는 JSON입니다.
 
-이 manifest는 오디오 파일을 포함하지 않습니다. 공개 데이터셋, 개인 디버그 샘플, synthetic 샘플 모두 사용자가 직접 로컬에 준비하고 `Datasets/`처럼 gitignore된 경로 또는 repo 밖 경로에 둡니다.
+이 manifest는 오디오 파일을 포함하지 않습니다. 공개 데이터셋, 개인 디버그 샘플, synthetic 샘플 모두 사용자가 직접 준비하고, 기본 workflow에서는 `Datasets/`처럼 gitignore된 경로 또는 repo 밖 경로에 둡니다. 공개 데이터셋을 의도적으로 repository 또는 배포 archive에 포함하는 경우에는 [LICENSING](LICENSING.md)의 mixed-license 경계를 따릅니다.
 
 ## 원칙
 
 - 공개 데이터셋은 자동 다운로드하지 않습니다.
-- 공개 데이터 파일을 repo에 커밋하지 않습니다.
+- 공개 데이터 파일은 기본 workflow에서 repo에 커밋하지 않습니다. 포함 배포가 필요한 경우 upstream license와 attribution을 함께 보존합니다.
 - 개인 오디오 파일을 repo에 커밋하지 않습니다.
 - 데이터셋 라이선스와 재배포 제한은 사용자가 직접 확인합니다.
 - 서버 업로드, 네트워크 호출, 클라우드 처리를 추가하지 않습니다.
@@ -35,6 +35,8 @@ Samples/Personal/
 `localFilePath`는 manifest 파일 위치 기준 상대 경로 또는 절대 경로를 사용할 수 있습니다. 실제 개인 샘플 경로가 들어간 manifest는 private/ignored output으로만 보관하고, 커밋되는 예시에는 익명 placeholder 경로만 사용합니다.
 
 실제 iPhone DEBUG 샘플은 앱 sandbox에서 꺼낸 뒤 `Samples/Personal/` 또는 repo 밖 로컬 폴더에 둡니다. 이때 `.caf`, `.metadata.json`, `.features.csv`를 함께 보관하면 `Dataset Replay`와 feature 분포 확인을 같은 샘플 기준으로 맞출 수 있습니다. 이 파일들과 실제 경로가 들어간 manifest는 repository에 커밋하지 않습니다.
+
+ESC-50처럼 upstream license가 확인된 공개 dataset을 포함 배포하는 경우에도 manifest의 `datasetLicenseNote`에는 upstream license, NonCommercial 여부, attribution 유지 여부를 적습니다. ESC-50 전체 dataset은 Apache-2.0 범위가 아니며 CC BY-NC 3.0 조건을 따릅니다.
 
 ## Schema
 
@@ -106,7 +108,7 @@ Snore ML v0 training에 manifest를 직접 입력할 때 권장하는 `features`
       "expectedLabels": ["snore"],
       "negativeLabels": ["coughLike", "gaspLike"],
       "confidenceNote": "짧은 구간을 직접 확인한 detector 개발용 참고 label입니다.",
-      "notes": "오디오 파일은 repo에 포함하지 않습니다."
+      "notes": "기본 workflow에서는 오디오 파일을 repo에 포함하지 않습니다. 공개 dataset을 포함 배포하는 경우 upstream license를 유지합니다."
     }
   ]
 }

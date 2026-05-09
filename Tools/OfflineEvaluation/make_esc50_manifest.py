@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Build a NightBreath Offline Evaluation manifest from a local ESC-50 checkout.
+"""Build a NightBreath Offline Evaluation manifest from an ESC-50 checkout.
 
-The script never downloads audio. Put ESC-50 outside git-tracked source, then
-point this script at the local dataset root that contains meta/esc50.csv and
-audio/*.wav.
+The script never downloads audio. The default workflow keeps ESC-50 outside
+git-tracked source or in an ignored local dataset directory. If ESC-50 is
+intentionally distributed with the repository, keep the upstream CC BY-NC 3.0
+license and clip attribution notices; NightBreath does not relicense ESC-50
+under Apache-2.0.
 """
 
 from __future__ import annotations
@@ -64,8 +66,9 @@ def main() -> int:
         "datasetName": "esc50-public-snore-smoke-qa",
         "datasetLicenseNote": (
             "ESC-50 is a public environmental sound dataset distributed for "
-            "research/non-commercial use under CC-BY-NC-3.0. Confirm the "
-            "original dataset license before use; do not commit audio files."
+            "research/non-commercial use under CC-BY-NC-3.0, with ESC-10 "
+            "clips under CC-BY-3.0. Keep upstream license and attribution "
+            "notices with any distribution that includes ESC-50 files."
         ),
         "segments": segments,
     }

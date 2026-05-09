@@ -38,7 +38,9 @@ struct OfflineProfileCompareCLI {
     Notes:
       - threshold는 자동으로 변경하지 않습니다.
       - suggested_changes.json은 수동 검토용입니다.
-      - 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
+      - 공개 오디오 파일은 기본 workflow에서 repository에 커밋하지 않습니다.
+      - 공개 dataset을 포함 배포하는 경우 upstream license와 attribution을 유지합니다.
+      - 개인 오디오 파일은 repository에 커밋하지 않습니다.
       - 이 도구는 detector 개발용이며 의료 성능 검증 도구가 아닙니다.
     """
 }

@@ -1,0 +1,29 @@
+Creative Commons Attribution-NonCommercial 3.0
+================================================
+
+This repository records this license because the upstream ESC-50 dataset is
+distributed under Creative Commons Attribution-NonCommercial 3.0, except for
+the ESC-10 subset noted separately by the upstream project.
+
+Full legal code:
+
+  https://creativecommons.org/licenses/by-nc/3.0/legalcode
+
+Human-readable deed:
+
+  https://creativecommons.org/licenses/by-nc/3.0/
+
+Repository scope:
+
+  Datasets/ESC-50-master/**
+
+NightBreath does not own the ESC-50 dataset and does not relicense ESC-50
+dataset files under Apache-2.0. Keep the upstream ESC-50 LICENSE and clip
+attribution notices with any distribution that includes ESC-50 files.
+
+Important condition:
+
+  The full ESC-50 dataset license includes a NonCommercial restriction. Any
+  commercial use, App Store product use, paid service use, or commercial model
+  training/distribution based on ESC-50 content needs separate legal review or
+  permission from the relevant rights holders.

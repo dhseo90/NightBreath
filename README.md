@@ -50,6 +50,14 @@
 - 오늘의 리듬 점수, 아침 리포트, 저녁 체크인, 하루 리듬 카드
 - Simulator QA scenarios, Dataset Replay, Offline Evaluation, screenshot workflow
 
+## 라이선스
+
+이 repository는 mixed-license입니다. NightBreath 소스 코드, 테스트, 로컬 개발 도구, 프로젝트 소유 문서와 앱 asset은 별도 표기가 없으면 Apache License 2.0을 따릅니다.
+
+단, `Datasets/ESC-50-master/**` 같은 third-party dataset content가 포함되는 경우 해당 파일은 upstream 라이선스를 유지하며 Apache-2.0으로 재라이선스하지 않습니다. ESC-50 전체 dataset은 CC BY-NC 3.0, ESC-10 subset은 CC BY 3.0으로 다룹니다.
+
+자세한 범위는 [LICENSE](LICENSE), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md), [Docs/LICENSING](Docs/LICENSING.md)을 확인하세요.
+
 ## 문서 지도
 
 세부 설명은 아래 sub README에서 시작합니다.
@@ -63,6 +71,7 @@
 | [Health](Docs/Health/README.md) | Daily Rhythm, HealthKit, Fitdays import, Extended Health Metrics | [HEALTH_DATA_GUIDE](Docs/HEALTH_DATA_GUIDE.md), [DAILY_RHYTHM_SCORE](Docs/DAILY_RHYTHM_SCORE.md), [DAILY_HEALTH_CARD](Docs/DAILY_HEALTH_CARD.md) |
 | [QA](Docs/QA/README.md) | Simulator-first 개발, 테스트, Dataset Replay, 실기기 QA | [QA_GUIDE](Docs/QA_GUIDE.md), [DEVELOPMENT_WORKFLOW](Docs/DEVELOPMENT_WORKFLOW.md), [REAL_DEVICE_QA_RUNBOOK](Docs/REAL_DEVICE_QA_RUNBOOK.md) |
 | [Release](Docs/Release/README.md) | App Store 준비, product page copy, release gates, screenshot approval | [APP_RELEASE_GUIDE](Docs/APP_RELEASE_GUIDE.md), [APP_STORE_PRODUCT_PAGE_COPY](Docs/APP_STORE_PRODUCT_PAGE_COPY.md) |
+| [Licensing](Docs/LICENSING.md) | Apache-2.0 코드 범위, ESC-50/ESC-10 upstream license 경계, third-party notice | [LICENSE](LICENSE), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md), [DEPENDENCIES](Docs/DEPENDENCIES.md) |
 
 ## 빠른 시작
 

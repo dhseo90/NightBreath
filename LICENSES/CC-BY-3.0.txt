@@ -1,0 +1,22 @@
+Creative Commons Attribution 3.0
+================================
+
+This repository records this license because the upstream ESC-50 project states
+that its ESC-10 subset is distributed under Creative Commons Attribution 3.0.
+
+Full legal code:
+
+  https://creativecommons.org/licenses/by/3.0/legalcode
+
+Human-readable deed:
+
+  https://creativecommons.org/licenses/by/3.0/
+
+Repository scope:
+
+  Datasets/ESC-50-master/** clips marked as the ESC-10 subset by upstream
+  ESC-50 metadata.
+
+NightBreath does not own the ESC-10 subset and does not relicense those files
+under Apache-2.0. Keep the upstream ESC-50 LICENSE and clip attribution notices
+with any distribution that includes ESC-10 files.

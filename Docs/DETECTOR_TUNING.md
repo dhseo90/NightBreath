@@ -218,7 +218,7 @@ Local ESC-50 all-category sample sweep 결과:
 
 ## Public dataset smoke QA
 
-실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 공개 오디오 파일은 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다.
+실제 iPhone 재테스트 전에는 공개 dataset으로 detector path가 완전히 죽어 있지 않은지 확인합니다. 기본 workflow에서는 공개 오디오 파일을 repository에 넣지 않고, 사용자가 로컬로 받은 dataset root만 manifest에서 참조합니다. 공개 dataset을 포함 배포하는 경우에는 upstream license와 attribution을 유지하고 [LICENSING](LICENSING.md)의 mixed-license 경계를 따릅니다.
 
 권장 순서:
 

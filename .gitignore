@@ -10,7 +10,8 @@ __pycache__/
 *.pyc
 Tools/Training/.venv/
 
-# Audio samples are local-only. Do not commit personal recordings or downloaded datasets.
+# Audio samples are local-first by default. Do not commit personal recordings.
+# Approved third-party datasets may be force-added only after license review.
 Samples/Personal/
 Samples/Public/
 Datasets/

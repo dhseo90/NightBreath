@@ -2,7 +2,7 @@
 
 이 폴더는 Feature Lab에서 사용할 로컬 오디오 샘플 위치를 설명하기 위한 문서만 포함합니다.
 
-샘플 파일은 repo에 커밋하지 않습니다.
+샘플 파일은 기본 workflow에서 repo에 커밋하지 않습니다.
 
 로컬 전용 폴더:
 
@@ -21,3 +21,4 @@ Samples/Public/
 - sleep talk 내용을 텍스트화하지 않습니다.
 - 파일명에 개인 정보가 들어가지 않게 합니다.
 - 공개 데이터셋은 자동 다운로드하지 않습니다.
+- 공개 dataset을 repository 또는 배포 archive에 포함하는 경우 upstream license와 attribution을 유지하고 `Docs/LICENSING.md`와 `THIRD_PARTY_NOTICES.md`에 범위를 명시합니다.

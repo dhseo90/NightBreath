@@ -5,6 +5,7 @@
 V1 원칙:
 - 공개 데이터셋을 자동 다운로드하지 않습니다.
 - 개인 오디오 파일을 git에 커밋하지 않습니다.
+- 공개 데이터셋을 repository 또는 배포 archive에 포함하는 경우 upstream license와 attribution을 그대로 유지합니다.
 - 원본 전체 오디오를 앱 저장 기능으로 추가하지 않습니다.
 - sleep talk 내용을 텍스트로 변환하지 않습니다.
 - 결과는 수면 중 소리 기반 웰니스 참고 정보로만 다룹니다.
@@ -23,7 +24,17 @@ Samples/Personal/
 Samples/Public/
 ```
 
-두 폴더는 `.gitignore`에 포함되어 있습니다. 로컬 테스트에만 사용하고 repo에 올리지 않습니다.
+두 폴더는 기본적으로 `.gitignore`에 포함되어 있습니다. 로컬 테스트에서는 repo에 올리지 않고 사용합니다. 다만 공개 데이터셋을 의도적으로 repository 또는 배포 archive에 포함하는 경우에는 [LICENSING](LICENSING.md)의 mixed-license 경계를 따르고, 해당 데이터셋의 upstream license와 attribution을 함께 보존합니다.
+
+## 공개 데이터셋 라이선스
+
+NightBreath 소스 코드와 프로젝트 소유 문서는 Apache-2.0이지만, 공개 데이터셋은 각 upstream 라이선스를 따릅니다.
+
+| 데이터셋 | 기본 처리 |
+| --- | --- |
+| ESC-50 전체 dataset | CC BY-NC 3.0. NonCommercial 제한이 있어 상업 앱/모델 학습/재배포에는 별도 검토가 필요합니다. |
+| ESC-10 subset | CC BY 3.0. upstream attribution을 유지합니다. |
+| license unknown dataset | repository에 포함하지 않고 local-only 참고용으로만 둡니다. |
 
 ## 라벨 목록
 

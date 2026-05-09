@@ -42,7 +42,9 @@ struct OfflineBackendCompareCLI {
 
     Notes:
       - 비교 backend는 ruleBased, coreML, hybrid로 고정됩니다.
-      - 공개/개인 오디오 파일은 repository에 커밋하지 않습니다.
+      - 공개 오디오 파일은 기본 workflow에서 repository에 커밋하지 않습니다.
+      - 공개 dataset을 포함 배포하는 경우 upstream license와 attribution을 유지합니다.
+      - 개인 오디오 파일은 repository에 커밋하지 않습니다.
       - Core ML 모델이 없어도 crash하지 않고 unavailable/fallback 결과를 리포트합니다.
       - 이 도구는 detector 개발용이며 의료 성능 검증 도구가 아닙니다.
     """

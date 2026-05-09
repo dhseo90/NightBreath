@@ -62,6 +62,8 @@ Tools/Docs/validate_readme_links.sh
 | [DEVELOPMENT_WORKFLOW](../DEVELOPMENT_WORKFLOW.md) | 개발/검증 workflow |
 | [DATASET_REPLAY](../DATASET_REPLAY.md) | Dataset Replay 사용법 |
 | [DATASET_GUIDE](../DATASET_GUIDE.md) | 데이터셋 준비 원칙 |
+| [LICENSING](../LICENSING.md) | 공개 repository의 mixed-license 경계 |
+| [DEPENDENCIES](../DEPENDENCIES.md) | 외부 dependency와 version/license inventory |
 | [DETECTOR_TUNING](../DETECTOR_TUNING.md) | detector tuning과 diagnostics |
 | [FEATURE_VALIDATION](../FEATURE_VALIDATION.md) | feature validation 기준 |
 | [REAL_DEVICE_QA_RUNBOOK](../REAL_DEVICE_QA_RUNBOOK.md) | 실제 iPhone QA runbook |

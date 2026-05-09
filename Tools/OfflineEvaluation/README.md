@@ -7,7 +7,8 @@ Offline Evaluation은 실제 iPhone 녹음 없이 로컬 오디오 segment를 de
 ## 원칙
 
 - 공개 데이터셋을 자동 다운로드하지 않습니다.
-- 공개/개인 오디오 파일을 repository에 커밋하지 않습니다.
+- 공개 오디오 파일은 기본 workflow에서 repository에 커밋하지 않습니다. 포함 배포가 필요한 공개 dataset은 upstream license와 attribution을 유지합니다.
+- 개인 오디오 파일은 repository에 커밋하지 않습니다.
 - output 파일은 `Tools/OfflineEvaluation/output/`에 저장하고 gitignore합니다.
 - 이 평가는 detector 개발과 회귀 비교용입니다.
 - 의료 성능 검증이 아니며, 이 앱은 진단 목적의 의료기기가 아닙니다.
@@ -63,7 +64,7 @@ Tools/OfflineEvaluation/validate_sample_manifest.py \
 
 ## Public Dataset Smoke QA
 
-실제 iPhone 재테스트 전 detector가 최소한 공개 snoring dataset에서 raw/final event를 만드는지 확인할 수 있습니다. 앱이나 도구는 공개 데이터셋을 자동 다운로드하지 않습니다. 사용자가 직접 받은 dataset root를 `Datasets/` 또는 repo 밖 경로에 두고, 변환기로 manifest만 생성합니다.
+실제 iPhone 재테스트 전 detector가 최소한 공개 snoring dataset에서 raw/final event를 만드는지 확인할 수 있습니다. 앱이나 도구는 공개 데이터셋을 자동 다운로드하지 않습니다. 기본 workflow에서는 사용자가 직접 받은 dataset root를 `Datasets/` 또는 repo 밖 경로에 두고, 변환기로 manifest만 생성합니다. 공개 dataset을 repository 또는 배포 archive에 포함하는 경우 [Docs/LICENSING.md](../../Docs/LICENSING.md)의 mixed-license 경계를 따릅니다.
 
 우선 권장 dataset:
 - ESC-50: `snoring` class 40개, 5초 WAV, CC-BY-NC-3.0 연구/비상업 라이선스입니다. 작은 smoke QA에 적합합니다.
@@ -78,7 +79,7 @@ python3 Tools/OfflineEvaluation/make_esc50_manifest.py \
   --output Tools/OfflineEvaluation/output/esc50_manifest.json
 ```
 
-생성된 manifest는 `snoring` clip을 `expectedLabels: ["snore"]`로, 선택한 non-snoring category를 `expectedLabels: ["unknown"]`, `negativeLabels: ["snore"]`로 매핑합니다. 오디오 파일은 manifest에 path로만 참조하고 repository에 추가하지 않습니다.
+생성된 manifest는 `snoring` clip을 `expectedLabels: ["snore"]`로, 선택한 non-snoring category를 `expectedLabels: ["unknown"]`, `negativeLabels: ["snore"]`로 매핑합니다. 기본 workflow에서는 오디오 파일을 manifest에 path로만 참조하고 repository에 추가하지 않습니다. ESC-50을 포함 배포하는 경우에도 해당 파일은 Apache-2.0이 아니라 upstream CC BY-NC 3.0/CC BY 3.0 조건을 유지합니다.
 
 실행:
 
