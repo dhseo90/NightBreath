@@ -471,6 +471,23 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func dailyHealthCardScreenAvoidsRepeatedCardTitleCopy() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let cardView = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/DailyRhythm/DailyHealthCardView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(cardView.contains(".navigationTitle(\"하루 리듬 카드\")"))
+        #expect(cardView.contains("Text(\"공유 전 미리보기\")"))
+        #expect(cardView.contains("title: \"개인정보 안내\""))
+        #expect(cardView.contains("오늘의 리듬을 개인 참고용 이미지 카드로 정리합니다."))
+        #expect(!cardView.contains("Text(\"하루 리듬 카드\")"))
+        #expect(!cardView.contains("title: \"하루 리듬 카드 안내\""))
+        #expect(!cardView.contains("이미지 내보내기와 공유는 사용자가 명시적으로 선택할 때만 진행하는 방향입니다."))
+    }
+
+    @Test
     func appStoreConnectScreenshotExportWorkflowUsesRawSourceAndIgnoredDerivedOutput() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let exportScriptPath = repositoryRoot.appendingPathComponent("Tools/Screenshots/export_app_store_connect_screenshots.sh")

@@ -50,14 +50,14 @@ struct DailyHealthCardView: View {
         header
         DailyHealthCardSurface(content: content)
         NBPrivacyNoticeCard(
-          title: "하루 리듬 카드 안내",
+          title: "개인정보 안내",
           messages: [
             content.referenceText,
             "\(content.privacyLevel.displayName) 표시 수준으로 구성했습니다.",
             "이 앱은 진단 목적의 의료기기가 아닙니다.",
-            "이미지 내보내기와 공유는 사용자가 명시적으로 선택할 때만 진행하는 방향입니다.",
+            "이미지 내보내기와 공유는 사용자가 명시적으로 선택할 때만 진행합니다.",
           ],
-          systemImage: "rectangle.on.rectangle"
+          systemImage: "lock.shield"
         )
       }
       .padding(NBSpacing.screenHorizontal)
@@ -69,10 +69,10 @@ struct DailyHealthCardView: View {
 
   private var header: some View {
     VStack(alignment: .leading, spacing: NBSpacing.sm) {
-      Text("하루 리듬 카드")
+      Text("공유 전 미리보기")
         .font(NBTypography.titleLarge)
         .foregroundStyle(NBColor.primaryText)
-      Text("오늘의 리듬을 이미지 카드로 확장할 수 있는 레이아웃으로 정리합니다.")
+      Text("오늘의 리듬을 개인 참고용 이미지 카드로 정리합니다.")
         .font(NBTypography.callout)
         .foregroundStyle(NBColor.secondaryText)
       HStack(spacing: NBSpacing.xs) {
