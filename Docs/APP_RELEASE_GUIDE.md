@@ -62,6 +62,7 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 - `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`의 ko-KR subtitle, promotional text, keywords 글자 수를 App Store Connect 화면에서 다시 확인합니다.
 - en-US secondary locale을 사용할 경우 한국어 copy와 개인정보/HealthKit/read-only 경계가 어긋나지 않는지 확인합니다.
 - screenshot headline과 product description이 서로 다른 기능 범위를 주장하지 않는지 확인합니다.
+- 실제 upload preview 확인 절차와 evidence template은 `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`를 따릅니다.
 
 ## App Store Screenshot Guide
 
@@ -119,6 +120,7 @@ App Store marketing capture source:
 
 - raw source: `Docs/Screenshots/AppStore/raw/`
 - review crop: `Docs/Screenshots/AppStore/review-cropped/`
+- App Store Connect preview QA runbook: `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`
 - capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
 - review sheet script: `Tools/Screenshots/build_screenshot_review_sheet.sh`
 - release approval gate: `Tools/Screenshots/validate_app_store_release_approval.sh`

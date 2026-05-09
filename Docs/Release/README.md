@@ -51,6 +51,7 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | --- | --- |
 | [APP_RELEASE_GUIDE](../APP_RELEASE_GUIDE.md) | release checklist와 gate |
 | [APP_REVIEW_AUDIT](../APP_REVIEW_AUDIT.md) | App Review 관점 audit |
+| [APP_STORE_CONNECT_PREVIEW_QA](../APP_STORE_CONNECT_PREVIEW_QA.md) | App Store Connect upload preview 수동 QA runbook |
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | ko-KR/en-US product page copy 후보 |
 | [RELEASE_READINESS_EVIDENCE](RELEASE_READINESS_EVIDENCE.md) | screenshot/copy/gate evidence summary |
 | [REVIEW_UPLOAD_SET](../REVIEW_UPLOAD_SET.md) | review/upload 후보 묶음 |

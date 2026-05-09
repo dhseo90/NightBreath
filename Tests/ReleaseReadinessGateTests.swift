@@ -91,6 +91,7 @@ struct ReleaseReadinessGateTests {
             "Docs/Release/README.md",
             "Docs/Release/RELEASE_READINESS_EVIDENCE.md",
             "Docs/Screenshots/README.md",
+            "Docs/APP_STORE_CONNECT_PREVIEW_QA.md",
             "Docs/UI_GALLERY.md",
             "Docs/UI_SCREEN_MAP.md",
             "Docs/APP_RELEASE_GUIDE.md",

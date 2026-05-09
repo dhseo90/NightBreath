@@ -191,6 +191,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
             encoding: .utf8
         )
+        let ascPreviewQA = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_CONNECT_PREVIEW_QA.md"),
+            encoding: .utf8
+        )
         let reviewAudit = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_REVIEW_AUDIT.md"),
             encoding: .utf8
@@ -226,6 +230,11 @@ struct AppStoreReadinessTests {
         #expect(productCopy.contains("전체 밤 원본 오디오는 기본 저장하지 않습니다"))
         #expect(productCopy.contains("공개 검수용 simulator scenario data"))
         #expect(releaseGuide.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
+        #expect(releaseGuide.contains("Docs/APP_STORE_CONNECT_PREVIEW_QA.md"))
+        #expect(ascPreviewQA.contains("Manual QA Checklist"))
+        #expect(ascPreviewQA.contains("ASC preview QA date"))
+        #expect(ascPreviewQA.contains("review-cropped 내부 검토 이미지를 upload source로 잘못 쓰지 않음"))
+        #expect(ascPreviewQA.contains("REQUIRE_APP_STORE_RELEASE_APPROVED=1"))
         #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
         #expect(nextIssues.contains("product page copy 최종 다듬기 완료"))
 
