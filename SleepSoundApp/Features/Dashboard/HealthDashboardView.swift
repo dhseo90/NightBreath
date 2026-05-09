@@ -62,7 +62,9 @@ struct HealthDashboardView: View {
           systemImage: "lock.shield"
         )
       }
-      .padding(NBSpacing.screenHorizontal)
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.top, NBSpacing.sm)
+      .padding(.bottom, NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()

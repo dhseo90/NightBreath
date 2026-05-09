@@ -25,10 +25,19 @@ struct HealthNavigationAccessTests {
         let scoreHeader = try #require(contents.range(of: "scoreHeader")?.lowerBound)
         let actionLinks = try #require(contents.range(of: "actionLinks")?.lowerBound)
         #expect(scoreHeader < actionLinks)
-        #expect(contents.contains("ScrollViewReader"))
-        #expect(contents.contains(".defaultScrollAnchor(.top)"))
-        #expect(contents.contains("HomeDashboardScrollAnchor.top"))
-        #expect(contents.contains("resetHomeScrollIfNeeded(with: scrollProxy)"))
+        #expect(!contents.contains("ScrollViewReader"))
+        #expect(!contents.contains("HomeDashboardScrollAnchor.top"))
+        #expect(!contents.contains("resetHomeScrollIfNeeded(with:"))
+
+        let bodyStart = try #require(contents.range(of: "var body: some View")?.lowerBound)
+        let bodyEnd = try #require(contents.range(of: "private var dashboardContent")?.lowerBound)
+        let tabRootBody = contents[bodyStart..<bodyEnd]
+        #expect(!tabRootBody.contains(".navigationTitle("))
+        #expect(!tabRootBody.contains(".navigationBarTitleDisplayMode("))
+        #expect(!tabRootBody.contains(".navigationBarHidden(true)"))
+        #expect(tabRootBody.contains("tabRoot {"))
+        #expect(contents.contains(".toolbar(.hidden, for: .navigationBar)"))
+        #expect(contents.contains(".background(NBColor.pageBackground.ignoresSafeArea())"))
     }
 
     @Test
@@ -108,10 +117,19 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("NavigationLink(value: SleepStartDestination.latestReport)"))
         #expect(contents.contains("NavigationLink(value: SleepStartDestination.latestTimeline)"))
         #expect(contents.contains("NavigationLink(value: SleepStartDestination.trend)"))
+        #expect(contents.contains("refreshMicrophonePermissionStateAfterTabTransition()"))
+        #expect(!contents.contains(".onAppear {\n      appState.refreshMicrophonePermissionState()"))
         #expect(contents.contains("SleepReportView(report: appState.latestReport"))
         #expect(contents.contains("SleepTimelineView(report: appState.latestReport"))
         #expect(contents.contains("TrendDashboardView()"))
         #expect(contents.contains("NBPrimaryButton(title: startButtonTitle"))
+
+        let startContentStart = try #require(contents.range(of: "private var startContent")?.lowerBound)
+        let latestResult = try #require(contents.range(of: "latestResultSection", range: startContentStart..<contents.endIndex)?.lowerBound)
+        let startButton = try #require(contents.range(of: "NBPrimaryButton(title: startButtonTitle", range: startContentStart..<latestResult)?.lowerBound)
+        let setupSummary = try #require(contents.range(of: "setupSummaryCard", range: startContentStart..<latestResult)?.lowerBound)
+        #expect(startButton < setupSummary)
+        #expect(startButton < latestResult)
     }
 
     @Test

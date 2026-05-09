@@ -30,8 +30,8 @@ struct SleepStartView: View {
         showLatestReport = true
       }
     }
-    .onAppear {
-      appState.refreshMicrophonePermissionState()
+    .task {
+      appState.refreshMicrophonePermissionStateAfterTabTransition()
     }
   }
 
@@ -57,6 +57,10 @@ struct SleepStartView: View {
 
         permissionStatusCard
 
+        NBPrimaryButton(title: startButtonTitle, systemImage: startButtonIcon, isDisabled: appState.isPreparingCapture) {
+          appState.startSleepSession()
+        }
+
         setupSummaryCard
         latestResultSection
 
@@ -69,12 +73,10 @@ struct SleepStartView: View {
             "서버로 전송하지 않습니다.",
           ]
         )
-
-        NBPrimaryButton(title: startButtonTitle, systemImage: startButtonIcon, isDisabled: appState.isPreparingCapture) {
-          appState.startSleepSession()
-        }
       }
-      .padding(NBSpacing.screenHorizontal)
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.top, NBSpacing.sm)
+      .padding(.bottom, NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
