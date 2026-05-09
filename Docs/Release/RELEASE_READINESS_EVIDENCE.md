@@ -9,9 +9,9 @@
 | README 대표 8장 | docs-preview-only | `Docs/Screenshots/screenshot_status.tsv`는 `captured, quality review pending`, `Docs/Screenshots/screenshot_visual_review.tsv`는 `docs-preview-only`로 유지 | README 문서 preview로만 사용, `release-approved` 승격 안 함 |
 | App Store 후보 8장 | simulator `release-approved` | raw/review crop contact sheet, `Docs/Screenshots/app_store_export_visual_review.tsv`, `REQUIRE_APP_STORE_RELEASE_APPROVED=1` hard gate | App Store Connect upload 화면에서 순서/crop/locale 최종 확인 |
 | Health/Fitdays gallery 11장 | UI Gallery 전용 `release-approved` | Health/Fitdays crop visual QA와 `screenshot_status.tsv` evidence | README/App Store 대표 이미지로는 사용하지 않음 |
-| Edge/Privacy/Support 11장 | UI Gallery 전용 `release-approved` | EdgeStates 7장, Privacy/Support 4장 visual QA와 `screenshot_status.tsv` evidence | DEBUG 화면과 `sleep-recording`은 계속 격리 |
+| Edge/Privacy/Support 11장 | UI Gallery 전용 `release-approved` | EdgeStates 7장, Privacy/Support 4장 visual QA와 `screenshot_status.tsv` evidence | DEBUG 화면은 계속 격리 |
 | DEBUG observability | internal-only | `Docs/Screenshots/Debug/` 후보는 `internal-only, quality review pending` | release-facing 문서에 렌더링하지 않음 |
-| Sleep recording | blocked | `sleep-recording`은 `blocked, recapture required` | 재캡처 전 문서 노출 금지 |
+| Sleep recording | UI Gallery 전용 `release-approved` | `sleep-recording` 재캡처 crop과 `screenshot_visual_review.tsv` visual QA evidence | README/App Store 대표 이미지로는 사용하지 않음 |
 
 ## App Store Copy Evidence
 
@@ -43,4 +43,4 @@
 
 ## Decision
 
-현재 simulator-first evidence 기준으로 App Store screenshot 후보 8장, Health/Fitdays gallery, Edge/Privacy/Support gallery는 각각 정해진 범위 안에서 승인 상태입니다. README 대표 8장은 프로젝트 소개용 문서 preview로 유지하며, App Store 제출 후보나 UI Gallery 승인 이미지로 승격하지 않습니다.
+현재 simulator-first evidence 기준으로 App Store screenshot 후보 8장, Health/Fitdays gallery, Sleep recording gallery, Edge/Privacy/Support gallery는 각각 정해진 범위 안에서 승인 상태입니다. README 대표 8장은 프로젝트 소개용 문서 preview로 유지하며, App Store 제출 후보나 UI Gallery 승인 이미지로 승격하지 않습니다.

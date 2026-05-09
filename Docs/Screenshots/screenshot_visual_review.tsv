@@ -26,6 +26,7 @@ health-metric-basal	2026-05-09	Codex	release-approved	Local-only metric detail c
 health-blood-pressure	2026-05-09	Codex	release-approved	Blood pressure dashboard contact sheet passed non-diagnostic copy and trend chart crop review	Render in UI Gallery only; keep out of README/App Store
 health-body-composition	2026-05-09	Codex	release-approved	Body composition dashboard contact sheet passed value framing, chart, and privacy review	Render in UI Gallery only; keep out of README/App Store
 health-cross-metric	2026-05-09	Codex	release-approved	Cross metric dashboard contact sheet passed causality boundary and chart crop review	Render in UI Gallery only; keep out of README/App Store
+sleep-recording	2026-05-09	Codex	release-approved	Recaptured active recording state shows realistic duration, readable recording metrics, and no internal screenshot scenario label	Render in UI Gallery only; keep out of README/App Store
 edge-zero-event	2026-05-09	Codex	release-approved	Zero-event report crop shows measurement context and avoids diagnosis language	Render in UI Gallery only; keep out of README/App Store
 edge-low-coverage	2026-05-09	Codex	release-approved	Low-coverage report crop frames the issue as measurement quality and keeps metrics readable	Render in UI Gallery only; keep out of README/App Store
 edge-event-audio-off	2026-05-09	Codex	release-approved	Event audio storage off crop shows OFF state, zero saved samples, local deletion, and no full-night audio storage copy	Render in UI Gallery only; keep out of README/App Store

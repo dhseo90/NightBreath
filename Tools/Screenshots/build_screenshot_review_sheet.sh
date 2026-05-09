@@ -37,6 +37,7 @@ ITEMS=(
   "Health|Blood pressure dashboard|Docs/Screenshots/Health/blood_pressure_dashboard_light.png|Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png|release-approved"
   "Health|Body composition dashboard|Docs/Screenshots/Health/body_composition_dashboard_light.png|Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png|release-approved"
   "Health|Cross metric dashboard|Docs/Screenshots/Health/cross_metric_dashboard_light.png|Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png|release-approved"
+  "Sleep|Sleep recording|Docs/Screenshots/Sleep/sleep_recording_light.png|Docs/Screenshots/Sleep/cropped/sleep_recording_light.png|release-approved"
   "EdgeStates|Zero-event report|Docs/Screenshots/EdgeStates/zero_event_report_light.png|Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png|release-approved"
   "EdgeStates|Low audio coverage|Docs/Screenshots/EdgeStates/low_coverage_report_light.png|Docs/Screenshots/EdgeStates/cropped/low_coverage_report_light.png|release-approved"
   "EdgeStates|Event audio storage off|Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png|Docs/Screenshots/EdgeStates/cropped/event_audio_storage_off_light.png|release-approved"

@@ -178,7 +178,7 @@
 - README screenshot은 2026-05-09 기준 문서 preview 유지로 판정했습니다. release-approved 승격은 하지 않습니다.
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 UI Gallery 전용 release-approved로 승격했습니다. README/App Store 대표 이미지로는 사용하지 않습니다.
 - PrivacySettings, zero-event, low-coverage, event audio storage off, health permission empty, metric detail empty, cross metric insufficient, onboarding/device/calibration, report empty는 UI Gallery 전용 release-approved로 승격했습니다.
-- SleepRecording은 재캡처 전까지 blocked 상태로 유지합니다.
+- SleepRecording은 active recording state로 재캡처했고 UI Gallery 전용 release-approved로 승격했습니다.
 - DEBUG replay/audio/sample capture/detector/simulator scenario screenshot은 internal-only로 유지합니다.
 - App Store raw/review-cropped 후보 8개는 2026-05-09에 재캡처, contact sheet visual QA, 88개 export dimension QA, hard gate를 통과해 release-approved입니다.
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.

@@ -18,7 +18,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다. 2026-05-09 기준 App Store 8개, Health/Fitdays, Edge/Privacy/Support 문서 노출 가능 후보는 simulator contact sheet/evidence gate를 통과했습니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, sleep recording screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다. 2026-05-09 기준 App Store 8개, Health/Fitdays, Sleep recording, Edge/Privacy/Support 문서 노출 가능 후보는 simulator contact sheet/evidence gate를 통과했습니다.
 
 ## Screenshot Quality Gate
 
@@ -28,7 +28,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - App Store 후보 `01_home_dashboard_light.png` 계열은 2026-05-09에 재캡처, copy/crop/privacy contact sheet, export manifest/dimension QA를 통과해 `release-approved`입니다.
 - 상세 gallery 후보는 고정 상하단 crop만으로 처리한 항목이 있어 화면별 여백, 주요 card 위치, 하단 content 가독성 검수가 필요합니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
-- 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보와 Health/Fitdays/Edge/Privacy/Support 문서 노출 가능 후보는 `release-approved`, 나머지 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
+- 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보와 Health/Fitdays/Sleep recording/Edge/Privacy/Support 문서 노출 가능 후보는 `release-approved`, 나머지 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
 
 상태 source-of-truth:
 
@@ -53,7 +53,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | README 대표 8개 | captured, quality review pending | 루트 README에서 문서 preview로 렌더링하며 release-approved/App Store 승인과는 분리 |
 | Health/EHM 상세 | release-approved | Health/Fitdays 문서 노출 가능 후보는 모두 UI Gallery 전용 `release-approved`; README/App Store 승격과는 분리 |
 | Privacy/Support | release-approved | privacy settings, onboarding, device placement, calibration은 UI Gallery 전용 승인 |
-| Sleep/Edge direct scenario | mixed, see manifest | sleep recording은 비현실적 duration/state mismatch로 recapture required, edge states와 report empty는 UI Gallery 전용 승인 |
+| Sleep/Edge direct scenario | release-approved where reviewed | sleep recording, edge states, report empty는 UI Gallery 전용 승인 |
 | DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
 | App Store 후보 8개 | release-approved | 2026-05-09 raw 재캡처, contact sheet, export manifest/dimension QA 통과. 실기기 QA는 제외 |
 | 직접 scenario 상세 캡처 | mixed, see manifest | trend, morning/evening check-in, Daily Health Card export/share state는 pending, report empty는 UI Gallery 전용 승인, simulator scenario는 DEBUG only |
@@ -69,7 +69,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | EdgeStates | `edge-zero-event`, `edge-low-coverage`, `edge-event-audio-off`, `edge-health-permission-empty`, `edge-metric-detail-empty`, `edge-cross-metric-insufficient`, `detail-report-empty` | UI Gallery 전용 release-approved. edge 상태 설명용이며 App Store 후보는 별도 App Store 8개 flow만 사용 | 상태가 건강 판정처럼 읽히지 않고, CTA/제한 안내/개인정보 경계가 crop 안에서 확인됨 |
 | Privacy/Support | `privacy-settings`, `privacy-onboarding`, `privacy-device-placement`, `privacy-calibration` | UI Gallery 전용 release-approved. 개인정보/온보딩/배치/캘리브레이션 설명용 | 서버 미전송, HealthKit read-only, 이벤트 샘플 opt-in/off copy와 주요 CTA 가독성 확인 완료 |
 | DEBUG observability | `debug-audio`, `debug-sample`, `debug-replay`, `debug-detector`, `debug-simulator` | 계속 격리. DEBUG only | 개발 문서에서 경로만 추적하고 Release/README/App Store에는 렌더링하지 않음 |
-| Sleep recording | `sleep_recording_light.png` | 계속 격리. `blocked, recapture required` 유지 | 비현실적 duration/state mismatch를 고친 뒤 재캡처 |
+| Sleep recording | `sleep_recording_light.png` | UI Gallery 전용 release-approved. README/App Store로 승격하지 않음 | active recording state, 현실적인 duration, 내부 screenshot label 없음, 저장 정책 copy 확인 완료 |
 
 ## App Store Screenshot Candidate Flow
 
@@ -97,6 +97,7 @@ App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합�
 | 항목 | 상태 | Review crop |
 | --- | --- | --- |
 | `TrendDashboardView` | captured, quality review pending | `Docs/Screenshots/Home/cropped/trend-dashboard.png` |
+| `SleepRecordingView` | release-approved | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` |
 | `MorningCheckInView` | captured, quality review pending | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` |
 | `EveningCheckInView` | captured, quality review pending | `Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png` |
 | `DailyHealthCardPreviewView` export/share state | captured, quality review pending | `Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png` |
@@ -150,7 +151,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `SleepStartView` | 수면 기능 동작과 결과 확인 | 측정 안내, 기기 배치, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 최근 리포트, 타임라인, 수면 트렌드, 배치 가이드 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | captured, quality review pending | Release | `Docs/QA_GUIDE.md` |
-| `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
+| `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | release-approved | Release | `Docs/QA_GUIDE.md` |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | captured, quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | captured, quality review pending | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningCheckInScenario` | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |

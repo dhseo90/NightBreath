@@ -419,9 +419,13 @@ final class AppState: ObservableObject {
             applyScreenshotRecordingState()
         }
 
-        audioCaptureMessage = surface.isAppStoreMarketing
-            ? "App Store 스크린샷 표면 ‘\(scenario.displayName)’를 적용했습니다. 실제 오디오 파일은 생성하지 않습니다."
-            : "스크린샷 프리셋 ‘\(scenario.displayName)’를 적용했습니다. 예시 데이터만 사용하며 실제 오디오 파일은 생성하지 않습니다."
+        if scenario == .sleepRecording {
+            audioCaptureMessage = nil
+        } else {
+            audioCaptureMessage = surface.isAppStoreMarketing
+                ? "App Store 스크린샷 표면 ‘\(scenario.displayName)’를 적용했습니다. 실제 오디오 파일은 생성하지 않습니다."
+                : "스크린샷 프리셋 ‘\(scenario.displayName)’를 적용했습니다. 예시 데이터만 사용하며 실제 오디오 파일은 생성하지 않습니다."
+        }
         eventAudioStorageMessage = surface.isAppStoreMarketing
             ? "App Store 스크린샷 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
             : "스크린샷 프리셋 예시 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
@@ -982,15 +986,19 @@ final class AppState: ObservableObject {
     #if DEBUG
     private func applyScreenshotRecordingState() {
         var session = latestSession
-        session.endedAt = nil
         session.measurementDuration = 2 * 60 * 60 + 18 * 60
+        let now = Date()
+        session.startedAt = now.addingTimeInterval(-session.measurementDuration)
+        session.estimatedSleepStart = session.startedAt.addingTimeInterval(18 * 60)
+        session.estimatedWakeTime = nil
+        session.endedAt = nil
 
-        let now = session.startedAt.addingTimeInterval(session.measurementDuration)
         let receivedAudioSeconds = session.measurementDuration * 0.97
         let analyzedAudioSeconds = session.measurementDuration * 0.965
 
         activeSession = session
         latestSession = session
+        sleepRecordingPhase = .recording
         audioCaptureState = .capturing(startedAt: session.startedAt)
         audioCaptureMetrics = AudioCaptureMetrics(
             captureStartedAt: session.startedAt,

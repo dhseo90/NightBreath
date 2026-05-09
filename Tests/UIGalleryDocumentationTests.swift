@@ -16,7 +16,7 @@ struct UIGalleryDocumentationTests {
     #expect(readme.contains("Docs/Screenshots/README/cropped/health_dashboard_light.png"))
     #expect(uiGallery.contains("Screenshot Quality Gate"))
     #expect(uiGallery.contains("captured, quality review pending"))
-    #expect(uiGallery.contains("blocked, recapture required"))
+    #expect(uiGallery.contains("release-approved"))
     #expect(uiGallery.contains("| README 대표 8개 | captured, quality review pending |"))
     #expect(uiGallery.contains("| App Store 후보 8개 | release-approved |"))
     #expect(uiGallery.contains("Health/Fitdays 문서 노출 가능 후보"))
@@ -242,7 +242,7 @@ struct UIGalleryDocumentationTests {
     #expect(privacyApprovedCount == 4)
     #expect(readmePreviewCount == 8)
     #expect(debugInternalCount >= 4)
-    #expect(releaseApprovedCount == 30)
+    #expect(releaseApprovedCount == 31)
   }
 
   @Test
@@ -331,6 +331,7 @@ struct UIGalleryDocumentationTests {
     #expect(visualReview.contains("appstore-home\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("health-fitdays-error\t2026-05-09\tCodex\trelease-approved"))
+    #expect(visualReview.contains("sleep-recording\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("edge-event-audio-off\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("privacy-settings\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))

@@ -188,6 +188,7 @@ struct SimulatorQAScenarioTests {
     let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
     let expectedReleaseScenarios = [
       ("trendDashboard", "ScreenshotTrendDashboardScenario", "TrendDashboardView()", "Docs/Screenshots/Home/trend-dashboard.png"),
+      ("sleepRecording", "ScreenshotRecordingScenario", "SleepRecordingView()", "Docs/Screenshots/Sleep/sleep_recording_light.png"),
       ("morningCheckIn", "ScreenshotMorningCheckInScenario", "MorningCheckInView(sessionId:", "Docs/Screenshots/Sleep/morning-check-in.png"),
       ("eveningCheckIn", "ScreenshotEveningCheckInScenario", "EveningCheckInView()", "Docs/Screenshots/DailyRhythm/evening-check-in.png"),
       ("dailyHealthCardExport", "ScreenshotDailyHealthCardExportScenario", "initialExportPreview: true", "Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png"),
@@ -242,9 +243,14 @@ struct SimulatorQAScenarioTests {
 
     #expect(appState.contains("func applyScreenshotScenario("))
     #expect(appState.contains("latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
+    #expect(appState.contains("sleepRecordingPhase = .recording"))
+    #expect(appState.contains("session.startedAt = now.addingTimeInterval(-session.measurementDuration)"))
+    #expect(appState.contains("if scenario == .sleepRecording {\n            audioCaptureMessage = nil\n        }"))
     #expect(appState.contains("case .simulatorQA:\n            \"검증용 예시\""))
     #expect(!appState.contains("case .simulatorQA:\n            \"Simulator QA\""))
     #expect(screenshotScenarios.contains("state.latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
+    #expect(screenshotScenarios.contains("state.sleepRecordingPhase = .recording"))
+    #expect(screenshotScenarios.contains("session.startedAt = now.addingTimeInterval(-session.measurementDuration)"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

@@ -11,6 +11,7 @@ WAIT_SECONDS="${SCREENSHOT_WAIT_SECONDS:-2}"
 
 CAPTURES=(
   "trendDashboard:Docs/Screenshots/Home/trend-dashboard.png"
+  "sleepRecording:Docs/Screenshots/Sleep/sleep_recording_light.png"
   "morningCheckIn:Docs/Screenshots/Sleep/morning-check-in.png"
   "eveningCheckIn:Docs/Screenshots/DailyRhythm/evening-check-in.png"
   "dailyHealthCardExport:Docs/Screenshots/DailyRhythm/daily-health-card-export-preview.png"

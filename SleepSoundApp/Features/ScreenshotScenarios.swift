@@ -822,14 +822,18 @@ enum ScreenshotScenarioFactory {
 
   private static func applyRecordingState(to state: AppState) {
     var session = state.latestSession
-    session.endedAt = nil
     session.measurementDuration = 2 * 60 * 60 + 18 * 60
+    let now = Date()
+    session.startedAt = now.addingTimeInterval(-session.measurementDuration)
+    session.estimatedSleepStart = session.startedAt.addingTimeInterval(18 * 60)
+    session.estimatedWakeTime = nil
+    session.endedAt = nil
 
-    let now = session.startedAt.addingTimeInterval(session.measurementDuration)
     let receivedAudioSeconds = session.measurementDuration * 0.97
     let analyzedAudioSeconds = session.measurementDuration * 0.965
 
     state.activeSession = session
+    state.sleepRecordingPhase = .recording
     state.audioCaptureState = .capturing(startedAt: session.startedAt)
     state.audioCaptureMetrics = AudioCaptureMetrics(
       captureStartedAt: session.startedAt,
