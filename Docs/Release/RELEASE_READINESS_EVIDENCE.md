@@ -40,7 +40,7 @@
 - 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인
 - 실제 Fitdays export/share 노출 확인
 - App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview
-- TestFlight 내부 테스트와 private evidence 기록
+- TestFlight 내부 테스트 실행과 private evidence 기록. 실행용 blank template과 repository 밖 draft 생성 script는 준비 완료
 
 ## Decision
 

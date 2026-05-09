@@ -204,7 +204,7 @@ xcrun swift Tools/AppIcon/render_app_icon_review_sheet.swift
 
 ## TestFlight Checklist
 
-상세 내부 테스트 기준은 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`를 따릅니다.
+상세 내부 테스트 기준은 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`를 따릅니다. 실제 실행 기록은 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`를 private QA note에 복사하거나 `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖에 만든 draft에 기록합니다.
 
 TestFlight 전 확인:
 
@@ -222,6 +222,7 @@ TestFlight 전 확인:
 - 서버/네트워크/외부 SDK scan
 - HealthKit write scan
 - 전체 밤 원본 오디오 저장 scan
+- private TestFlight evidence draft 생성
 
 TestFlight blocking gate:
 

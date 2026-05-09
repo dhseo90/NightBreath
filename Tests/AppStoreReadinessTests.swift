@@ -705,6 +705,8 @@ struct AppStoreReadinessTests {
 
         #expect(testFlightPlan.contains("Blocking gate"))
         #expect(testFlightPlan.contains("Evidence Template"))
+        #expect(testFlightPlan.contains("Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md"))
+        #expect(testFlightPlan.contains("Tools/Release/prepare_testflight_evidence.sh"))
         #expect(testFlightPlan.contains("foreground stop smoke"))
         #expect(testFlightPlan.contains("double stop tap"))
         #expect(testFlightPlan.contains("zero-event diagnostics present"))
@@ -718,8 +720,29 @@ struct AppStoreReadinessTests {
         #expect(testFlightPlan.contains("HealthKit write observed: No"))
         #expect(testFlightPlan.contains("diagnosis wording observed: No"))
         #expect(releaseGuide.contains("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"))
+        #expect(releaseGuide.contains("Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md"))
+        #expect(releaseGuide.contains("Tools/Release/prepare_testflight_evidence.sh"))
         #expect(qaChecklist.contains("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"))
+        #expect(qaChecklist.contains("Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md"))
         #expect(nextIssues.contains("TestFlight 내부 테스트 체크리스트 정리 완료"))
+
+        let evidenceTemplate = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md"),
+            encoding: .utf8
+        )
+        let prepareScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Release/prepare_testflight_evidence.sh"),
+            encoding: .utf8
+        )
+        #expect(evidenceTemplate.contains("Run Identity"))
+        #expect(evidenceTemplate.contains("Local Preflight"))
+        #expect(evidenceTemplate.contains("Flow Evidence"))
+        #expect(evidenceTemplate.contains("Redaction Checklist"))
+        #expect(evidenceTemplate.contains("real personal audio committed"))
+        #expect(evidenceTemplate.contains("HealthKit write observed"))
+        #expect(prepareScript.contains("TESTFLIGHT_EVIDENCE_OUTPUT_PATH"))
+        #expect(prepareScript.contains("TestFlight evidence must stay private"))
+        #expect(prepareScript.contains("Do not commit completed TestFlight evidence"))
 
         let forbiddenPhrases = [
             "수면무호흡증 " + "진단",

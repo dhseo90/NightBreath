@@ -1,6 +1,6 @@
 # TestFlight Internal Test Plan
 
-이 문서는 NightBreath / 밤숨을 TestFlight 내부 테스트로 배포하기 전후에 확인할 최소 기준입니다. 실제 테스트 실행 기록은 private QA note에 남기고, repository에는 실제 개인 건강 데이터, 실제 오디오 파일, 실제 CSV/export 파일, 실제 local path를 남기지 않습니다.
+이 문서는 NightBreath / 밤숨을 TestFlight 내부 테스트로 배포하기 전후에 확인할 최소 기준입니다. 실제 테스트 실행 기록은 private QA note에 남기고, repository에는 실제 개인 건강 데이터, 실제 오디오 파일, 실제 CSV/export 파일, 실제 local path를 남기지 않습니다. 실행용 빈 evidence template은 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`에 두고, `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖 private draft를 만들 수 있습니다.
 
 ## 목적
 
@@ -16,6 +16,7 @@
 - TestFlight 후보 commit hash와 build number 확인
 - App Store screenshot/copy는 mock/synthetic data 기반만 사용
 - 실제 iPhone smoke test는 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md` 기준으로 별도 실행
+- private evidence draft는 `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖에 생성
 
 ## 내부 테스트 범위
 
@@ -79,6 +80,8 @@
 - 의료 진단처럼 읽히는 copy가 있으면 수정 전 배포하지 않습니다.
 
 ## Evidence Template
+
+실제 실행 시에는 아래 inline template 대신 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`를 private QA note에 복사하거나 `Tools/Release/prepare_testflight_evidence.sh`가 만든 private draft를 사용합니다.
 
 ```text
 TestFlight internal test evidence

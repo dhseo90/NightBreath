@@ -16,7 +16,7 @@ README/UI Gallery의 문서용 screenshot은 실제 iPhone QA screenshot, 실제
 
 실제 iPhone에서 smoke test와 HealthKit/Fitdays import 흐름을 순서대로 실행할 때는 `Docs/QA_GUIDE.md`를 함께 사용합니다.
 
-TestFlight 내부 테스트 후보 build를 검증할 때는 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`의 blocking gate와 evidence template을 함께 사용합니다.
+TestFlight 내부 테스트 후보 build를 검증할 때는 `Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md`의 blocking gate와 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`의 private evidence template을 함께 사용합니다. repository 밖 draft가 필요하면 `Tools/Release/prepare_testflight_evidence.sh`를 실행합니다.
 
 ## 1. 빌드와 테스트
 
