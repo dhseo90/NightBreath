@@ -4,7 +4,7 @@ import Testing
 @Suite("UI Gallery Documentation")
 struct UIGalleryDocumentationTests {
   @Test
-  func uiGalleryQuarantinesScreenshotImagesUntilQualityReviewPasses() throws {
+  func uiGalleryKeepsDetailedScreensQuarantinedWhileReadmePreviewRenders() throws {
     let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
     let readme = try sourceContents("README.md")
     let regex = try NSRegularExpression(pattern: #"!\[[^\]]*\]\((Screenshots/[^)\s]+)\)"#)
@@ -12,13 +12,15 @@ struct UIGalleryDocumentationTests {
     let matches = regex.matches(in: uiGallery, range: nsRange)
 
     #expect(matches.isEmpty, "UI Gallery should not render screenshot candidates before visual QA passes.")
-    #expect(!readme.contains("<img src=\"Docs/Screenshots/"), "README should not render quarantined screenshot candidates.")
+    #expect(readme.contains("Docs/Screenshots/README/cropped/home_dashboard_light.png"))
+    #expect(readme.contains("Docs/Screenshots/README/cropped/health_dashboard_light.png"))
     #expect(uiGallery.contains("Screenshot Quality Gate"))
     #expect(uiGallery.contains("captured, quality review pending"))
     #expect(uiGallery.contains("blocked, recapture required"))
-    #expect(uiGallery.contains("| README 대표 8개 | blocked, recapture required |"))
-    #expect(uiGallery.contains("Simulator QA"))
-    #expect(readme.contains("품질 재검토 중"))
+    #expect(uiGallery.contains("| README 대표 8개 | captured, quality review pending |"))
+    #expect(uiGallery.contains("| App Store 후보 8개 | blocked, recapture required |"))
+    #expect(uiGallery.contains("mock/simulator data"))
+    #expect(readme.contains("App Store 제출용 최종 이미지는 별도 screenshot approval flow"))
   }
 
   @Test
@@ -162,7 +164,7 @@ struct UIGalleryDocumentationTests {
     #expect(toolGuide.contains("release-approved"))
 
     var appStoreBlockedCount = 0
-    var readmeBlockedCount = 0
+    var readmePreviewCount = 0
     var debugInternalCount = 0
     var releaseApprovedCount = 0
 
@@ -181,8 +183,8 @@ struct UIGalleryDocumentationTests {
       if group == "App Store", status == "blocked, recapture required" {
         appStoreBlockedCount += 1
       }
-      if group == "README", status == "blocked, recapture required" {
-        readmeBlockedCount += 1
+      if group == "README", status == "captured, quality review pending" {
+        readmePreviewCount += 1
       }
       if group == "Debug", status == "internal-only, quality review pending" {
         debugInternalCount += 1
@@ -195,7 +197,7 @@ struct UIGalleryDocumentationTests {
     }
 
     #expect(appStoreBlockedCount == 8)
-    #expect(readmeBlockedCount == 8)
+    #expect(readmePreviewCount == 8)
     #expect(debugInternalCount >= 4)
     #expect(releaseApprovedCount == 0)
   }

@@ -7,7 +7,7 @@
 실기기 없이 진행 가능한 후속 개발 batch는 privacy/export, Fitdays local import, health dashboard edge state, detector diagnostics, event audio snippet guard, real-device QA runbook, screenshot 문서 상태 정렬까지 완료했습니다.
 
 - 실제 iPhone이 필요한 항목은 capture/background/overnight, 실제 HealthKit 권한 조합, 실제 Fitdays export/share 노출, 실제 코골기 배치별 detector evidence로 남겼습니다.
-- README/App Store screenshot 후보는 파일이 있어도 `release-approved`가 아니며, README 대표 8개와 App Store 후보 8개는 `blocked, recapture required`로 관리합니다.
+- README 대표 8개는 루트 README의 문서 preview로 렌더링하지만 `release-approved`는 아닙니다. App Store 후보 8개는 여전히 `blocked, recapture required`로 관리합니다.
 - 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 실제 개인 오디오/CSV fixture 추가는 하지 않았습니다.
 - 현재 안정화 기준은 `git diff --check`, `swift test --no-parallel`, generic iOS Debug build입니다.
 
@@ -178,7 +178,7 @@
 - Screenshot raw/crop contact sheet 생성 workflow
 - Screenshot approval status manifest
 - Screenshot manifest/schema/local file reference validation gate
-- README screenshot 후보 blocked/recapture 상태와 문서 source-of-truth 정렬
+- README screenshot 후보를 문서 preview와 App Store/release-approved gate로 분리
 - user-facing screenshot launch scenario의 내부 QA source badge 노출 방지
 - 수동 navigation이 필요했던 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면에 DEBUG launch scenario와 captured screenshot 후보 추가
 
@@ -212,7 +212,7 @@
 - App Store 제출
 - 실제 기기 홈 화면/Settings/TestFlight 표면의 최종 앱 아이콘 확인
 - App Store screenshot marketing final visual/export version
-- README/App Store screenshot 후보 재캡처와 visual QA 승인
+- README preview screenshot의 release-approved 승격 여부 검토와 App Store 후보 재캡처/visual QA 승인
 - App Store Connect 화면에서 product page copy 글자 수/locale 최종 확인
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export

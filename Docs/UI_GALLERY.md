@@ -10,24 +10,25 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 - 실제 screenshot 파일이 없는 화면은 `screenshot pending`으로 표시합니다.
 - 실제 파일이 생기기 전에는 README나 문서에 image markdown을 추가하지 않습니다.
-- README에는 품질 gate를 통과한 대표 화면만 싣고, 전체 화면과 edge state는 이 문서에서 관리합니다.
-- README 대표 screenshot은 `Docs/Screenshots/README/cropped/`의 crop 버전을 후보로 사용했지만, 현재는 재캡처가 필요하므로 README에 렌더링하지 않습니다.
+- README에는 `Docs/Screenshots/README/cropped/`의 대표 crop 8개를 문서 preview로 싣고, App Store/release-approved 이미지는 별도 gate에서 관리합니다.
+- 전체 화면, edge state, DEBUG-only 화면, App Store 후보는 이 문서와 `Docs/Screenshots/screenshot_status.tsv`를 기준으로 상태를 추적합니다.
 - README 대표 crop은 status bar, 시간, Dynamic Island 영역만 제거하고 화면 title과 주요 content는 유지해야 합니다.
 - 원본 capture는 `Docs/Screenshots/README/`에 보존하며, 상세 gallery screenshot은 화면별 필요에 따라 원본 또는 crop 버전을 구분해 관리합니다.
 - App Store 후보 screenshot은 `Docs/APP_RELEASE_GUIDE.md`와 함께 검토합니다.
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했지만, 2026-05-07 문서/이미지 리뷰에서 품질 문제가 확인되어 release-approved 상태가 아닙니다. 기존 파일은 재캡처 기준을 잡기 위한 후보이며, 수동 navigation이 필요했던 상세 화면도 직접 launch scenario로 캡처해 quality review pending 상태로 관리합니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다.
 
 ## Screenshot Quality Gate
 
-현재 저장된 screenshot 후보는 다음 이유로 README/App Store/사용자-facing 문서에 바로 노출하지 않습니다.
+현재 저장된 screenshot 후보는 다음 기준으로 노출 범위를 나눕니다.
 
-- App Store 후보 `01_home_dashboard_light.png` 계열에 내부 QA source label인 `Simulator QA`가 노출되었습니다. 이후 코드에서는 user-facing screenshot launch scenario가 public source copy를 사용하도록 보강했지만, 기존 image 파일은 재캡처 전까지 계속 blocked입니다.
-- 고정 상하단 crop만으로 처리해 화면별 여백, 주요 card 위치, 하단 content 가독성이 충분히 검수되지 않았습니다.
+- README 대표 8개는 mock/simulator data 기반 문서 preview로 렌더링합니다. release-approved나 App Store 제출용 이미지를 의미하지 않습니다.
+- App Store 후보 `01_home_dashboard_light.png` 계열은 내부 QA source label 노출 가능성과 crop 품질 이슈가 있어 재캡처 전까지 계속 blocked입니다.
+- 상세 gallery 후보는 고정 상하단 crop만으로 처리한 항목이 있어 화면별 여백, 주요 card 위치, 하단 content 가독성 검수가 필요합니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
-- 파일 존재 여부만으로 승인하지 않습니다. README/App Store 후보는 현재 `blocked, recapture required`로 보고, 상세 gallery 후보만 `captured, quality review pending`으로 추적합니다.
+- 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보는 `blocked, recapture required`, 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
 
 상태 source-of-truth:
 
@@ -48,7 +49,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 | 범위 | 상태 | 비고 |
 | --- | --- | --- |
-| README 대표 8개 | blocked, recapture required | crop 정렬과 내부 QA label 노출 여부를 재확인하기 전까지 README 렌더링 금지 |
+| README 대표 8개 | captured, quality review pending | 루트 README에서 문서 preview로 렌더링하며 release-approved/App Store 승인과는 분리 |
 | Health/EHM 상세 | mixed, see manifest | 대부분 quality review pending, Fitdays import result는 internal fixture filename 노출로 recapture required |
 | Privacy/Support | captured, quality review pending | privacy settings, onboarding, device placement, calibration |
 | Sleep/Edge direct scenario | mixed, see manifest | sleep recording은 비현실적 duration/state mismatch로 recapture required, edge states는 quality review pending |
@@ -127,35 +128,35 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HomeDashboardView` | 종합 평가와 최근 상태 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, 주요 이벤트, Daily Rhythm 진입점 | 수면 시작, 최근 리포트, 수면 트렌드, 건강 tab 상세 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
+| `HomeDashboardView` | 종합 평가와 최근 상태 허브 | 최근 수면 리포트, 수면 소리 점수, 측정 품질, 주요 이벤트, Daily Rhythm 진입점 | 수면 시작, 최근 리포트, 수면 트렌드, 건강 tab 상세 진입 | 온디바이스 분석, 서버 전송 없음, 원본 전체 오디오 미저장 안내 | `ScreenshotHomeScenario` | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | captured, quality review pending | Release | `Docs/UI_SCREEN_MAP.md`, `Docs/DESIGN_SYSTEM.md` |
 | `TrendDashboardView` | 7일/30일/90일 수면 소리 흐름 | 수면 소리 점수, 코골기 시간, 측정 품질 추세 | 기간 선택 | 낮은 측정 품질은 배지와 문장으로 구분 | `ScreenshotTrendDashboardScenario` | `Docs/Screenshots/Home/cropped/trend-dashboard.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Sleep Flow
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `SleepStartView` | 수면 기능 동작과 결과 확인 | 측정 안내, 기기 배치, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 최근 리포트, 타임라인, 수면 트렌드, 배치 가이드 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
+| `SleepStartView` | 수면 기능 동작과 결과 확인 | 측정 안내, 기기 배치, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 최근 리포트, 타임라인, 수면 트렌드, 배치 가이드 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | captured, quality review pending | Release | `Docs/QA_GUIDE.md` |
 | `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | blocked, recapture required | Release | `Docs/QA_GUIDE.md` |
-| `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | blocked, recapture required | Release | `Docs/UI_SCREEN_MAP.md` |
-| `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | blocked, recapture required | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
+| `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | captured, quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
+| `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | captured, quality review pending | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningCheckInScenario` | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 
 ## Daily Rhythm
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 요약, 수면 소리 점수, 아침 컨디션, 예시 아침 건강 데이터, 데이터 준비 상태와 제한 항목 | 수면 리포트와 Daily Rhythm 흐름 확인 | 개인 참고용 리포트이며 건강 상태를 단정하지 않음 | `ScreenshotMorningBriefScenario` | `Docs/Screenshots/README/cropped/morning_brief_light.png` | blocked, recapture required | Release | `Docs/PRODUCT_DIRECTION.md` |
-| `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, component score, data quality, 데이터 준비 상태, Daily Insight | 하루 리듬 요약 확인 | 웰니스/개인 참고용 점수이며 인과관계를 의미하지 않음 | `ScreenshotDailyRhythmScenario` | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | blocked, recapture required | Release | `Docs/DAILY_RHYTHM_SCORE.md` |
+| `MorningBriefView` | 오늘 아침 리포트 | 지난밤 요약, 수면 소리 점수, 아침 컨디션, 예시 아침 건강 데이터, 데이터 준비 상태와 제한 항목 | 수면 리포트와 Daily Rhythm 흐름 확인 | 개인 참고용 리포트이며 건강 상태를 단정하지 않음 | `ScreenshotMorningBriefScenario` | `Docs/Screenshots/README/cropped/morning_brief_light.png` | captured, quality review pending | Release | `Docs/PRODUCT_DIRECTION.md` |
+| `DailyRhythmReportView` | 오늘의 리듬 리포트 | 오늘의 리듬 점수, component score, data quality, 데이터 준비 상태, Daily Insight | 하루 리듬 요약 확인 | 웰니스/개인 참고용 점수이며 인과관계를 의미하지 않음 | `ScreenshotDailyRhythmScenario` | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | captured, quality review pending | Release | `Docs/DAILY_RHYTHM_SCORE.md` |
 | `EveningCheckInView` | 저녁 컨디션 기록 | 피로도, 스트레스, 기분, 생활 태그, 메모 | 기기 안 로컬 체크인 저장, 같은 날짜 기록 불러오기 | 생활 태그는 개인 패턴 참고용 | `ScreenshotEveningCheckInScenario` | `Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png` | quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
-| `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | Release | `Docs/DAILY_HEALTH_CARD.md` |
-| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, 예시 카드 미리보기 | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | Release | `Docs/DAILY_HEALTH_CARD.md` |
+| `DailyHealthCardView` | 하루 리듬 카드 | 날짜, 오늘의 리듬 점수, 핵심 지표, 한 줄 요약 | 카드 UI 확인 | privacy level에 따라 민감 수치 표시를 줄임 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | captured, quality review pending | Release | `Docs/DAILY_HEALTH_CARD.md` |
+| `DailyHealthCardPreviewView` | 카드 template/privacy 미리보기 | template 선택, privacy level, 예시 카드 미리보기 | template/privacy 전환 | 실제 export/share는 사용자 명시 액션 전까지 없음 | `ScreenshotDailyHealthCardScenario` | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | captured, quality review pending | Release | `Docs/DAILY_HEALTH_CARD.md` |
 | `DailyHealthCardPreviewView` export/share state | export/share 확인 흐름 | export preview, privacy level, 포함 항목, `DailyHealthCardExportConfirmationSheet`, 공유 완료/취소/실패 state | 이미지 만들기, 시스템 공유, 취소, 다시 시도 | 자동 공유 없음, 서버 업로드 없음, 외부 SDK 없음, local path와 파일명 미표시 | `ScreenshotDailyHealthCardExportScenario` | `Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png` | quality review pending | Release | `Docs/DAILY_HEALTH_CARD.md`, `Docs/PRIVACY_STORAGE_AUDIT.md` |
 
 ## Health Dashboard
 
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `HealthDashboardView` | Apple 건강앱 + 밤숨 수면 결과 + Fitdays 데이터 허브 | read-only 연결 상태, 앱 계산 수면 지표, 로컬 import 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 최근 날짜 상세, 혈압/체성분/교차 보기/Fitdays import 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | blocked, recapture required | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthDashboardView` | Apple 건강앱 + 밤숨 수면 결과 + Fitdays 데이터 허브 | read-only 연결 상태, 앱 계산 수면 지표, 로컬 import 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 최근 날짜 상세, 혈압/체성분/교차 보기/Fitdays import 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | captured, quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit 기반 지표, Fitdays 로컬 전용 지표, 기간별 최근값/평균/변화, 출처 badge | 기간 선택, metric detail 진입 | 출처 type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, HealthKit 기반/로컬 전용 badge, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 기반/로컬 전용 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | `MetricDetailView` 로컬 전용 예시 | Fitdays 확장 로컬 전용 metric 상세 예시 | 기초대사량 설명, 로컬 전용/Fitdays CSV badge, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 로컬 전용 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |

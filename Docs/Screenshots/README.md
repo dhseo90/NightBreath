@@ -11,7 +11,8 @@
 - 실제 screenshot 파일이 없는 경우 문서에는 `screenshot pending`으로 표시하고 broken image link를 만들지 않습니다.
 - screenshot 생성 방법은 `Tools/Screenshots/README.md`에서 관리합니다.
 - DEBUG 앱의 `Simulator QA / Screenshot Scenario` 화면에서 screenshot preset을 선택한 뒤 캡처합니다.
-- 2026-05-07 리뷰 기준 기존 README/App Store 후보 이미지는 품질 재검토 전까지 사용자-facing 문서에 렌더링하지 않습니다.
+- 2026-05-09 기준 README 대표 crop 8개는 루트 README의 프로젝트 소개용 문서 preview로 렌더링합니다.
+- App Store 후보와 release-approved 이미지는 별도 visual QA와 재캡처 gate를 통과한 뒤에만 사용합니다.
 - 파일이 존재해도 내부 QA label, crop 정렬, 주요 content 가독성 gate를 통과하기 전에는 `captured, quality review pending`으로 봅니다.
 - 각 screenshot 후보의 승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다.
 - `Docs/UI_GALLERY.md`나 `Docs/UI_SCREEN_MAP.md`에 `.png` 경로를 추가하면 같은 경로를 `screenshot_status.tsv`의 `raw_source` 또는 `review_asset`에 등록합니다.
@@ -31,7 +32,7 @@
 
 ## 현재 README 대표 screenshot
 
-다음 파일은 DEBUG simulator와 mock data 상태에서 생성한 후보입니다. 2026-05-07 visual review에서 crop 정렬과 내부 QA label 노출 가능성이 확인되어 현재 상태는 `blocked, recapture required`입니다. README에서는 렌더링하지 않으며, 재캡처와 crop 재검토 후 승인된 파일만 다시 연결합니다.
+다음 파일은 DEBUG simulator와 mock data 상태에서 생성한 후보입니다. 2026-05-09 문서 정리 기준으로 루트 README에서는 crop 버전을 프로젝트 소개용 preview로 렌더링합니다. 단, 이 상태는 `release-approved`나 App Store 제출 승인을 의미하지 않으며, 최종 marketing screenshot은 별도 재캡처와 visual QA를 거칩니다.
 
 - `README/home_dashboard_light.png`
 - `README/sleep_start_light.png`
@@ -42,7 +43,7 @@
 - `README/daily_health_card_light.png`
 - `README/health_dashboard_light.png`
 
-README 본문에는 위 원본을 직접 쓰지 않고, status bar, 시간, Dynamic Island 영역과 하단 floating tab bar 겹침 영역을 제거한 crop 버전을 후보로 사용합니다. 단, 현재 crop 후보는 화면별 visual QA를 통과하지 못했으므로 README에서 숨깁니다.
+README 본문에는 위 원본을 직접 쓰지 않고, status bar, 시간, Dynamic Island 영역과 하단 floating tab bar 겹침 영역을 제거한 crop 버전을 사용합니다. crop 후보는 문서 preview이며, release-approved로 전환하려면 화면별 visual QA가 필요합니다.
 
 - 원본 위치: `Docs/Screenshots/README/*.png`
 - README용 crop 위치: `Docs/Screenshots/README/cropped/*.png`
@@ -63,7 +64,7 @@ Review sheet:
 Tools/Screenshots/build_screenshot_review_sheet.sh
 ```
 
-Review sheet는 `Docs/Screenshots/review/screenshot_review_sheet.html`과 `Docs/Screenshots/review/screenshot_review_manifest.tsv`를 생성합니다. 이 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. README/App Store/user-facing 문서에 screenshot을 다시 렌더링하기 전에는 raw source와 crop을 나란히 보고 내부 label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 확인합니다.
+Review sheet는 `Docs/Screenshots/review/screenshot_review_sheet.html`과 `Docs/Screenshots/review/screenshot_review_manifest.tsv`를 생성합니다. 이 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. README preview를 release-approved 또는 App Store 후보로 승격하기 전에는 raw source와 crop을 나란히 보고 내부 label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 확인합니다.
 
 ## EHM 상세 screenshot 후보
 
@@ -157,7 +158,7 @@ Tools/Screenshots/capture_support_screenshots.sh
 SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
 ```
 
-수동 navigation이 필요했던 상세 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다. 파일이 생성되어도 visual QA 전에는 README/App Store/user-facing 문서에 렌더링하지 않습니다.
+수동 navigation이 필요했던 상세 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다. 파일이 생성되어도 visual QA 전에는 루트 README 대표 8개, App Store, user-facing marketing 문서에 렌더링하지 않습니다.
 
 ```bash
 Tools/Screenshots/capture_detail_screenshots.sh

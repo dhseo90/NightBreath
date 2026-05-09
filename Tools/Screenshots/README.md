@@ -2,7 +2,7 @@
 
 NightBreath / 밤숨의 README와 UI Gallery screenshot은 DEBUG 빌드에서 mock data 또는 simulator scenario만 사용해 생성합니다.
 
-2026-05-07 리뷰 기준 기존 README/App Store 후보 이미지는 crop 정렬과 내부 QA label 노출 문제가 확인되어 사용자-facing 문서에서 숨긴 상태입니다. 아래 workflow로 파일을 생성해도, contact sheet와 실제 문서 렌더링을 눈으로 확인하기 전에는 release-approved로 보지 않습니다.
+README 대표 이미지는 mock/simulator data 기반 문서 preview로 루트 README에 렌더링합니다. App Store 후보와 release-approved 이미지는 별도이며, 아래 workflow로 파일을 생성해도 contact sheet와 실제 문서 렌더링을 눈으로 확인하기 전에는 release-approved로 보지 않습니다.
 
 ## 준비
 
@@ -111,7 +111,7 @@ Tools/Screenshots/crop_readme_screenshots.sh
 
 Crop 후에는 title, 주요 card, CTA가 잘리지 않는지 확인합니다. crop이 실패했거나 화면을 오해하게 만들면 fake screenshot을 만들지 않고 원본을 다시 capture하거나 crop 값을 조정합니다.
 
-현재 고정 crop 출력은 검토 후보입니다. 화면별로 좌우 치우침, 하단 잘림, 주요 content 가독성, 내부 QA label 노출 여부를 확인한 뒤 README에 연결합니다.
+현재 고정 crop 출력은 README 문서 preview 후보입니다. 화면별로 좌우 치우침, 하단 잘림, 주요 content 가독성, 내부 QA label 노출 여부를 확인한 뒤 release-approved 승격 여부를 판단합니다.
 
 ## Review Sheet
 
@@ -128,7 +128,7 @@ Docs/Screenshots/review/screenshot_review_sheet.html
 Docs/Screenshots/review/screenshot_review_manifest.tsv
 ```
 
-이 출력 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. review sheet에서 다음 항목이 모두 통과해야 README/App Store/user-facing 문서에 다시 연결할 수 있습니다.
+이 출력 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. review sheet에서 다음 항목이 모두 통과해야 README preview를 release-approved로 승격하거나 App Store/user-facing marketing 문서에 연결할 수 있습니다.
 
 - 내부 `Simulator QA` label이나 `synthetic` 파일명, local path가 보이지 않음
 - title, 주요 card, CTA, tab/navigation 상태가 잘리지 않음
@@ -136,7 +136,7 @@ Docs/Screenshots/review/screenshot_review_manifest.tsv
 - 긴 한국어 문구, badge, chart axis가 겹치거나 잘리지 않음
 - 실제 개인 건강 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명 없음
 
-승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다. `release-approved`로 바꾼 후보만 README/App Store/user-facing 문서에 image markdown/HTML `img`로 연결합니다.
+승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다. README 대표 8개는 `captured, quality review pending` 상태에서 문서 preview로 렌더링할 수 있고, App Store/export/marketing용 이미지는 `release-approved` 전환 후에만 연결합니다.
 
 ## Manifest Validation
 
@@ -150,7 +150,7 @@ Tools/Screenshots/validate_screenshot_manifest.sh
 
 ## README 대표 screenshot 파일
 
-현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, 품질 gate 통과 전에는 README에 렌더링하지 않습니다.
+현재 README 대표 후보는 아래 8개 light screenshot입니다. 원본은 모두 DEBUG simulator와 mock data 상태에서 생성해야 하며, crop output은 루트 README에서 문서 preview로 사용합니다. release-approved 승격은 별도 visual QA 후에만 가능합니다.
 
 - `Docs/Screenshots/README/home_dashboard_light.png`
 - `Docs/Screenshots/README/sleep_start_light.png`
@@ -241,7 +241,7 @@ SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,debugTools Tools/Screenshots/
 
 ## Detail / Pending Screenshot
 
-수동 navigation이 필요했던 상세 화면은 별도 launch scenario로 직접 열 수 있습니다. 파일이 생성되어도 visual QA 전에는 `captured, quality review pending` 상태로 유지하고, README/App Store/user-facing 문서에는 렌더링하지 않습니다.
+수동 navigation이 필요했던 상세 화면은 별도 launch scenario로 직접 열 수 있습니다. 파일이 생성되어도 visual QA 전에는 `captured, quality review pending` 상태로 유지하고, 루트 README 대표 8개, App Store, user-facing marketing 문서에는 렌더링하지 않습니다.
 
 ```bash
 Tools/Screenshots/capture_detail_screenshots.sh

@@ -262,42 +262,42 @@ struct AppStoreReadinessTests {
             (
                 "ScreenshotHomeScenario",
                 "수면 중 소리 기반 지표를 한눈에",
-                "Docs/Screenshots/README/cropped/home_dashboard_light.png"
+                "Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png"
             ),
             (
                 "ScreenshotSleepReportScenario",
                 "아침에 읽기 쉬운 수면 소리 리포트",
-                "Docs/Screenshots/README/cropped/sleep_report_light.png"
+                "Docs/Screenshots/AppStore/raw/02_sleep_report_light.png"
             ),
             (
                 "ScreenshotTimelineScenario",
                 "코골기와 환경 소음 흐름 확인",
-                "Docs/Screenshots/README/cropped/sleep_timeline_light.png"
+                "Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png"
             ),
             (
                 "ScreenshotDailyRhythmScenario",
                 "오늘의 리듬 점수를 참고용으로",
-                "Docs/Screenshots/README/cropped/daily_rhythm_report_light.png"
+                "Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png"
             ),
             (
                 "ScreenshotDailyHealthCardScenario",
                 "하루 리듬을 카드 한 장으로",
-                "Docs/Screenshots/README/cropped/daily_health_card_light.png"
+                "Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png"
             ),
             (
                 "ScreenshotHealthMetricsOverviewScenario",
                 "모든 건강 지표를 출처와 함께",
-                "Docs/Screenshots/Health/cropped/health_metrics_overview_light.png"
+                "Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png"
             ),
             (
                 "ScreenshotPrivacyScenario",
                 "전체 밤 오디오는 저장하지 않습니다",
-                "Docs/Screenshots/Privacy/cropped/privacy_settings_light.png"
+                "Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png"
             ),
             (
                 "ScreenshotZeroEventScenario",
                 "이벤트가 적은 밤도 측정 맥락과 함께",
-                "Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png"
+                "Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png"
             ),
         ]
 
@@ -312,7 +312,7 @@ struct AppStoreReadinessTests {
         #expect(guide.contains("appStoreMarketing"))
         #expect(guide.contains("민감 수치를 노출하지 않습니다"))
         #expect(guide.contains("blocked, recapture required"))
-        #expect(guide.contains("release-approved가 아닙니다"))
+        #expect(guide.contains("release-approved 상태가 아닙니다"))
         #expect(guide.contains("내부 `Simulator QA` label"))
 
         for (scenario, headline, screenshotPath) in expectedRows {

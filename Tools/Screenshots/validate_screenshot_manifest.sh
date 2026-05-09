@@ -110,5 +110,6 @@ Checked:
   Docs/UI_SCREEN_MAP.md
 
 Reminder:
-  Only release-approved, non-DEBUG screenshots may be rendered in README/App Store/user-facing documents.
+  README representative screenshots may render as documentation preview while quality review is pending.
+  App Store/export/marketing screenshots still require release-approved, non-DEBUG assets.
 EOF

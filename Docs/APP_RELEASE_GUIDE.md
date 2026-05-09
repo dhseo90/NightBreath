@@ -67,7 +67,7 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 
 Screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 
-현재 저장된 README/App Store screenshot 후보는 2026-05-07 리뷰에서 품질 문제가 확인되어 release-approved가 아닙니다. 재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다.
+현재 저장된 README 대표 screenshot은 문서 preview로만 사용하며 release-approved 상태가 아닙니다. App Store screenshot 후보는 2026-05-07 리뷰에서 품질 문제가 확인되어 재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다.
 
 금지:
 
@@ -103,14 +103,14 @@ Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드�
 
 | 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 현재 상태 | 안전 기준 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/README/cropped/home_dashboard_light.png` | blocked, recapture required | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
-| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/README/cropped/sleep_report_light.png` | blocked, recapture required | 점수와 이벤트는 개인 참고용으로 표현 |
-| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | blocked, recapture required | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
-| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/README/cropped/daily_rhythm_report_light.png` | blocked, recapture required | 건강 상태나 원인과 결과를 단정하지 않음 |
-| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/README/cropped/daily_health_card_light.png` | blocked, recapture required | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
-| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | blocked, recapture required | HealthKit read-only와 Fitdays local-only 출처 구분 |
-| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/Privacy/cropped/privacy_settings_light.png` | blocked, recapture required | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
-| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | blocked, recapture required | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
+| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | blocked, recapture required | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
+| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | blocked, recapture required | 점수와 이벤트는 개인 참고용으로 표현 |
+| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | blocked, recapture required | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
+| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | blocked, recapture required | 건강 상태나 원인과 결과를 단정하지 않음 |
+| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | blocked, recapture required | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
+| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | blocked, recapture required | HealthKit read-only와 Fitdays local-only 출처 구분 |
+| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | blocked, recapture required | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
+| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | blocked, recapture required | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
 
 App Store marketing capture source:
 
@@ -238,7 +238,7 @@ Tools/Release/audit_release_copy.sh
 - 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
 - `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
-- App Store/README screenshot 후보가 visual QA 전에는 user-facing 문서에 렌더링되지 않는지 확인합니다.
+- README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA 전에는 export나 marketing 문서에 승격되지 않는지 확인합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
 
 이 자동 gate는 실제 iPhone stop/background/overnight QA를 대체하지 않습니다. 자동 gate 통과 후에도 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 manual evidence를 별도로 기록합니다.

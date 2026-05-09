@@ -8,14 +8,14 @@ HTML_OUTPUT="$OUTPUT_DIR/screenshot_review_sheet.html"
 MANIFEST_OUTPUT="$OUTPUT_DIR/screenshot_review_manifest.tsv"
 
 ITEMS=(
-  "README|Home dashboard|Docs/Screenshots/README/home_dashboard_light.png|Docs/Screenshots/README/cropped/home_dashboard_light.png|blocked, recapture required"
-  "README|Sleep start|Docs/Screenshots/README/sleep_start_light.png|Docs/Screenshots/README/cropped/sleep_start_light.png|blocked, recapture required"
-  "README|Sleep report|Docs/Screenshots/README/sleep_report_light.png|Docs/Screenshots/README/cropped/sleep_report_light.png|blocked, recapture required"
-  "README|Event timeline|Docs/Screenshots/README/sleep_timeline_light.png|Docs/Screenshots/README/cropped/sleep_timeline_light.png|blocked, recapture required"
-  "README|Morning brief|Docs/Screenshots/README/morning_brief_light.png|Docs/Screenshots/README/cropped/morning_brief_light.png|blocked, recapture required"
-  "README|Daily rhythm report|Docs/Screenshots/README/daily_rhythm_report_light.png|Docs/Screenshots/README/cropped/daily_rhythm_report_light.png|blocked, recapture required"
-  "README|Daily health card|Docs/Screenshots/README/daily_health_card_light.png|Docs/Screenshots/README/cropped/daily_health_card_light.png|blocked, recapture required"
-  "README|Health dashboard|Docs/Screenshots/README/health_dashboard_light.png|Docs/Screenshots/README/cropped/health_dashboard_light.png|blocked, recapture required"
+  "README|Home dashboard|Docs/Screenshots/README/home_dashboard_light.png|Docs/Screenshots/README/cropped/home_dashboard_light.png|captured, quality review pending"
+  "README|Sleep start|Docs/Screenshots/README/sleep_start_light.png|Docs/Screenshots/README/cropped/sleep_start_light.png|captured, quality review pending"
+  "README|Sleep report|Docs/Screenshots/README/sleep_report_light.png|Docs/Screenshots/README/cropped/sleep_report_light.png|captured, quality review pending"
+  "README|Event timeline|Docs/Screenshots/README/sleep_timeline_light.png|Docs/Screenshots/README/cropped/sleep_timeline_light.png|captured, quality review pending"
+  "README|Morning brief|Docs/Screenshots/README/morning_brief_light.png|Docs/Screenshots/README/cropped/morning_brief_light.png|captured, quality review pending"
+  "README|Daily rhythm report|Docs/Screenshots/README/daily_rhythm_report_light.png|Docs/Screenshots/README/cropped/daily_rhythm_report_light.png|captured, quality review pending"
+  "README|Daily health card|Docs/Screenshots/README/daily_health_card_light.png|Docs/Screenshots/README/cropped/daily_health_card_light.png|captured, quality review pending"
+  "README|Health dashboard|Docs/Screenshots/README/health_dashboard_light.png|Docs/Screenshots/README/cropped/health_dashboard_light.png|captured, quality review pending"
   "App Store|Home dashboard|Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png|Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png|blocked, recapture required"
   "App Store|Sleep report|Docs/Screenshots/AppStore/raw/02_sleep_report_light.png|Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png|blocked, recapture required"
   "App Store|Event timeline|Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png|Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png|blocked, recapture required"
@@ -91,7 +91,7 @@ cat > "$HTML_OUTPUT" <<'EOF'
 </head>
 <body>
   <h1>NightBreath Screenshot Review Sheet</h1>
-  <p class="note">이 파일은 로컬 visual QA용 산출물입니다. README/App Store/user-facing 문서에 이미지를 다시 노출하기 전에 내부 QA label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 눈으로 확인합니다.</p>
+  <p class="note">이 파일은 로컬 visual QA용 산출물입니다. README preview를 release-approved로 승격하거나 App Store/user-facing marketing 문서에 이미지를 노출하기 전에 내부 QA label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 눈으로 확인합니다.</p>
   <div class="grid">
 EOF
 

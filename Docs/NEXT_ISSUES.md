@@ -32,7 +32,7 @@
 - App Store screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 - 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 오디오 샘플을 사용하지 않습니다.
 - 건강 상태를 단정하거나 수면 소리와 건강 지표 사이의 원인과 결과를 주장하지 않습니다.
-- 기존 README/App Store screenshot 후보는 release-approved가 아니며, 품질 gate 통과 전에는 README/App Store/user-facing 문서에 렌더링하지 않습니다.
+- README 대표 screenshot은 문서 preview로 렌더링하지만 release-approved가 아닙니다. App Store 후보는 품질 gate 통과 전까지 export/marketing 문서에 사용하지 않습니다.
 
 ## Daily Rhythm / Health Dashboard
 
@@ -173,8 +173,8 @@
 
 ## UI Gallery / Screenshot
 
-- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있지만 현재 `blocked, recapture required`입니다.
-- README screenshot은 crop 정렬, 주요 content 가독성, 내부 QA label 노출 여부를 다시 본 뒤 승인된 파일만 README에 렌더링합니다.
+- README 대표 screenshot 8개는 `Docs/Screenshots/README/`에 원본, `Docs/Screenshots/README/cropped/`에 crop 후보가 있으며 루트 README에서 문서 preview로 렌더링합니다.
+- README screenshot은 crop 정렬, 주요 content 가독성, 내부 QA label 노출 여부를 다시 본 뒤 release-approved 승격 여부를 판단합니다.
 - Health Calendar, Daily Measurement Detail, Metric Detail, Fitdays Import 대표 screenshot은 후보 파일이 있으나 visual QA 전까지 문서에서 이미지 렌더링하지 않습니다.
 - SleepRecording, PrivacySettings, zero-event, low-coverage, event audio storage off, DetectorTuning screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.
 - 혈압, 체성분, 교차 보기와 health/metric/cross edge screenshot은 simulator direct scenario 후보 파일이 있으나 visual QA 전까지 렌더링하지 않습니다.
@@ -183,7 +183,7 @@
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
 - trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면은 직접 launch scenario와 simulator capture 후보를 추가했습니다. visual QA 전까지는 quality review pending/internal-only 상태로 유지
 - 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA와 App Store export PNG 확인 절차 유지
-- `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 `release-approved` 후보만 README/App Store/user-facing 문서에 렌더링
+- `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 README preview와 App Store/release-approved 후보를 분리
 - screenshot 경로나 상태 변경 시 `Tools/Screenshots/validate_screenshot_manifest.sh`로 manifest schema, 파일 존재 여부, UI 문서 PNG 참조 등록 여부를 먼저 확인
 - Light/Dark 쌍을 추가로 캡처할 때 같은 mock state를 사용
 - README에는 대표 화면만 유지하고 전체 화면 설명은 `Docs/UI_GALLERY.md`에서 관리
