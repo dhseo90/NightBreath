@@ -182,7 +182,7 @@
 - DEBUG replay/audio/sample capture/detector/simulator scenario screenshot은 internal-only로 유지합니다.
 - App Store raw/review-cropped 후보 8개는 2026-05-09에 재캡처, contact sheet visual QA, 88개 export dimension QA, hard gate를 통과해 release-approved입니다.
 - `Docs/UI_GALLERY.md`는 품질 gate 전까지 screenshot image markdown을 만들지 않으며, regression test로 quarantine 상태를 확인합니다.
-- trend, morning/evening check-in, Daily Health Card export/share state는 직접 launch scenario와 simulator capture 후보를 추가했지만 visual QA 전까지 quality review pending 상태로 유지합니다. simulator scenario 화면은 internal-only 상태로 유지합니다.
+- trend, morning/evening check-in, Daily Health Card export/share state는 simulator 재캡처와 visual QA 후 UI Gallery 전용 release-approved로 승격했습니다. simulator scenario 화면은 internal-only 상태로 유지합니다.
 - `Tools/UI/validate_navigation_chrome.sh`는 tab/back 정책과 주요 루트 CTA, screenshot scenario destination smoke를 함께 확인합니다.
 - 재캡처 후 `Tools/Screenshots/build_screenshot_review_sheet.sh` 기반 visual QA, `Tools/Screenshots/validate_app_store_export_manifest.sh`, hard gate 확인 절차 유지
 - `Docs/Screenshots/screenshot_status.tsv`의 상태값을 기준으로 README preview와 App Store/release-approved 후보를 분리

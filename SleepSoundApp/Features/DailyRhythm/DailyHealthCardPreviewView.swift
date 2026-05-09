@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct DailyHealthCardPreviewView: View {
   let bundle: DailyRhythmMockBundle
+  private let startsInExportReviewState: Bool
   @State private var template: DailyHealthCardTemplate = .healthSummary
   @State private var privacyLevel: DailyHealthCardPrivacyLevel = .standard
   @State private var isRenderingExport = false
@@ -28,10 +29,12 @@ struct DailyHealthCardPreviewView: View {
       nightReport: nightReport,
       morningCheckIn: morningCheckIn
     )
+    startsInExportReviewState = false
   }
 
   init(bundle: DailyRhythmMockBundle, initialExportPreview: Bool = false) {
     self.bundle = bundle
+    startsInExportReviewState = initialExportPreview
     _template = State(initialValue: bundle.cardContent.template)
     _privacyLevel = State(initialValue: bundle.cardContent.privacyLevel)
     if initialExportPreview {
@@ -49,10 +52,17 @@ struct DailyHealthCardPreviewView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        controls
-        DailyHealthCardSurface(content: content)
-        exportSection
-        rendererNotice
+        if startsInExportReviewState {
+          exportSection
+          rendererNotice
+          controls
+          DailyHealthCardSurface(content: content)
+        } else {
+          controls
+          DailyHealthCardSurface(content: content)
+          exportSection
+          rendererNotice
+        }
       }
       .padding(NBSpacing.screenHorizontal)
     }

@@ -358,6 +358,8 @@ struct DailyHealthCardContentTests {
         #expect(contents.contains("completionWithItemsHandler"))
         #expect(contents.contains("DailyHealthCardExportConfirmationSheet"))
         #expect(contents.contains("isShowingSensitiveExportConfirmation"))
+        #expect(contents.contains("startsInExportReviewState"))
+        #expect(contents.contains("if startsInExportReviewState"))
         #expect(contents.contains("이미지 만들기"))
         #expect(contents.contains("사진에 저장"))
         #expect(contents.contains("파일에 저장"))

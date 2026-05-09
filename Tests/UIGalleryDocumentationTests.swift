@@ -242,7 +242,7 @@ struct UIGalleryDocumentationTests {
     #expect(privacyApprovedCount == 4)
     #expect(readmePreviewCount == 8)
     #expect(debugInternalCount >= 4)
-    #expect(releaseApprovedCount == 31)
+    #expect(releaseApprovedCount == 35)
   }
 
   @Test
@@ -332,6 +332,7 @@ struct UIGalleryDocumentationTests {
     #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("health-fitdays-error\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("sleep-recording\t2026-05-09\tCodex\trelease-approved"))
+    #expect(visualReview.contains("detail-card-export\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("edge-event-audio-off\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("privacy-settings\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))

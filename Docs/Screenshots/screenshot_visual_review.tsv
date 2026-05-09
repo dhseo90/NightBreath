@@ -33,10 +33,10 @@ edge-event-audio-off	2026-05-09	Codex	release-approved	Event audio storage off c
 edge-health-permission-empty	2026-05-09	Codex	release-approved	Health permission empty crop keeps HealthKit read-only boundary and local import fallback visible	Render in UI Gallery only; keep out of README/App Store
 edge-metric-detail-empty	2026-05-09	Codex	release-approved	Metric detail empty crop shows no-data state without diagnosis or causality implication	Render in UI Gallery only; keep out of README/App Store
 edge-cross-metric-insufficient	2026-05-09	Codex	release-approved	Cross-metric insufficient crop shows comparison limits and no causality claim	Render in UI Gallery only; keep out of README/App Store
-detail-trend	2026-05-09	Codex	ui-gallery-candidate	Trend dashboard can stay UI Gallery only until contact sheet approval	Check segmented control and trend chart crop
-detail-morning-checkin	2026-05-09	Codex	ui-gallery-candidate	Morning check-in can stay UI Gallery only until contact sheet approval	Check form spacing and CTA visibility
-detail-evening-checkin	2026-05-09	Codex	ui-gallery-candidate	Evening check-in can stay UI Gallery only until contact sheet approval	Check tag grid and save CTA visibility
-detail-card-export	2026-05-09	Codex	ui-gallery-candidate	Daily health card export preview can stay UI Gallery only until contact sheet approval	Check export confirmation copy and button visibility
+detail-trend	2026-05-09	Codex	release-approved	Recaptured trend dashboard keeps segmented control, summary cards, chart entry, and low-quality explanation readable	Render in UI Gallery only; keep out of README/App Store
+detail-morning-checkin	2026-05-09	Codex	release-approved	Recaptured morning check-in keeps subjective condition copy, rating cards, and save state readable without personal data	Render in UI Gallery only; keep out of README/App Store
+detail-evening-checkin	2026-05-09	Codex	release-approved	Recaptured evening check-in keeps fatigue/stress controls, mood toggle, lifestyle tags, and local-save framing readable	Render in UI Gallery only; keep out of README/App Store
+detail-card-export	2026-05-09	Codex	release-approved	Recaptured Daily Health Card export scenario now shows export controls, sensitive-share notice, explicit action buttons, and local-only status	Render in UI Gallery only; keep out of README/App Store
 detail-report-empty	2026-05-09	Codex	release-approved	Report empty state crop shows start flow and pre-report privacy copy without personal data	Render in UI Gallery only; keep out of README/App Store
 privacy-settings	2026-05-09	Codex	release-approved	Privacy settings crop keeps no-server/no-account/no-SDK/full-audio policy visible	Render in UI Gallery only; keep out of README/App Store
 privacy-onboarding	2026-05-09	Codex	release-approved	Onboarding crop keeps first-run sleep sound report value prop and reference-only framing visible	Render in UI Gallery only; keep out of README/App Store

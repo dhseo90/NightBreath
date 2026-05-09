@@ -32,6 +32,7 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 - README 대표 8개는 문서 preview로 유지하고 `release-approved`로 승격하지 않았습니다.
 - App Store raw 8개와 review-cropped 이미지를 재캡처하고, size별 export 88개 dimension QA와 release approval hard gate를 통과했습니다.
 - Health/Fitdays gallery 후보 중 문서 노출 가능한 항목은 UI Gallery 전용 `release-approved`로 승격했고, `health-fitdays-result`도 공개용 copy 재캡처 기준으로 승인했습니다.
+- Trend, morning/evening check-in, Daily Health Card export/share state는 simulator 재캡처와 visual QA를 거쳐 UI Gallery 전용 `release-approved`로 승격했습니다.
 - Edge/Privacy/Support gallery 후보는 simulator crop 기준으로 문서 노출 가능 항목을 UI Gallery 전용 `release-approved`로 분류했습니다. `sleep-recording`도 active recording state로 재캡처해 UI Gallery 전용 `release-approved`로 승격했습니다. DEBUG 화면은 계속 격리합니다.
 - README 대표 8장, App Store 후보 8장, Health/Fitdays/Edge/Privacy/Support gallery, App Store Connect pending 항목은 `Docs/Release/RELEASE_READINESS_EVIDENCE.md`에 한 장으로 묶었습니다.
 - `Tools/UI/validate_navigation_chrome.sh`를 tab/back 정책뿐 아니라 주요 루트 CTA와 screenshot scenario destination smoke까지 확인하도록 확장했습니다.
