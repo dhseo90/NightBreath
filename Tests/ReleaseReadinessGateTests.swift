@@ -109,6 +109,7 @@ struct ReleaseReadinessGateTests {
             "Docs/APP_STORE_PRODUCT_PAGE_COPY.md",
             "Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md",
             "Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md",
+            "Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md",
             "Docs/REAL_DEVICE_QA_RUNBOOK.md",
             "Docs/PRIVACY_STORAGE_AUDIT.md",
             "Docs/QA_GUIDE.md",

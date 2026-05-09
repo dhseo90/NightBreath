@@ -701,6 +701,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_INTERNAL_TEST_PLAN.md"),
             encoding: .utf8
         )
+        let testFlightLocalEvidence = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md"),
+            encoding: .utf8
+        )
         let releaseGuide = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
             encoding: .utf8
@@ -719,6 +723,7 @@ struct AppStoreReadinessTests {
         #expect(testFlightPlan.contains("Evidence Template"))
         #expect(testFlightPlan.contains("Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md"))
         #expect(testFlightPlan.contains("Tools/Release/prepare_testflight_evidence.sh"))
+        #expect(testFlightPlan.contains("Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md"))
         #expect(testFlightPlan.contains("foreground stop smoke"))
         #expect(testFlightPlan.contains("double stop tap"))
         #expect(testFlightPlan.contains("zero-event diagnostics present"))
@@ -755,6 +760,10 @@ struct AppStoreReadinessTests {
         #expect(prepareScript.contains("TESTFLIGHT_EVIDENCE_OUTPUT_PATH"))
         #expect(prepareScript.contains("TestFlight evidence must stay private"))
         #expect(prepareScript.contains("Do not commit completed TestFlight evidence"))
+        #expect(testFlightLocalEvidence.contains("TestFlight install/run | not run"))
+        #expect(testFlightLocalEvidence.contains("private evidence draft | generated outside repository"))
+        #expect(testFlightLocalEvidence.contains("local preflight pass; TestFlight manual run pending"))
+        #expect(testFlightLocalEvidence.contains("Completed private evidence must not be committed"))
 
         let forbiddenPhrases = [
             "수면무호흡증 " + "진단",

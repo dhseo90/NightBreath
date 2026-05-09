@@ -1,6 +1,6 @@
 # TestFlight Internal Test Plan
 
-이 문서는 NightBreath / 밤숨을 TestFlight 내부 테스트로 배포하기 전후에 확인할 최소 기준입니다. 실제 테스트 실행 기록은 private QA note에 남기고, repository에는 실제 개인 건강 데이터, 실제 오디오 파일, 실제 CSV/export 파일, 실제 local path를 남기지 않습니다. 실행용 빈 evidence template은 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`에 두고, `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖 private draft를 만들 수 있습니다.
+이 문서는 NightBreath / 밤숨을 TestFlight 내부 테스트로 배포하기 전후에 확인할 최소 기준입니다. 실제 테스트 실행 기록은 private QA note에 남기고, repository에는 실제 개인 건강 데이터, 실제 오디오 파일, 실제 CSV/export 파일, 실제 local path를 남기지 않습니다. 실행용 빈 evidence template은 `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md`에 두고, `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖 private draft를 만들 수 있습니다. 실기기 없이 가능한 대체 preflight 기록은 `Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md`에서 관리합니다.
 
 ## 목적
 

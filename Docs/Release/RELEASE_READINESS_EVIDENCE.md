@@ -65,13 +65,22 @@
 | `Tools/UI/validate_navigation_chrome.sh` | tab/back 정책과 주요 flow/screenshot scenario 진입점 smoke 검증 |
 | `Tools/Release/audit_release_copy.sh` | release-facing 문서 copy, 개인정보, HealthKit read-only, screenshot gate regression 검증 |
 
+## TestFlight Local Preflight Evidence
+
+| 항목 | 상태 | evidence |
+| --- | --- | --- |
+| private evidence template | ready | `Docs/TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md` |
+| private draft generation | local substitute passed | `Tools/Release/prepare_testflight_evidence.sh`로 repository 밖 draft 생성 확인. 완료 evidence는 커밋하지 않음 |
+| TestFlight local preflight | local substitute passed | `Docs/TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md` |
+| TestFlight install/run | manual pending | 실제 TestFlight 설치와 첫 실행은 실기기 필요 |
+
 ## Manual Pending
 
 - 실제 iPhone foreground/background/overnight QA
 - 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인
 - 실제 Fitdays export/share 노출 확인
 - App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview. 로컬 대체 QA는 통과했지만 실제 ASC 화면은 미확인
-- TestFlight 내부 테스트 실행과 private evidence 기록. 실행용 blank template과 repository 밖 draft 생성 script는 준비 완료
+- TestFlight 내부 테스트 실행과 private evidence 기록. 로컬 preflight와 repository 밖 draft 생성은 통과했지만 실제 TestFlight 설치/실행은 실기기 필요
 
 ## Decision
 

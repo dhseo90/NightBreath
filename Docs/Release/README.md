@@ -58,3 +58,4 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | [REVIEW_UPLOAD_SET](../REVIEW_UPLOAD_SET.md) | review/upload 후보 묶음 |
 | [TESTFLIGHT_INTERNAL_TEST_PLAN](../TESTFLIGHT_INTERNAL_TEST_PLAN.md) | TestFlight 내부 테스트 계획 |
 | [TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE](../TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md) | TestFlight private evidence 작성 템플릿 |
+| [TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE](../TESTFLIGHT_LOCAL_PREFLIGHT_EVIDENCE.md) | 실기기 없이 가능한 TestFlight local preflight evidence |
