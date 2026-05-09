@@ -9,6 +9,7 @@ DerivedData/
 __pycache__/
 *.pyc
 Tools/Training/.venv/
+Tools/Training/requirements.lock.local.txt
 
 # Audio samples are local-first by default. Do not commit personal recordings.
 # Approved third-party datasets may be force-added only after license review.
@@ -25,3 +26,9 @@ Docs/Screenshots/review/
 *.wav
 *.caf
 *.m4a
+*.mp3
+*.flac
+*.ogg
+*.aac
+*.aif
+*.aiff

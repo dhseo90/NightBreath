@@ -11,6 +11,7 @@
 | Vendored third-party source | 없음 |
 | Python training dependencies | `Tools/Training/requirements.txt`에 선언 |
 | Apple SDK frameworks | Xcode/iOS SDK 제공 framework 사용, repository에 vendoring하지 않음 |
+| GitHub Actions | `actions/checkout@v6` 사용, repository에 vendoring하지 않음 |
 | Public dataset | ESC-50을 포함 배포하는 경우 upstream CC license 유지 |
 
 ## Swift / iOS
@@ -52,7 +53,22 @@ Declared in `Tools/Training/requirements.txt`:
 | `scikit-learn` | `>=1.4` | baseline classifier training/evaluation | BSD |
 | `coremltools` | `>=7.2` | local Core ML conversion | BSD-3-Clause |
 
-Because no lockfile is committed, exact installed versions are environment-specific. If reproducible training builds become release-critical, add a generated lockfile or frozen requirements file and update this table with exact resolved versions.
+Because no lockfile is committed, exact installed versions are environment-specific. This is acceptable while training remains local/development-only and model artifacts are not part of the release build. If reproducible training builds become release-critical, generate a local frozen snapshot such as `Tools/Training/requirements.lock.local.txt`, review it, then commit an intentionally named lockfile and update this table with exact resolved versions.
+
+Local snapshot command:
+
+```sh
+cd Tools/Training
+python3 -m pip freeze --require-virtualenv > requirements.lock.local.txt
+```
+
+## CI / Automation
+
+CI workflow dependencies are not vendored in this repository. They are pinned by action major version in `.github/workflows/`.
+
+| Dependency | Declared version | Scope | Upstream license |
+| --- | --- | --- | --- |
+| `actions/checkout` | `v6` | GitHub Actions repository checkout | MIT |
 
 ## Dataset Content
 
@@ -68,7 +84,9 @@ ESC-50/ESC-10 files are not covered by NightBreath's Apache-2.0 code license. Se
 Update this file when:
 
 - a new Swift package, Python package, SDK wrapper, binary framework, model runtime, or vendored source dependency is added;
+- a GitHub Actions dependency or action version changes;
 - a dependency version constraint changes;
 - a lockfile is introduced;
 - a public dataset or generated model artifact is committed or distributed;
 - App Store/TestFlight packaging starts bundling any third-party binary or model artifact.
+- `Tools/Release/audit_tracked_artifacts.sh`, `Tools/Release/audit_app_bundle_artifacts.sh`, or `Tools/Training/validate_model_provenance_gate.sh` changes the release artifact policy.

@@ -13,8 +13,9 @@ SnoreDetector.mlmodel
 모델을 실제 앱에서 사용하려면:
 
 1. `Tools/Training/convert_snore_detector_to_coreml.py`로 `SnoreDetector.mlmodel`을 생성합니다.
-2. Xcode에서 생성된 모델 파일을 앱 target에 추가합니다.
-3. DEBUG 화면에서 `Snore ML model installed`가 `Installed`로 표시되는지 확인합니다.
+2. `Docs/MODEL_PROVENANCE_CHECKLIST.md` 기준으로 `Models/CoreML/model_provenance.tsv`를 작성하고 승인합니다.
+3. Xcode에서 생성된 모델 파일을 앱 target에 추가합니다.
+4. DEBUG 화면에서 `Snore ML model installed`가 `Installed`로 표시되는지 확인합니다.
 
 모델 파일이 없거나 target에 포함되지 않아도 앱은 종료되지 않습니다. 기본 `hybrid` backend는 Core ML provider를 unavailable로 보고 기존 rule-based detector로 fallback합니다.
 
@@ -22,6 +23,7 @@ target 적용 전 dry-run gate:
 
 ```sh
 Tools/Training/validate_coreml_integration_gate.sh
+Tools/Training/validate_model_provenance_gate.sh
 ```
 
 이 gate는 모델 파일을 만들거나 Xcode project를 수정하지 않습니다. 현재 repository에 `.mlmodel`, `.mlmodelc`, `.mlpackage` artifact가 섞이지 않았고, app target이 아직 모델 resource를 참조하지 않는지 확인합니다.

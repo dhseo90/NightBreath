@@ -10,6 +10,7 @@
 - fallback 발생 여부는 `DetectorDiagnostics.fallbackUsed`, `modelFallbackCount`, `activeDetectorBackend`, `thresholdSnapshot`으로 확인합니다.
 - `ModelInputAdapter`는 Snore ML v0 scalar feature schema를 유지합니다.
 - 실제 `.mlmodel`, `.mlmodelc`, `.mlpackage` artifact는 repository와 Xcode app target에 아직 포함하지 않습니다.
+- 모델 artifact를 추가하려면 `Docs/MODEL_PROVENANCE_CHECKLIST.md`와 `Models/CoreML/model_provenance.tsv` gate를 먼저 통과해야 합니다.
 
 ## Integration 전제
 
@@ -41,6 +42,7 @@
 
 ```sh
 Tools/Training/validate_coreml_integration_gate.sh
+Tools/Training/validate_model_provenance_gate.sh
 ```
 
 ```sh
@@ -94,5 +96,6 @@ swift run OfflineEvaluation --manifest Tools/OfflineEvaluation/sample_manifest.e
 - 모델 미포함 build 또는 missing model 상태에서 crash 없는 fallback 확인
 - `Docs/DETECTOR_TUNING.md`에 threshold/profile 변경 여부 기록
 - `Docs/SNORE_BASELINE_EVALUATION.md` 또는 Offline Evaluation output summary에 backend 비교 결과 기록
+- `Models/CoreML/model_provenance.tsv`에 artifact path, 학습 데이터 출처, license, 상업 사용 상태, review evidence 기록
 
 이 gate가 끝나기 전에는 sensitive/verySensitive profile을 Release 기본값으로 올리지 않습니다.

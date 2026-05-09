@@ -56,6 +56,8 @@
 
 단, `Datasets/ESC-50-master/**` 같은 third-party dataset content가 포함되는 경우 해당 파일은 upstream 라이선스를 유지하며 Apache-2.0으로 재라이선스하지 않습니다. ESC-50 전체 dataset은 CC BY-NC 3.0, ESC-10 subset은 CC BY 3.0으로 다룹니다.
 
+GitHub의 자동 license badge가 mixed/custom license를 단순하게 표시하지 못할 수 있습니다. 이 repository의 기준 license source는 루트 `LICENSE`와 `Docs/LICENSING.md`입니다.
+
 자세한 범위는 [LICENSE](LICENSE), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md), [Docs/LICENSING](Docs/LICENSING.md)을 확인하세요.
 
 ## 문서 지도

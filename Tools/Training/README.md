@@ -78,6 +78,12 @@ Tools/Training/output/
 
 학습용 output과 개인 오디오 파일은 repo에 올리지 않습니다. 공개 dataset을 포함 배포하는 경우 해당 dataset은 NightBreath Apache-2.0 범위가 아니라 upstream license를 유지합니다. ESC-50 전체 dataset은 CC BY-NC 3.0이므로 상업 앱, 유료 제품, 상업 모델 학습/배포와 연결할 때 별도 검토가 필요합니다.
 
+tracked artifact gate:
+
+```sh
+Tools/Release/audit_tracked_artifacts.sh
+```
+
 ## 설치
 
 ```sh
@@ -191,12 +197,19 @@ duration
 
 앱의 `ModelInputAdapter`는 같은 값을 제공하며, 향후 vector 입력 모델을 위해 `features` 배열도 함께 준비합니다. sklearn baseline은 numeric label을 사용하므로 앱에서는 `1`을 `snore`, `0`을 `non_snore`로 안전하게 해석합니다.
 
-생성된 모델을 실제 앱에서 테스트하려면 `Docs/CORE_ML_MODEL_INTEGRATION.md`의 integration gate를 먼저 통과한 뒤 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
+생성된 모델을 실제 앱에서 테스트하려면 `Docs/CORE_ML_MODEL_INTEGRATION.md`와 `Docs/MODEL_PROVENANCE_CHECKLIST.md`의 gate를 먼저 통과한 뒤 Xcode에서 `Models/CoreML/SnoreDetector.mlmodel`을 앱 target에 추가하세요. 앱 기본 backend는 `hybrid`이며, 모델이 없거나 target에 포함되지 않은 경우 crash하지 않고 rule-based detector로 fallback합니다.
 
 앱 target에 모델을 붙이기 전 현재 repository가 모델 미포함 상태를 유지하는지 확인하려면 아래 local gate를 실행합니다.
 
 ```sh
 Tools/Training/validate_coreml_integration_gate.sh
+Tools/Training/validate_model_provenance_gate.sh
+```
+
+정확한 Python dependency snapshot이 필요하면 virtualenv 안에서 아래 local-only 파일을 만들고, release-critical lockfile로 승격할지 별도로 검토합니다.
+
+```sh
+python3 -m pip freeze --require-virtualenv > Tools/Training/requirements.lock.local.txt
 ```
 
 ## Future log-mel placeholder

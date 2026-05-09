@@ -6,6 +6,10 @@ cd "$ROOT_DIR"
 
 export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
 
+Tools/Release/audit_tracked_artifacts.sh
+Tools/Training/validate_coreml_integration_gate.sh
+Tools/Training/validate_model_provenance_gate.sh
+Tools/Release/audit_trademark_copy.sh
 Tools/UI/validate_navigation_chrome.sh
 
 /usr/bin/xcrun swift test \

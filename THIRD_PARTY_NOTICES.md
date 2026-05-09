@@ -41,6 +41,12 @@ by the developer; their source code is not vendored in this repository.
 If these dependencies are vendored or redistributed in a binary package later,
 include the corresponding upstream license notices in that distribution.
 
+## GitHub Actions Dependencies
+
+The CI workflow under `.github/workflows/` uses `actions/checkout@v6` to check
+out the repository in GitHub Actions. The action is not vendored in this
+repository and is listed in `Docs/DEPENDENCIES.md`.
+
 ## Apple Platform Frameworks
 
 The app uses Apple platform SDK frameworks such as SwiftUI, AVFoundation,
