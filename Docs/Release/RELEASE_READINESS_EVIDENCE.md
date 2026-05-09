@@ -21,7 +21,7 @@
 | ko-KR metadata | reviewed locally | `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`의 subtitle, promotional text, keywords가 초안 제한 안에 있음 |
 | en-US metadata | reviewed locally | secondary locale copy가 local-first privacy와 wellness 범위를 유지함 |
 | Screenshot headline | aligned | App Store 후보 8장 headline이 `ScreenshotScenario`와 product page screenshot order에 연결됨 |
-| App Store Connect upload preview | manual pending | Codex 환경에서 로그인된 App Store Connect upload 화면을 확인하지 않았음 |
+| App Store Connect upload preview | local substitute passed; ASC manual pending | `Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md`에서 export/order/copy 대체 QA 통과. Codex 환경에서 로그인된 App Store Connect upload 화면은 확인하지 않았음 |
 
 ## App Store Connect Manual Preview Result Entry
 
@@ -29,30 +29,30 @@
 
 | 항목 | 값 |
 | --- | --- |
-| ASC preview QA date |  |
-| reviewer role |  |
-| locale checked | ko-KR / en-US |
-| TestFlight/App Store candidate build |  |
+| ASC preview QA date | not run; local substitute 2026-05-09 |
+| reviewer role | Codex local substitute |
+| locale checked | ko-KR / en-US docs checked; ASC not run |
+| TestFlight/App Store candidate build | not selected |
 | screenshot source set | `Docs/Screenshots/AppStore/export/` regenerated from raw |
-| order result | pass / fail / not run |
-| crop result | pass / fail / not run |
-| locale copy result | pass / fail / not run |
-| sensitive data result | pass / fail / not run |
-| HealthKit/server/cloud wording result | pass / fail / not run |
-| evidence note id | private note only |
-| blocker issue id |  |
-| release decision | continue / hold |
+| order result | local substitute pass; ASC not run |
+| crop result | local substitute pass; ASC not run |
+| locale copy result | local substitute pass; ASC not run |
+| sensitive data result | local substitute pass; ASC not run |
+| HealthKit/server/cloud wording result | local substitute pass; ASC not run |
+| evidence note id | `Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md`; private note pending |
+| blocker issue id | none from local substitute |
+| release decision | hold until ASC manual preview |
 
 | Slot | Expected file | ASC order | Crop/headline result | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | `01_home_dashboard_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 2 | `02_sleep_report_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 3 | `03_sleep_timeline_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 4 | `04_daily_rhythm_report_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 5 | `05_daily_health_card_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 6 | `06_health_metrics_overview_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 7 | `07_privacy_settings_light.png` | pass / fail / not run | pass / fail / not run |  |
-| 8 | `08_zero_event_report_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 1 | `01_home_dashboard_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 2 | `02_sleep_report_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 3 | `03_sleep_timeline_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 4 | `04_daily_rhythm_report_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 5 | `05_daily_health_card_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 6 | `06_health_metrics_overview_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 7 | `07_privacy_settings_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
+| 8 | `08_zero_event_report_light.png` | local substitute pass; ASC not run | local substitute pass; ASC not run | export/order evidence only |
 
 ## Automated Gates
 
@@ -70,7 +70,7 @@
 - 실제 iPhone foreground/background/overnight QA
 - 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인
 - 실제 Fitdays export/share 노출 확인
-- App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview
+- App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview. 로컬 대체 QA는 통과했지만 실제 ASC 화면은 미확인
 - TestFlight 내부 테스트 실행과 private evidence 기록. 실행용 blank template과 repository 밖 draft 생성 script는 준비 완료
 
 ## Decision

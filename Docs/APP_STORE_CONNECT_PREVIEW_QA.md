@@ -72,6 +72,10 @@ Follow-up:
 Repository evidence updated: yes / no
 ```
 
+## Local Substitute Evidence
+
+실제 App Store Connect 화면에 접근하지 못하는 경우에는 `Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md`에 export/order/copy 대체 QA 결과를 기록합니다. 이 결과는 실제 upload preview 통과를 의미하지 않으며, release decision은 실제 ASC 화면 확인 전까지 `hold`로 유지합니다.
+
 ## Blocking Conditions
 
 - upload preview에서 주요 UI가 잘리거나 headline이 가려짐

@@ -44,12 +44,14 @@ struct ReleaseReadinessGateTests {
         #expect(releaseEvidence.contains("App Store 후보 8장"))
         #expect(releaseEvidence.contains("simulator `release-approved`"))
         #expect(releaseEvidence.contains("App Store Connect upload preview"))
-        #expect(releaseEvidence.contains("manual pending"))
+        #expect(releaseEvidence.contains("local substitute passed; ASC manual pending"))
         #expect(releaseEvidence.contains("App Store Connect Manual Preview Result Entry"))
         #expect(releaseEvidence.contains("ASC preview QA date"))
+        #expect(releaseEvidence.contains("not run; local substitute 2026-05-09"))
         #expect(releaseEvidence.contains("locale checked"))
         #expect(releaseEvidence.contains("evidence note id"))
-        #expect(releaseEvidence.contains("private note only"))
+        #expect(releaseEvidence.contains("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"))
+        #expect(releaseEvidence.contains("hold until ASC manual preview"))
         #expect(releaseEvidence.contains("01_home_dashboard_light.png"))
         #expect(releaseEvidence.contains("08_zero_event_report_light.png"))
         #expect(releaseEvidence.contains("Tools/UI/validate_navigation_chrome.sh"))
@@ -99,6 +101,7 @@ struct ReleaseReadinessGateTests {
             "Docs/Release/RELEASE_READINESS_EVIDENCE.md",
             "Docs/Screenshots/README.md",
             "Docs/APP_STORE_CONNECT_PREVIEW_QA.md",
+            "Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md",
             "Docs/UI_GALLERY.md",
             "Docs/UI_SCREEN_MAP.md",
             "Docs/APP_RELEASE_GUIDE.md",

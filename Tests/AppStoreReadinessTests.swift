@@ -195,6 +195,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_CONNECT_PREVIEW_QA.md"),
             encoding: .utf8
         )
+        let ascLocalEvidence = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"),
+            encoding: .utf8
+        )
         let reviewAudit = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_REVIEW_AUDIT.md"),
             encoding: .utf8
@@ -234,8 +238,14 @@ struct AppStoreReadinessTests {
         #expect(ascPreviewQA.contains("Manual QA Checklist"))
         #expect(ascPreviewQA.contains("ASC preview QA date"))
         #expect(ascPreviewQA.contains("App Store Connect Manual Preview Result Entry"))
+        #expect(ascPreviewQA.contains("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"))
         #expect(ascPreviewQA.contains("review-cropped 내부 검토 이미지를 upload source로 잘못 쓰지 않음"))
         #expect(ascPreviewQA.contains("REQUIRE_APP_STORE_RELEASE_APPROVED=1"))
+        #expect(ascLocalEvidence.contains("ASC authenticated screen | not run"))
+        #expect(ascLocalEvidence.contains("local substitute pass; ASC manual preview pending"))
+        #expect(ascLocalEvidence.contains("88 rows"))
+        #expect(ascLocalEvidence.contains("11 release-approved size rows"))
+        #expect(ascLocalEvidence.contains("hold until ASC manual preview"))
         #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
         #expect(nextIssues.contains("product page copy 최종 다듬기 완료"))
 
@@ -613,6 +623,7 @@ struct AppStoreReadinessTests {
         #expect(screenshotGuide.contains("App Store Connect size별 export"))
         #expect(toolGuide.contains("App Store Connect size export"))
         #expect(toolGuide.contains("https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/"))
+        #expect(releaseGuide.contains("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"))
         #expect(releaseGuide.contains("App Store Connect size export script"))
         #expect(releaseGuide.contains("App Store Connect export validation script"))
         #expect(releaseGuide.contains("manifest.tsv"))

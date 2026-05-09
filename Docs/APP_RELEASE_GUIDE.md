@@ -121,6 +121,7 @@ App Store marketing capture source:
 - raw source: `Docs/Screenshots/AppStore/raw/`
 - review crop: `Docs/Screenshots/AppStore/review-cropped/`
 - App Store Connect preview QA runbook: `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`
+- App Store Connect local substitute evidence: `Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md`
 - capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
 - review sheet script: `Tools/Screenshots/build_screenshot_review_sheet.sh`
 - release approval gate: `Tools/Screenshots/validate_app_store_release_approval.sh`
