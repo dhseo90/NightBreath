@@ -73,6 +73,12 @@
 | `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh` | App Store 후보 8장 전체 세트 승인 evidence 검증 |
 | `Tools/UI/validate_navigation_chrome.sh` | tab/back 정책과 주요 flow/screenshot scenario 진입점 smoke 검증 |
 | `Tools/Release/audit_release_copy.sh` | release-facing 문서 copy, 개인정보, HealthKit read-only, screenshot gate regression 검증 |
+| `Tools/Release/audit_tracked_artifacts.sh` | Git tracked ESC-50/audio/model/output artifact 차단 |
+| `Tools/Release/audit_app_bundle_artifacts.sh` | built `.app` bundle 내 ESC-50/audio/output/training artifact 차단 |
+| `Tools/Training/validate_model_provenance_gate.sh` | model artifact 추가 전 provenance manifest와 ESC-50/NonCommercial 상태 확인 |
+| `Tools/Training/test_model_provenance_gate_negative.sh` | model provenance gate의 fail/pass negative case 검증 |
+| `Tools/Release/audit_trademark_copy.sh` | Apple/HealthKit/Fitdays/Omron 공식/제휴/인증 오해 문구 차단 |
+| `Tools/Release/audit_public_repo_privacy.sh` | public repo 전환 전 token/private path/email/device id scan |
 
 ## TestFlight Local Preflight Evidence
 

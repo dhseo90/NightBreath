@@ -2,7 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ -n "${NIGHTBREATH_REPO_ROOT:-}" ]]; then
+  REPO_ROOT="$(cd "$NIGHTBREATH_REPO_ROOT" && pwd)"
+else
+  REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
 CHECKLIST="$REPO_ROOT/Docs/MODEL_PROVENANCE_CHECKLIST.md"
 MANIFEST="$REPO_ROOT/Models/CoreML/model_provenance.tsv"
 MODEL_ROOTS=(

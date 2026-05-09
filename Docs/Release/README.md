@@ -41,10 +41,12 @@ Tools/Release/audit_tracked_artifacts.sh
 Tools/Docs/validate_readme_links.sh
 Tools/Training/validate_coreml_integration_gate.sh
 Tools/Training/validate_model_provenance_gate.sh
+Tools/Training/test_model_provenance_gate_negative.sh
 Tools/Release/audit_trademark_copy.sh
+Tools/Release/audit_public_repo_privacy.sh
 ```
 
-이 gate는 루트 README가 `Product`, `UI`, `Architecture`, `Privacy`, `Health`, `QA`, `Release` sub README를 모두 링크하는지, 각 README 내부의 상대 링크/이미지 경로가 실제 파일로 이어지는지, Git에 dataset/audio/model/output artifact가 섞이지 않았는지, 모델 provenance와 상표/제휴 오해 문구가 release 기준을 지키는지 확인합니다.
+이 gate는 루트 README가 `Product`, `UI`, `Architecture`, `Privacy`, `Health`, `QA`, `Release` sub README를 모두 링크하는지, 각 README 내부의 상대 링크/이미지 경로가 실제 파일로 이어지는지, Git에 dataset/audio/model/output artifact가 섞이지 않았는지, 모델 provenance와 negative case, 상표/제휴 오해 문구, 공개 repo secret/privacy scan이 release 기준을 지키는지 확인합니다.
 
 ## App Store 문구
 
@@ -61,6 +63,7 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | ko-KR/en-US product page copy 후보 |
 | [APP_STORE_SUBMISSION_LOCAL_RECHECK](../APP_STORE_SUBMISSION_LOCAL_RECHECK.md) | 제출 후보 version/build, release note, metadata 로컬 재점검 |
 | [RELEASE_READINESS_EVIDENCE](RELEASE_READINESS_EVIDENCE.md) | screenshot/copy/gate evidence summary |
+| [PUBLIC_REPO_FINAL_REVIEW](PUBLIC_REPO_FINAL_REVIEW.md) | public repository 전환 전 license, Actions, bundle audit, settings checklist |
 | [REVIEW_UPLOAD_SET](../REVIEW_UPLOAD_SET.md) | review/upload 후보 묶음 |
 | [TESTFLIGHT_INTERNAL_TEST_PLAN](../TESTFLIGHT_INTERNAL_TEST_PLAN.md) | TestFlight 내부 테스트 계획 |
 | [TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE](../TESTFLIGHT_INTERNAL_EVIDENCE_TEMPLATE.md) | TestFlight private evidence 작성 템플릿 |

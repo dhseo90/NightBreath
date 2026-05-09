@@ -3,6 +3,7 @@
 DerivedData/
 .derivedData/
 .derivedData-sim/
+.derivedData-release-audit/
 *.xcuserdata/
 *.xcuserstate
 .DS_Store

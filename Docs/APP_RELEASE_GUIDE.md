@@ -249,10 +249,12 @@ Tools/Screenshots/validate_app_store_export_manifest.sh
 Tools/Screenshots/validate_app_store_release_approval.sh
 Tools/Training/validate_coreml_integration_gate.sh
 Tools/Training/validate_model_provenance_gate.sh
+Tools/Training/test_model_provenance_gate_negative.sh
 Tools/Release/audit_trademark_copy.sh
+Tools/Release/audit_public_repo_privacy.sh
 ```
 
-`Tools/Release/audit_release_copy.sh`는 tracked artifact, Core ML pre-integration, model provenance, trademark/affiliation copy, navigation chrome gate를 먼저 실행한 뒤 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Release/audit_tracked_artifacts.sh`는 Git에 ESC-50, 공개/개인 오디오, local output, model/training artifact가 섞이는 것을 막습니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/UI/validate_navigation_chrome.sh`는 tab/back 정책과 주요 flow/screenshot scenario 진입점을 확인합니다. `Tools/Screenshots/validate_app_store_export_manifest.sh`는 App Store Connect export manifest와 size별 visual evidence를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다. `Tools/Training/validate_model_provenance_gate.sh`는 모델 artifact를 추가하기 전 provenance manifest와 ESC-50/NonCommercial 상업 사용 상태를 확인합니다. `Tools/Release/audit_trademark_copy.sh`는 Apple, HealthKit, Fitdays, Omron에 대한 공식/제휴/인증 오해 문구를 막습니다.
+`Tools/Release/audit_release_copy.sh`는 tracked artifact, Core ML pre-integration, model provenance, model provenance negative test, trademark/affiliation copy, public repo privacy, navigation chrome gate를 먼저 실행한 뒤 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Release/audit_tracked_artifacts.sh`는 Git에 ESC-50, 공개/개인 오디오, local output, model/training artifact가 섞이는 것을 막습니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/UI/validate_navigation_chrome.sh`는 tab/back 정책과 주요 flow/screenshot scenario 진입점을 확인합니다. `Tools/Screenshots/validate_app_store_export_manifest.sh`는 App Store Connect export manifest와 size별 visual evidence를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다. `Tools/Training/validate_model_provenance_gate.sh`는 모델 artifact를 추가하기 전 provenance manifest와 ESC-50/NonCommercial 상업 사용 상태를 확인합니다. `Tools/Training/test_model_provenance_gate_negative.sh`는 누락/미승인/NonCommercial ambiguity case가 실제로 실패하는지 확인합니다. `Tools/Release/audit_trademark_copy.sh`는 Apple, HealthKit, Fitdays, Omron에 대한 공식/제휴/인증 오해 문구를 막습니다. `Tools/Release/audit_public_repo_privacy.sh`는 public 전환 전 token, private key, 개인 path/email/device id, artifact leak scan을 실행합니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
@@ -266,6 +268,7 @@ Tools/Release/audit_trademark_copy.sh
 - built `.app` bundle을 만들었으면 `Tools/Release/audit_app_bundle_artifacts.sh /path/to/NightBreath.app`로 ESC-50/output/audio/training artifact가 bundle에 섞이지 않았는지 확인합니다.
 - 모델 artifact를 release에 포함하려면 `Models/CoreML/model_provenance.tsv`의 승인 row와 `Docs/MODEL_PROVENANCE_CHECKLIST.md` 기준을 통과해야 합니다.
 - Apple, HealthKit, Fitdays, Omron 언급이 공식 제휴/인증/후원처럼 읽히지 않는지 확인합니다.
+- public repository 전환 전 `Docs/Release/PUBLIC_REPO_FINAL_REVIEW.md`와 `Tools/Release/audit_public_repo_privacy.sh` 결과를 확인합니다.
 - README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA evidence 없이 export나 marketing 문서에 승격되지 않는지 확인합니다.
 - App Store screenshot을 `release-approved`로 바꾸려면 8개 전체 세트가 `copy/crop/privacy/export` checklist 증거를 가져야 합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.

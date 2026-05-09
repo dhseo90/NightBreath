@@ -27,8 +27,14 @@ jobs:
       - name: Validate model provenance gate
         run: Tools/Training/validate_model_provenance_gate.sh
 
+      - name: Run model provenance negative test
+        run: Tools/Training/test_model_provenance_gate_negative.sh
+
       - name: Validate README links
         run: Tools/Docs/validate_readme_links.sh
 
       - name: Audit trademark and affiliation copy
         run: Tools/Release/audit_trademark_copy.sh
+
+      - name: Audit public repository privacy
+        run: Tools/Release/audit_public_repo_privacy.sh
