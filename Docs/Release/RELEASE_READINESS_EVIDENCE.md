@@ -23,6 +23,37 @@
 | Screenshot headline | aligned | App Store 후보 8장 headline이 `ScreenshotScenario`와 product page screenshot order에 연결됨 |
 | App Store Connect upload preview | manual pending | Codex 환경에서 로그인된 App Store Connect upload 화면을 확인하지 않았음 |
 
+## App Store Connect Manual Preview Result Entry
+
+아래 표는 실제 App Store Connect upload preview를 확인한 뒤 수동으로 채웁니다. 계정 이메일, 개인 이름, 실제 사용자 데이터, 실제 local path는 기록하지 않습니다. 상세 절차는 `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`를 기준으로 합니다.
+
+| 항목 | 값 |
+| --- | --- |
+| ASC preview QA date |  |
+| reviewer role |  |
+| locale checked | ko-KR / en-US |
+| TestFlight/App Store candidate build |  |
+| screenshot source set | `Docs/Screenshots/AppStore/export/` regenerated from raw |
+| order result | pass / fail / not run |
+| crop result | pass / fail / not run |
+| locale copy result | pass / fail / not run |
+| sensitive data result | pass / fail / not run |
+| HealthKit/server/cloud wording result | pass / fail / not run |
+| evidence note id | private note only |
+| blocker issue id |  |
+| release decision | continue / hold |
+
+| Slot | Expected file | ASC order | Crop/headline result | Notes |
+| --- | --- | --- | --- | --- |
+| 1 | `01_home_dashboard_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 2 | `02_sleep_report_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 3 | `03_sleep_timeline_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 4 | `04_daily_rhythm_report_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 5 | `05_daily_health_card_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 6 | `06_health_metrics_overview_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 7 | `07_privacy_settings_light.png` | pass / fail / not run | pass / fail / not run |  |
+| 8 | `08_zero_event_report_light.png` | pass / fail / not run | pass / fail / not run |  |
+
 ## Automated Gates
 
 | Gate | 목적 |

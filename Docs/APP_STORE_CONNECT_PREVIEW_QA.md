@@ -56,7 +56,7 @@ Tools/Release/audit_release_copy.sh
 
 ## Evidence Entry
 
-아래 항목은 실제 App Store Connect 화면 확인 후 private/release evidence에 옮겨 적습니다. 계정 정보, 개인 데이터, 실제 사용자명은 기록하지 않습니다.
+아래 항목은 실제 App Store Connect 화면 확인 후 private note와 `Docs/Release/RELEASE_READINESS_EVIDENCE.md`의 `App Store Connect Manual Preview Result Entry`에 옮겨 적습니다. 계정 정보, 개인 데이터, 실제 사용자명은 기록하지 않습니다.
 
 ```text
 ASC preview QA date:

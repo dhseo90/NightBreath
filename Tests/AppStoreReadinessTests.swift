@@ -233,6 +233,7 @@ struct AppStoreReadinessTests {
         #expect(releaseGuide.contains("Docs/APP_STORE_CONNECT_PREVIEW_QA.md"))
         #expect(ascPreviewQA.contains("Manual QA Checklist"))
         #expect(ascPreviewQA.contains("ASC preview QA date"))
+        #expect(ascPreviewQA.contains("App Store Connect Manual Preview Result Entry"))
         #expect(ascPreviewQA.contains("review-cropped 내부 검토 이미지를 upload source로 잘못 쓰지 않음"))
         #expect(ascPreviewQA.contains("REQUIRE_APP_STORE_RELEASE_APPROVED=1"))
         #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
