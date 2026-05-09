@@ -1,0 +1,37 @@
+id	reviewed_on	reviewer	decision	reason	next_action
+readme-home	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-sleep-start	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-sleep-report	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-timeline	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-morning	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-rhythm	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-card	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+readme-health	2026-05-09	Codex	docs-preview-only	README preview renders but release approval still requires raw crop contact sheet review	Keep rendered only as README documentation preview
+appstore-home	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-sleep-report	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-timeline	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-rhythm	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-card	2026-05-09	Codex	blocked	App Store card now uses minimal public profile but needs fresh capture evidence	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-health	2026-05-09	Codex	blocked	App Store health overview now uses public source labels but needs fresh capture evidence	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-privacy	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+appstore-zero-event	2026-05-09	Codex	blocked	App Store surface and crop were updated after the previous capture	Recapture with appStoreMarketing surface and rerun visual QA
+health-overview	2026-05-09	Codex	ui-gallery-candidate	Health overview can stay UI Gallery only until contact sheet approval	Check crop, chart labels, and source badge readability
+health-fitdays	2026-05-09	Codex	ui-gallery-candidate	Fitdays empty import view is suitable for local import documentation	Check copy and confirm no local file path is visible
+health-fitdays-result	2026-05-09	Codex	blocked	Import result shows fixture-like internal content	Recapture with public copy and no fixture filename
+health-calendar	2026-05-09	Codex	ui-gallery-candidate	Health calendar can stay UI Gallery only until contact sheet approval	Check month controls, dots, and selected-day panel crop
+health-daily-detail	2026-05-09	Codex	ui-gallery-candidate	Daily measurement detail can stay UI Gallery only until contact sheet approval	Check section spacing and lower content crop
+health-metric-body-water	2026-05-09	Codex	ui-gallery-candidate	Metric detail body water can stay UI Gallery only until contact sheet approval	Check chart axis and source filter readability
+health-metric-basal	2026-05-09	Codex	ui-gallery-candidate	Local-only metric detail can stay UI Gallery only until contact sheet approval	Check local-only badge and chart readability
+health-blood-pressure	2026-05-09	Codex	ui-gallery-candidate	Blood pressure dashboard can stay UI Gallery only until contact sheet approval	Check non-diagnostic copy and trend chart crop
+health-body-composition	2026-05-09	Codex	ui-gallery-candidate	Body composition dashboard can stay UI Gallery only until contact sheet approval	Check chart readability and sensitive value framing
+health-cross-metric	2026-05-09	Codex	ui-gallery-candidate	Cross metric dashboard can stay UI Gallery only until contact sheet approval	Check causality disclaimer and scatter chart crop
+detail-trend	2026-05-09	Codex	ui-gallery-candidate	Trend dashboard can stay UI Gallery only until contact sheet approval	Check segmented control and trend chart crop
+detail-morning-checkin	2026-05-09	Codex	ui-gallery-candidate	Morning check-in can stay UI Gallery only until contact sheet approval	Check form spacing and CTA visibility
+detail-evening-checkin	2026-05-09	Codex	ui-gallery-candidate	Evening check-in can stay UI Gallery only until contact sheet approval	Check tag grid and save CTA visibility
+detail-card-export	2026-05-09	Codex	ui-gallery-candidate	Daily health card export preview can stay UI Gallery only until contact sheet approval	Check export confirmation copy and button visibility
+detail-report-empty	2026-05-09	Codex	ui-gallery-candidate	Report empty state can stay UI Gallery only until contact sheet approval	Check empty state copy and start flow clarity
+privacy-settings	2026-05-09	Codex	ui-gallery-candidate	Privacy settings can stay UI Gallery only until contact sheet approval	Check opt-in, deletion, and no-server copy visibility
+privacy-onboarding	2026-05-09	Codex	ui-gallery-candidate	Onboarding can stay UI Gallery only until contact sheet approval	Check first-run privacy copy and button crop
+privacy-device-placement	2026-05-09	Codex	ui-gallery-candidate	Device placement can stay UI Gallery only until contact sheet approval	Check placement steps and calibration CTA crop
+privacy-calibration	2026-05-09	Codex	ui-gallery-candidate	Calibration can stay UI Gallery only until contact sheet approval	Check level state, progress, and CTA visibility
+debug-simulator	2026-05-09	Codex	internal-only	DEBUG simulator scenario must not render in Release or App Store docs	Track path only and keep internal-only

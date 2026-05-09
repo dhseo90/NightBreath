@@ -33,6 +33,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 상태 source-of-truth:
 
 - `Docs/Screenshots/screenshot_status.tsv`에서 각 후보의 상태를 관리합니다.
+- `Docs/Screenshots/screenshot_visual_review.tsv`에서 contact sheet 판정일, 판정, 사유, 다음 조치를 관리합니다.
 - 허용 상태값은 `screenshot pending`, `captured, quality review pending`, `internal-only, quality review pending`, `blocked, recapture required`, `release-approved`입니다.
 - `Docs/UI_GALLERY.md`와 `Docs/UI_SCREEN_MAP.md`에 적는 모든 screenshot `.png` 경로는 `screenshot_status.tsv`의 `raw_source` 또는 `review_asset`에 함께 등록합니다.
 - screenshot 경로나 상태를 바꾼 뒤에는 `Tools/Screenshots/validate_screenshot_manifest.sh`를 실행해 manifest schema, 파일 존재 여부, 문서 참조 누락을 먼저 확인합니다.
@@ -56,6 +57,20 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
 | App Store 후보 8개 | blocked, recapture required | 2026-05-09 raw 재캡처와 export 생성은 완료, visual QA에서 release-approved 승격 보류 |
 | 직접 scenario 상세 캡처 | captured/internal-only, quality review pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
+
+## Quality Review Pending Classification
+
+2026-05-09 기준 `quality review pending` 항목은 파일 존재 여부와 무관하게 아래처럼 노출 범위를 나눕니다. 이 분류는 `Docs/Screenshots/screenshot_status.tsv`의 상태를 대체하지 않으며, contact sheet와 실제 문서 렌더링 확인 전까지 image markdown을 추가하지 않습니다.
+
+| 묶음 | 항목 | 분류 | 다음 조치 |
+| --- | --- | --- | --- |
+| Health/EHM overview | `health-overview`, `health-calendar`, `health-daily-detail`, `health-metric-body-water`, `health-metric-basal`, `health-blood-pressure`, `health-body-composition`, `health-cross-metric` | 문서 노출 가능 후보. UI Gallery 전용이며 README/App Store로 승격하지 않음 | contact sheet에서 crop 여백, chart axis, 긴 한국어 문구, 출처 badge 가독성 확인 |
+| Fitdays import | `health-fitdays`, `health-fitdays-error` | 문서 노출 가능 후보. 로컬 import 원칙 설명용 | 실제 파일명/local path 없음, 오류 copy가 사용자에게 자연스러운지 확인 |
+| Fitdays import result | `health-fitdays-result` | 계속 격리. `blocked, recapture required` 유지 | fixture filename과 내부 import 느낌을 제거한 공개용 copy로 재캡처 |
+| EdgeStates | `edge-zero-event`, `edge-low-coverage`, `edge-event-audio-off`, `edge-health-permission-empty`, `edge-metric-detail-empty`, `edge-cross-metric-insufficient`, `detail-report-empty` | 문서 노출 가능 후보. edge 상태 설명용이며 App Store 후보는 별도 App Store 8개 flow만 사용 | 상태를 건강 판정처럼 읽히지 않는지, CTA와 제한 안내가 잘리지 않는지 확인 |
+| Privacy/Support | `privacy-settings`, `privacy-onboarding`, `privacy-device-placement`, `privacy-calibration` | 문서 노출 가능 후보. 개인정보/온보딩 설명용 | 서버 미전송, HealthKit read-only, 이벤트 샘플 opt-in copy가 잘리는지 확인 |
+| DEBUG observability | `debug-audio`, `debug-sample`, `debug-replay`, `debug-detector`, `debug-simulator` | 계속 격리. DEBUG only | 개발 문서에서 경로만 추적하고 Release/README/App Store에는 렌더링하지 않음 |
+| Sleep recording | `sleep_recording_light.png` | 계속 격리. `blocked, recapture required` 유지 | 비현실적 duration/state mismatch를 고친 뒤 재캡처 |
 
 ## App Store Screenshot Candidate Flow
 

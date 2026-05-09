@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | App Name | 밤숨 | 한국어 표시 이름 |
 | Subtitle | 수면 소리와 하루 리듬 | 30자 이내 후보 |
-| Promotional Text | 밤새 수면 중 소리 기반 지표와 아침 컨디션, 하루 리듬을 iPhone 안에서 개인 참고용으로 정리합니다. | 170자 이내 후보 |
-| Keywords | 수면,코골기,수면기록,건강리듬,HealthKit,컨디션,리포트 | 100자 이내 후보. 실제 제출 전 경쟁/검색어 검토 필요 |
+| Promotional Text | 수면 소리 리포트, 아침 컨디션, 오늘의 리듬을 iPhone 안에서 개인 참고용으로 정리합니다. | 170자 이내 후보 |
+| Keywords | 밤숨,수면,코골기,수면소리,수면기록,건강리듬,HealthKit,컨디션 | 100자 이내 후보. 실제 제출 전 경쟁/검색어 검토 필요 |
 
 ### Description
 
@@ -36,7 +36,7 @@
 ### What's New Candidate
 
 ```text
-App Store 준비를 위해 mock screenshot, 앱 아이콘 검증, TestFlight 내부 테스트 기준, 개인정보/HealthKit read-only 검토 문서를 정리했습니다.
+App Store 준비를 위해 screenshot 후보, 앱 아이콘 검증, TestFlight 내부 테스트 기준, 개인정보/HealthKit read-only 검토 문서를 정리했습니다.
 ```
 
 ## Secondary Locale: en-US
@@ -46,9 +46,9 @@ App Store 준비를 위해 mock screenshot, 앱 아이콘 검증, TestFlight 내
 | Field | Candidate copy | Notes |
 | --- | --- | --- |
 | App Name | NightBreath | English brand name |
-| Subtitle | Sleep Sound Report | Product subtitle |
-| Promotional Text | Review sleep sound indicators, morning check-ins, and daily rhythm context on iPhone, with local-first privacy boundaries. | 170 characters or less |
-| Keywords | sleep,snore,wellness,rhythm,HealthKit,checkin,report | 100 characters or less |
+| Subtitle | Sleep Sound & Rhythm | Product subtitle |
+| Promotional Text | Review sleep sound reports, morning check-ins, and daily rhythm context on iPhone with local-first privacy. | 170 characters or less |
+| Keywords | sleep,snore,sound,rhythm,wellness,HealthKit,checkin,report | 100 characters or less |
 
 ### Description
 
@@ -81,7 +81,7 @@ NightBreath does not determine health conditions or recommend medical action. Sl
 7. Privacy settings: 전체 밤 오디오는 저장하지 않습니다
 8. Zero-event explanation: 이벤트가 적은 밤도 측정 맥락과 함께
 
-모든 screenshot은 mock/synthetic data만 사용합니다. 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명, 실제 local path는 product page asset에 포함하지 않습니다.
+모든 screenshot은 공개 검수용 simulator scenario data만 사용합니다. 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명, 실제 local path는 product page asset에 포함하지 않습니다.
 
 ## Copy Safety Checklist
 

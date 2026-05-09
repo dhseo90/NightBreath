@@ -160,7 +160,7 @@ struct DailyHealthCardContentTests {
                 requiresConfirmation=true
                 summary=수면, 활동, 컨디션, 건강 데이터를 사용 가능한 범위에서 함께 정리하는 카드입니다.
                 notice=이 카드에는 건강 관련 수치가 포함됩니다. 공유 전 표시 항목을 확인해 주세요.|이미지는 사용자가 선택한 경우에만 생성됩니다.|자동 공유와 서버 업로드는 없습니다.
-                metrics=오늘의 리듬 점수=84점[데이터 품질 충분]{general}|아침 혈압=120/77 mmHg[혈압 예시 데이터]{sensitiveHealth}|체중=71.5 kg[체중 예시 데이터]{sensitiveHealth}|체지방률=21.0%[체지방률 예시 데이터]{sensitiveHealth}|걸음 수=7,000걸음[활동 예시 데이터]{general}
+                metrics=오늘의 리듬 점수=84점[데이터 품질 충분]{general}|아침 혈압=120/77 mmHg[혈압 기록]{sensitiveHealth}|체중=71.5 kg[체중 기록]{sensitiveHealth}|체지방률=21.0%[체지방률 기록]{sensitiveHealth}|걸음 수=7,000걸음[활동 기록]{general}
                 """
             ),
             (
@@ -170,7 +170,7 @@ struct DailyHealthCardContentTests {
                 privacy=detailed
                 requiresConfirmation=true
                 summary=수면, 활동, 컨디션, 건강 데이터를 사용 가능한 범위에서 함께 정리하는 카드입니다.
-                notice=이 카드에는 건강 관련 수치가 포함됩니다. 공유 전 표시 항목을 확인해 주세요.|이미지는 사용자가 선택한 경우에만 생성됩니다.|자동 공유와 서버 업로드는 없습니다.|상세 표시 수준은 예시 데이터 출처와 기록 시간을 함께 보여줄 수 있습니다.
+                notice=이 카드에는 건강 관련 수치가 포함됩니다. 공유 전 표시 항목을 확인해 주세요.|이미지는 사용자가 선택한 경우에만 생성됩니다.|자동 공유와 서버 업로드는 없습니다.|상세 표시 수준은 데이터 출처와 기록 시간을 함께 보여줄 수 있습니다.
                 metrics=오늘의 리듬 점수=84점[데이터 품질 충분]{general}|아침 혈압=120/77 mmHg[Omron Connect · 08:00]{sensitiveHealth}|체중=71.5 kg[Fitdays · 07:00]{sensitiveHealth}|체지방률=21.0%[Fitdays · 07:01]{sensitiveHealth}|걸음 수=7,000걸음[Apple 건강앱 예시 · 21:00]{general}
                 """
             ),

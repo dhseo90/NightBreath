@@ -5,6 +5,7 @@ struct SimulatorScenarioView: View {
   @EnvironmentObject private var appState: AppState
   @State private var selectedPreset: SimulatorQAScenarioPreset = .quietNight
   @State private var selectedScreenshotScenario: ScreenshotScenario = .homeDashboard
+  @State private var selectedScreenshotSurface: ScreenshotSurface = .documentation
 
   private var previewBundle: SimulatorQAScenarioBundle {
     SimulatorQAScenarioFactory.make(preset: selectedPreset)
@@ -111,6 +112,13 @@ struct SimulatorScenarioView: View {
           }
         }
 
+        Picker("Surface", selection: $selectedScreenshotSurface) {
+          ForEach(ScreenshotSurface.allCases) { surface in
+            Text(surface.rawValue)
+              .tag(surface)
+          }
+        }
+
         VStack(alignment: .leading, spacing: 6) {
           Text(selectedScreenshotScenario.headlineCopy)
             .font(.headline)
@@ -124,7 +132,7 @@ struct SimulatorScenarioView: View {
         .padding(.vertical, 4)
 
         Button {
-          appState.applyScreenshotScenario(selectedScreenshotScenario)
+          appState.applyScreenshotScenario(selectedScreenshotScenario, surface: selectedScreenshotSurface)
         } label: {
           Label("스크린샷 프리셋 적용", systemImage: "camera.viewfinder")
         }
@@ -135,7 +143,10 @@ struct SimulatorScenarioView: View {
         }
 
         NavigationLink {
-          ScreenshotScenarioDestinationView(scenario: selectedScreenshotScenario)
+          ScreenshotScenarioDestinationView(
+            scenario: selectedScreenshotScenario,
+            surface: selectedScreenshotSurface
+          )
         } label: {
           Label("선택 화면 열기", systemImage: "rectangle.inset.filled")
         }
@@ -439,9 +450,43 @@ struct SimulatorScenarioView: View {
 struct ScreenshotScenarioDestinationView: View {
   @EnvironmentObject private var appState: AppState
   let scenario: ScreenshotScenario
+  var surface: ScreenshotSurface = .documentation
 
   var body: some View {
     destination
+  }
+
+  private var dailyHealthCardProfile: MockDailyRhythmData.DailyHealthCardDisplayProfile {
+    surface.isAppStoreMarketing ? .appStoreMarketing : .readmeRepresentative
+  }
+
+  private var dailyHealthCardBundle: DailyRhythmMockBundle {
+    DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
+      profile: dailyHealthCardProfile,
+      referenceDate: appState.latestReport.generatedAt,
+      nightReport: appState.latestReport,
+      morningCheckIn: appState.morningCheckIn
+    )
+  }
+
+  private var unifiedHealthSamples: [UnifiedHealthMetricSample] {
+    if surface.isAppStoreMarketing {
+      return ScreenshotScenarioFactory.makeAppStoreScreenshotHealthSamples(
+        referenceDate: appState.latestReport.generatedAt
+      )
+    }
+
+    return ScreenshotScenarioFactory.makeScreenshotHealthSamples(
+      referenceDate: appState.latestReport.generatedAt
+    )
+  }
+
+  private var healthPermissionState: HealthMetricPermissionState {
+    surface.isAppStoreMarketing ? .readRequestCompleted : .mockDataOnly
+  }
+
+  private var isHealthPreviewData: Bool {
+    !surface.isAppStoreMarketing
   }
 
   @ViewBuilder
@@ -483,22 +528,14 @@ struct ScreenshotScenarioDestinationView: View {
     case .eveningCheckIn:
       EveningCheckInView()
     case .dailyHealthCard:
-      DailyHealthCardPreviewView(
-        bundle: DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
-          profile: .readmeRepresentative,
-          referenceDate: appState.latestReport.generatedAt,
-          nightReport: appState.latestReport,
-          morningCheckIn: appState.morningCheckIn
-        )
-      )
+      if surface.isAppStoreMarketing {
+        DailyHealthCardView(content: dailyHealthCardBundle.cardContent)
+      } else {
+        DailyHealthCardPreviewView(bundle: dailyHealthCardBundle)
+      }
     case .dailyHealthCardExport:
       DailyHealthCardPreviewView(
-        bundle: DailyRhythmMockFactory.makeDailyHealthCardDisplayBundle(
-          profile: .readmeRepresentative,
-          referenceDate: appState.latestReport.generatedAt,
-          nightReport: appState.latestReport,
-          morningCheckIn: appState.morningCheckIn
-        ),
+        bundle: dailyHealthCardBundle,
         initialExportPreview: true
       )
     case .healthDashboard:
@@ -537,22 +574,22 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .healthMetricsOverview:
       HealthMetricsOverviewView(
-        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
-        permissionState: .mockDataOnly,
-        isPreviewData: true
+        samples: unifiedHealthSamples,
+        permissionState: healthPermissionState,
+        isPreviewData: isHealthPreviewData
       )
     case .healthCalendar:
       HealthCalendarView(
-        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        samples: unifiedHealthSamples,
         sleepReports: [appState.latestReport],
         morningCheckIns: [appState.morningCheckIn],
         eveningCheckIns: [ScreenshotScenarioFactory.makeScreenshotEveningCheckIn(referenceDate: appState.latestReport.generatedAt)],
-        permissionState: .mockDataOnly,
-        isPreviewData: true,
+        permissionState: healthPermissionState,
+        isPreviewData: isHealthPreviewData,
         initialMonth: appState.latestReport.generatedAt
       )
     case .dailyMeasurementDetail:
-      let samples = ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt)
+      let samples = unifiedHealthSamples
       DailyMeasurementDetailView(
         detailData: ScreenshotScenarioFactory.makeScreenshotDailyMeasurementDetailData(
           appState: appState,
@@ -563,13 +600,13 @@ struct ScreenshotScenarioDestinationView: View {
     case .metricDetail:
       MetricDetailView(
         metricID: .bodyWaterPercentage,
-        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        samples: unifiedHealthSamples,
         selectedPeriod: .all
       )
     case .localOnlyMetric:
       MetricDetailView(
         metricID: .basalMetabolicRate,
-        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        samples: unifiedHealthSamples,
         selectedPeriod: .all
       )
     case .healthPermissionEmpty:

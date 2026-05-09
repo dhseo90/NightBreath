@@ -31,7 +31,7 @@ struct DailyRhythmReportView: View {
           messages: [
             bundle.report.cautionText,
             "인과관계를 의미하지 않습니다.",
-            "서버로 전송하지 않고 예시 데이터로 화면을 구성합니다.",
+            "서버로 전송하지 않고 iPhone 안에서 사용 가능한 데이터로 구성합니다.",
           ],
           systemImage: "lock.shield"
         )

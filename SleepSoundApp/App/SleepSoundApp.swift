@@ -5,6 +5,7 @@ struct SleepSoundApp: App {
     @StateObject private var appState = AppState()
     #if DEBUG
     private let launchScreenshotScenario = ScreenshotScenario.launchArgumentScenario()
+    private let launchScreenshotSurface = ScreenshotSurface.launchArgumentSurface()
     #endif
 
     var body: some Scene {
@@ -12,7 +13,10 @@ struct SleepSoundApp: App {
             Group {
                 #if DEBUG
                 if let launchScreenshotScenario {
-                    ScreenshotScenarioLaunchView(scenario: launchScreenshotScenario)
+                    ScreenshotScenarioLaunchView(
+                        scenario: launchScreenshotScenario,
+                        surface: launchScreenshotSurface
+                    )
                 } else if appState.hasCompletedOnboarding {
                     HomeDashboardView()
                 } else {
@@ -64,16 +68,17 @@ private struct ScreenshotScenarioLaunchView: View {
     @EnvironmentObject private var appState: AppState
     @State private var didApplyScenario = false
     let scenario: ScreenshotScenario
+    let surface: ScreenshotSurface
 
     var body: some View {
         NavigationStack {
-            ScreenshotScenarioDestinationView(scenario: scenario)
+            ScreenshotScenarioDestinationView(scenario: scenario, surface: surface)
         }
         .onAppear {
             guard !didApplyScenario else { return }
             didApplyScenario = true
             appState.completeOnboarding()
-            appState.applyScreenshotScenario(scenario)
+            appState.applyScreenshotScenario(scenario, surface: surface)
         }
     }
 }

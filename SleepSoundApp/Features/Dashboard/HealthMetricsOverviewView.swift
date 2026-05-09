@@ -21,8 +21,8 @@ struct HealthMetricsOverviewView: View {
 
         if samples.isEmpty {
           HealthDataEmptyStateView(
-            title: "표시할 건강 지표 샘플이 없습니다",
-            message: "Apple 건강앱 read-only 연결 또는 Fitdays CSV 가져오기를 통해 샘플을 추가하면 지표별 통계와 그래프를 볼 수 있습니다."
+            title: "표시할 건강 지표 기록이 없습니다",
+            message: "Apple 건강앱 read-only 연결 또는 Fitdays CSV 가져오기를 통해 기록을 추가하면 지표별 통계와 그래프를 볼 수 있습니다."
           )
         } else {
           ForEach(grouping.groups()) { group in
@@ -33,7 +33,7 @@ struct HealthMetricsOverviewView: View {
         NBPrivacyNoticeCard(
           title: "개인 참고용 통계",
           messages: [
-            "HealthKit read-only 샘플과 로컬 import 샘플을 한곳에서 정리합니다.",
+            "HealthKit read-only 기록과 로컬 import 기록을 한곳에서 정리합니다.",
             "수치의 평균, 최소, 최대, 최근 변화는 참고용 계산입니다.",
             "HealthKit에 데이터를 쓰지 않고 서버로 전송하지 않습니다.",
           ],
@@ -69,7 +69,7 @@ struct HealthMetricsOverviewView: View {
   private var stateNotice: some View {
     if isPreviewData {
       NBStatusBadge(
-        "연결 전 샘플은 예시 미리보기로 표시됩니다.",
+        "연결 전 기록은 미리보기로 표시됩니다.",
         kind: .neutral,
         systemImage: "eye"
       )
@@ -78,13 +78,13 @@ struct HealthMetricsOverviewView: View {
     switch permissionState {
     case .denied:
       NBStatusBadge(
-        "Apple 건강앱 권한이 없어도 로컬 import 샘플은 볼 수 있습니다.",
+        "Apple 건강앱 권한이 없어도 로컬 import 기록은 볼 수 있습니다.",
         kind: .caution,
         systemImage: "lock.slash"
       )
     case .unavailable:
       NBStatusBadge(
-        "HealthKit을 사용할 수 없어도 로컬 import 샘플은 볼 수 있습니다.",
+        "HealthKit을 사용할 수 없어도 로컬 import 기록은 볼 수 있습니다.",
         kind: .warning,
         systemImage: "exclamationmark.triangle"
       )
@@ -138,7 +138,7 @@ struct HealthMetricsOverviewView: View {
           subtitle: metricRowSubtitle(summary: summary, sources: sources),
           systemImage: metricIcon(for: metadata),
           tint: metricTint(for: metadata),
-          accessibilityLabel: "\(metadata.displayNameKo), 샘플 \(summary.sampleCount)개"
+          accessibilityLabel: "\(metadata.displayNameKo), 기록 \(summary.sampleCount)개"
         )
 
         MetricSourceBadgeStrip(
@@ -161,7 +161,7 @@ struct HealthMetricsOverviewView: View {
     summary: MetricStatisticsSummary,
     sources: [MetricSourceBreakdown]
   ) -> String {
-    var parts: [String] = ["\(selectedPeriod.displayName) 샘플 \(summary.sampleCount)개"]
+    var parts: [String] = ["\(selectedPeriod.displayName) 기록 \(summary.sampleCount)개"]
 
     if let latestMeasuredAt = summary.latestMeasuredAt {
       parts.append("최근 \(SleepFormatters.shortDate(latestMeasuredAt))")

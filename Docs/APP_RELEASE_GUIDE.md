@@ -97,9 +97,9 @@ README에는 대표 screenshot만 사용합니다. 전체 화면별 설명과 pe
 
 ### Mock Scenario / Headline Plan
 
-App Store screenshot은 아래 mock scenario와 headline copy를 우선 후보로 사용합니다. 모든 화면은 DEBUG simulator scenario 또는 mock bundle 기반으로만 만들고, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 쓰지 않습니다.
+App Store screenshot은 아래 mock scenario와 headline copy를 우선 후보로 사용합니다. 모든 화면은 DEBUG simulator scenario 또는 mock bundle 기반으로만 만들고, `appStoreMarketing` screenshot surface로 공개용 문구와 공개용 출처 label을 적용합니다. 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명은 쓰지 않습니다.
 
-Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드를 분리합니다. README 대표 카드는 `readmeRepresentative` display profile을 사용하고, App Store 후보 카드는 `appStoreMarketing` display profile을 사용합니다. App Store 후보 카드는 `privacyMinimal`/`minimal` 표시 수준을 기본으로 하며 실제 HealthKit/Fitdays source나 혈압, 체중, 체성분 같은 민감 수치를 노출하지 않습니다.
+Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드를 분리합니다. README 대표 카드는 `readmeRepresentative` display profile을 사용하고, App Store 후보 카드는 `appStoreMarketing` display profile을 사용합니다. App Store 후보 카드는 `privacyMinimal`/`minimal` 표시 수준을 기본으로 하며 실제 HealthKit/Fitdays 출처나 혈압, 체중, 체성분 같은 민감 수치를 노출하지 않습니다.
 
 | 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 현재 상태 | 안전 기준 |
 | --- | --- | --- | --- | --- | --- |
@@ -120,9 +120,14 @@ App Store marketing capture source:
 - review crop: `Docs/Screenshots/AppStore/review-cropped/`
 - capture script: `Tools/Screenshots/capture_app_store_screenshots.sh`
 - review sheet script: `Tools/Screenshots/build_screenshot_review_sheet.sh`
+- release approval gate: `Tools/Screenshots/validate_app_store_release_approval.sh`
 - App Store Connect size export script: `Tools/Screenshots/export_app_store_connect_screenshots.sh`
+- launch surface: `--nightbreath-screenshot-surface appStoreMarketing`
+- default review crop: top 160px, bottom 220px
 
 Raw source는 App Store Connect size export 입력으로 사용하고, review crop은 내부 검토용으로만 사용합니다. 모든 파일은 DEBUG simulator scenario와 synthetic/mock data 기반이어야 합니다.
+
+`release-approved` 승격 기준은 8장 전체 세트 단위입니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store 후보 8개가 모두 존재하는지, 부분 승격이 없는지, 승인 row가 `approved:`와 `checklist:` 증거를 포함하는지 확인합니다. checklist에는 `copy`, `crop`, `privacy`, `export`가 모두 포함되어야 합니다. 제출 직전에는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh`로 hard gate를 실행합니다.
 
 재캡처 전 gate:
 
@@ -229,19 +234,21 @@ TestFlight blocking gate:
 ```sh
 Tools/Release/audit_release_copy.sh
 Tools/Docs/validate_readme_links.sh
+Tools/Screenshots/validate_app_store_release_approval.sh
 ```
 
-`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다.
+`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
 - App Store product page copy와 release 문서가 개인정보/HealthKit/read-only 경계를 유지하는지 확인합니다.
-- 금지 의료 표현, 건강 상태 단정, 원인과 결과 단정 문구가 release 문서에 들어가지 않았는지 확인합니다.
-- 서버 업로드, 클라우드 분석, 외부 API 전송, Fitdays 자동 동기화 같은 긍정형 약속 문구가 release-facing 문서에 들어가지 않았는지 확인합니다.
+- 금지 의료 표현, 건강 상태 단정, 원인과 결과 단정 문구가 release 문서와 main/sub README에 들어가지 않았는지 확인합니다.
+- 서버 업로드, 클라우드 분석, 외부 API 전송, HealthKit write, Fitdays 자동 동기화 같은 긍정형 약속 문구가 release-facing 문서와 main/sub README에 들어가지 않았는지 확인합니다.
 - 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
 - `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
 - README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA 전에는 export나 marketing 문서에 승격되지 않는지 확인합니다.
+- App Store screenshot을 `release-approved`로 바꾸려면 8개 전체 세트가 `copy/crop/privacy/export` checklist 증거를 가져야 합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
 - 루트 README가 주요 sub README를 모두 연결하고, README 내부 문서/이미지 링크가 깨지지 않는지 확인합니다.
 

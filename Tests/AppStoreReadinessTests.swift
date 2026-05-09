@@ -201,10 +201,10 @@ struct AppStoreReadinessTests {
         )
 
         let koreanSubtitle = "수면 소리와 하루 리듬"
-        let koreanPromotionalText = "밤새 수면 중 소리 기반 지표와 아침 컨디션, 하루 리듬을 iPhone 안에서 개인 참고용으로 정리합니다."
-        let koreanKeywords = "수면,코골기,수면기록,건강리듬,HealthKit,컨디션,리포트"
-        let englishSubtitle = "Sleep Sound Report"
-        let englishKeywords = "sleep,snore,wellness,rhythm,HealthKit,checkin,report"
+        let koreanPromotionalText = "수면 소리 리포트, 아침 컨디션, 오늘의 리듬을 iPhone 안에서 개인 참고용으로 정리합니다."
+        let koreanKeywords = "밤숨,수면,코골기,수면소리,수면기록,건강리듬,HealthKit,컨디션"
+        let englishSubtitle = "Sleep Sound & Rhythm"
+        let englishKeywords = "sleep,snore,sound,rhythm,wellness,HealthKit,checkin,report"
 
         #expect(productCopy.contains("Primary Locale: ko-KR"))
         #expect(productCopy.contains("Secondary Locale: en-US"))
@@ -224,10 +224,10 @@ struct AppStoreReadinessTests {
         #expect(productCopy.contains("HealthKit은 사용자가 건강 데이터 연결을 선택한 경우에만 read-only"))
         #expect(productCopy.contains("HealthKit에 데이터를 쓰지 않습니다"))
         #expect(productCopy.contains("전체 밤 원본 오디오는 기본 저장하지 않습니다"))
-        #expect(productCopy.contains("mock/synthetic data"))
+        #expect(productCopy.contains("공개 검수용 simulator scenario data"))
         #expect(releaseGuide.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
         #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
-        #expect(nextIssues.contains("product page copy 후보 정리 완료"))
+        #expect(nextIssues.contains("product page copy 최종 다듬기 완료"))
 
         let forbiddenPhrases = [
             "수면무호흡증 " + "진단",
@@ -372,6 +372,11 @@ struct AppStoreReadinessTests {
         ]
 
         #expect(captureScript.contains("--nightbreath-screenshot-scenario"))
+        #expect(captureScript.contains("--nightbreath-screenshot-surface"))
+        #expect(captureScript.contains("APP_STORE_SCREENSHOT_SURFACE"))
+        #expect(captureScript.contains("appStoreMarketing"))
+        #expect(captureScript.contains("TOP_CROP_PX:-160"))
+        #expect(captureScript.contains("BOTTOM_CROP_PX:-220"))
         #expect(captureScript.contains("Docs/Screenshots/AppStore/raw"))
         #expect(captureScript.contains("Docs/Screenshots/AppStore/review-cropped"))
         #expect(captureScript.contains("APP_STORE_SCREENSHOT_SCENARIOS"))
@@ -402,6 +407,67 @@ struct AppStoreReadinessTests {
             #expect(captureScript.contains(filename), "\(filename) should be part of the App Store capture script.")
             #expect(screenshotGuide.contains("AppStore/raw/\(filename)"), "\(filename) should be documented.")
         }
+    }
+
+    @Test
+    func appStoreScreenshotSurfaceUsesPublicCopyAndMarketingData() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let scenarioSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/ScreenshotScenarios.swift"),
+            encoding: .utf8
+        )
+        let appEntry = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/App/SleepSoundApp.swift"),
+            encoding: .utf8
+        )
+        let appState = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/App/AppState.swift"),
+            encoding: .utf8
+        )
+        let simulatorScenarioView = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift"),
+            encoding: .utf8
+        )
+        let cardTemplate = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Core/DailyRhythm/DailyHealthCardTemplate.swift"),
+            encoding: .utf8
+        )
+        let cardContent = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Core/DailyRhythm/DailyHealthCardContent.swift"),
+            encoding: .utf8
+        )
+        let rhythmReportView = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/DailyRhythm/DailyRhythmReportView.swift"),
+            encoding: .utf8
+        )
+        let healthOverview = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift"),
+            encoding: .utf8
+        )
+
+        #expect(scenarioSource.contains("enum ScreenshotSurface"))
+        #expect(scenarioSource.contains("NIGHTBREATH_SCREENSHOT_SURFACE"))
+        #expect(scenarioSource.contains("makeAppStoreScreenshotHealthSamples"))
+        #expect(scenarioSource.contains("sourceType: .healthKit"))
+        #expect(scenarioSource.contains("sourceName: \"Fitdays CSV\""))
+        #expect(!scenarioSource.contains("Synthetic screenshot sample"))
+        #expect(appEntry.contains("launchScreenshotSurface"))
+        #expect(appEntry.contains("ScreenshotScenarioDestinationView("))
+        #expect(appEntry.contains("surface: surface"))
+        #expect(appState.contains("latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
+        #expect(simulatorScenarioView.contains("profile: dailyHealthCardProfile"))
+        #expect(simulatorScenarioView.contains("makeAppStoreScreenshotHealthSamples"))
+        #expect(simulatorScenarioView.contains("permissionState: healthPermissionState"))
+        #expect(simulatorScenarioView.contains("isPreviewData: isHealthPreviewData"))
+        #expect(cardTemplate.contains("출처 세부 정보"))
+        #expect(!cardTemplate.contains("source 세부 정보"))
+        #expect(!cardTemplate.contains("예시 데이터 출처"))
+        #expect(cardContent.contains("데이터 출처와 기록 시간"))
+        #expect(!cardContent.contains("예시 데이터 출처"))
+        #expect(rhythmReportView.contains("iPhone 안에서 사용 가능한 데이터"))
+        #expect(!rhythmReportView.contains("예시 데이터로 화면"))
+        #expect(healthOverview.contains("기록 \\(summary.sampleCount)개"))
+        #expect(!healthOverview.contains("연결 전 샘플은 예시 미리보기"))
     }
 
     @Test
@@ -455,6 +521,60 @@ struct AppStoreReadinessTests {
             #expect(exportScript.contains(label), "\(label) should be supported by the export script.")
             #expect(toolGuide.contains(label), "\(label) should be documented.")
         }
+    }
+
+    @Test
+    func appStoreScreenshotReleaseApprovalGateRequiresCompleteChecklistEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let gatePath = repositoryRoot.appendingPathComponent("Tools/Screenshots/validate_app_store_release_approval.sh")
+        let gate = try String(contentsOf: gatePath, encoding: .utf8)
+        let screenshotGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let toolGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tools/Screenshots/README.md"),
+            encoding: .utf8
+        )
+        let releaseGuide = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_RELEASE_GUIDE.md"),
+            encoding: .utf8
+        )
+        let releaseReadme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/Release/README.md"),
+            encoding: .utf8
+        )
+
+        #expect(FileManager.default.fileExists(atPath: gatePath.path))
+        #expect(gate.contains("REQUIRE_APP_STORE_RELEASE_APPROVED"))
+        #expect(gate.contains("appstore-home"))
+        #expect(gate.contains("appstore-zero-event"))
+        #expect(gate.contains("approved:"))
+        #expect(gate.contains("checklist:"))
+        #expect(gate.contains("copy"))
+        #expect(gate.contains("crop"))
+        #expect(gate.contains("privacy"))
+        #expect(gate.contains("export"))
+        #expect(gate.contains("No partial promotion is allowed"))
+        #expect(screenshotGuide.contains("validate_app_store_release_approval.sh"))
+        #expect(toolGuide.contains("validate_app_store_release_approval.sh"))
+        #expect(releaseGuide.contains("validate_app_store_release_approval.sh"))
+        #expect(releaseReadme.contains("validate_app_store_release_approval.sh"))
+
+        let process = Process()
+        let output = Pipe()
+        process.executableURL = gatePath
+        process.currentDirectoryURL = repositoryRoot
+        process.standardOutput = output
+        process.standardError = output
+
+        try process.run()
+        process.waitUntilExit()
+
+        let outputText = String(data: output.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+        #expect(process.terminationStatus == 0, "App Store approval gate failed: \(outputText)")
+        #expect(outputText.contains("release-approved: 0"))
+        #expect(outputText.contains("blocked, recapture required: 8"))
     }
 
     @Test

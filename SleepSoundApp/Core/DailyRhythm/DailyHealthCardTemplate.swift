@@ -75,9 +75,9 @@ public enum DailyHealthCardPrivacyLevel: String, Codable, CaseIterable, Identifi
         case .minimal:
             "오늘의 리듬 점수와 한 줄 요약만 표시합니다."
         case .standard:
-            "주요 지표 값을 표시하고 source 세부 정보는 줄입니다."
+            "주요 지표 값을 표시하고 출처 세부 정보는 줄입니다."
         case .detailed:
-            "주요 지표 값과 예시 데이터 출처, 기록 시간을 함께 표시합니다."
+            "주요 지표 값과 데이터 출처, 기록 시간을 함께 표시합니다."
         }
     }
 

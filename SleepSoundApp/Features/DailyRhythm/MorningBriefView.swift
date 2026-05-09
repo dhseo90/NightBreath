@@ -36,7 +36,7 @@ struct MorningBriefView: View {
           messages: [
             "개인 참고용 리포트입니다.",
             "이 앱은 진단 목적의 의료기기가 아닙니다.",
-            "건강 데이터는 예시 데이터 출처로 표시합니다.",
+            "건강 데이터는 확인 가능한 출처와 함께 표시합니다.",
           ],
           systemImage: "sunrise"
         )
@@ -55,7 +55,7 @@ struct MorningBriefView: View {
           .font(NBTypography.titleLarge)
           .foregroundStyle(NBColor.primaryText)
 
-        Text("수면 소리, 아침 컨디션, 예시 건강 데이터를 사용 가능한 범위에서 함께 정리합니다.")
+        Text("수면 소리, 아침 컨디션, 사용 가능한 건강 데이터를 함께 정리합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)

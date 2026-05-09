@@ -29,6 +29,8 @@ struct ReleaseReadinessGateTests {
         #expect(releaseGuide.contains("HealthKitReadOnlyPolicy"))
         #expect(releaseGuide.contains("Tools/Release/audit_release_copy.sh"))
         #expect(releaseGuide.contains("Tools/Docs/validate_readme_links.sh"))
+        #expect(releaseGuide.contains("Tools/Screenshots/validate_app_store_release_approval.sh"))
+        #expect(releaseGuide.contains("REQUIRE_APP_STORE_RELEASE_APPROVED=1"))
         #expect(releaseAuditScript.contains("--filter ReleaseReadiness"))
         #expect(releaseAuditScript.contains("--filter AppStoreReadiness"))
         #expect(releaseAuditScript.contains("--filter UIGalleryDocumentation"))
@@ -63,6 +65,17 @@ struct ReleaseReadinessGateTests {
     func releaseFacingDocumentsAvoidMedicalNetworkAndIntegrationPromises() throws {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let documentPaths = [
+            "README.md",
+            "Docs/Product/README.md",
+            "Docs/UI/README.md",
+            "Docs/Architecture/README.md",
+            "Docs/Privacy/README.md",
+            "Docs/Health/README.md",
+            "Docs/QA/README.md",
+            "Docs/Release/README.md",
+            "Docs/Screenshots/README.md",
+            "Docs/UI_GALLERY.md",
+            "Docs/UI_SCREEN_MAP.md",
             "Docs/APP_RELEASE_GUIDE.md",
             "Docs/APP_REVIEW_AUDIT.md",
             "Docs/APP_STORE_PRODUCT_PAGE_COPY.md",
@@ -82,9 +95,16 @@ struct ReleaseReadinessGateTests {
             "코골이가 없었습니다",
             "서버에 업로드합니다",
             "클라우드에서 분석합니다",
+            "클라우드 처리합니다",
             "외부 API로 전송합니다",
+            "외부 분석 SDK를 사용합니다",
+            "광고 SDK를 사용합니다",
+            "계정 로그인을 사용합니다",
             "HealthKit에 기록합니다",
             "HealthKit에 데이터를 씁니다",
+            "HealthKit write를 사용합니다",
+            "수면 소리 점수를 HealthKit에 씁니다",
+            "오늘의 리듬 점수를 HealthKit에 씁니다",
             "Fitdays와 자동 동기화합니다",
             "Fitdays 서버/API에 직접 연결합니다",
             "비공식 API를 사용합니다",

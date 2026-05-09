@@ -55,7 +55,7 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         }
 
         if privacyLevel.includesSourceDetails {
-            messages.append("상세 표시 수준은 예시 데이터 출처와 기록 시간을 함께 보여줄 수 있습니다.")
+            messages.append("상세 표시 수준은 데이터 출처와 기록 시간을 함께 보여줄 수 있습니다.")
         }
 
         return messages
@@ -274,7 +274,7 @@ public struct DailyHealthCardContent: Codable, Equatable, Sendable {
         calendar: Calendar
     ) -> String {
         guard privacyLevel.includesSourceDetails else {
-            return "\(sample.metricType.dashboardSectionName) 예시 데이터"
+            return "\(sample.metricType.dashboardSectionName) 기록"
         }
 
         let components = calendar.dateComponents([.hour, .minute], from: sample.measuredAt)

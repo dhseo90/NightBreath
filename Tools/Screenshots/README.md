@@ -138,6 +138,8 @@ Docs/Screenshots/review/screenshot_review_manifest.tsv
 
 승인 상태는 `Docs/Screenshots/screenshot_status.tsv`에서 관리합니다. README 대표 8개는 `captured, quality review pending` 상태에서 문서 preview로 렌더링할 수 있고, App Store/export/marketing용 이미지는 `release-approved` 전환 후에만 연결합니다.
 
+구조화된 visual QA 판정은 `Docs/Screenshots/screenshot_visual_review.tsv`에 남깁니다. `build_screenshot_review_sheet.sh`가 이 파일과 `screenshot_status.tsv`를 함께 읽어 review manifest에 `id`, `reviewed_on`, `visual_decision`, `visual_reason`, `next_action`을 기록합니다.
+
 ## Manifest Validation
 
 캡처 파일을 추가하거나 UI 문서에 screenshot 경로를 적은 뒤에는 simulator 없이도 아래 gate를 먼저 실행합니다.
@@ -147,6 +149,20 @@ Tools/Screenshots/validate_screenshot_manifest.sh
 ```
 
 이 스크립트는 `Docs/Screenshots/screenshot_status.tsv`의 schema/status, non-pending 파일 존재 여부, `Docs/UI_GALLERY.md`와 `Docs/UI_SCREEN_MAP.md`의 PNG 경로 등록 여부, DEBUG-only screenshot의 release 승인 금지를 확인합니다. 이 gate는 visual QA를 대체하지 않으며, `release-approved` 전환 전에는 반드시 review sheet와 실제 문서 렌더링을 눈으로 다시 확인합니다.
+
+App Store 후보 8개를 `release-approved`로 승격하기 전에는 별도 gate를 실행합니다.
+
+```bash
+Tools/Screenshots/validate_app_store_release_approval.sh
+```
+
+기본 실행은 현재 후보가 quarantine 상태인지 확인하고, 제출 직전 hard gate는 다음처럼 실행합니다.
+
+```bash
+REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh
+```
+
+승인 row에는 `approved:`와 `checklist:`가 필요하며, checklist에는 `copy`, `crop`, `privacy`, `export`가 모두 포함되어야 합니다. 부분 승격은 실패로 처리합니다.
 
 ## README 대표 screenshot 파일
 
@@ -266,10 +282,18 @@ DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.
 
-2026-05-09에 App Store 후보 8개 raw source와 review-cropped 이미지를 재캡처했습니다. export 파일 생성은 확인했지만, 일부 화면에 `source`, `sample/mock` 성격의 문구와 crop 여백 검토가 남아 있어 `release-approved`로 승격하지 않습니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
+2026-05-09에 App Store 후보 8개 raw source와 review-cropped 이미지를 재캡처했습니다. export 파일 생성은 확인했지만, 이후 `appStoreMarketing` screenshot surface와 공개용 copy/crop 기준을 적용했으므로 새 contact sheet가 통과하기 전에는 `release-approved`로 승격하지 않습니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
 
 ```bash
 Tools/Screenshots/capture_app_store_screenshots.sh
+```
+
+기본 launch/crop 설정:
+
+```text
+APP_STORE_SCREENSHOT_SURFACE=appStoreMarketing
+TOP_CROP_PX=160
+BOTTOM_CROP_PX=220
 ```
 
 출력 위치:

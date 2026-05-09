@@ -19,9 +19,9 @@
 
 - 최종 앱 아이콘 asset 검증 도구와 review sheet 준비 완료. 제출 전 실제 기기 홈 화면/TestFlight 표면 확인 필요
 - App Store screenshot headline copy와 mock scenario plan은 정리 완료
-- App Store screenshot marketing visual은 현재 blocked 상태입니다. 2026-05-09에 raw 8개 재캡처와 App Store Connect size export 생성을 확인했지만, `source`/sample/mock 성격 문구와 crop 품질 검토가 남아 release-approved로 승격하지 않았습니다.
+- App Store screenshot marketing visual은 현재 blocked 상태입니다. 공개용 screenshot surface/crop 기준과 release-approved gate는 정리했으며, 새 contact sheet visual QA 전까지 release-approved로 승격하지 않습니다.
 - App Store Connect용 screenshot size/export 절차 정리
-- App Store product page copy 후보 정리 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
+- App Store product page copy 최종 다듬기 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
 - Release readiness 자동 gate 테스트 추가 완료. TestFlight 후보 전 반복 실행 필요
 - TestFlight 내부 테스트 체크리스트 정리 완료, 실제 내부 테스트 실행은 TestFlight build와 실기기 필요

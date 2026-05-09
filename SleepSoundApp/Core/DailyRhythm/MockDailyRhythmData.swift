@@ -49,7 +49,7 @@ public enum MockDailyRhythmData {
             case .readmeRepresentative:
                 "README에는 synthetic representative card data만 사용합니다."
             case .appStoreMarketing:
-                "App Store 후보 카드에는 실제 HealthKit/Fitdays source나 민감 수치를 표시하지 않습니다."
+                "App Store 후보 카드에는 실제 HealthKit/Fitdays 출처나 민감 수치를 표시하지 않습니다."
             }
         }
     }

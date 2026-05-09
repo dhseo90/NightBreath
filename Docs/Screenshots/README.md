@@ -66,6 +66,16 @@ Tools/Screenshots/build_screenshot_review_sheet.sh
 
 Review sheet는 `Docs/Screenshots/review/screenshot_review_sheet.html`과 `Docs/Screenshots/review/screenshot_review_manifest.tsv`를 생성합니다. 이 폴더는 재생성 가능한 visual QA 산출물이므로 gitignore 대상입니다. README preview를 release-approved 또는 App Store 후보로 승격하기 전에는 raw source와 crop을 나란히 보고 내부 label, crop 정렬, 주요 content 가독성, 실제 개인 데이터 노출 여부를 확인합니다.
 
+구조화된 visual QA 판정은 `Docs/Screenshots/screenshot_visual_review.tsv`에서 관리합니다. Review sheet manifest는 이 TSV와 `screenshot_status.tsv`를 함께 읽어 `id`, `reviewed_on`, `visual_decision`, `visual_reason`, `next_action`을 자동 기록합니다.
+
+App Store 후보를 `release-approved`로 승격하기 전에는 별도 승인 gate도 실행합니다.
+
+```bash
+Tools/Screenshots/validate_app_store_release_approval.sh
+```
+
+이 gate는 App Store 후보 8개가 모두 추적되는지, 부분 승격이 없는지, 승인 row가 `approved:`와 `checklist:` 증거를 갖는지 확인합니다. 최종 제출 직전에는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1`로 실행합니다.
+
 ## EHM 상세 screenshot 후보
 
 다음 파일은 Extended Health Metrics/Fitdays import/metric detail 문서용 screenshot입니다. 원본은 `Health/`에 보존하고, UI Gallery에는 status bar, 시간, Dynamic Island 영역을 제거한 `Health/cropped/` 버전을 우선 사용합니다. 실제 capture 전에는 `Docs/UI_GALLERY.md`에 `screenshot pending`으로 남기고 image markdown을 만들지 않습니다.
@@ -191,6 +201,8 @@ App Store screenshot은 README 대표 screenshot과 별도로 `Docs/Screenshots/
 Tools/Screenshots/capture_app_store_screenshots.sh
 ```
 
+이 스크립트는 기본으로 `--nightbreath-screenshot-surface appStoreMarketing`을 전달합니다. App Store 표면에서는 README용 내부 representative card와 분리된 `appStoreMarketing` card profile, 공개용 건강 지표 출처 label, 더 완만한 review crop 값(top 160px, bottom 220px)을 사용합니다.
+
 특정 scenario만 재캡처할 때:
 
 ```bash
@@ -201,8 +213,8 @@ APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/captu
 
 재캡처 gate:
 
-- 홈/리포트 header에 `Simulator QA` 같은 내부 source label이 보이지 않아야 합니다.
-- 예시 데이터는 사용자용 copy로 보이고, `synthetic`, local path, 실제 파일명처럼 내부 작업명이 보이지 않아야 합니다.
+- 홈/리포트 header에 `Simulator QA` 같은 내부 출처 label이 보이지 않아야 합니다.
+- 사용자에게 보이는 copy에는 `synthetic`, `mock`, local path, 실제 파일명처럼 내부 작업명이 보이지 않아야 합니다.
 - 화면별 contact sheet에서 좌우 치우침, 하단 잘림, 긴 한국어 문구 겹침을 확인합니다.
 - DEBUG-only 화면은 App Store/README 후보에서 제외합니다.
 
@@ -214,7 +226,7 @@ Tools/Screenshots/export_app_store_connect_screenshots.sh
 
 Export 결과는 `Docs/Screenshots/AppStore/export/`에 생성되며, raw source에서 재생성 가능한 산출물이므로 repository에 커밋하지 않습니다. `manifest.tsv`에는 source file, target size label, width/height, fit mode가 남습니다.
 
-2026-05-09 재캡처와 export 검수에서는 raw 8개와 size별 PNG export가 생성되는 것을 확인했습니다. 다만 review-cropped 일부 화면에 `source`, `sample/mock` 성격의 문구와 crop 여백/하단 잘림 검토가 남아 있어 App Store 후보는 계속 `blocked` 상태로 유지합니다.
+2026-05-09 재캡처와 export 검수에서는 raw 8개와 size별 PNG export가 생성되는 것을 확인했습니다. 이후 App Store 표면은 공개용 copy/crop 기준으로 정리했으며, 새 contact sheet에서 8개 후보를 다시 확인하기 전까지 App Store 후보는 계속 `blocked` 상태로 유지합니다.
 
 ## 주의
 

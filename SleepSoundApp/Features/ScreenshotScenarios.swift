@@ -455,9 +455,72 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   }
 }
 
+enum ScreenshotSurface: String, CaseIterable, Identifiable, Sendable {
+  case documentation
+  case appStoreMarketing
+
+  var id: String { rawValue }
+
+  var isAppStoreMarketing: Bool {
+    self == .appStoreMarketing
+  }
+
+  static func launchArgumentSurface(processInfo: ProcessInfo = .processInfo) -> ScreenshotSurface {
+    let arguments = processInfo.arguments
+    let environment = processInfo.environment
+
+    if let value = environment["NIGHTBREATH_SCREENSHOT_SURFACE"],
+       let surface = ScreenshotSurface(value: value) {
+      return surface
+    }
+
+    for (index, argument) in arguments.enumerated() {
+      if argument == "--nightbreath-screenshot-surface",
+         arguments.indices.contains(index + 1),
+         let surface = ScreenshotSurface(value: arguments[index + 1]) {
+        return surface
+      }
+
+      if argument.hasPrefix("--nightbreath-screenshot-surface=") {
+        let value = String(argument.dropFirst("--nightbreath-screenshot-surface=".count))
+        if let surface = ScreenshotSurface(value: value) {
+          return surface
+        }
+      }
+    }
+
+    return .documentation
+  }
+
+  private init?(value: String) {
+    let normalized = value
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .replacingOccurrences(of: "-", with: "")
+      .replacingOccurrences(of: "_", with: "")
+      .lowercased()
+
+    if let surface = Self.allCases.first(where: { $0.rawValue.lowercased() == normalized }) {
+      self = surface
+      return
+    }
+
+    switch normalized {
+    case "appstore", "marketing":
+      self = .appStoreMarketing
+    case "readme", "docs", "documentation":
+      self = .documentation
+    default:
+      return nil
+    }
+  }
+}
+
 @MainActor
 enum ScreenshotScenarioFactory {
-  static func makeAppState(for scenario: ScreenshotScenario) -> AppState {
+  static func makeAppState(
+    for scenario: ScreenshotScenario,
+    surface: ScreenshotSurface = .documentation
+  ) -> AppState {
     let settings = ScreenshotUserSettings()
     settings.hasCompletedOnboarding = scenario != .onboarding
     settings.isEventAudioSampleStorageEnabled = scenario == .privacySettings || scenario == .sleepRecording
@@ -470,7 +533,7 @@ enum ScreenshotScenarioFactory {
     )
 
     state.applySimulatorQAScenario(scenario.simulatorPreset)
-    state.latestReportSource = .sample
+    state.latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample
     state.microphonePermissionState = .granted
     state.morningCheckIn = makeScreenshotMorningCheckIn(sessionId: state.latestSession.id)
 
@@ -523,8 +586,7 @@ enum ScreenshotScenarioFactory {
         measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
         sourceType: .fitdaysCSV,
         sourceName: "Fitdays CSV Import",
-        importBatchId: batchId,
-        notes: "Synthetic screenshot sample"
+        importBatchId: batchId
       ),
       UnifiedHealthMetricSample(
         metricID: .visceralFatPercentage,
@@ -598,6 +660,78 @@ enum ScreenshotScenarioFactory {
     ]
 
     return mockHealthSamples + fitdaysSamples
+  }
+
+  static func makeAppStoreScreenshotHealthSamples(referenceDate: Date = Date()) -> [UnifiedHealthMetricSample] {
+    let calendar = Calendar.current
+    let dayStart = calendar.startOfDay(for: referenceDate)
+    let healthKitSamples = MockHealthDataService.makeDefaultSamples(referenceDate: dayStart)
+      .map { sample in
+        var unified = sample.unifiedSample(sourceType: .healthKit)
+        unified.sourceName = sample.sourceName.contains("Omron") ? "Omron Connect" : "Apple 건강앱"
+        unified.sourceBundleIdentifier = sample.sourceName.contains("Omron")
+          ? "com.omronhealthcare.omronconnect"
+          : "com.apple.Health"
+        return unified
+      }
+    let batchId = "app-store-fitdays-local"
+
+    let fitdaysSamples: [UnifiedHealthMetricSample] = [
+      UnifiedHealthMetricSample(
+        metricID: .bodyWaterPercentage,
+        value: 56.8,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .visceralFatPercentage,
+        value: 9.2,
+        unit: "%",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .skeletalMuscleMass,
+        value: 31.2,
+        unit: "kg",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .basalMetabolicRate,
+        value: 1_520,
+        unit: "kcal/day",
+        measuredAt: dayStart.addingTimeInterval(7 * 60 * 60 + 40 * 60),
+        sourceType: .fitdaysCSV,
+        sourceName: "Fitdays CSV",
+        importBatchId: batchId
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .sleepSoundScore,
+        value: 82,
+        unit: "점",
+        measuredAt: dayStart.addingTimeInterval(8 * 60 * 60),
+        sourceType: .appComputed,
+        sourceName: "밤숨 앱"
+      ),
+      UnifiedHealthMetricSample(
+        metricID: .dailyRhythmScore,
+        value: 78,
+        unit: "점",
+        measuredAt: dayStart.addingTimeInterval(20 * 60 * 60),
+        sourceType: .appComputed,
+        sourceName: "밤숨 앱"
+      ),
+    ]
+
+    return healthKitSamples + fitdaysSamples
   }
 
   static func makeScreenshotStandardHealthSamples(referenceDate: Date = Date()) -> [HealthMetricSample] {

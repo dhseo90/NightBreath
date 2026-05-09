@@ -6,6 +6,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 OUTPUT_DIR="${SCREENSHOT_REVIEW_OUTPUT_DIR:-$REPO_ROOT/Docs/Screenshots/review}"
 HTML_OUTPUT="$OUTPUT_DIR/screenshot_review_sheet.html"
 MANIFEST_OUTPUT="$OUTPUT_DIR/screenshot_review_manifest.tsv"
+STATUS_MANIFEST="$REPO_ROOT/Docs/Screenshots/screenshot_status.tsv"
+DECISION_MANIFEST="$REPO_ROOT/Docs/Screenshots/screenshot_visual_review.tsv"
 
 ITEMS=(
   "README|Home dashboard|Docs/Screenshots/README/home_dashboard_light.png|Docs/Screenshots/README/cropped/home_dashboard_light.png|captured, quality review pending"
@@ -58,12 +60,35 @@ relative_to_review_dir() {
   esac
 }
 
+status_id_for_asset() {
+  local raw_source="$1"
+  local review_crop="$2"
+  awk -F '\t' -v raw_source="$raw_source" -v review_crop="$review_crop" '
+    NR > 1 && $5 == raw_source && $6 == review_crop {
+      print $1
+      exit
+    }
+  ' "$STATUS_MANIFEST"
+}
+
+visual_review_row_for_id() {
+  local status_id="$1"
+  [[ -f "$DECISION_MANIFEST" ]] || return 0
+
+  awk -F '\t' -v status_id="$status_id" '
+    NR > 1 && $1 == status_id {
+      print
+      exit
+    }
+  ' "$DECISION_MANIFEST"
+}
+
 manual_gate="internal label 없음 / crop 정렬 / 주요 CTA와 title 노출 / 긴 한국어 문구 가독성 / 실제 개인 데이터 없음 / DEBUG-only 화면 분리"
 
 mkdir -p "$OUTPUT_DIR"
 
 cat > "$MANIFEST_OUTPUT" <<EOF
-group	title	raw_source	review_crop	status	manual_gate
+id	group	title	raw_source	review_crop	status	reviewed_on	visual_decision	visual_reason	next_action	manual_gate
 EOF
 
 cat > "$HTML_OUTPUT" <<'EOF'
@@ -101,13 +126,28 @@ for item in "${ITEMS[@]}"; do
   review_abs="$REPO_ROOT/$review_crop"
   raw_rel="$(relative_to_review_dir "$raw_source")"
   review_rel="$(relative_to_review_dir "$review_crop")"
+  status_id="$(status_id_for_asset "$raw_source" "$review_crop")"
+  status_id="${status_id:-untracked}"
+  visual_review_row="$(visual_review_row_for_id "$status_id")"
+  reviewed_on=""
+  reviewer=""
+  visual_decision="pending"
+  visual_reason="No structured visual review row yet."
+  next_action="Review contact sheet before rendering."
 
-  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "$group" "$title" "$raw_source" "$review_crop" "$status" "$manual_gate" >> "$MANIFEST_OUTPUT"
+  if [[ -n "$visual_review_row" ]]; then
+    IFS=$'\t' read -r review_id reviewed_on reviewer visual_decision visual_reason next_action <<< "$visual_review_row"
+  fi
+
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$status_id" "$group" "$title" "$raw_source" "$review_crop" "$status" \
+    "$reviewed_on" "$visual_decision" "$visual_reason" "$next_action" "$manual_gate" >> "$MANIFEST_OUTPUT"
 
   {
     printf '    <section class="card">\n'
     printf '      <div class="meta"><strong>%s · %s</strong><span class="status">%s</span></div>\n' "$group" "$title" "$status"
+    printf '      <div class="gate"><strong>ID:</strong> %s · <strong>visual decision:</strong> %s · <strong>reviewed:</strong> %s</div>\n' "$status_id" "$visual_decision" "${reviewed_on:-pending}"
+    printf '      <div class="gate"><strong>reason:</strong> %s<br><strong>next:</strong> %s</div>\n' "$visual_reason" "$next_action"
     printf '      <div class="shots">\n'
     printf '        <figure><figcaption>Raw source<br><code>%s</code></figcaption>\n' "$raw_source"
     if [[ -f "$raw_abs" ]]; then

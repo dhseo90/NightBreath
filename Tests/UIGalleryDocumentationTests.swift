@@ -64,6 +64,8 @@ struct UIGalleryDocumentationTests {
     #expect(toolGuide.contains("Review Sheet"))
     #expect(screenshotGuide.contains("screenshot_review_sheet.html"))
     #expect(reviewSheetScript.contains("manual_gate"))
+    #expect(reviewSheetScript.contains("screenshot_visual_review.tsv"))
+    #expect(reviewSheetScript.contains("visual_decision"))
     #expect(reviewSheetScript.contains("DEBUG-only 화면 분리"))
   }
 
@@ -125,6 +127,26 @@ struct UIGalleryDocumentationTests {
       #expect(uiGallery.contains(rawPath), "\(rawPath) should be documented in UI Gallery.")
       #expect(uiGallery.contains(reviewPath), "\(reviewPath) should be documented in UI Gallery.")
     }
+  }
+
+  @Test
+  func uiGalleryClassifiesQualityReviewPendingBucketsBeforeRendering() throws {
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+
+    #expect(uiGallery.contains("Quality Review Pending Classification"))
+    #expect(uiGallery.contains("문서 노출 가능 후보"))
+    #expect(uiGallery.contains("계속 격리"))
+    #expect(uiGallery.contains("Health/EHM overview"))
+    #expect(uiGallery.contains("Fitdays import result"))
+    #expect(uiGallery.contains("EdgeStates"))
+    #expect(uiGallery.contains("Privacy/Support"))
+    #expect(uiGallery.contains("DEBUG observability"))
+    #expect(uiGallery.contains("Sleep recording"))
+    #expect(uiGallery.contains("health-fitdays-result"))
+    #expect(uiGallery.contains("fixture filename"))
+    #expect(uiGallery.contains("edge-event-audio-off"))
+    #expect(uiGallery.contains("debug-simulator"))
+    #expect(uiGallery.contains("image markdown을 추가하지 않습니다"))
   }
 
   @Test
@@ -274,6 +296,32 @@ struct UIGalleryDocumentationTests {
     }
 
     #expect(checkedRows >= 30)
+  }
+
+  @Test
+  func screenshotReviewManifestIncludesStructuredVisualDecisions() throws {
+    let visualReview = try sourceContents("Docs/Screenshots/screenshot_visual_review.tsv")
+    let screenshotGuide = try sourceContents("Docs/Screenshots/README.md")
+    let toolGuide = try sourceContents("Tools/Screenshots/README.md")
+    let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
+    let reviewRows = try reviewManifestRows()
+
+    #expect(visualReview.contains("id\treviewed_on\treviewer\tdecision\treason\tnext_action"))
+    #expect(visualReview.contains("appstore-home\t2026-05-09\tCodex\tblocked"))
+    #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\tblocked"))
+    #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))
+    #expect(screenshotGuide.contains("screenshot_visual_review.tsv"))
+    #expect(toolGuide.contains("screenshot_visual_review.tsv"))
+    #expect(uiGallery.contains("screenshot_visual_review.tsv"))
+
+    let appStoreHome = try #require(reviewRows.first { $0["id"] == "appstore-home" })
+    #expect(appStoreHome["visual_decision"] == "blocked")
+    #expect(appStoreHome["visual_reason"]?.contains("App Store surface") == true)
+    #expect(appStoreHome["next_action"]?.contains("Recapture") == true)
+
+    let readmeHome = try #require(reviewRows.first { $0["id"] == "readme-home" })
+    #expect(readmeHome["visual_decision"] == "docs-preview-only")
+    #expect(readmeHome["reviewed_on"] == "2026-05-09")
   }
 
   @Test

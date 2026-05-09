@@ -8,8 +8,9 @@ DEVICE="${SIMULATOR_ID:-booted}"
 BUNDLE_ID="${BUNDLE_ID:-com.local.NightBreath}"
 APPEARANCE="${APPEARANCE:-light}"
 WAIT_SECONDS="${SCREENSHOT_WAIT_SECONDS:-2}"
-TOP_CROP_PX="${TOP_CROP_PX:-180}"
-BOTTOM_CROP_PX="${BOTTOM_CROP_PX:-320}"
+SURFACE="${APP_STORE_SCREENSHOT_SURFACE:-appStoreMarketing}"
+TOP_CROP_PX="${TOP_CROP_PX:-160}"
+BOTTOM_CROP_PX="${BOTTOM_CROP_PX:-220}"
 RAW_DIR="$REPO_ROOT/Docs/Screenshots/AppStore/raw"
 REVIEW_DIR="$REPO_ROOT/Docs/Screenshots/AppStore/review-cropped"
 
@@ -61,7 +62,8 @@ for item in "${CAPTURES[@]}"; do
 
   echo "Launching $BUNDLE_ID with App Store screenshot scenario: $scenario"
   "$XCRUN_BIN" simctl launch --terminate-running-process "$DEVICE" "$BUNDLE_ID" \
-    --nightbreath-screenshot-scenario "$scenario" >/dev/null
+    --nightbreath-screenshot-scenario "$scenario" \
+    --nightbreath-screenshot-surface "$SURFACE" >/dev/null
   sleep "$WAIT_SECONDS"
   "$XCRUN_BIN" simctl io "$DEVICE" screenshot "$raw_output"
   echo "Saved raw App Store source: ${raw_output#$REPO_ROOT/}"
