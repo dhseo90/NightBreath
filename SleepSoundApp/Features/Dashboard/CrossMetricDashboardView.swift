@@ -57,6 +57,7 @@ struct CrossMetricDashboardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("수면 소리 × 건강")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var shouldShowDashboardContent: Bool {

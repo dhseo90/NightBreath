@@ -131,6 +131,7 @@
       .navigationTitle("개발자용 샘플 수집")
       .scrollContentBackground(.hidden)
       .background(NBColor.pageBackground)
+      .toolbar(.hidden, for: .tabBar)
       .onAppear {
         viewModel.refreshPermissionState()
         viewModel.refreshStorageStatus()

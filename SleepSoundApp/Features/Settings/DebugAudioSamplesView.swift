@@ -72,6 +72,7 @@ struct DebugAudioSamplesView: View {
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .toolbar(.hidden, for: .tabBar)
     .onAppear {
       viewModel.refresh()
       appState.refreshEventAudioStorageStats()

@@ -15,7 +15,18 @@ struct CalibrationView: View {
 
   private let targetDuration: TimeInterval = 30
 
+  @ViewBuilder
   var body: some View {
+    if showsTitle {
+      calibrationBody
+        .navigationTitle("30초 캘리브레이션")
+        .toolbar(.hidden, for: .tabBar)
+    } else {
+      calibrationBody
+    }
+  }
+
+  private var calibrationBody: some View {
     Group {
       if showsTitle {
         ScrollView {

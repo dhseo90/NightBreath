@@ -172,6 +172,7 @@
       .navigationTitle("Audio Debug")
       .scrollContentBackground(.hidden)
       .background(NBColor.pageBackground)
+      .toolbar(.hidden, for: .tabBar)
       .onAppear {
         viewModel.refreshPermissionState()
       }

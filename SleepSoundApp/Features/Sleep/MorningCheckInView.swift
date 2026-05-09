@@ -38,6 +38,7 @@ struct MorningCheckInView: View {
     }
     .navigationTitle("아침 체크인")
     .background(NBColor.pageBackground)
+    .toolbar(.hidden, for: .tabBar)
     .onAppear(perform: loadExistingIfNeeded)
   }
 

@@ -444,6 +444,7 @@ struct SimulatorScenarioView: View {
     .navigationTitle("Simulator QA")
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
+    .toolbar(.hidden, for: .tabBar)
   }
 }
 

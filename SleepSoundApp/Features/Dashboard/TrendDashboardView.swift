@@ -60,6 +60,7 @@ struct TrendDashboardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("수면 트렌드")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var reports: [NightReport] {

@@ -1072,6 +1072,7 @@ private struct SevenDaySleepTrendView: View {
     .navigationTitle("7일 추세")
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var trendPoints: [SleepTrendPoint] {

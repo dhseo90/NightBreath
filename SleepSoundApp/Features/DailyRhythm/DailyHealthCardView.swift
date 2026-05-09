@@ -65,6 +65,7 @@ struct DailyHealthCardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("하루 리듬 카드")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var header: some View {

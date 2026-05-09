@@ -2,13 +2,15 @@ import SwiftUI
 
 struct HomeDashboardView: View {
   @EnvironmentObject private var appState: AppState
+  @State private var selectedTab: HomeDashboardTab = .home
 
   var body: some View {
-    TabView {
+    TabView(selection: $selectedTab) {
       NavigationStack {
         dashboardContent
           .navigationTitle("밤숨")
       }
+      .tag(HomeDashboardTab.home)
       .tabItem {
         Label("홈", systemImage: "house")
       }
@@ -17,6 +19,7 @@ struct HomeDashboardView: View {
         SleepStartView()
           .navigationTitle("수면")
       }
+      .tag(HomeDashboardTab.sleep)
       .tabItem {
         Label("수면", systemImage: "moon.zzz")
       }
@@ -25,6 +28,7 @@ struct HomeDashboardView: View {
         HealthDashboardView()
           .navigationTitle("건강")
       }
+      .tag(HomeDashboardTab.health)
       .tabItem {
         Label("건강", systemImage: "heart.text.square")
       }
@@ -33,6 +37,7 @@ struct HomeDashboardView: View {
         SettingsListView()
           .navigationTitle("설정")
       }
+      .tag(HomeDashboardTab.settings)
       .tabItem {
         Label("설정", systemImage: "gearshape")
       }
@@ -205,8 +210,8 @@ struct HomeDashboardView: View {
 
   private var actionLinks: some View {
     VStack(spacing: NBSpacing.md) {
-      NavigationLink {
-        SleepStartView()
+      Button {
+        selectedTab = .sleep
       } label: {
         Label("수면 시작하기", systemImage: "moon.zzz.fill")
       }
@@ -230,8 +235,8 @@ struct HomeDashboardView: View {
 
       dailyRhythmLinks
 
-      NavigationLink {
-        HealthDashboardView()
+      Button {
+        selectedTab = .health
       } label: {
         Label("건강 탭에서 자세히", systemImage: "heart.text.square")
       }
@@ -486,6 +491,13 @@ struct HomeDashboardView: View {
   }
 }
 
+private enum HomeDashboardTab: Hashable {
+  case home
+  case sleep
+  case health
+  case settings
+}
+
 private struct DetectorSensitivitySettingsView: View {
   @EnvironmentObject private var appState: AppState
 
@@ -539,6 +551,7 @@ private struct DetectorSensitivitySettingsView: View {
     .navigationTitle("감지 민감도")
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
+    .toolbar(.hidden, for: .tabBar)
   }
 }
 

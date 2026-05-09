@@ -74,6 +74,7 @@ struct SleepTimelineView: View {
     .navigationTitle("타임라인")
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var timelineLegend: some View {

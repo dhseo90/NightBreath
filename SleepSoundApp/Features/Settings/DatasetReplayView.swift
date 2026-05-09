@@ -155,6 +155,7 @@
       }
       .background(NBColor.pageBackground)
       .navigationTitle("Dataset Replay")
+      .toolbar(.hidden, for: .tabBar)
       .fileImporter(
         isPresented: $isFileImporterPresented,
         allowedContentTypes: [.audio],

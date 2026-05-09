@@ -60,6 +60,7 @@ struct HealthCalendarView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("건강 캘린더")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var monthDates: [Date] {
@@ -363,6 +364,7 @@ struct DailyMeasurementDetailView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(SleepFormatters.shortDate(detailData.date))
+    .toolbar(.hidden, for: .tabBar)
   }
 }
 

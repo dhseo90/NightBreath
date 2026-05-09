@@ -59,6 +59,7 @@ struct DailyHealthCardPreviewView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("카드 미리보기")
+    .toolbar(.hidden, for: .tabBar)
     .onChange(of: template) { _, _ in
       resetExportState()
     }

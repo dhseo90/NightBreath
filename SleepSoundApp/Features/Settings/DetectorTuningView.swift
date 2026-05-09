@@ -17,6 +17,7 @@
       .navigationTitle("Detector 튜닝")
       .scrollContentBackground(.hidden)
       .background(NBColor.pageBackground)
+      .toolbar(.hidden, for: .tabBar)
     }
 
     private var profileSection: some View {

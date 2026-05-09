@@ -45,6 +45,7 @@ struct HealthMetricsOverviewView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("전체 건강 지표")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var selectedDateRange: HealthMetricDateRange {
@@ -263,6 +264,7 @@ struct MetricDetailView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(metric.displayNameKo)
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var metric: MetricDisplayMetadata {

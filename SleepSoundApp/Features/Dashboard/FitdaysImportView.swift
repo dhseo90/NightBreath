@@ -78,6 +78,7 @@ struct FitdaysImportView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("Fitdays 가져오기")
+    .toolbar(.hidden, for: .tabBar)
     .fileImporter(
       isPresented: $isFileImporterPresented,
       allowedContentTypes: [.commaSeparatedText, .plainText, .text],

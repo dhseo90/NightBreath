@@ -263,6 +263,7 @@ struct PrivacySettingsView: View {
     .scrollContentBackground(.hidden)
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+    .toolbar(.hidden, for: .tabBar)
     .onAppear {
       appState.refreshEventAudioStorageStats()
       appState.refreshEventFeedbackCount()

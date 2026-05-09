@@ -41,6 +41,7 @@ struct DailyRhythmReportView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("오늘의 리듬")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var header: some View {

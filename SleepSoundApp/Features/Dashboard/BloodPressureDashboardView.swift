@@ -69,6 +69,7 @@ struct BloodPressureDashboardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("혈압")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var shouldShowDashboardContent: Bool {

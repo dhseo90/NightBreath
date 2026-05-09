@@ -488,6 +488,54 @@ struct AppStoreReadinessTests {
     }
 
     @Test
+    func tabRootsAndPushDetailsUseDistinctNavigationChrome() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let homeDashboard = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Dashboard/HomeDashboardView.swift"),
+            encoding: .utf8
+        )
+        let detailViewPaths = [
+            "SleepSoundApp/Features/Dashboard/BloodPressureDashboardView.swift",
+            "SleepSoundApp/Features/Dashboard/BodyCompositionDashboardView.swift",
+            "SleepSoundApp/Features/Dashboard/CrossMetricDashboardView.swift",
+            "SleepSoundApp/Features/Dashboard/FitdaysImportView.swift",
+            "SleepSoundApp/Features/Dashboard/HealthCalendarView.swift",
+            "SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift",
+            "SleepSoundApp/Features/Dashboard/TrendDashboardView.swift",
+            "SleepSoundApp/Features/DailyRhythm/MorningBriefView.swift",
+            "SleepSoundApp/Features/DailyRhythm/DailyRhythmReportView.swift",
+            "SleepSoundApp/Features/DailyRhythm/DailyHealthCardPreviewView.swift",
+            "SleepSoundApp/Features/DailyRhythm/DailyHealthCardView.swift",
+            "SleepSoundApp/Features/DailyRhythm/EveningCheckInView.swift",
+            "SleepSoundApp/Features/Sleep/SleepReportView.swift",
+            "SleepSoundApp/Features/Sleep/SleepTimelineView.swift",
+            "SleepSoundApp/Features/Sleep/MorningCheckInView.swift",
+            "SleepSoundApp/Features/Settings/DevicePlacementGuideView.swift",
+            "SleepSoundApp/Features/Settings/PrivacySettingsView.swift",
+        ]
+
+        #expect(homeDashboard.contains("TabView(selection: $selectedTab)"))
+        #expect(homeDashboard.contains("selectedTab = .sleep"))
+        #expect(homeDashboard.contains("selectedTab = .health"))
+        #expect(!homeDashboard.contains("NavigationLink {\n        SleepStartView()"))
+        #expect(!homeDashboard.contains("NavigationLink {\n        HealthDashboardView()"))
+
+        for path in detailViewPaths {
+            let source = try String(contentsOf: repositoryRoot.appendingPathComponent(path), encoding: .utf8)
+            #expect(source.contains(".toolbar(.hidden, for: .tabBar)"), "\(path) should hide the bottom tab bar when pushed so the active top back button is the primary way out.")
+            #expect(!source.contains(".navigationBarBackButtonHidden(true)"), "\(path) should keep the system back chevron active.")
+        }
+
+        let calibration = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Onboarding/CalibrationView.swift"),
+            encoding: .utf8
+        )
+        #expect(calibration.contains("if showsTitle"))
+        #expect(calibration.contains(".navigationTitle(\"30초 캘리브레이션\")"))
+        #expect(calibration.contains(".toolbar(.hidden, for: .tabBar)"))
+    }
+
+    @Test
     func appStoreConnectScreenshotExportWorkflowUsesRawSourceAndIgnoredDerivedOutput() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let exportScriptPath = repositoryRoot.appendingPathComponent("Tools/Screenshots/export_app_store_connect_screenshots.sh")

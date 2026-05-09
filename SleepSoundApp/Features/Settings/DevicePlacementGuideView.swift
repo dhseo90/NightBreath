@@ -64,6 +64,7 @@ struct DevicePlacementGuideView: View {
     }
     .navigationTitle("배치 가이드")
     .background(NBColor.pageBackground)
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var headerCard: some View {

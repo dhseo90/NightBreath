@@ -46,6 +46,7 @@ struct MorningBriefView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("아침 리포트")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var header: some View {

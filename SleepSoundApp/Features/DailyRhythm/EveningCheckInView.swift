@@ -30,6 +30,7 @@ struct EveningCheckInView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("저녁 체크인")
+    .toolbar(.hidden, for: .tabBar)
     .onAppear(perform: loadExistingIfNeeded)
   }
 

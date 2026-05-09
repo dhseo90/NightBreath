@@ -67,6 +67,7 @@ struct BodyCompositionDashboardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("체중/체성분")
+    .toolbar(.hidden, for: .tabBar)
   }
 
   private var shouldShowDashboardContent: Bool {
