@@ -18,17 +18,17 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다. 2026-05-09 기준 App Store 8개와 Health/Fitdays 문서 노출 가능 후보는 simulator contact sheet/evidence gate를 통과했습니다.
 
 ## Screenshot Quality Gate
 
 현재 저장된 screenshot 후보는 다음 기준으로 노출 범위를 나눕니다.
 
 - README 대표 8개는 mock/simulator data 기반 문서 preview로 렌더링합니다. release-approved나 App Store 제출용 이미지를 의미하지 않습니다.
-- App Store 후보 `01_home_dashboard_light.png` 계열은 2026-05-09에 재캡처와 size export 생성을 확인했지만, marketing copy/crop 품질 이슈가 남아 계속 blocked입니다.
+- App Store 후보 `01_home_dashboard_light.png` 계열은 2026-05-09에 재캡처, copy/crop/privacy contact sheet, export manifest/dimension QA를 통과해 `release-approved`입니다.
 - 상세 gallery 후보는 고정 상하단 crop만으로 처리한 항목이 있어 화면별 여백, 주요 card 위치, 하단 content 가독성 검수가 필요합니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
-- 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보는 `blocked, recapture required`, 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
+- 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보와 Health/Fitdays 문서 노출 가능 후보는 `release-approved`, 나머지 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
 
 상태 source-of-truth:
 
@@ -51,21 +51,21 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | 범위 | 상태 | 비고 |
 | --- | --- | --- |
 | README 대표 8개 | captured, quality review pending | 루트 README에서 문서 preview로 렌더링하며 release-approved/App Store 승인과는 분리 |
-| Health/EHM 상세 | mixed, see manifest | 대부분 quality review pending, Fitdays import result는 internal fixture filename 노출로 recapture required |
+| Health/EHM 상세 | mixed, see manifest | Health/Fitdays 문서 노출 가능 후보는 UI Gallery 전용 `release-approved`, Fitdays import result는 internal fixture filename 노출로 recapture required |
 | Privacy/Support | captured, quality review pending | privacy settings, onboarding, device placement, calibration |
 | Sleep/Edge direct scenario | mixed, see manifest | sleep recording은 비현실적 duration/state mismatch로 recapture required, edge states는 quality review pending |
 | DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
-| App Store 후보 8개 | blocked, recapture required | 2026-05-09 raw 재캡처와 export 생성은 완료, visual QA에서 release-approved 승격 보류 |
+| App Store 후보 8개 | release-approved | 2026-05-09 raw 재캡처, contact sheet, export manifest/dimension QA 통과. 실기기 QA는 제외 |
 | 직접 scenario 상세 캡처 | captured/internal-only, quality review pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
 
 ## Quality Review Pending Classification
 
-2026-05-09 기준 `quality review pending` 항목은 파일 존재 여부와 무관하게 아래처럼 노출 범위를 나눕니다. 이 분류는 `Docs/Screenshots/screenshot_status.tsv`의 상태를 대체하지 않으며, contact sheet와 실제 문서 렌더링 확인 전까지 image markdown을 추가하지 않습니다.
+2026-05-09 기준 screenshot 후보는 파일 존재 여부와 무관하게 아래처럼 노출 범위를 나눕니다. 이 분류는 `Docs/Screenshots/screenshot_status.tsv`의 상태를 대체하지 않으며, `release-approved`가 아닌 항목은 contact sheet와 실제 문서 렌더링 확인 전까지 image markdown을 추가하지 않습니다.
 
 | 묶음 | 항목 | 분류 | 다음 조치 |
 | --- | --- | --- | --- |
-| Health/EHM overview | `health-overview`, `health-calendar`, `health-daily-detail`, `health-metric-body-water`, `health-metric-basal`, `health-blood-pressure`, `health-body-composition`, `health-cross-metric` | 문서 노출 가능 후보. UI Gallery 전용이며 README/App Store로 승격하지 않음 | contact sheet에서 crop 여백, chart axis, 긴 한국어 문구, 출처 badge 가독성 확인 |
-| Fitdays import | `health-fitdays`, `health-fitdays-error` | 문서 노출 가능 후보. 로컬 import 원칙 설명용 | 실제 파일명/local path 없음, 오류 copy가 사용자에게 자연스러운지 확인 |
+| Health/EHM overview | `health-overview`, `health-calendar`, `health-daily-detail`, `health-metric-body-water`, `health-metric-basal`, `health-blood-pressure`, `health-body-composition`, `health-cross-metric` | UI Gallery 전용 release-approved. README/App Store로 승격하지 않음 | contact sheet에서 crop 여백, chart axis, 긴 한국어 문구, 출처 badge 가독성 확인 완료 |
+| Fitdays import | `health-fitdays`, `health-fitdays-error` | UI Gallery 전용 release-approved. 로컬 import 원칙 설명용 | 실제 파일명/local path 없음, 오류 copy 사용자 노출성 확인 완료 |
 | Fitdays import result | `health-fitdays-result` | 계속 격리. `blocked, recapture required` 유지 | fixture filename과 내부 import 느낌을 제거한 공개용 copy로 재캡처 |
 | EdgeStates | `edge-zero-event`, `edge-low-coverage`, `edge-event-audio-off`, `edge-health-permission-empty`, `edge-metric-detail-empty`, `edge-cross-metric-insufficient`, `detail-report-empty` | 문서 노출 가능 후보. edge 상태 설명용이며 App Store 후보는 별도 App Store 8개 flow만 사용 | 상태를 건강 판정처럼 읽히지 않는지, CTA와 제한 안내가 잘리지 않는지 확인 |
 | Privacy/Support | `privacy-settings`, `privacy-onboarding`, `privacy-device-placement`, `privacy-calibration` | 문서 노출 가능 후보. 개인정보/온보딩 설명용 | 서버 미전송, HealthKit read-only, 이벤트 샘플 opt-in copy가 잘리는지 확인 |
@@ -76,18 +76,18 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. `Tools/Screenshots/capture_app_store_screenshots.sh`가 raw source를 `Docs/Screenshots/AppStore/raw/`에 저장하고, 내부 검토용 crop을 `Docs/Screenshots/AppStore/review-cropped/`에 생성합니다. App Store Connect size별 export는 raw source에서 재생성하며 `Docs/Screenshots/AppStore/export/` 산출물은 커밋하지 않습니다.
 
-현재 후보 흐름은 재캡처가 필요합니다. 아래 파일은 존재하더라도 release-approved가 아니며, App Store Connect export 입력으로 쓰지 않습니다.
+현재 후보 흐름은 simulator 기준 승인 상태입니다. 아래 파일은 `release-approved`이며, App Store Connect size별 export는 raw source에서 재생성합니다. 실기기 QA는 이번 범위에서 제외했습니다.
 
 | 순서 | 후보 | raw source | review crop | 상태 |
 | --- | --- | --- | --- | --- |
-| 1 | Home dashboard | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | `Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png` | blocked, recapture required |
-| 2 | Sleep report | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png` | blocked, recapture required |
-| 3 | Event timeline | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | `Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png` | blocked, recapture required |
-| 4 | Daily rhythm report | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/04_daily_rhythm_report_light.png` | blocked, recapture required |
-| 5 | Daily health card | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | `Docs/Screenshots/AppStore/review-cropped/05_daily_health_card_light.png` | blocked, recapture required |
-| 6 | Health metrics overview | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | `Docs/Screenshots/AppStore/review-cropped/06_health_metrics_overview_light.png` | blocked, recapture required |
-| 7 | Privacy settings | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | `Docs/Screenshots/AppStore/review-cropped/07_privacy_settings_light.png` | blocked, recapture required |
-| 8 | Zero-event report | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png` | blocked, recapture required |
+| 1 | Home dashboard | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | `Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png` | release-approved |
+| 2 | Sleep report | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png` | release-approved |
+| 3 | Event timeline | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | `Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png` | release-approved |
+| 4 | Daily rhythm report | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/04_daily_rhythm_report_light.png` | release-approved |
+| 5 | Daily health card | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | `Docs/Screenshots/AppStore/review-cropped/05_daily_health_card_light.png` | release-approved |
+| 6 | Health metrics overview | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | `Docs/Screenshots/AppStore/review-cropped/06_health_metrics_overview_light.png` | release-approved |
+| 7 | Privacy settings | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | `Docs/Screenshots/AppStore/review-cropped/07_privacy_settings_light.png` | release-approved |
+| 8 | Zero-event report | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | `Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png` | release-approved |
 
 모든 후보는 mock/synthetic data 기반이어야 하며, 실제 개인 건강 데이터, 실제 HealthKit 데이터, 실제 Fitdays CSV 파일명, 실제 오디오 파일명, 실제 이벤트 오디오 샘플을 사용하지 않습니다.
 
@@ -124,17 +124,17 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 
 | 범위 | 상태 | 파일 |
 | --- | --- | --- |
-| 전체 건강 지표 | captured, quality review pending | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` |
-| Fitdays import empty | captured, quality review pending | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` |
+| 전체 건강 지표 | release-approved | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` |
+| Fitdays import empty | release-approved | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` |
 | Fitdays import result | blocked, recapture required | `Docs/Screenshots/Health/cropped/fitdays_import_result_light.png` |
-| Fitdays import error | captured, quality review pending | `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` |
-| 월 건강 캘린더 | captured, quality review pending | `Docs/Screenshots/Health/cropped/health_calendar_light.png` |
-| 날짜별 전체 데이터 상세 | captured, quality review pending | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` |
-| Metric detail 체수분 | captured, quality review pending | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` |
-| Metric detail 로컬 전용 기초대사량 | captured, quality review pending | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` |
-| 혈압 dashboard | captured, quality review pending | `Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png` |
-| 체성분 dashboard | captured, quality review pending | `Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png` |
-| Cross metric dashboard | captured, quality review pending | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` |
+| Fitdays import error | release-approved | `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` |
+| 월 건강 캘린더 | release-approved | `Docs/Screenshots/Health/cropped/health_calendar_light.png` |
+| 날짜별 전체 데이터 상세 | release-approved | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` |
+| Metric detail 체수분 | release-approved | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` |
+| Metric detail 로컬 전용 기초대사량 | release-approved | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` |
+| 혈압 dashboard | release-approved | `Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png` |
+| 체성분 dashboard | release-approved | `Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png` |
+| Cross metric dashboard | release-approved | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` |
 | Health permission empty state | captured, quality review pending | `Docs/Screenshots/EdgeStates/cropped/health_permission_empty_light.png` |
 | Metric detail empty state | captured, quality review pending | `Docs/Screenshots/EdgeStates/cropped/metric_detail_empty_light.png` |
 | Cross metric insufficient state | captured, quality review pending | `Docs/Screenshots/EdgeStates/cropped/cross_metric_insufficient_light.png` |
@@ -172,15 +172,15 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | View name | 역할 | 주요 표시 데이터 | 주요 액션 | Privacy / Safety notes | Suggested scenario | Suggested screenshot path | Screenshot | Release 노출 | 관련 문서 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `HealthDashboardView` | Apple 건강앱 + 밤숨 수면 결과 + Fitdays 데이터 허브 | read-only 연결 상태, 앱 계산 수면 지표, 로컬 import 상태, 최근 건강 지표, source, 하위 dashboard 진입점 | 건강 데이터 연결, 최근 날짜 상세, 혈압/체성분/교차 보기/Fitdays import 진입 | HealthKit read-only, 서버 전송 없음, 권한 거부 시 수면 기능 유지 | `ScreenshotHealthDashboardScenario` | `Docs/Screenshots/README/cropped/health_dashboard_light.png` | captured, quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit 기반 지표, Fitdays 로컬 전용 지표, 기간별 최근값/평균/변화, 출처 badge | 기간 선택, metric detail 진입 | 출처 type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, HealthKit 기반/로컬 전용 badge, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 기반/로컬 전용 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `MetricDetailView` 로컬 전용 예시 | Fitdays 확장 로컬 전용 metric 상세 예시 | 기초대사량 설명, 로컬 전용/Fitdays CSV badge, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 로컬 전용 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `HealthCalendarView` | 월 단위 건강 캘린더 | 날짜별 수면/혈압/체성분/활동/check-in 카테고리 dot, 출처 dot, 샘플 수, data quality, 선택 날짜 panel | 이전/다음 월, 오늘 이동, 날짜 선택, 날짜 상세 진입 | 같은 날짜 데이터가 인과관계를 의미하지 않음을 안내 | `ScreenshotHealthCalendarScenario` | `Docs/Screenshots/Health/cropped/health_calendar_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `DailyMeasurementDetailView` | 날짜별 전체 데이터 상세 | 수면, 아침/저녁 체크인, 혈압, 체성분, Fitdays 확장, 활동, 앱 계산 지표, 출처 badge | metric detail 진입 | 날짜별 묶음은 개인 참고용이며 출처를 함께 표시 | `ScreenshotDailyMeasurementDetailScenario` | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `FitdaysImportView` | Fitdays CSV/structured export file와 local-only 수동 입력 | 파일 선택 상태, 붙여넣기, Fitdays 고유 지표 수동 입력, preview, imported/skipped/error row count, unknown column | 파일 선택, preview 확인, 로컬 저장, 수동 값 저장 | 사용자가 직접 선택한 로컬 파일/붙여넣기/수동 입력만 처리하고 원격 연결 없음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 측정 시각, sourceName, 7일/30일/90일 추세 | 기간 선택 | 수치를 상태 판정으로 표현하지 않음 | `ScreenshotBloodPressureDashboardScenario` | `Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, sourceName, 추세 | 기간 선택 | 개인 참고용 데이터로만 표시 | `ScreenshotBodyCompositionDashboardScenario` | `Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 매칭 상태, 날짜별 매칭, 샘플 수, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 no-match/low-coverage/shortfall을 분리하고 인과관계를 의미하지 않는다고 안내 | `ScreenshotCrossMetricDashboardScenario` | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthMetricsOverviewView` | 전체 건강 지표 통계/그래프 허브 | HealthKit 기반 지표, Fitdays 로컬 전용 지표, 기간별 최근값/평균/변화, 출처 badge | 기간 선택, metric detail 진입 | 출처 type을 구분하고 수치 해석을 단정하지 않음 | `ScreenshotHealthMetricsOverviewScenario` | `Docs/Screenshots/Health/cropped/health_metrics_overview_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `MetricDetailView` | metric 하나의 상세 탐색 | metric 설명, 최근 값, 단위, HealthKit 기반/로컬 전용 badge, 기간/source filter, 그래프, 통계, raw 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 기반/로컬 전용 설명을 구분하고 개인 참고용으로 표시 | `ScreenshotMetricDetailScenario` | `Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `MetricDetailView` 로컬 전용 예시 | Fitdays 확장 로컬 전용 metric 상세 예시 | 기초대사량 설명, 로컬 전용/Fitdays CSV badge, source filter, 기간별 그래프, 원본 샘플 목록 | 기간 선택, source filter, 샘플 확인 | HealthKit 표준 지표가 아닌 로컬 전용 샘플임을 명확히 표시 | `ScreenshotLocalOnlyMetricScenario` | `Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `HealthCalendarView` | 월 단위 건강 캘린더 | 날짜별 수면/혈압/체성분/활동/check-in 카테고리 dot, 출처 dot, 샘플 수, data quality, 선택 날짜 panel | 이전/다음 월, 오늘 이동, 날짜 선택, 날짜 상세 진입 | 같은 날짜 데이터가 인과관계를 의미하지 않음을 안내 | `ScreenshotHealthCalendarScenario` | `Docs/Screenshots/Health/cropped/health_calendar_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `DailyMeasurementDetailView` | 날짜별 전체 데이터 상세 | 수면, 아침/저녁 체크인, 혈압, 체성분, Fitdays 확장, 활동, 앱 계산 지표, 출처 badge | metric detail 진입 | 날짜별 묶음은 개인 참고용이며 출처를 함께 표시 | `ScreenshotDailyMeasurementDetailScenario` | `Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `FitdaysImportView` | Fitdays CSV/structured export file와 local-only 수동 입력 | 파일 선택 상태, 붙여넣기, Fitdays 고유 지표 수동 입력, preview, imported/skipped/error row count, unknown column | 파일 선택, preview 확인, 로컬 저장, 수동 값 저장 | 사용자가 직접 선택한 로컬 파일/붙여넣기/수동 입력만 처리하고 원격 연결 없음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `BloodPressureDashboardView` | 혈압 데이터 보기 | 최근 수축기/이완기 혈압, 측정 시각, sourceName, 7일/30일/90일 추세 | 기간 선택 | 수치를 상태 판정으로 표현하지 않음 | `ScreenshotBloodPressureDashboardScenario` | `Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `BodyCompositionDashboardView` | 체중/체성분 데이터 보기 | 체중, 체지방률, BMI, 제지방량, sourceName, 추세 | 기간 선택 | 개인 참고용 데이터로만 표시 | `ScreenshotBodyCompositionDashboardScenario` | `Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| `CrossMetricDashboardView` | 수면 소리 지표와 건강 지표 참고용 비교 | 수면 지표, 건강 지표, 매칭 상태, 날짜별 매칭, 샘플 수, sourceName | 비교 항목/기간 선택 | 데이터가 부족하면 no-match/low-coverage/shortfall을 분리하고 인과관계를 의미하지 않는다고 안내 | `ScreenshotCrossMetricDashboardScenario` | `Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 
 ## Privacy / Settings
 
@@ -199,9 +199,9 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | Timeline empty state | detector 기준 통과 이벤트 없음 | 이벤트가 없는 이유와 zero-event 안내 | 리포트로 돌아가기 | 이벤트 없음은 특정 건강 상태 해석이 아님 | `ScreenshotZeroEventScenario` | `Docs/Screenshots/EdgeStates/cropped/zero_event_report_light.png` | quality review pending | Release | `Docs/QA_GUIDE.md` |
 | Low audio coverage state | 낮은 측정 품질 | 오디오 커버리지, 제한 안내 | 재측정 안내 확인 | 색상만으로 표시하지 않고 배지/문장 병행 | `ScreenshotLowCoverageScenario` | `Docs/Screenshots/EdgeStates/cropped/low_coverage_report_light.png` | quality review pending | Release | `Docs/QA_GUIDE.md` |
 | Health permission empty state | 건강 데이터 권한 없음 | read-only 연결 필요 안내 | 건강 데이터 연결 | 권한 거부 시 수면 기능은 계속 사용 가능 | `ScreenshotHealthPermissionEmptyScenario` | `Docs/Screenshots/EdgeStates/cropped/health_permission_empty_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| Fitdays import empty state | 가져오기 전 상태 | 파일 선택 안내, 로컬 import 원칙 | 파일 선택 | 실제 개인 CSV를 screenshot에 사용하지 않음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| Fitdays import empty state | 가져오기 전 상태 | 파일 선택 안내, 로컬 import 원칙 | 파일 선택 | 실제 개인 CSV를 screenshot에 사용하지 않음 | `ScreenshotFitdaysImportScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | Fitdays import result state | 가져오기 미리보기/결과 | imported 샘플 수, skipped rows, unknown columns, errors | 저장 또는 상태 확인 | synthetic fixture 또는 예시 state만 사용 | `ScreenshotFitdaysImportResultScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_result_light.png` | blocked, recapture required | Release | `Docs/HEALTH_DATA_GUIDE.md` |
-| Fitdays import error state | invalid CSV 처리 | 오류 row, 건너뛴 row, 알 수 없는 column | 파일 다시 선택 | 실제 개인 CSV 파일명이나 경로를 노출하지 않음 | `ScreenshotImportErrorScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
+| Fitdays import error state | invalid CSV 처리 | 오류 row, 건너뛴 row, 알 수 없는 column | 파일 다시 선택 | 실제 개인 CSV 파일명이나 경로를 노출하지 않음 | `ScreenshotImportErrorScenario` | `Docs/Screenshots/Health/cropped/fitdays_import_error_light.png` | release-approved | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | Metric detail empty state | 특정 기간/source 샘플 없음 | empty 안내, 기간/source 변경 제안 | 기간 변경, source filter 변경 | 데이터 부족을 상태 해석으로 바꾸지 않음 | `ScreenshotMetricDetailEmptyScenario` | `Docs/Screenshots/EdgeStates/cropped/metric_detail_empty_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | Cross metric insufficient state | 비교 가능한 데이터 부족 | matched 샘플 수, 제한 안내 | 기간/항목 변경 | 데이터가 부족하면 패턴 요약을 생성하지 않음 | `ScreenshotCrossMetricInsufficientScenario` | `Docs/Screenshots/EdgeStates/cropped/cross_metric_insufficient_light.png` | quality review pending | Release | `Docs/HEALTH_DATA_GUIDE.md` |
 | Event audio storage off state | 이벤트 샘플 저장 꺼짐 | opt-in 상태, 저장 없음 안내 | 개인정보 설정 확인 | 사용자가 켜지 않으면 샘플을 저장하지 않음 | `ScreenshotEventAudioStorageOffScenario` | `Docs/Screenshots/EdgeStates/cropped/event_audio_storage_off_light.png` | quality review pending | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |

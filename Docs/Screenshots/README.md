@@ -182,7 +182,7 @@ DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture
 
 ## App Store Marketing Screenshot
 
-App Store screenshot은 README 대표 screenshot과 별도로 `Docs/Screenshots/AppStore/`에서 관리합니다. 실제 App Store Connect upload source는 status bar를 포함한 raw capture를 기준으로 하고, review-cropped 이미지는 내부 문서 검토용으로만 사용합니다. 현재 저장된 후보는 내부 QA label 노출과 crop 품질 문제로 재캡처 전까지 사용 금지입니다.
+App Store screenshot은 README 대표 screenshot과 별도로 `Docs/Screenshots/AppStore/`에서 관리합니다. 실제 App Store Connect upload source는 status bar를 포함한 raw capture를 기준으로 하고, review-cropped 이미지는 내부 문서 검토용으로만 사용합니다. 2026-05-09 기준 현재 저장된 8개 후보는 simulator contact sheet copy/crop/privacy 검수와 size별 export dimension 검수를 통과해 `release-approved`입니다. 실제 기기 QA는 이번 범위에서 제외했습니다.
 
 현재 marketing 후보 파일:
 
@@ -226,7 +226,13 @@ Tools/Screenshots/export_app_store_connect_screenshots.sh
 
 Export 결과는 `Docs/Screenshots/AppStore/export/`에 생성되며, raw source에서 재생성 가능한 산출물이므로 repository에 커밋하지 않습니다. `manifest.tsv`에는 source file, target size label, width/height, fit mode가 남습니다.
 
-2026-05-09 재캡처와 export 검수에서는 raw 8개와 size별 PNG export가 생성되는 것을 확인했습니다. 이후 App Store 표면은 공개용 copy/crop 기준으로 정리했으며, 새 contact sheet에서 8개 후보를 다시 확인하기 전까지 App Store 후보는 계속 `blocked` 상태로 유지합니다.
+Export manifest와 size별 visual QA 기록은 아래 gate로 확인합니다.
+
+```bash
+Tools/Screenshots/validate_app_store_export_manifest.sh
+```
+
+2026-05-09 재캡처와 export 검수에서는 raw 8개, review crop 8개, size별 PNG 88개 생성을 확인했고, `Docs/Screenshots/app_store_export_visual_review.tsv`에 11개 export size set의 `release-approved` 판정을 남겼습니다. App Store 후보 8개는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh` hard gate를 통과해야 계속 승인 상태로 유지됩니다.
 
 ## 주의
 

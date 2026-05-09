@@ -26,6 +26,7 @@ README 대표 screenshot과 App Store screenshot은 별도로 관리합니다.
 - App Store 이미지는 raw capture, review crop, App Store Connect export를 별도 flow로 검토합니다.
 - DEBUG-only 화면은 App Store/README 대표 이미지에 포함하지 않습니다.
 - screenshot status는 `Docs/Screenshots/screenshot_status.tsv`에서 추적합니다.
+- App Store export manifest와 size별 visual evidence는 `Tools/Screenshots/validate_app_store_export_manifest.sh`로 검증합니다.
 - App Store 8개 후보를 `release-approved`로 승격하기 전에는 `Tools/Screenshots/validate_app_store_release_approval.sh`를 실행합니다.
 - 제출 직전 hard gate는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh`로 실행합니다.
 

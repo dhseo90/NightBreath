@@ -7,7 +7,7 @@
 실기기 없이 진행 가능한 후속 개발 batch는 privacy/export, Fitdays local import, health dashboard edge state, detector diagnostics, event audio snippet guard, real-device QA runbook, screenshot 문서 상태 정렬까지 완료했습니다.
 
 - 실제 iPhone이 필요한 항목은 capture/background/overnight, 실제 HealthKit 권한 조합, 실제 Fitdays export/share 노출, 실제 코골기 배치별 detector evidence로 남겼습니다.
-- README 대표 8개는 루트 README의 문서 preview로 렌더링하지만 `release-approved`는 아닙니다. App Store 후보 8개는 여전히 `blocked, recapture required`로 관리합니다.
+- README 대표 8개는 루트 README의 문서 preview로 렌더링하지만 `release-approved`는 아닙니다. App Store 후보 8개는 2026-05-09 simulator contact sheet와 export dimension QA를 통과해 `release-approved`로 관리합니다.
 - 전체 밤 원본 오디오 저장, 서버/네트워크 전송, HealthKit write, 실제 개인 오디오/CSV fixture 추가는 하지 않았습니다.
 - 현재 안정화 기준은 `git diff --check`, `swift test --no-parallel`, generic iOS Debug build입니다.
 
@@ -30,7 +30,8 @@
 README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡처/export 생성, support UI simulator 선검증, main/sub README 링크 자동 검증을 순차 진행했습니다.
 
 - README 대표 8개는 문서 preview로 유지하고 `release-approved`로 승격하지 않았습니다.
-- App Store raw 8개와 review-cropped 이미지를 재캡처하고 size별 export 생성을 확인했지만, marketing copy/crop 검토가 남아 계속 `blocked, recapture required`로 유지합니다.
+- App Store raw 8개와 review-cropped 이미지를 재캡처하고, size별 export 88개 dimension QA와 release approval hard gate를 통과했습니다.
+- Health/Fitdays gallery 후보 중 문서 노출 가능한 항목은 UI Gallery 전용 `release-approved`로 승격했고, fixture filename 문제가 있는 `health-fitdays-result`만 계속 격리합니다.
 - Calibration과 Event audio storage off support screenshot을 simulator에서 재캡처/검수했습니다.
 - 실제 iPhone Debug build와 install은 성공했지만, 기기 잠금 상태로 launch/시각 검수는 보류했습니다.
 - `Tools/Docs/validate_readme_links.sh`를 추가해 루트 README와 주요 sub README의 문서/이미지 링크를 자동 검증합니다.
@@ -223,8 +224,8 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 - sleep talk 텍스트 변환
 - App Store 제출
 - 실제 기기 홈 화면/Settings/TestFlight 표면의 최종 앱 아이콘 확인
-- App Store screenshot marketing final visual/export version
-- README preview screenshot의 release-approved 승격 여부 검토와 App Store 후보 재캡처/visual QA 승인
+- App Store screenshot 실기기 visual QA와 App Store Connect 업로드 전 최종 검수
+- README preview screenshot의 release-approved 승격 여부 검토
 - App Store Connect 화면에서 product page copy 글자 수/locale 최종 확인
 - 외부 테스터/TestFlight 배포
 - 실제 App Store screenshot export

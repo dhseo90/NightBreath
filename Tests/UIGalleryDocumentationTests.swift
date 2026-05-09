@@ -18,7 +18,8 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("captured, quality review pending"))
     #expect(uiGallery.contains("blocked, recapture required"))
     #expect(uiGallery.contains("| README 대표 8개 | captured, quality review pending |"))
-    #expect(uiGallery.contains("| App Store 후보 8개 | blocked, recapture required |"))
+    #expect(uiGallery.contains("| App Store 후보 8개 | release-approved |"))
+    #expect(uiGallery.contains("Health/Fitdays 문서 노출 가능 후보"))
     #expect(uiGallery.contains("mock/simulator data"))
     #expect(readme.contains("App Store 제출용 최종 이미지는 별도 screenshot approval flow"))
   }
@@ -115,8 +116,8 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("mock/synthetic data"))
     #expect(uiGallery.contains("실제 개인 건강 데이터"))
     #expect(uiGallery.contains("실제 오디오 파일명"))
-    #expect(uiGallery.contains("blocked, recapture required"))
-    #expect(uiGallery.contains("release-approved가 아니며"))
+    #expect(uiGallery.contains("release-approved"))
+    #expect(uiGallery.contains("simulator 기준 승인 상태"))
 
     for fileName in expectedFiles {
       let rawPath = "Docs/Screenshots/AppStore/raw/\(fileName)"
@@ -134,7 +135,7 @@ struct UIGalleryDocumentationTests {
     let uiGallery = try sourceContents("Docs/UI_GALLERY.md")
 
     #expect(uiGallery.contains("Quality Review Pending Classification"))
-    #expect(uiGallery.contains("문서 노출 가능 후보"))
+    #expect(uiGallery.contains("UI Gallery 전용 release-approved"))
     #expect(uiGallery.contains("계속 격리"))
     #expect(uiGallery.contains("Health/EHM overview"))
     #expect(uiGallery.contains("Fitdays import result"))
@@ -186,6 +187,8 @@ struct UIGalleryDocumentationTests {
     #expect(toolGuide.contains("release-approved"))
 
     var appStoreBlockedCount = 0
+    var appStoreApprovedCount = 0
+    var healthApprovedCount = 0
     var readmePreviewCount = 0
     var debugInternalCount = 0
     var releaseApprovedCount = 0
@@ -205,6 +208,12 @@ struct UIGalleryDocumentationTests {
       if group == "App Store", status == "blocked, recapture required" {
         appStoreBlockedCount += 1
       }
+      if group == "App Store", status == "release-approved" {
+        appStoreApprovedCount += 1
+      }
+      if group == "Health", status == "release-approved" {
+        healthApprovedCount += 1
+      }
       if group == "README", status == "captured, quality review pending" {
         readmePreviewCount += 1
       }
@@ -218,10 +227,12 @@ struct UIGalleryDocumentationTests {
       }
     }
 
-    #expect(appStoreBlockedCount == 8)
+    #expect(appStoreBlockedCount == 0)
+    #expect(appStoreApprovedCount == 8)
+    #expect(healthApprovedCount == 10)
     #expect(readmePreviewCount == 8)
     #expect(debugInternalCount >= 4)
-    #expect(releaseApprovedCount == 0)
+    #expect(releaseApprovedCount == 18)
   }
 
   @Test
@@ -307,17 +318,18 @@ struct UIGalleryDocumentationTests {
     let reviewRows = try reviewManifestRows()
 
     #expect(visualReview.contains("id\treviewed_on\treviewer\tdecision\treason\tnext_action"))
-    #expect(visualReview.contains("appstore-home\t2026-05-09\tCodex\tblocked"))
+    #expect(visualReview.contains("appstore-home\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("health-fitdays-result\t2026-05-09\tCodex\tblocked"))
+    #expect(visualReview.contains("health-fitdays-error\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))
     #expect(screenshotGuide.contains("screenshot_visual_review.tsv"))
     #expect(toolGuide.contains("screenshot_visual_review.tsv"))
     #expect(uiGallery.contains("screenshot_visual_review.tsv"))
 
     let appStoreHome = try #require(reviewRows.first { $0["id"] == "appstore-home" })
-    #expect(appStoreHome["visual_decision"] == "blocked")
-    #expect(appStoreHome["visual_reason"]?.contains("App Store surface") == true)
-    #expect(appStoreHome["next_action"]?.contains("Recapture") == true)
+    #expect(appStoreHome["visual_decision"] == "release-approved")
+    #expect(appStoreHome["visual_reason"]?.contains("contact sheet") == true)
+    #expect(appStoreHome["next_action"]?.contains("simulator-approved") == true)
 
     let readmeHome = try #require(reviewRows.first { $0["id"] == "readme-home" })
     #expect(readmeHome["visual_decision"] == "docs-preview-only")

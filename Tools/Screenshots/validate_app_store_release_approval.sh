@@ -4,9 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 MANIFEST="$REPO_ROOT/Docs/Screenshots/screenshot_status.tsv"
+EXPORT_VISUAL_REVIEW="$REPO_ROOT/Docs/Screenshots/app_store_export_visual_review.tsv"
 REQUIRE_APPROVED="${REQUIRE_APP_STORE_RELEASE_APPROVED:-0}"
 
 EXPECTED_HEADER=$'id\tgroup\tview_or_surface\tscenario\traw_source\treview_asset\tstatus\trelease_surface\tnotes'
+EXPECTED_EXPORT_VISUAL_REVIEW_HEADER=$'size_label\twidth\theight\tfit_mode\texported_pngs\treviewed_on\treviewer\tdecision\tevidence\tnext_action'
 REQUIRED_IDS=(
   "appstore-home"
   "appstore-sleep-report"
@@ -30,9 +32,13 @@ fail() {
 }
 
 [[ -f "$MANIFEST" ]] || fail "Missing Docs/Screenshots/screenshot_status.tsv"
+[[ -f "$EXPORT_VISUAL_REVIEW" ]] || fail "Missing Docs/Screenshots/app_store_export_visual_review.tsv"
 
 header="$(sed -n '1p' "$MANIFEST")"
 [[ "$header" == "$EXPECTED_HEADER" ]] || fail "Unexpected screenshot_status.tsv header."
+
+export_visual_review_header="$(sed -n '1p' "$EXPORT_VISUAL_REVIEW")"
+[[ "$export_visual_review_header" == "$EXPECTED_EXPORT_VISUAL_REVIEW_HEADER" ]] || fail "Unexpected app_store_export_visual_review.tsv header."
 
 release_approved_count=0
 blocked_count=0
@@ -86,6 +92,30 @@ if [[ "$REQUIRE_APPROVED" == "1" && "$release_approved_count" -ne "${#REQUIRED_I
   fail "REQUIRE_APP_STORE_RELEASE_APPROVED=1 requires all 8 App Store screenshots to be release-approved."
 fi
 
+if [[ "$release_approved_count" -eq "${#REQUIRED_IDS[@]}" ]]; then
+  export_review_count="$(
+    awk -F '\t' '
+      NR > 1 {
+        count++
+        if ($8 != "release-approved") {
+          bad = bad $1 " "
+        }
+        if ($9 !~ /manifest\/dimension QA passed/) {
+          missing_evidence = missing_evidence $1 " "
+        }
+      }
+      END {
+        if (bad != "" || missing_evidence != "") {
+          exit 2
+        }
+        print count + 0
+      }
+    ' "$EXPORT_VISUAL_REVIEW"
+  )" || fail "App Store export visual review rows must all be release-approved and cite manifest/dimension QA evidence."
+
+  [[ "$export_review_count" -ge 1 ]] || fail "App Store export visual review must contain at least one approved size row."
+fi
+
 cat <<EOF
 App Store screenshot release approval validation passed.
 
@@ -97,4 +127,5 @@ Gate behavior:
   - No partial promotion is allowed.
   - release-approved rows require approved: and checklist: notes.
   - checklist must mention copy, crop, privacy, and export.
+  - complete release-approved sets require export visual review evidence.
 EOF

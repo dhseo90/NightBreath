@@ -18,24 +18,25 @@ ITEMS=(
   "README|Daily rhythm report|Docs/Screenshots/README/daily_rhythm_report_light.png|Docs/Screenshots/README/cropped/daily_rhythm_report_light.png|captured, quality review pending"
   "README|Daily health card|Docs/Screenshots/README/daily_health_card_light.png|Docs/Screenshots/README/cropped/daily_health_card_light.png|captured, quality review pending"
   "README|Health dashboard|Docs/Screenshots/README/health_dashboard_light.png|Docs/Screenshots/README/cropped/health_dashboard_light.png|captured, quality review pending"
-  "App Store|Home dashboard|Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png|Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png|blocked, recapture required"
-  "App Store|Sleep report|Docs/Screenshots/AppStore/raw/02_sleep_report_light.png|Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png|blocked, recapture required"
-  "App Store|Event timeline|Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png|Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png|blocked, recapture required"
-  "App Store|Daily rhythm report|Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png|Docs/Screenshots/AppStore/review-cropped/04_daily_rhythm_report_light.png|blocked, recapture required"
-  "App Store|Daily health card|Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png|Docs/Screenshots/AppStore/review-cropped/05_daily_health_card_light.png|blocked, recapture required"
-  "App Store|Health metrics overview|Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png|Docs/Screenshots/AppStore/review-cropped/06_health_metrics_overview_light.png|blocked, recapture required"
-  "App Store|Privacy settings|Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png|Docs/Screenshots/AppStore/review-cropped/07_privacy_settings_light.png|blocked, recapture required"
-  "App Store|Zero-event report|Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png|Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png|blocked, recapture required"
-  "Health|Health metrics overview|Docs/Screenshots/Health/health_metrics_overview_light.png|Docs/Screenshots/Health/cropped/health_metrics_overview_light.png|captured, quality review pending"
-  "Health|Fitdays import|Docs/Screenshots/Health/fitdays_import_light.png|Docs/Screenshots/Health/cropped/fitdays_import_light.png|captured, quality review pending"
+  "App Store|Home dashboard|Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png|Docs/Screenshots/AppStore/review-cropped/01_home_dashboard_light.png|release-approved"
+  "App Store|Sleep report|Docs/Screenshots/AppStore/raw/02_sleep_report_light.png|Docs/Screenshots/AppStore/review-cropped/02_sleep_report_light.png|release-approved"
+  "App Store|Event timeline|Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png|Docs/Screenshots/AppStore/review-cropped/03_sleep_timeline_light.png|release-approved"
+  "App Store|Daily rhythm report|Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png|Docs/Screenshots/AppStore/review-cropped/04_daily_rhythm_report_light.png|release-approved"
+  "App Store|Daily health card|Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png|Docs/Screenshots/AppStore/review-cropped/05_daily_health_card_light.png|release-approved"
+  "App Store|Health metrics overview|Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png|Docs/Screenshots/AppStore/review-cropped/06_health_metrics_overview_light.png|release-approved"
+  "App Store|Privacy settings|Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png|Docs/Screenshots/AppStore/review-cropped/07_privacy_settings_light.png|release-approved"
+  "App Store|Zero-event report|Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png|Docs/Screenshots/AppStore/review-cropped/08_zero_event_report_light.png|release-approved"
+  "Health|Health metrics overview|Docs/Screenshots/Health/health_metrics_overview_light.png|Docs/Screenshots/Health/cropped/health_metrics_overview_light.png|release-approved"
+  "Health|Fitdays import|Docs/Screenshots/Health/fitdays_import_light.png|Docs/Screenshots/Health/cropped/fitdays_import_light.png|release-approved"
   "Health|Fitdays import result|Docs/Screenshots/Health/fitdays_import_result_light.png|Docs/Screenshots/Health/cropped/fitdays_import_result_light.png|blocked, recapture required"
-  "Health|Health calendar|Docs/Screenshots/Health/health_calendar_light.png|Docs/Screenshots/Health/cropped/health_calendar_light.png|captured, quality review pending"
-  "Health|Daily measurement detail|Docs/Screenshots/Health/daily_measurement_detail_light.png|Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png|captured, quality review pending"
-  "Health|Metric detail body water|Docs/Screenshots/Health/metric_detail_body_water_light.png|Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png|captured, quality review pending"
-  "Health|Metric detail BMR|Docs/Screenshots/Health/metric_detail_basal_metabolic_rate_light.png|Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png|captured, quality review pending"
-  "Health|Blood pressure dashboard|Docs/Screenshots/Health/blood_pressure_dashboard_light.png|Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png|captured, quality review pending"
-  "Health|Body composition dashboard|Docs/Screenshots/Health/body_composition_dashboard_light.png|Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png|captured, quality review pending"
-  "Health|Cross metric dashboard|Docs/Screenshots/Health/cross_metric_dashboard_light.png|Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png|captured, quality review pending"
+  "Health|Fitdays import error|Docs/Screenshots/Health/fitdays_import_error_light.png|Docs/Screenshots/Health/cropped/fitdays_import_error_light.png|release-approved"
+  "Health|Health calendar|Docs/Screenshots/Health/health_calendar_light.png|Docs/Screenshots/Health/cropped/health_calendar_light.png|release-approved"
+  "Health|Daily measurement detail|Docs/Screenshots/Health/daily_measurement_detail_light.png|Docs/Screenshots/Health/cropped/daily_measurement_detail_light.png|release-approved"
+  "Health|Metric detail body water|Docs/Screenshots/Health/metric_detail_body_water_light.png|Docs/Screenshots/Health/cropped/metric_detail_body_water_light.png|release-approved"
+  "Health|Metric detail BMR|Docs/Screenshots/Health/metric_detail_basal_metabolic_rate_light.png|Docs/Screenshots/Health/cropped/metric_detail_basal_metabolic_rate_light.png|release-approved"
+  "Health|Blood pressure dashboard|Docs/Screenshots/Health/blood_pressure_dashboard_light.png|Docs/Screenshots/Health/cropped/blood_pressure_dashboard_light.png|release-approved"
+  "Health|Body composition dashboard|Docs/Screenshots/Health/body_composition_dashboard_light.png|Docs/Screenshots/Health/cropped/body_composition_dashboard_light.png|release-approved"
+  "Health|Cross metric dashboard|Docs/Screenshots/Health/cross_metric_dashboard_light.png|Docs/Screenshots/Health/cropped/cross_metric_dashboard_light.png|release-approved"
   "Home|Trend dashboard|Docs/Screenshots/Home/trend-dashboard.png|Docs/Screenshots/Home/cropped/trend-dashboard.png|captured, quality review pending"
   "Sleep|Morning check-in|Docs/Screenshots/Sleep/morning-check-in.png|Docs/Screenshots/Sleep/cropped/morning-check-in.png|captured, quality review pending"
   "Daily Rhythm|Evening check-in|Docs/Screenshots/DailyRhythm/evening-check-in.png|Docs/Screenshots/DailyRhythm/cropped/evening-check-in.png|captured, quality review pending"
@@ -66,6 +67,16 @@ status_id_for_asset() {
   awk -F '\t' -v raw_source="$raw_source" -v review_crop="$review_crop" '
     NR > 1 && $5 == raw_source && $6 == review_crop {
       print $1
+      exit
+    }
+  ' "$STATUS_MANIFEST"
+}
+
+status_for_id() {
+  local status_id="$1"
+  awk -F '\t' -v status_id="$status_id" '
+    NR > 1 && $1 == status_id {
+      print $7
       exit
     }
   ' "$STATUS_MANIFEST"
@@ -128,6 +139,10 @@ for item in "${ITEMS[@]}"; do
   review_rel="$(relative_to_review_dir "$review_crop")"
   status_id="$(status_id_for_asset "$raw_source" "$review_crop")"
   status_id="${status_id:-untracked}"
+  canonical_status="$(status_for_id "$status_id")"
+  if [[ -n "$canonical_status" ]]; then
+    status="$canonical_status"
+  fi
   visual_review_row="$(visual_review_row_for_id "$status_id")"
   reviewed_on=""
   reviewer=""

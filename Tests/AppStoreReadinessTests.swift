@@ -311,7 +311,8 @@ struct AppStoreReadinessTests {
         #expect(guide.contains("readmeRepresentative"))
         #expect(guide.contains("appStoreMarketing"))
         #expect(guide.contains("민감 수치를 노출하지 않습니다"))
-        #expect(guide.contains("blocked, recapture required"))
+        #expect(guide.contains("release-approved"))
+        #expect(guide.contains("simulator 기준 App Store Connect 제출 후보로 승인"))
         #expect(guide.contains("release-approved 상태가 아닙니다"))
         #expect(guide.contains("내부 `Simulator QA` label"))
 
@@ -397,11 +398,12 @@ struct AppStoreReadinessTests {
         #expect(releaseGuide.contains("DEBUG simulator scenario"))
         #expect(releaseGuide.contains("synthetic/mock data"))
         #expect(screenshotGuide.contains("2026-05-09 재캡처와 export 검수"))
-        #expect(screenshotGuide.contains("App Store 후보는 계속 `blocked` 상태"))
+        #expect(screenshotGuide.contains("size별 PNG 88개"))
+        #expect(screenshotGuide.contains("app_store_export_visual_review.tsv"))
         #expect(toolGuide.contains("2026-05-09에 App Store 후보 8개 raw source"))
-        #expect(toolGuide.contains("`release-approved`로 승격하지 않습니다"))
-        #expect(releaseGuide.contains("2026-05-09에 raw 8개 재캡처와 size별 export 생성을 확인"))
-        #expect(releaseGuide.contains("App Store Connect 제출 후보로 승인하지 않습니다"))
+        #expect(toolGuide.contains("현재 후보 8개는 `Docs/Screenshots/screenshot_status.tsv` 기준 `release-approved`"))
+        #expect(releaseGuide.contains("2026-05-09에 raw 8개 재캡처"))
+        #expect(releaseGuide.contains("simulator 기준 App Store Connect 제출 후보로 승인"))
 
         for filename in expectedRawFiles {
             #expect(captureScript.contains(filename), "\(filename) should be part of the App Store capture script.")
@@ -494,6 +496,8 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("SleepSoundApp/Features/Dashboard/HomeDashboardView.swift"),
             encoding: .utf8
         )
+        let navigationChromeGatePath = repositoryRoot.appendingPathComponent("Tools/UI/validate_navigation_chrome.sh")
+        let navigationChromeGate = try String(contentsOf: navigationChromeGatePath, encoding: .utf8)
         let detailViewPaths = [
             "SleepSoundApp/Features/Dashboard/BloodPressureDashboardView.swift",
             "SleepSoundApp/Features/Dashboard/BodyCompositionDashboardView.swift",
@@ -514,6 +518,10 @@ struct AppStoreReadinessTests {
             "SleepSoundApp/Features/Settings/PrivacySettingsView.swift",
         ]
 
+        #expect(FileManager.default.fileExists(atPath: navigationChromeGatePath.path))
+        #expect(navigationChromeGate.contains("Navigation chrome validation passed"))
+        #expect(navigationChromeGate.contains("Home dashboard must not push SleepStartView"))
+        #expect(navigationChromeGate.contains("Feature screens must not hide the system back chevron"))
         #expect(homeDashboard.contains("TabView(selection: $selectedTab)"))
         #expect(homeDashboard.contains("selectedTab = .sleep"))
         #expect(homeDashboard.contains("selectedTab = .health"))
@@ -539,7 +547,13 @@ struct AppStoreReadinessTests {
     func appStoreConnectScreenshotExportWorkflowUsesRawSourceAndIgnoredDerivedOutput() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let exportScriptPath = repositoryRoot.appendingPathComponent("Tools/Screenshots/export_app_store_connect_screenshots.sh")
+        let validateExportPath = repositoryRoot.appendingPathComponent("Tools/Screenshots/validate_app_store_export_manifest.sh")
         let exportScript = try String(contentsOf: exportScriptPath, encoding: .utf8)
+        let validateExport = try String(contentsOf: validateExportPath, encoding: .utf8)
+        let exportVisualReview = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/app_store_export_visual_review.tsv"),
+            encoding: .utf8
+        )
         let screenshotGuide = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/Screenshots/README.md"),
             encoding: .utf8
@@ -565,6 +579,7 @@ struct AppStoreReadinessTests {
         ]
 
         #expect(FileManager.default.fileExists(atPath: exportScriptPath.path))
+        #expect(FileManager.default.fileExists(atPath: validateExportPath.path))
         #expect(exportScript.contains("Docs/Screenshots/AppStore/raw"))
         #expect(exportScript.contains("Docs/Screenshots/AppStore/export"))
         #expect(exportScript.contains("manifest.tsv"))
@@ -573,12 +588,19 @@ struct AppStoreReadinessTests {
         #expect(exportScript.contains("APP_STORE_EXPORT_FIT_MODE"))
         #expect(exportScript.contains("force_original_aspect_ratio=decrease"))
         #expect(exportScript.contains("force_original_aspect_ratio=increase"))
+        #expect(validateExport.contains("EXPECTED_SCREENSHOT_COUNT=8"))
+        #expect(validateExport.contains("EXPECTED_SIZE_COUNT=11"))
+        #expect(validateExport.contains("sips -g pixelWidth"))
+        #expect(validateExport.contains("app_store_export_visual_review.tsv"))
+        #expect(exportVisualReview.contains("release-approved"))
+        #expect(exportVisualReview.contains("manifest/dimension QA passed"))
         #expect(gitignore.contains("Docs/Screenshots/AppStore/export/"))
         #expect(gitignore.contains("Docs/Screenshots/review/"))
         #expect(screenshotGuide.contains("App Store Connect size별 export"))
         #expect(toolGuide.contains("App Store Connect size export"))
         #expect(toolGuide.contains("https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/"))
         #expect(releaseGuide.contains("App Store Connect size export script"))
+        #expect(releaseGuide.contains("App Store Connect export validation script"))
         #expect(releaseGuide.contains("manifest.tsv"))
         #expect(releaseGuide.contains("커밋하지 않습니다"))
 
@@ -625,11 +647,15 @@ struct AppStoreReadinessTests {
         #expect(toolGuide.contains("validate_app_store_release_approval.sh"))
         #expect(releaseGuide.contains("validate_app_store_release_approval.sh"))
         #expect(releaseReadme.contains("validate_app_store_release_approval.sh"))
+        #expect(releaseReadme.contains("validate_app_store_export_manifest.sh"))
 
         let process = Process()
         let output = Pipe()
+        var environment = ProcessInfo.processInfo.environment
+        environment["REQUIRE_APP_STORE_RELEASE_APPROVED"] = "1"
         process.executableURL = gatePath
         process.currentDirectoryURL = repositoryRoot
+        process.environment = environment
         process.standardOutput = output
         process.standardError = output
 
@@ -638,8 +664,9 @@ struct AppStoreReadinessTests {
 
         let outputText = String(data: output.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
         #expect(process.terminationStatus == 0, "App Store approval gate failed: \(outputText)")
-        #expect(outputText.contains("release-approved: 0"))
-        #expect(outputText.contains("blocked, recapture required: 8"))
+        #expect(outputText.contains("release-approved: 8"))
+        #expect(outputText.contains("blocked, recapture required: 0"))
+        #expect(outputText.contains("complete release-approved sets require export visual review evidence"))
     }
 
     @Test

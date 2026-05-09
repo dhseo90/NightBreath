@@ -220,9 +220,9 @@ struct SimulatorQAScenarioTests {
     let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
     let calibrationView = try sourceContents("SleepSoundApp/Features/Onboarding/CalibrationView.swift")
 
-    #expect(appState.contains("func applyScreenshotScenario(_ scenario: ScreenshotScenario)"))
-    #expect(appState.contains("latestReportSource = .sample"))
-    #expect(screenshotScenarios.contains("state.latestReportSource = .sample"))
+    #expect(appState.contains("func applyScreenshotScenario("))
+    #expect(appState.contains("latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
+    #expect(screenshotScenarios.contains("state.latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
     #expect(!screenshotScenarios.contains("Simulator 예시 기록"))
     #expect(!screenshotScenarios.contains("Simulator 예시 수면 소리 리포트입니다."))
     #expect(!screenshotScenarios.contains("synthetic_fitdays_preview.csv"))
@@ -235,11 +235,11 @@ struct SimulatorQAScenarioTests {
     let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
     let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
 
-    #expect(appState.contains("func applyScreenshotScenario(_ scenario: ScreenshotScenario)"))
-    #expect(appState.contains("latestReportSource = .sample"))
+    #expect(appState.contains("func applyScreenshotScenario("))
+    #expect(appState.contains("latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
     #expect(appState.contains("case .simulatorQA:\n            \"검증용 예시\""))
     #expect(!appState.contains("case .simulatorQA:\n            \"Simulator QA\""))
-    #expect(screenshotScenarios.contains("state.latestReportSource = .sample"))
+    #expect(screenshotScenarios.contains("state.latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

@@ -282,7 +282,7 @@ DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.
 
-2026-05-09에 App Store 후보 8개 raw source와 review-cropped 이미지를 재캡처했습니다. export 파일 생성은 확인했지만, 이후 `appStoreMarketing` screenshot surface와 공개용 copy/crop 기준을 적용했으므로 새 contact sheet가 통과하기 전에는 `release-approved`로 승격하지 않습니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
+2026-05-09에 App Store 후보 8개 raw source와 review-cropped 이미지를 재캡처했습니다. `appStoreMarketing` screenshot surface와 공개용 copy/crop 기준을 적용한 뒤 simulator contact sheet에서 copy/crop/privacy 검수를 통과했고, 11개 App Store Connect size set의 export manifest/dimension QA도 통과했습니다. 현재 후보 8개는 `Docs/Screenshots/screenshot_status.tsv` 기준 `release-approved`이며, 실제 기기 QA는 이번 범위에서 제외했습니다.
 
 ```bash
 Tools/Screenshots/capture_app_store_screenshots.sh
@@ -322,7 +322,7 @@ APP_STORE_SCREENSHOT_SCENARIOS=homeDashboard,sleepReport Tools/Screenshots/captu
 
 App Store Connect에 올릴 size별 파일은 raw source에서 별도 export합니다. review-cropped 파일은 README/UI Gallery 검토용 crop과 같은 성격이며, App Store Connect 업로드 원본으로 쓰지 않습니다.
 
-App Store 후보를 재캡처한 뒤에는 `Tools/Screenshots/build_screenshot_review_sheet.sh`로 raw/review crop contact sheet를 먼저 확인합니다.
+App Store 후보를 재캡처한 뒤에는 `Tools/Screenshots/build_screenshot_review_sheet.sh`로 raw/review crop contact sheet를 먼저 확인합니다. 승인 상태는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh` hard gate가 통과해야 유지합니다.
 
 ### App Store Connect size export
 
@@ -363,6 +363,14 @@ APP_STORE_EXPORT_FILES=01_home_dashboard_light.png Tools/Screenshots/export_app_
 ```
 
 기본 fit mode는 `contain`입니다. 이 모드는 화면 내용을 자르지 않고 남는 영역을 앱 배경색 계열로 pad합니다. 업로드 전에는 반드시 생성 PNG를 눈으로 확인하고, 잘림 없는 실제 기기별 simulator capture가 가능하면 해당 raw capture를 우선 사용합니다.
+
+Export manifest와 size별 visual QA evidence는 아래 gate로 확인합니다.
+
+```bash
+Tools/Screenshots/validate_app_store_export_manifest.sh
+```
+
+이 gate는 `Docs/Screenshots/AppStore/export/manifest.tsv`의 88개 row가 실제 PNG dimension과 맞는지 확인하고, `Docs/Screenshots/app_store_export_visual_review.tsv`의 11개 size set이 모두 `release-approved`인지 검증합니다.
 
 ## 금지
 

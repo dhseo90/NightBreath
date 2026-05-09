@@ -67,7 +67,7 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 
 Screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 
-현재 저장된 README 대표 screenshot은 문서 preview로만 사용하며 release-approved 상태가 아닙니다. App Store screenshot 후보는 2026-05-09에 raw 8개 재캡처와 size별 export 생성을 확인했지만, marketing copy/crop visual QA가 남아 있어 App Store Connect 제출 후보로 승인하지 않습니다.
+현재 저장된 README 대표 screenshot은 문서 preview로만 사용하며 release-approved 상태가 아닙니다. App Store screenshot 후보는 2026-05-09에 raw 8개 재캡처, copy/crop/privacy contact sheet 검수, size별 export dimension 검수를 통과해 simulator 기준 App Store Connect 제출 후보로 승인했습니다. 실제 기기 QA는 이번 범위에서 제외했습니다.
 
 금지:
 
@@ -103,14 +103,14 @@ Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드�
 
 | 우선순위 | Scenario | Headline copy | 화면 / 파일 후보 | 현재 상태 | 안전 기준 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | blocked, recapture required | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
-| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | blocked, recapture required | 점수와 이벤트는 개인 참고용으로 표현 |
-| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | blocked, recapture required | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
-| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | blocked, recapture required | 건강 상태나 원인과 결과를 단정하지 않음 |
-| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | blocked, recapture required | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
-| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | blocked, recapture required | HealthKit read-only와 Fitdays local-only 출처 구분 |
-| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | blocked, recapture required | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
-| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | blocked, recapture required | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
+| 1 | `ScreenshotHomeScenario` | 수면 중 소리 기반 지표를 한눈에 | `Docs/Screenshots/AppStore/raw/01_home_dashboard_light.png` | release-approved | 온디바이스, 서버 전송 없음, 최근 리포트가 보이게 구성 |
+| 2 | `ScreenshotSleepReportScenario` | 아침에 읽기 쉬운 수면 소리 리포트 | `Docs/Screenshots/AppStore/raw/02_sleep_report_light.png` | release-approved | 점수와 이벤트는 개인 참고용으로 표현 |
+| 3 | `ScreenshotTimelineScenario` | 코골기와 환경 소음 흐름 확인 | `Docs/Screenshots/AppStore/raw/03_sleep_timeline_light.png` | release-approved | 이벤트 샘플은 opt-in 짧은 구간만 가능하다는 맥락 유지 |
+| 4 | `ScreenshotDailyRhythmScenario` | 오늘의 리듬 점수를 참고용으로 | `Docs/Screenshots/AppStore/raw/04_daily_rhythm_report_light.png` | release-approved | 건강 상태나 원인과 결과를 단정하지 않음 |
+| 5 | `ScreenshotDailyHealthCardScenario` | 하루 리듬을 카드 한 장으로 | `Docs/Screenshots/AppStore/raw/05_daily_health_card_light.png` | release-approved | README는 `readmeRepresentative`, App Store 후보는 `appStoreMarketing` display profile 사용 |
+| 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | release-approved | HealthKit read-only와 Fitdays local-only 출처 구분 |
+| 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | release-approved | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
+| 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | release-approved | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
 
 최근 visual QA 기록은 `Docs/Screenshots/VISUAL_QA_2026-05-09.md`를 확인합니다.
 
@@ -122,6 +122,8 @@ App Store marketing capture source:
 - review sheet script: `Tools/Screenshots/build_screenshot_review_sheet.sh`
 - release approval gate: `Tools/Screenshots/validate_app_store_release_approval.sh`
 - App Store Connect size export script: `Tools/Screenshots/export_app_store_connect_screenshots.sh`
+- App Store Connect export validation script: `Tools/Screenshots/validate_app_store_export_manifest.sh`
+- App Store Connect export visual evidence: `Docs/Screenshots/app_store_export_visual_review.tsv`
 - launch surface: `--nightbreath-screenshot-surface appStoreMarketing`
 - default review crop: top 160px, bottom 220px
 
@@ -129,11 +131,12 @@ Raw source는 App Store Connect size export 입력으로 사용하고, review cr
 
 `release-approved` 승격 기준은 8장 전체 세트 단위입니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store 후보 8개가 모두 존재하는지, 부분 승격이 없는지, 승인 row가 `approved:`와 `checklist:` 증거를 포함하는지 확인합니다. checklist에는 `copy`, `crop`, `privacy`, `export`가 모두 포함되어야 합니다. 제출 직전에는 `REQUIRE_APP_STORE_RELEASE_APPROVED=1 Tools/Screenshots/validate_app_store_release_approval.sh`로 hard gate를 실행합니다.
 
-재캡처 전 gate:
+재캡처/승인 gate:
 
 - 내부 `Simulator QA` label, `synthetic` 파일명, local path, 실제 개인 데이터가 보이면 실패입니다.
 - fixed crop 결과만으로 승인하지 않고, raw/review crop/export PNG를 contact sheet로 확인합니다.
 - `Docs/Screenshots/review/screenshot_review_sheet.html`에서 raw source와 review crop을 나란히 확인합니다.
+- `Tools/Screenshots/validate_app_store_export_manifest.sh`로 export manifest와 size별 visual evidence를 확인합니다.
 - DEBUG-only 화면은 App Store screenshot 후보에서 제외합니다.
 
 Size export 기준:
@@ -234,10 +237,11 @@ TestFlight blocking gate:
 ```sh
 Tools/Release/audit_release_copy.sh
 Tools/Docs/validate_readme_links.sh
+Tools/Screenshots/validate_app_store_export_manifest.sh
 Tools/Screenshots/validate_app_store_release_approval.sh
 ```
 
-`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다.
+`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `ReleaseReadiness`의 release-facing 문서 scan은 루트 README, 주요 sub README, screenshot/UI 문서, App Store copy 문서를 포함합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다. `Tools/Screenshots/validate_app_store_export_manifest.sh`는 App Store Connect export manifest와 size별 visual evidence를 검증합니다. `Tools/Screenshots/validate_app_store_release_approval.sh`는 App Store screenshot 8개 후보의 부분 승격과 승인 증거 누락을 막습니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
@@ -247,7 +251,7 @@ Tools/Screenshots/validate_app_store_release_approval.sh
 - 앱 source에 서버/네트워크 코드, 외부 분석 SDK, 광고 SDK signature가 없는지 확인합니다.
 - `RealHealthKitService`가 read-only adapter로 유지되고 HealthKit write/delete/streaming query가 없는지 확인합니다.
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
-- README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA 전에는 export나 marketing 문서에 승격되지 않는지 확인합니다.
+- README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA evidence 없이 export나 marketing 문서에 승격되지 않는지 확인합니다.
 - App Store screenshot을 `release-approved`로 바꾸려면 8개 전체 세트가 `copy/crop/privacy/export` checklist 증거를 가져야 합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
 - 루트 README가 주요 sub README를 모두 연결하고, README 내부 문서/이미지 링크가 깨지지 않는지 확인합니다.
