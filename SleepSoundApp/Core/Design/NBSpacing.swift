@@ -24,9 +24,9 @@ enum NBSpacing {
 }
 
 extension View {
-  func nbAvoidFloatingTabBar() -> some View {
+  func nbAvoidFloatingTabBar(background: Color = .clear) -> some View {
     safeAreaInset(edge: .bottom, spacing: 0) {
-      Color.clear
+      background
         .frame(height: NBSpacing.floatingTabBarAvoidance)
         .allowsHitTesting(false)
     }

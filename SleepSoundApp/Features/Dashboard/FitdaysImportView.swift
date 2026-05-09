@@ -199,7 +199,7 @@ struct FitdaysImportView: View {
             Button {
               previewPastedText()
             } label: {
-              Label("입력 내용 미리보기", systemImage: "eye")
+              Label("미리보기", systemImage: "eye")
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.nbSecondary)

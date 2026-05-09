@@ -591,8 +591,10 @@ struct ScreenshotScenarioDestinationView: View {
         permissionState: .mockDataOnly,
         isPreviewData: true
       )
-    case .privacySettings, .eventAudioStorageOff:
+    case .privacySettings:
       PrivacySettingsView()
+    case .eventAudioStorageOff:
+      ScreenshotEventAudioStorageOffView()
     case .reportEmpty:
       ScreenshotReportEmptyStateView()
     case .debugTools:
@@ -637,6 +639,81 @@ private struct ScreenshotReportEmptyStateView: View {
     }
     .background(NBColor.pageBackground)
     .navigationTitle("수면 리포트")
+  }
+}
+
+private struct ScreenshotEventAudioStorageOffView: View {
+  @EnvironmentObject private var appState: AppState
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        NBReportSection(title: "이벤트 오디오 샘플 저장 꺼짐", systemImage: "waveform.slash") {
+          VStack(alignment: .leading, spacing: NBSpacing.medium) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+              NBMetricCard(
+                title: "샘플 저장",
+                value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
+                subtitle: "기본값 OFF",
+                systemImage: appState.isEventAudioSampleStorageEnabled ? "checkmark.circle" : "xmark.circle",
+                tint: appState.isEventAudioSampleStorageEnabled ? NBColor.audioTint : NBColor.privacy,
+                status: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy
+              )
+              NBMetricCard(
+                title: "저장된 샘플",
+                value: "\(appState.eventAudioStorageStats.sampleCount)",
+                unit: "개",
+                systemImage: "waveform.circle",
+                tint: NBColor.audioTint
+              )
+              NBMetricCard(
+                title: "총 시간",
+                value: SleepFormatters.compactDurationString(appState.eventAudioStorageStats.totalDurationSeconds),
+                systemImage: "timer",
+                tint: NBColor.sleep
+              )
+              NBMetricCard(
+                title: "저장 용량",
+                value: appState.eventAudioStorageStats.formattedTotalSize,
+                systemImage: "internaldrive",
+                tint: NBColor.privacy
+              )
+            }
+
+            Text("꺼져 있으면 앞으로 감지되는 이벤트의 짧은 오디오 샘플도 저장하지 않습니다. 기존 저장 샘플은 자동 삭제하지 않고, 개인정보 설정에서 사용자가 직접 지울 수 있습니다.")
+              .font(NBTypography.callout)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+
+        NBPrivacyNoticeCard(
+          title: "로컬 보관 원칙",
+          messages: [
+            "전체 밤 원본 오디오는 기본 저장하지 않습니다.",
+            "이벤트 전후의 짧은 샘플은 사용자가 켠 경우에만 로컬 저장합니다.",
+            "서버 전송, 클라우드 처리, 말소리 텍스트 변환을 하지 않습니다.",
+          ],
+          systemImage: "lock.shield"
+        )
+
+        NBReportSection(title: "샘플 제한", systemImage: "checklist") {
+          VStack(alignment: .leading, spacing: NBSpacing.small) {
+            PrivacyStorageStatRow(title: "이벤트 전후 범위", value: "이벤트 전 2초 · 후 3초", systemImage: "waveform.path")
+            PrivacyStorageStatRow(title: "샘플 최대 길이", value: "10초", systemImage: "timer")
+            PrivacyStorageStatRow(title: "세션당 최대 개수", value: "100개", systemImage: "number")
+            PrivacyStorageStatRow(title: "폴더 용량 제한", value: "200MB", systemImage: "internaldrive")
+          }
+        }
+      }
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
+    }
+    .background(NBColor.pageBackground)
+    .navigationTitle("샘플 저장 꺼짐")
+    .onAppear {
+      appState.refreshEventAudioStorageStats()
+    }
   }
 }
 

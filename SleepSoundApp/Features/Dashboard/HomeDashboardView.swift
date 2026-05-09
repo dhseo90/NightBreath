@@ -37,6 +37,8 @@ struct HomeDashboardView: View {
         Label("설정", systemImage: "gearshape")
       }
     }
+    .toolbarBackground(NBColor.pageBackground, for: .tabBar)
+    .toolbarBackground(.visible, for: .tabBar)
   }
 
   private var dashboardContent: some View {
@@ -122,7 +124,7 @@ struct HomeDashboardView: View {
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
-    .nbAvoidFloatingTabBar()
+    .nbAvoidFloatingTabBar(background: NBColor.pageBackground)
   }
 
   private var scoreHeader: some View {

@@ -16,6 +16,25 @@ struct CalibrationView: View {
   private let targetDuration: TimeInterval = 30
 
   var body: some View {
+    Group {
+      if showsTitle {
+        ScrollView {
+          content
+            .padding(.horizontal, NBSpacing.screenHorizontal)
+            .padding(.top, NBSpacing.large)
+            .padding(.bottom, NBSpacing.sectionVertical)
+        }
+        .background(NBColor.pageBackground)
+      } else {
+        content
+      }
+    }
+    .onDisappear {
+      task?.cancel()
+    }
+  }
+
+  private var content: some View {
     VStack(alignment: .leading, spacing: NBSpacing.large) {
       if showsTitle {
         Text("30초 캘리브레이션")
@@ -29,7 +48,8 @@ struct CalibrationView: View {
             .tint(NBColor.audioTint)
 
           CalibrationMetricGrid(
-            currentInputLevel: currentInputLevel,
+            inputLevelTitle: result == nil || isRunning ? "현재 입력" : "기준 소음",
+            inputLevel: result?.ambientNoiseBaseline ?? currentInputLevel,
             receivedAudioSeconds: receivedAudioSeconds,
             audioCoverageRatio: audioCoverageRatio
           )
@@ -52,9 +72,7 @@ struct CalibrationView: View {
         }
       }
     }
-    .onDisappear {
-      task?.cancel()
-    }
+    .frame(maxWidth: .infinity, alignment: .topLeading)
   }
 
   private func startCalibration() {
@@ -159,15 +177,16 @@ struct CalibrationView: View {
 }
 
 private struct CalibrationMetricGrid: View {
-  let currentInputLevel: Double
+  let inputLevelTitle: String
+  let inputLevel: Double
   let receivedAudioSeconds: TimeInterval
   let audioCoverageRatio: Double
 
   var body: some View {
     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
       NBMetricCard(
-        title: "현재 입력",
-        value: "\(Int((currentInputLevel * 100).rounded()))%",
+        title: inputLevelTitle,
+        value: "\(Int((inputLevel * 100).rounded()))%",
         systemImage: "waveform",
         tint: NBColor.audioTint
       )
