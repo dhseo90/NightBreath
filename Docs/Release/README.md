@@ -16,6 +16,7 @@
 - 이벤트 오디오 샘플 opt-in, 제한, 삭제 기능 유지
 - 진단적 판단처럼 읽히는 문구 없음
 - 실제 개인 건강 데이터, 실제 CSV 파일명, 실제 오디오 파일명이 screenshot에 없음
+- main/sub README 링크 검증 통과
 
 ## Screenshot approval
 
@@ -25,6 +26,16 @@ README 대표 screenshot과 App Store screenshot은 별도로 관리합니다.
 - App Store 이미지는 raw capture, review crop, App Store Connect export를 별도 flow로 검토합니다.
 - DEBUG-only 화면은 App Store/README 대표 이미지에 포함하지 않습니다.
 - screenshot status는 `Docs/Screenshots/screenshot_status.tsv`에서 추적합니다.
+
+## 문서 링크 gate
+
+루트 README와 주요 sub README의 문서/이미지 링크는 release gate 전에 자동 검증합니다.
+
+```bash
+Tools/Docs/validate_readme_links.sh
+```
+
+이 gate는 루트 README가 `Product`, `UI`, `Architecture`, `Privacy`, `Health`, `QA`, `Release` sub README를 모두 링크하는지와 각 README 내부의 상대 링크/이미지 경로가 실제 파일로 이어지는지를 확인합니다.
 
 ## App Store 문구
 

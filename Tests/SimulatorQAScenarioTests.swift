@@ -155,12 +155,14 @@ struct SimulatorQAScenarioTests {
       ("ScreenshotSampleCaptureScenario", "SampleCaptureView()", "Debug/cropped/sample_capture_light.png"),
       ("ScreenshotDatasetReplayScenario", "DatasetReplayView()", "Debug/cropped/dataset_replay_light.png"),
       ("ScreenshotDebugScenario", "DetectorTuningView()", "Debug/cropped/detector_tuning_light.png"),
+      ("ScreenshotEventAudioStorageOffScenario", "ScreenshotEventAudioStorageOffView()", "EdgeStates/cropped/event_audio_storage_off_light.png"),
     ]
 
     #expect(captureScript.contains("SUPPORT_SCREENSHOT_SCENARIOS"))
     #expect(captureScript.contains("--nightbreath-screenshot-scenario"))
     #expect(captureScript.contains("Docs/Screenshots/Privacy"))
     #expect(captureScript.contains("Docs/Screenshots/Debug"))
+    #expect(captureScript.contains("Docs/Screenshots/EdgeStates"))
     #expect(screenshotGuide.contains("capture_support_screenshots.sh"))
     #expect(uiGallery.contains("DEBUG only"))
     #expect(uiGallery.contains("실제 개인 오디오 파일명"))

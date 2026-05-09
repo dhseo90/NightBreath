@@ -18,6 +18,7 @@ CAPTURES=(
   "datasetReplay:Docs/Screenshots/Debug/dataset_replay_light.png"
   "debugTools:Docs/Screenshots/Debug/detector_tuning_light.png"
   "simulatorScenario:Docs/Screenshots/Debug/simulator-scenario.png"
+  "eventAudioStorageOff:Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
 )
 
 if [[ -n "${SUPPORT_SCREENSHOT_SCENARIOS:-}" ]]; then

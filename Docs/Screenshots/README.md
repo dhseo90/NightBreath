@@ -155,7 +155,7 @@ Tools/Screenshots/capture_support_screenshots.sh
 특정 scenario만 재캡처할 때:
 
 ```bash
-SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug Tools/Screenshots/capture_support_screenshots.sh
+SUPPORT_SCREENSHOT_SCENARIOS=onboarding,audioDebug,eventAudioStorageOff Tools/Screenshots/capture_support_screenshots.sh
 ```
 
 수동 navigation이 필요했던 상세 화면은 다음 스크립트로 launch argument에서 바로 열어 캡처합니다. 파일이 생성되어도 visual QA 전에는 루트 README 대표 8개, App Store, user-facing marketing 문서에 렌더링하지 않습니다.
@@ -213,6 +213,8 @@ Tools/Screenshots/export_app_store_connect_screenshots.sh
 ```
 
 Export 결과는 `Docs/Screenshots/AppStore/export/`에 생성되며, raw source에서 재생성 가능한 산출물이므로 repository에 커밋하지 않습니다. `manifest.tsv`에는 source file, target size label, width/height, fit mode가 남습니다.
+
+2026-05-09 재캡처와 export 검수에서는 raw 8개와 size별 PNG export가 생성되는 것을 확인했습니다. 다만 review-cropped 일부 화면에 `source`, `sample/mock` 성격의 문구와 crop 여백/하단 잘림 검토가 남아 있어 App Store 후보는 계속 `blocked` 상태로 유지합니다.
 
 ## 주의
 

@@ -25,6 +25,17 @@
 - AppState audio processing source test는 UI publish가 chunk마다 발생하지 않고 throttle된 snapshot으로 반영되는 구조를 확인합니다.
 - Trend, morning/evening check-in, Daily Health Card export/share state, report empty, SimulatorScenarioView screenshot은 직접 launch scenario로 캡처했고 visual QA 전까지 quality review pending/internal-only 상태로 유지합니다.
 
+## 2026-05-09 Screenshot / README Gate Follow-up
+
+README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡처/export 생성, support UI simulator 선검증, main/sub README 링크 자동 검증을 순차 진행했습니다.
+
+- README 대표 8개는 문서 preview로 유지하고 `release-approved`로 승격하지 않았습니다.
+- App Store raw 8개와 review-cropped 이미지를 재캡처하고 size별 export 생성을 확인했지만, marketing copy/crop 검토가 남아 계속 `blocked, recapture required`로 유지합니다.
+- Calibration과 Event audio storage off support screenshot을 simulator에서 재캡처/검수했습니다.
+- 실제 iPhone Debug build와 install은 성공했지만, 기기 잠금 상태로 launch/시각 검수는 보류했습니다.
+- `Tools/Docs/validate_readme_links.sh`를 추가해 루트 README와 주요 sub README의 문서/이미지 링크를 자동 검증합니다.
+- release readiness gate, 전체 Swift test, generic iOS Release build는 통과했습니다. 실제 iPhone overnight QA는 잠금 해제된 기기에서 manual run으로 남아 있습니다.
+
 ## 완료
 
 - SwiftUI 앱 구조
@@ -178,6 +189,7 @@
 - Screenshot raw/crop contact sheet 생성 workflow
 - Screenshot approval status manifest
 - Screenshot manifest/schema/local file reference validation gate
+- main/sub README link validation gate
 - README screenshot 후보를 문서 preview와 App Store/release-approved gate로 분리
 - user-facing screenshot launch scenario의 내부 QA source badge 노출 방지
 - 수동 navigation이 필요했던 trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario 화면에 DEBUG launch scenario와 captured screenshot 후보 추가

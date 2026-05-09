@@ -25,7 +25,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 현재 저장된 screenshot 후보는 다음 기준으로 노출 범위를 나눕니다.
 
 - README 대표 8개는 mock/simulator data 기반 문서 preview로 렌더링합니다. release-approved나 App Store 제출용 이미지를 의미하지 않습니다.
-- App Store 후보 `01_home_dashboard_light.png` 계열은 내부 QA source label 노출 가능성과 crop 품질 이슈가 있어 재캡처 전까지 계속 blocked입니다.
+- App Store 후보 `01_home_dashboard_light.png` 계열은 2026-05-09에 재캡처와 size export 생성을 확인했지만, marketing copy/crop 품질 이슈가 남아 계속 blocked입니다.
 - 상세 gallery 후보는 고정 상하단 crop만으로 처리한 항목이 있어 화면별 여백, 주요 card 위치, 하단 content 가독성 검수가 필요합니다.
 - DEBUG-only 화면은 개발 문서에서 경로만 추적하고, Release/App Store/README 이미지로 렌더링하지 않습니다.
 - 파일 존재 여부만으로 승인하지 않습니다. README 대표 8개는 `captured, quality review pending`, App Store 후보는 `blocked, recapture required`, 상세 gallery 후보는 manifest 상태에 따라 추적합니다.
@@ -54,7 +54,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | Privacy/Support | captured, quality review pending | privacy settings, onboarding, device placement, calibration |
 | Sleep/Edge direct scenario | mixed, see manifest | sleep recording은 비현실적 duration/state mismatch로 recapture required, edge states는 quality review pending |
 | DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
-| App Store 후보 8개 | blocked, recapture required | raw/review-cropped에 내부 QA label 노출 가능성이 있어 재캡처 전 사용 금지 |
+| App Store 후보 8개 | blocked, recapture required | 2026-05-09 raw 재캡처와 export 생성은 완료, visual QA에서 release-approved 승격 보류 |
 | 직접 scenario 상세 캡처 | captured/internal-only, quality review pending | trend, morning/evening check-in, Daily Health Card export/share state, report empty, simulator scenario |
 
 ## App Store Screenshot Candidate Flow

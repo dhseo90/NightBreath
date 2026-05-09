@@ -391,9 +391,12 @@ struct AppStoreReadinessTests {
         #expect(releaseGuide.contains("screenshot_review_sheet.html"))
         #expect(releaseGuide.contains("DEBUG simulator scenario"))
         #expect(releaseGuide.contains("synthetic/mock data"))
-        #expect(screenshotGuide.contains("재캡처 전까지 사용 금지"))
-        #expect(toolGuide.contains("재캡처가 필요합니다"))
-        #expect(releaseGuide.contains("재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다"))
+        #expect(screenshotGuide.contains("2026-05-09 재캡처와 export 검수"))
+        #expect(screenshotGuide.contains("App Store 후보는 계속 `blocked` 상태"))
+        #expect(toolGuide.contains("2026-05-09에 App Store 후보 8개 raw source"))
+        #expect(toolGuide.contains("`release-approved`로 승격하지 않습니다"))
+        #expect(releaseGuide.contains("2026-05-09에 raw 8개 재캡처와 size별 export 생성을 확인"))
+        #expect(releaseGuide.contains("App Store Connect 제출 후보로 승인하지 않습니다"))
 
         for filename in expectedRawFiles {
             #expect(captureScript.contains(filename), "\(filename) should be part of the App Store capture script.")

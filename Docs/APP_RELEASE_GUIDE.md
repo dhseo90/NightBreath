@@ -67,7 +67,7 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 
 Screenshot은 mock data와 simulator scenario 기반으로만 생성합니다.
 
-현재 저장된 README 대표 screenshot은 문서 preview로만 사용하며 release-approved 상태가 아닙니다. App Store screenshot 후보는 2026-05-07 리뷰에서 품질 문제가 확인되어 재캡처 전까지 App Store Connect export 입력으로 사용하지 않습니다.
+현재 저장된 README 대표 screenshot은 문서 preview로만 사용하며 release-approved 상태가 아닙니다. App Store screenshot 후보는 2026-05-09에 raw 8개 재캡처와 size별 export 생성을 확인했지만, marketing copy/crop visual QA가 남아 있어 App Store Connect 제출 후보로 승인하지 않습니다.
 
 금지:
 
@@ -111,6 +111,8 @@ Daily Health Card screenshot은 README 대표 카드와 App Store 후보 카드�
 | 6 | `ScreenshotHealthMetricsOverviewScenario` | 모든 건강 지표를 출처와 함께 | `Docs/Screenshots/AppStore/raw/06_health_metrics_overview_light.png` | blocked, recapture required | HealthKit read-only와 Fitdays local-only 출처 구분 |
 | 후보 | `ScreenshotPrivacyScenario` | 전체 밤 오디오는 저장하지 않습니다 | `Docs/Screenshots/AppStore/raw/07_privacy_settings_light.png` | blocked, recapture required | 개인정보/저장소 원칙을 직접 보여주는 보조 컷 |
 | 후보 | `ScreenshotZeroEventScenario` | 이벤트가 적은 밤도 측정 맥락과 함께 | `Docs/Screenshots/AppStore/raw/08_zero_event_report_light.png` | blocked, recapture required | 이벤트 없음은 건강 상태 해석으로 표현하지 않음 |
+
+최근 visual QA 기록은 `Docs/Screenshots/VISUAL_QA_2026-05-09.md`를 확인합니다.
 
 App Store marketing capture source:
 
@@ -226,9 +228,10 @@ TestFlight blocking gate:
 
 ```sh
 Tools/Release/audit_release_copy.sh
+Tools/Docs/validate_readme_links.sh
 ```
 
-이 스크립트는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다.
+`Tools/Release/audit_release_copy.sh`는 `ReleaseReadiness`, `AppStoreReadiness`, `UIGalleryDocumentation`, `SimulatorQAScenario`, `PrivacyCopySafety`, `HealthKitReadOnlyPolicy` filter를 실행합니다. `Tools/Docs/validate_readme_links.sh`는 루트 README와 주요 sub README의 상대 링크/이미지 경로를 검증합니다.
 
 이 gate는 다음 항목을 한 번에 확인합니다.
 
@@ -240,6 +243,7 @@ Tools/Release/audit_release_copy.sh
 - 오디오 파일 write가 opt-in 이벤트 샘플 저장소와 DEBUG 짧은 수동 샘플 저장소에만 남아 있는지 확인합니다.
 - README preview screenshot이 release-approved/App Store 후보로 오해되지 않는지, App Store 후보가 visual QA 전에는 export나 marketing 문서에 승격되지 않는지 확인합니다.
 - DEBUG simulator scenario가 mock/synthetic data만 쓰고 내부 QA label을 user-facing screenshot source에 노출하지 않는지 확인합니다.
+- 루트 README가 주요 sub README를 모두 연결하고, README 내부 문서/이미지 링크가 깨지지 않는지 확인합니다.
 
 이 자동 gate는 실제 iPhone stop/background/overnight QA를 대체하지 않습니다. 자동 gate 통과 후에도 `Docs/QA_GUIDE.md`와 `Docs/REAL_DEVICE_QA_RUNBOOK.md`의 manual evidence를 별도로 기록합니다.
 

@@ -232,6 +232,7 @@ Docs/Screenshots/Debug/cropped/
 - `datasetReplay`
 - `debugTools`
 - `simulatorScenario`
+- `eventAudioStorageOff`
 
 특정 scenario만 재캡처:
 
@@ -265,7 +266,7 @@ DETAIL_SCREENSHOT_SCENARIOS=trendDashboard,reportEmpty Tools/Screenshots/capture
 
 App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합니다. 원본은 status bar를 포함한 simulator raw capture를 보존하고, 내부 검토용으로만 상하단 crop 이미지를 함께 생성합니다.
 
-현재 저장된 App Store 후보는 재캡처가 필요합니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
+2026-05-09에 App Store 후보 8개 raw source와 review-cropped 이미지를 재캡처했습니다. export 파일 생성은 확인했지만, 일부 화면에 `source`, `sample/mock` 성격의 문구와 crop 여백 검토가 남아 있어 `release-approved`로 승격하지 않습니다. 특히 홈/리포트 header에 `Simulator QA` 같은 내부 label이 남아 있으면 App Store 후보로 사용할 수 없습니다.
 
 ```bash
 Tools/Screenshots/capture_app_store_screenshots.sh

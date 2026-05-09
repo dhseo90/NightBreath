@@ -14,6 +14,7 @@
 - Dataset Replay
 - Offline Evaluation
 - Simulator QA scenarios
+- main/sub README link validation
 - iOS Debug build
 - 필요 시 Release build
 
@@ -31,6 +32,16 @@ DEBUG 빌드에서는 Simulator QA Scenario를 통해 예시 수면 세션과 ed
 - 저장 용량과 orphan 샘플 상태
 - detector diagnostic summary
 - zero-event analysis
+
+## 문서 링크 QA
+
+main README와 주요 sub README를 수정한 뒤에는 아래 gate를 실행합니다.
+
+```bash
+Tools/Docs/validate_readme_links.sh
+```
+
+루트 README의 sub README table, 문서 간 상대 링크, README에 렌더링하는 screenshot image path가 깨지면 실패합니다.
 
 ## 실제 iPhone 테스트가 필요한 경우
 

@@ -28,6 +28,7 @@ struct ReleaseReadinessGateTests {
         #expect(releaseGuide.contains("Privacy"))
         #expect(releaseGuide.contains("HealthKitReadOnlyPolicy"))
         #expect(releaseGuide.contains("Tools/Release/audit_release_copy.sh"))
+        #expect(releaseGuide.contains("Tools/Docs/validate_readme_links.sh"))
         #expect(releaseAuditScript.contains("--filter ReleaseReadiness"))
         #expect(releaseAuditScript.contains("--filter AppStoreReadiness"))
         #expect(releaseAuditScript.contains("--filter UIGalleryDocumentation"))
@@ -115,6 +116,32 @@ struct ReleaseReadinessGateTests {
         #expect(script.contains("--no-parallel"))
         for fragment in forbiddenShellFragments {
             #expect(!script.contains(fragment), "Release audit script should stay local/test-only: \(fragment)")
+        }
+    }
+
+    @Test
+    func readmeLinkValidationCoversMainAndSubReadmes() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let script = try contents("Tools/Docs/validate_readme_links.sh", root: root)
+        let rootReadme = try contents("README.md", root: root)
+        let requiredSubReadmes = [
+            "Docs/Product/README.md",
+            "Docs/UI/README.md",
+            "Docs/Architecture/README.md",
+            "Docs/Privacy/README.md",
+            "Docs/Health/README.md",
+            "Docs/QA/README.md",
+            "Docs/Release/README.md",
+        ]
+
+        #expect(script.contains("README_FILES"))
+        #expect(script.contains("ROOT_SUB_READMES"))
+        #expect(script.contains("extract_markdown_targets"))
+        #expect(script.contains("normalize_target"))
+
+        for path in requiredSubReadmes {
+            #expect(script.contains(path), "README link validation does not cover \(path)")
+            #expect(rootReadme.contains("(\(path))"), "Root README does not link \(path)")
         }
     }
 
