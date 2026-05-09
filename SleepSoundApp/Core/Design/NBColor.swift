@@ -175,9 +175,10 @@ enum NBTabBarAppearance {
   static func configure() {
     #if canImport(UIKit)
       let appearance = UITabBarAppearance()
-      appearance.configureWithOpaqueBackground()
-      appearance.backgroundColor = UIColor(NBColor.pageBackground)
-      appearance.shadowColor = UIColor(NBColor.cardStroke).withAlphaComponent(0.55)
+      appearance.configureWithDefaultBackground()
+      appearance.backgroundEffect = UIBlurEffect(style: .systemChromeMaterial)
+      appearance.backgroundColor = UIColor(NBColor.elevatedSurface).withAlphaComponent(0.72)
+      appearance.shadowColor = UIColor.separator.withAlphaComponent(0.35)
 
       let itemAppearance = UITabBarItemAppearance(style: .stacked)
       itemAppearance.normal.iconColor = UIColor(NBColor.secondaryText)
@@ -196,8 +197,8 @@ enum NBTabBarAppearance {
       let tabBar = UITabBar.appearance()
       tabBar.standardAppearance = appearance
       tabBar.scrollEdgeAppearance = appearance
-      tabBar.isTranslucent = false
-      tabBar.backgroundColor = UIColor(NBColor.pageBackground)
+      tabBar.isTranslucent = true
+      tabBar.backgroundColor = .clear
     #endif
   }
 }

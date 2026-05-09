@@ -15,6 +15,16 @@ struct SleepStartView: View {
     .navigationDestination(isPresented: $showLatestReport) {
       SleepReportView(report: appState.latestReport, events: appState.latestEvents)
     }
+    .navigationDestination(for: SleepStartDestination.self) { destination in
+      switch destination {
+      case .latestReport:
+        SleepReportView(report: appState.latestReport, events: appState.latestEvents)
+      case .latestTimeline:
+        SleepTimelineView(report: appState.latestReport, events: appState.latestEvents)
+      case .trend:
+        TrendDashboardView()
+      }
+    }
     .onChange(of: appState.isFinalizingSleepSession) { wasFinalizing, isFinalizing in
       if wasFinalizing, !isFinalizing, !appState.isRecording, appState.latestReportSource == .deviceAnalysis {
         showLatestReport = true
@@ -93,24 +103,18 @@ struct SleepStartView: View {
         }
 
         HStack(spacing: NBSpacing.md) {
-          NavigationLink {
-            SleepReportView(report: appState.latestReport, events: appState.latestEvents)
-          } label: {
+          NavigationLink(value: SleepStartDestination.latestReport) {
             Label("리포트", systemImage: "doc.text.magnifyingglass")
           }
           .buttonStyle(.nbSecondary)
 
-          NavigationLink {
-            SleepTimelineView(report: appState.latestReport, events: appState.latestEvents)
-          } label: {
+          NavigationLink(value: SleepStartDestination.latestTimeline) {
             Label("타임라인", systemImage: "list.bullet.rectangle")
           }
           .buttonStyle(.nbSecondary)
         }
 
-        NavigationLink {
-          TrendDashboardView()
-        } label: {
+        NavigationLink(value: SleepStartDestination.trend) {
           Label("수면 트렌드", systemImage: "chart.line.uptrend.xyaxis")
             .frame(maxWidth: .infinity)
         }
@@ -226,6 +230,12 @@ struct SleepStartView: View {
       "xmark.circle"
     }
   }
+}
+
+private enum SleepStartDestination: Hashable {
+  case latestReport
+  case latestTimeline
+  case trend
 }
 
 private struct GuideRow: View {

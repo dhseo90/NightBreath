@@ -43,8 +43,6 @@ struct HomeDashboardView: View {
         Label("설정", systemImage: "gearshape")
       }
     }
-    .toolbarBackground(NBColor.pageBackground, for: .tabBar)
-    .toolbarBackground(.visible, for: .tabBar)
   }
 
   private var dashboardContent: some View {

@@ -32,18 +32,24 @@ struct HealthNavigationAccessTests {
     }
 
     @Test
-    func tabBarUsesOpaqueAppBackgroundOnRealDevice() throws {
+    func tabBarUsesNativeMaterialWithoutManualSpacerOnRealDevice() throws {
         let appSource = try sourceContents("SleepSoundApp/App/SleepSoundApp.swift")
         let colorSource = try sourceContents("SleepSoundApp/Core/Design/NBColor.swift")
         let spacingSource = try sourceContents("SleepSoundApp/Core/Design/NBSpacing.swift")
 
         #expect(appSource.contains("NBTabBarAppearance.configure()"))
-        #expect(colorSource.contains("configureWithOpaqueBackground()"))
+        #expect(colorSource.contains("configureWithDefaultBackground()"))
+        #expect(colorSource.contains("UIBlurEffect(style: .systemChromeMaterial)"))
+        #expect(colorSource.contains("UIColor(NBColor.elevatedSurface).withAlphaComponent(0.72)"))
+        #expect(colorSource.contains("UIColor.separator.withAlphaComponent(0.35)"))
         #expect(colorSource.contains("tabBar.scrollEdgeAppearance = appearance"))
-        #expect(colorSource.contains("tabBar.isTranslucent = false"))
-        #expect(colorSource.contains("tabBar.backgroundColor = UIColor(NBColor.pageBackground)"))
+        #expect(colorSource.contains("tabBar.isTranslucent = true"))
+        #expect(colorSource.contains("tabBar.backgroundColor = .clear"))
         #expect(colorSource.contains("@MainActor"))
-        #expect(spacingSource.contains("static let floatingTabBarAvoidance: CGFloat = 72"))
+        #expect(spacingSource.contains("static let floatingTabBarAvoidance: CGFloat = 0"))
+        #expect(spacingSource.contains("background: Color = NBColor.pageBackground"))
+        #expect(spacingSource.contains("@ViewBuilder"))
+        #expect(spacingSource.contains("if NBSpacing.floatingTabBarAvoidance > 0"))
     }
 
     @Test
@@ -98,6 +104,10 @@ struct HealthNavigationAccessTests {
 
         #expect(contents.contains("latestResultSection"))
         #expect(contents.contains("최근 수면 결과"))
+        #expect(contents.contains("SleepStartDestination"))
+        #expect(contents.contains("NavigationLink(value: SleepStartDestination.latestReport)"))
+        #expect(contents.contains("NavigationLink(value: SleepStartDestination.latestTimeline)"))
+        #expect(contents.contains("NavigationLink(value: SleepStartDestination.trend)"))
         #expect(contents.contains("SleepReportView(report: appState.latestReport"))
         #expect(contents.contains("SleepTimelineView(report: appState.latestReport"))
         #expect(contents.contains("TrendDashboardView()"))

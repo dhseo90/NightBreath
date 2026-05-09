@@ -116,8 +116,8 @@ Core/Design 컴포넌트:
 
 주요 화면은 문서 screenshot과 실제 iPhone 사용 흐름에서 하단 floating tab bar 또는 safe area에 핵심 content가 가려지지 않도록 설계합니다.
 
-- `ScrollView` 기반 화면은 마지막 카드, CTA, summary row 아래에 충분한 bottom padding을 둡니다.
-- 하단 floating tab bar가 있는 화면은 tab bar 높이와 safe area를 고려해 content inset 또는 bottom spacer를 유지합니다.
+- `ScrollView` 기반 화면은 마지막 카드, CTA, summary row가 native tab bar나 home indicator에 가려지지 않는지 확인합니다.
+- 하단 native tab bar가 있는 화면은 SwiftUI safe area와 native material tab bar appearance를 우선 사용하고, 별도 bottom spacer가 화면에 띠처럼 보이지 않게 유지합니다.
 - screenshot 후보 화면은 홈, 수면 시작, 수면 리포트, 이벤트 타임라인, Daily Rhythm, Health Dashboard, Metric Detail, Fitdays import에서 마지막 주요 카드가 잘리지 않는지 확인합니다.
 - padding은 화면별 임시 숫자보다 기존 spacing token과 공통 container modifier를 우선 사용합니다.
 
