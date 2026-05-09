@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeDashboardView: View {
   @EnvironmentObject private var appState: AppState
   @State private var selectedTab: HomeDashboardTab = .home
+  @State private var hasAlignedHomeScrollOnAppear = false
 
   var body: some View {
     TabView(selection: $selectedTab) {
@@ -47,89 +48,100 @@ struct HomeDashboardView: View {
   }
 
   private var dashboardContent: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        scoreHeader
+    ScrollViewReader { scrollProxy in
+      ScrollView {
+        VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+          Color.clear
+            .frame(height: 1)
+            .id(HomeDashboardScrollAnchor.top)
+            .accessibilityHidden(true)
 
-        actionLinks
+          scoreHeader
 
-        LazyVGrid(
-          columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium
-        ) {
-          NBMetricCard(
-            title: "수면 소리 점수",
-            value: "\(appState.latestReport.sleepSoundScore)",
-            unit: "점",
-            subtitle: "수면 중 소리 기반 지표",
-            systemImage: "waveform.path.ecg",
-            tint: scoreTint,
-            status: scoreStatus,
-            accessibilityLabel: "수면 소리 점수 \(appState.latestReport.sleepSoundScore)점"
-          )
-          NBMetricCard(
-            title: "측정 품질",
-            value: appState.latestReport.measurementQuality.displayName,
-            subtitle: "오디오 커버리지 \(percentString(appState.latestReport.audioCoverageRatio))",
-            systemImage: "checkmark.seal",
-            tint: measurementQualityTint,
-            status: measurementQualityStatus,
-            accessibilityLabel:
-              "측정 품질 \(appState.latestReport.measurementQuality.displayName), 오디오 커버리지 \(percentString(appState.latestReport.audioCoverageRatio))"
-          )
-          NBMetricCard(
-            title: "실제 오디오 수신",
-            value: SleepFormatters.compactDurationString(appState.latestReport.receivedAudioDuration),
-            subtitle: "분석에 들어온 마이크 입력",
-            systemImage: "waveform",
-            tint: NBColor.breath
-          )
-          NBMetricCard(
-            title: "감지 이벤트 시간",
-            value: SleepFormatters.compactDurationString(displayDetectedEventDuration),
-            subtitle: "소리 이벤트 후보 구간 합계",
-            systemImage: "waveform.and.magnifyingglass",
-            tint: NBColor.audioTint
-          )
-          NBMetricCard(
-            title: "녹음 커버리지",
-            value: percentString(appState.latestReport.audioCoverageRatio),
-            subtitle: coverageDescription,
-            systemImage: "gauge.with.dots.needle.67percent",
-            tint: coverageTint,
-            status: coverageStatus
-          )
-          NBMetricCard(
-            title: "이벤트 오디오 샘플",
-            value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
-            subtitle: eventAudioStorageSummary,
-            systemImage: "waveform.circle",
-            tint: appState.isEventAudioSampleStorageEnabled ? NBColor.audioTint : NBColor.privacy,
-            status: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy
+          actionLinks
+
+          LazyVGrid(
+            columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium
+          ) {
+            NBMetricCard(
+              title: "수면 소리 점수",
+              value: "\(appState.latestReport.sleepSoundScore)",
+              unit: "점",
+              subtitle: "수면 중 소리 기반 지표",
+              systemImage: "waveform.path.ecg",
+              tint: scoreTint,
+              status: scoreStatus,
+              accessibilityLabel: "수면 소리 점수 \(appState.latestReport.sleepSoundScore)점"
+            )
+            NBMetricCard(
+              title: "측정 품질",
+              value: appState.latestReport.measurementQuality.displayName,
+              subtitle: "오디오 커버리지 \(percentString(appState.latestReport.audioCoverageRatio))",
+              systemImage: "checkmark.seal",
+              tint: measurementQualityTint,
+              status: measurementQualityStatus,
+              accessibilityLabel:
+                "측정 품질 \(appState.latestReport.measurementQuality.displayName), 오디오 커버리지 \(percentString(appState.latestReport.audioCoverageRatio))"
+            )
+            NBMetricCard(
+              title: "실제 오디오 수신",
+              value: SleepFormatters.compactDurationString(appState.latestReport.receivedAudioDuration),
+              subtitle: "분석에 들어온 마이크 입력",
+              systemImage: "waveform",
+              tint: NBColor.breath
+            )
+            NBMetricCard(
+              title: "감지 이벤트 시간",
+              value: SleepFormatters.compactDurationString(displayDetectedEventDuration),
+              subtitle: "소리 이벤트 후보 구간 합계",
+              systemImage: "waveform.and.magnifyingglass",
+              tint: NBColor.audioTint
+            )
+            NBMetricCard(
+              title: "녹음 커버리지",
+              value: percentString(appState.latestReport.audioCoverageRatio),
+              subtitle: coverageDescription,
+              systemImage: "gauge.with.dots.needle.67percent",
+              tint: coverageTint,
+              status: coverageStatus
+            )
+            NBMetricCard(
+              title: "이벤트 오디오 샘플",
+              value: appState.isEventAudioSampleStorageEnabled ? "켜짐" : "꺼짐",
+              subtitle: eventAudioStorageSummary,
+              systemImage: "waveform.circle",
+              tint: appState.isEventAudioSampleStorageEnabled ? NBColor.audioTint : NBColor.privacy,
+              status: appState.isEventAudioSampleStorageEnabled ? .debug : .privacy
+            )
+          }
+
+          recentEventsSection
+          eventAudioStorageSection
+
+          NBReportSection(title: "최근 수면 소리 점수", subtitle: "저장된 리포트가 쌓이면 최근 흐름을 더 쉽게 볼 수 있습니다.", systemImage: "chart.xyaxis.line") {
+            TrendChartView(scores: trendScores)
+              .frame(height: 160)
+          }
+
+          NBPrivacyNoticeCard(
+            title: "온디바이스 분석",
+            messages: [
+              "분석은 iPhone 안에서 수행됩니다.",
+              "서버로 전송하지 않습니다.",
+              "원본 전체 오디오는 저장하지 않습니다.",
+            ],
+            systemImage: "iphone.gen3.radiowaves.left.and.right"
           )
         }
-
-        recentEventsSection
-        eventAudioStorageSection
-
-        NBReportSection(title: "최근 수면 소리 점수", subtitle: "저장된 리포트가 쌓이면 최근 흐름을 더 쉽게 볼 수 있습니다.", systemImage: "chart.xyaxis.line") {
-          TrendChartView(scores: trendScores)
-            .frame(height: 160)
-        }
-
-        NBPrivacyNoticeCard(
-          title: "온디바이스 분석",
-          messages: [
-            "분석은 iPhone 안에서 수행됩니다.",
-            "서버로 전송하지 않습니다.",
-            "원본 전체 오디오는 저장하지 않습니다.",
-          ],
-          systemImage: "iphone.gen3.radiowaves.left.and.right"
-        )
+        .padding(NBSpacing.screenHorizontal)
       }
-      .padding(NBSpacing.screenHorizontal)
+      .defaultScrollAnchor(.top)
+      .background(NBColor.pageBackground)
+      .nbAvoidFloatingTabBar(background: NBColor.pageBackground)
+      .onAppear {
+        resetHomeScrollIfNeeded(with: scrollProxy)
+      }
     }
-    .background(NBColor.pageBackground)
-    .nbAvoidFloatingTabBar(background: NBColor.pageBackground)
   }
 
   private var scoreHeader: some View {
@@ -489,6 +501,23 @@ struct HomeDashboardView: View {
   private func percentString(_ ratio: Double) -> String {
     String(format: "%.0f%%", min(max(ratio, 0), 1) * 100)
   }
+
+  private func resetHomeScrollIfNeeded(with proxy: ScrollViewProxy) {
+    guard !hasAlignedHomeScrollOnAppear else {
+      return
+    }
+
+    hasAlignedHomeScrollOnAppear = true
+    DispatchQueue.main.async {
+      withAnimation(.easeOut(duration: 0.15)) {
+        proxy.scrollTo(HomeDashboardScrollAnchor.top, anchor: .top)
+      }
+    }
+  }
+}
+
+private enum HomeDashboardScrollAnchor: Hashable {
+  case top
 }
 
 private enum HomeDashboardTab: Hashable {

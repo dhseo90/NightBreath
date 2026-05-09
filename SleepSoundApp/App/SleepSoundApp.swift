@@ -1,12 +1,17 @@
 import SwiftUI
 
 @main
+@MainActor
 struct SleepSoundApp: App {
     @StateObject private var appState = AppState()
     #if DEBUG
     private let launchScreenshotScenario = ScreenshotScenario.launchArgumentScenario()
     private let launchScreenshotSurface = ScreenshotSurface.launchArgumentSurface()
     #endif
+
+    init() {
+        NBTabBarAppearance.configure()
+    }
 
     var body: some Scene {
         WindowGroup {

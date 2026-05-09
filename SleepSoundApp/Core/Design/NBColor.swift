@@ -169,3 +169,35 @@ enum NBColor {
     }
   #endif
 }
+
+enum NBTabBarAppearance {
+  @MainActor
+  static func configure() {
+    #if canImport(UIKit)
+      let appearance = UITabBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = UIColor(NBColor.pageBackground)
+      appearance.shadowColor = UIColor(NBColor.cardStroke).withAlphaComponent(0.55)
+
+      let itemAppearance = UITabBarItemAppearance(style: .stacked)
+      itemAppearance.normal.iconColor = UIColor(NBColor.secondaryText)
+      itemAppearance.normal.titleTextAttributes = [
+        .foregroundColor: UIColor(NBColor.secondaryText)
+      ]
+      itemAppearance.selected.iconColor = UIColor(NBColor.accent)
+      itemAppearance.selected.titleTextAttributes = [
+        .foregroundColor: UIColor(NBColor.accent)
+      ]
+
+      appearance.stackedLayoutAppearance = itemAppearance
+      appearance.inlineLayoutAppearance = itemAppearance
+      appearance.compactInlineLayoutAppearance = itemAppearance
+
+      let tabBar = UITabBar.appearance()
+      tabBar.standardAppearance = appearance
+      tabBar.scrollEdgeAppearance = appearance
+      tabBar.isTranslucent = false
+      tabBar.backgroundColor = UIColor(NBColor.pageBackground)
+    #endif
+  }
+}

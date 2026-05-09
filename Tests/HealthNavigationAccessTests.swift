@@ -19,6 +19,34 @@ struct HealthNavigationAccessTests {
     }
 
     @Test
+    func homeDashboardInitialScrollStartsAtScoreHeader() throws {
+        let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HomeDashboardView.swift")
+
+        let scoreHeader = try #require(contents.range(of: "scoreHeader")?.lowerBound)
+        let actionLinks = try #require(contents.range(of: "actionLinks")?.lowerBound)
+        #expect(scoreHeader < actionLinks)
+        #expect(contents.contains("ScrollViewReader"))
+        #expect(contents.contains(".defaultScrollAnchor(.top)"))
+        #expect(contents.contains("HomeDashboardScrollAnchor.top"))
+        #expect(contents.contains("resetHomeScrollIfNeeded(with: scrollProxy)"))
+    }
+
+    @Test
+    func tabBarUsesOpaqueAppBackgroundOnRealDevice() throws {
+        let appSource = try sourceContents("SleepSoundApp/App/SleepSoundApp.swift")
+        let colorSource = try sourceContents("SleepSoundApp/Core/Design/NBColor.swift")
+        let spacingSource = try sourceContents("SleepSoundApp/Core/Design/NBSpacing.swift")
+
+        #expect(appSource.contains("NBTabBarAppearance.configure()"))
+        #expect(colorSource.contains("configureWithOpaqueBackground()"))
+        #expect(colorSource.contains("tabBar.scrollEdgeAppearance = appearance"))
+        #expect(colorSource.contains("tabBar.isTranslucent = false"))
+        #expect(colorSource.contains("tabBar.backgroundColor = UIColor(NBColor.pageBackground)"))
+        #expect(colorSource.contains("@MainActor"))
+        #expect(spacingSource.contains("static let floatingTabBarAvoidance: CGFloat = 72"))
+    }
+
+    @Test
     func healthDashboardTabProvidesRecentDateShortcutWithoutPermissionRequest() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
 
