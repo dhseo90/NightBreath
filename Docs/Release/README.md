@@ -54,6 +54,7 @@ App Store 문구는 웰니스/개인 참고용 표현을 사용합니다. 질병
 | [APP_STORE_CONNECT_PREVIEW_QA](../APP_STORE_CONNECT_PREVIEW_QA.md) | App Store Connect upload preview 수동 QA runbook |
 | [APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE](../APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md) | App Store Connect 실제 화면 전 로컬 대체 QA evidence |
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | ko-KR/en-US product page copy 후보 |
+| [APP_STORE_SUBMISSION_LOCAL_RECHECK](../APP_STORE_SUBMISSION_LOCAL_RECHECK.md) | 제출 후보 version/build, release note, metadata 로컬 재점검 |
 | [RELEASE_READINESS_EVIDENCE](RELEASE_READINESS_EVIDENCE.md) | screenshot/copy/gate evidence summary |
 | [REVIEW_UPLOAD_SET](../REVIEW_UPLOAD_SET.md) | review/upload 후보 묶음 |
 | [TESTFLIGHT_INTERNAL_TEST_PLAN](../TESTFLIGHT_INTERNAL_TEST_PLAN.md) | TestFlight 내부 테스트 계획 |

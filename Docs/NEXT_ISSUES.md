@@ -22,6 +22,7 @@
 - App Store screenshot marketing visual은 simulator 기준 `release-approved`입니다. 공개용 screenshot surface/crop 기준, contact sheet evidence, release-approved gate, export dimension QA를 통과했습니다.
 - App Store Connect용 screenshot size/export 절차와 manifest validation gate 정리 완료. 제출 직전 App Store Connect 화면에서 업로드/미리보기 최종 확인 필요
 - App Store product page copy 최종 다듬기 완료. 제출 직전 App Store Connect 화면에서 글자 수/locale 최종 확인 필요
+- 제출 후보 build number, release note, App Store metadata local recheck 완료. 실제 ASC app record/bundle identifier와 candidate build 선택은 제출 전 수동 확인 필요
 - `Docs/APP_RELEASE_GUIDE.md` 최신화
 - `Docs/Release/RELEASE_READINESS_EVIDENCE.md`로 screenshot/export/hard gate/copy 상태를 한 장으로 통합 완료
 - Release readiness 자동 gate 테스트 추가 완료. TestFlight 후보 전 반복 실행 필요

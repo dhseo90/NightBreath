@@ -2,6 +2,14 @@
 
 이 문서는 NightBreath / 밤숨의 App Store product page 후보 문구를 정리합니다. 제출 직전 App Store Connect 화면에서 글자 수와 screenshot 순서를 다시 확인하되, copy의 제품 방향과 안전 경계는 이 문서를 기준으로 유지합니다.
 
+## Candidate Version / Build
+
+| Field | Candidate | Notes |
+| --- | --- | --- |
+| Marketing Version | 1.0 | `MARKETING_VERSION` local recheck passed |
+| Build Number | 1 | `CURRENT_PROJECT_VERSION` local recheck passed |
+| App Store / TestFlight selected build | not selected | 실제 ASC/TestFlight 후보 선택은 수동 확인 필요 |
+
 ## Primary Locale: ko-KR
 
 ### Metadata
@@ -68,6 +76,12 @@ Privacy comes first.
 - Short event audio snippets are local only and require an explicit setting.
 
 NightBreath does not determine health conditions or recommend medical action. Sleep sound and health metrics may be shown together, but the app does not claim cause and effect. Use reports for wellness and personal reference.
+```
+
+### What's New Candidate
+
+```text
+Prepared screenshot candidates, app icon checks, internal TestFlight criteria, and local-first privacy/HealthKit read-only review docs.
 ```
 
 ## Screenshot Order

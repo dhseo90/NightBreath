@@ -199,6 +199,10 @@ struct AppStoreReadinessTests {
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md"),
             encoding: .utf8
         )
+        let submissionLocalRecheck = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md"),
+            encoding: .utf8
+        )
         let reviewAudit = try String(
             contentsOf: repositoryRoot.appendingPathComponent("Docs/APP_REVIEW_AUDIT.md"),
             encoding: .utf8
@@ -216,13 +220,17 @@ struct AppStoreReadinessTests {
 
         #expect(productCopy.contains("Primary Locale: ko-KR"))
         #expect(productCopy.contains("Secondary Locale: en-US"))
+        #expect(productCopy.contains("Candidate Version / Build"))
         #expect(productCopy.contains("| App Name | 밤숨 |"))
         #expect(productCopy.contains("| App Name | NightBreath |"))
+        #expect(productCopy.contains("| Marketing Version | 1.0 |"))
+        #expect(productCopy.contains("| Build Number | 1 |"))
         #expect(productCopy.contains(koreanSubtitle))
         #expect(productCopy.contains(koreanPromotionalText))
         #expect(productCopy.contains(koreanKeywords))
         #expect(productCopy.contains(englishSubtitle))
         #expect(productCopy.contains(englishKeywords))
+        #expect(productCopy.contains("Prepared screenshot candidates, app icon checks"))
         #expect(koreanSubtitle.count <= 30)
         #expect(koreanPromotionalText.count <= 170)
         #expect(koreanKeywords.count <= 100)
@@ -235,6 +243,7 @@ struct AppStoreReadinessTests {
         #expect(productCopy.contains("공개 검수용 simulator scenario data"))
         #expect(releaseGuide.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
         #expect(releaseGuide.contains("Docs/APP_STORE_CONNECT_PREVIEW_QA.md"))
+        #expect(releaseGuide.contains("Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md"))
         #expect(ascPreviewQA.contains("Manual QA Checklist"))
         #expect(ascPreviewQA.contains("ASC preview QA date"))
         #expect(ascPreviewQA.contains("App Store Connect Manual Preview Result Entry"))
@@ -246,8 +255,16 @@ struct AppStoreReadinessTests {
         #expect(ascLocalEvidence.contains("88 rows"))
         #expect(ascLocalEvidence.contains("11 release-approved size rows"))
         #expect(ascLocalEvidence.contains("hold until ASC manual preview"))
+        #expect(submissionLocalRecheck.contains("MARKETING_VERSION | 1.0"))
+        #expect(submissionLocalRecheck.contains("CURRENT_PROJECT_VERSION | 1"))
+        #expect(submissionLocalRecheck.contains("CFBundleShortVersionString | `$(MARKETING_VERSION)`"))
+        #expect(submissionLocalRecheck.contains("CFBundleVersion | `$(CURRENT_PROJECT_VERSION)`"))
+        #expect(submissionLocalRecheck.contains("actual ASC/TestFlight candidate build | not selected"))
+        #expect(submissionLocalRecheck.contains("local bundle identifier | `com.local.NightBreath`"))
+        #expect(submissionLocalRecheck.contains("ASC bundle id/app record must be selected before archive upload"))
         #expect(reviewAudit.contains("Docs/APP_STORE_PRODUCT_PAGE_COPY.md"))
         #expect(nextIssues.contains("product page copy 최종 다듬기 완료"))
+        #expect(nextIssues.contains("제출 후보 build number, release note, App Store metadata local recheck 완료"))
 
         let forbiddenPhrases = [
             "수면무호흡증 " + "진단",

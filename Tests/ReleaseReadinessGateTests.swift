@@ -45,6 +45,9 @@ struct ReleaseReadinessGateTests {
         #expect(releaseEvidence.contains("simulator `release-approved`"))
         #expect(releaseEvidence.contains("App Store Connect upload preview"))
         #expect(releaseEvidence.contains("local substitute passed; ASC manual pending"))
+        #expect(releaseEvidence.contains("Submission Candidate Local Recheck"))
+        #expect(releaseEvidence.contains("Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md"))
+        #expect(releaseEvidence.contains("ASC build selection pending"))
         #expect(releaseEvidence.contains("App Store Connect Manual Preview Result Entry"))
         #expect(releaseEvidence.contains("ASC preview QA date"))
         #expect(releaseEvidence.contains("not run; local substitute 2026-05-09"))
@@ -105,6 +108,7 @@ struct ReleaseReadinessGateTests {
             "Docs/Screenshots/README.md",
             "Docs/APP_STORE_CONNECT_PREVIEW_QA.md",
             "Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md",
+            "Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md",
             "Docs/UI_GALLERY.md",
             "Docs/UI_SCREEN_MAP.md",
             "Docs/APP_RELEASE_GUIDE.md",

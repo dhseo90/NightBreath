@@ -23,6 +23,15 @@
 | Screenshot headline | aligned | App Store 후보 8장 headline이 `ScreenshotScenario`와 product page screenshot order에 연결됨 |
 | App Store Connect upload preview | local substitute passed; ASC manual pending | `Docs/APP_STORE_CONNECT_LOCAL_PREVIEW_EVIDENCE.md`에서 export/order/copy 대체 QA 통과. Codex 환경에서 로그인된 App Store Connect upload 화면은 확인하지 않았음 |
 
+## Submission Candidate Local Recheck
+
+| 항목 | 상태 | evidence |
+| --- | --- | --- |
+| version/build | local recheck passed; ASC build selection pending | `Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md`에서 `MARKETING_VERSION` 1.0, `CURRENT_PROJECT_VERSION` 1, Info.plist mapping 확인 |
+| release note | local recheck passed; ASC locale entry pending | ko-KR/en-US What's New 후보를 `Docs/APP_STORE_PRODUCT_PAGE_COPY.md`와 local recheck 문서에 정리 |
+| product metadata | local recheck passed; ASC field preview pending | ko-KR/en-US app name, subtitle, promotional text, keywords 후보 정합성 확인 |
+| bundle/app record | manual pending | local bundle identifier는 `com.local.NightBreath`; ASC app record와 bundle identifier 선택은 실제 제출 전 필요 |
+
 ## App Store Connect Manual Preview Result Entry
 
 아래 표는 실제 App Store Connect upload preview를 확인한 뒤 수동으로 채웁니다. 계정 이메일, 개인 이름, 실제 사용자 데이터, 실제 local path는 기록하지 않습니다. 상세 절차는 `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`를 기준으로 합니다.
@@ -88,6 +97,7 @@
 - 실제 iPhone foreground/background/overnight QA. Simulator/local substitute는 통과했지만 실제 기기 evidence는 미확인
 - 실제 HealthKit 권한 조합과 데이터 없음/일부 허용 상태 확인. Simulator/mock state substitute는 통과했지만 실제 permission dialog는 미확인
 - 실제 Fitdays export/share 노출 확인. Local import substitute는 통과했지만 실제 Fitdays app export menu는 미확인
+- App Store Connect에서 실제 app record, bundle identifier, TestFlight/App Store candidate build 선택. 로컬 version/build/release note/metadata 재점검은 통과했지만 실제 ASC 선택은 미확인
 - App Store Connect upload 화면에서 screenshot 순서, 잘림, locale copy 최종 preview. 로컬 대체 QA는 통과했지만 실제 ASC 화면은 미확인
 - TestFlight 내부 테스트 실행과 private evidence 기록. 로컬 preflight와 repository 밖 draft 생성은 통과했지만 실제 TestFlight 설치/실행은 실기기 필요
 

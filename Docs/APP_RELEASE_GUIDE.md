@@ -63,6 +63,7 @@ Product page의 primary/secondary locale 후보 문구는 `Docs/APP_STORE_PRODUC
 - en-US secondary locale을 사용할 경우 한국어 copy와 개인정보/HealthKit/read-only 경계가 어긋나지 않는지 확인합니다.
 - screenshot headline과 product description이 서로 다른 기능 범위를 주장하지 않는지 확인합니다.
 - 실제 upload preview 확인 절차와 evidence template은 `Docs/APP_STORE_CONNECT_PREVIEW_QA.md`를 따릅니다.
+- 제출 후보 version/build, release note, metadata 로컬 재점검은 `Docs/APP_STORE_SUBMISSION_LOCAL_RECHECK.md`를 따릅니다.
 
 ## App Store Screenshot Guide
 
@@ -284,6 +285,7 @@ Reports are for personal wellness reference and are not intended for medical dia
 - 실제 기기 홈 화면/Settings/TestFlight 표면에서 최종 앱 아이콘 작은 크기 확인
 - App Store marketing screenshot final
 - App Store product page copy 제출 직전 글자 수/locale 확인
+- 제출 후보 build number, release note, App Store metadata 실제 ASC 화면 확인
 - TestFlight 내부 테스트
 - Legal/App Review audit 최종 재확인
 - 실제 iPhone overnight 안정성 확인
