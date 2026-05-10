@@ -105,7 +105,7 @@ public actor SleepAudioProcessingPipeline {
     }
 
     public func process(chunk: AudioChunk) -> SleepAudioProcessingSnapshot {
-        metrics.recordReceived(chunk: chunk)
+        metrics.recordReceived(chunk: chunk, at: chunk.startedAt)
         let detection = analyzer.detectOutputsWithFeatures(from: chunk, updating: &metrics)
         diagnosticsCollector.recordModelFallbackIfNeeded(
             backend: analyzer.detectorBackend,
@@ -176,6 +176,9 @@ public actor SleepAudioProcessingPipeline {
         }
         if let stopDiagnosticsSummary = metrics.stopDiagnosticsSummary {
             diagnosticsCollector.addNote("Capture stop diagnostics: \(stopDiagnosticsSummary)")
+        }
+        if metrics.audioCoverageRatio < 0.85 {
+            diagnosticsCollector.addNote("Audio coverage diagnostics: \(metrics.coverageDiagnosticsSummary)")
         }
         return diagnosticsCollector.finalize(endedAt: endedAt, metrics: metrics)
     }

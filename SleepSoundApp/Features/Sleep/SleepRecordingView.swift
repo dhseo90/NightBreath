@@ -65,6 +65,7 @@ struct SleepRecordingView: View {
         if appState.sleepRecordingPhase != .recording {
           ProgressView(appState.sleepRecordingPhase == .stoppingCapture ? "녹음을 멈추는 중입니다" : "잠시만 기다려 주세요")
             .font(.callout)
+          finalizationStatus
         }
 
         audioCaptureStatus
@@ -85,6 +86,16 @@ struct SleepRecordingView: View {
         }
       }
     }
+  }
+
+  private var finalizationStatus: some View {
+    NBInlineStatus(
+      title: appState.sleepRecordingPhase.title,
+      detail: appState.audioCaptureMessage ?? appState.sleepRecordingPhase.message,
+      kind: .privacy,
+      systemImage: appState.sleepRecordingPhase == .reportReady ? "checkmark.circle" : "hourglass",
+      isLoading: appState.sleepRecordingPhase != .reportReady
+    )
   }
 
   private func measurementStatus(session: SleepSession, asOf date: Date) -> some View {

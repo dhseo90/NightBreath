@@ -47,12 +47,14 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
     public var totalReceivedFrameCount: Int64
     public var totalAnalyzedFrameCount: Int64
     public var sampleRate: Double
+    public var firstChunkReceivedAt: Date?
     public var lastChunkReceivedAt: Date?
     public var lastChunkAnalyzedAt: Date?
     public var interruptionCount: Int
     public var captureErrorCount: Int
     public var longestChunkGapSeconds: TimeInterval
     public var currentChunkGapSeconds: TimeInterval
+    public var firstAudioInputDelaySeconds: TimeInterval
     public var audioCoverageRatio: Double
     public var stopButtonTappedAt: Date?
     public var stopRequestedAt: Date?
@@ -86,12 +88,14 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         totalReceivedFrameCount: Int64 = 0,
         totalAnalyzedFrameCount: Int64 = 0,
         sampleRate: Double = 0,
+        firstChunkReceivedAt: Date? = nil,
         lastChunkReceivedAt: Date? = nil,
         lastChunkAnalyzedAt: Date? = nil,
         interruptionCount: Int = 0,
         captureErrorCount: Int = 0,
         longestChunkGapSeconds: TimeInterval = 0,
         currentChunkGapSeconds: TimeInterval = 0,
+        firstAudioInputDelaySeconds: TimeInterval = 0,
         audioCoverageRatio: Double = 0,
         stopButtonTappedAt: Date? = nil,
         stopRequestedAt: Date? = nil,
@@ -120,12 +124,14 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         self.totalReceivedFrameCount = max(0, totalReceivedFrameCount)
         self.totalAnalyzedFrameCount = max(0, totalAnalyzedFrameCount)
         self.sampleRate = Self.sanitizedSampleRate(sampleRate)
+        self.firstChunkReceivedAt = firstChunkReceivedAt
         self.lastChunkReceivedAt = lastChunkReceivedAt
         self.lastChunkAnalyzedAt = lastChunkAnalyzedAt
         self.interruptionCount = max(0, interruptionCount)
         self.captureErrorCount = max(0, captureErrorCount)
         self.longestChunkGapSeconds = Self.sanitizedSeconds(longestChunkGapSeconds)
         self.currentChunkGapSeconds = Self.sanitizedSeconds(currentChunkGapSeconds)
+        self.firstAudioInputDelaySeconds = Self.sanitizedSeconds(firstAudioInputDelaySeconds)
         self.audioCoverageRatio = Self.clampedRatio(audioCoverageRatio)
         self.stopButtonTappedAt = stopButtonTappedAt
         self.stopRequestedAt = stopRequestedAt
@@ -156,12 +162,14 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         totalReceivedFrameCount = 0
         totalAnalyzedFrameCount = 0
         sampleRate = 0
+        firstChunkReceivedAt = nil
         lastChunkReceivedAt = nil
         lastChunkAnalyzedAt = nil
         interruptionCount = 0
         captureErrorCount = 0
         longestChunkGapSeconds = 0
         currentChunkGapSeconds = 0
+        firstAudioInputDelaySeconds = 0
         audioCoverageRatio = 0
         stopButtonTappedAt = nil
         stopRequestedAt = nil
@@ -187,19 +195,25 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
 
     public mutating func recordReceived(chunk: AudioChunk, at date: Date = Date()) {
         refreshTiming(at: date)
+        let chunkAudioSeconds = audioSeconds(for: chunk)
 
         if let lastChunkReceivedAt {
-            let gap = max(0, date.timeIntervalSince(lastChunkReceivedAt) - audioSeconds(for: chunk))
+            let gap = max(0, date.timeIntervalSince(lastChunkReceivedAt) - chunkAudioSeconds)
             currentChunkGapSeconds = gap
             longestChunkGapSeconds = max(longestChunkGapSeconds, gap)
         } else {
-            currentChunkGapSeconds = 0
+            firstChunkReceivedAt = date
+            firstAudioInputDelaySeconds = Self.sanitizedSeconds(
+                date.timeIntervalSince(captureStartedAt ?? date) - chunkAudioSeconds
+            )
+            currentChunkGapSeconds = firstAudioInputDelaySeconds
+            longestChunkGapSeconds = max(longestChunkGapSeconds, firstAudioInputDelaySeconds)
         }
 
         receivedChunkCount += 1
         totalReceivedFrameCount += Int64(chunk.frameCount)
         sampleRate = sampleRate > 0 ? sampleRate : Self.sanitizedSampleRate(chunk.sampleRate)
-        receivedAudioSeconds += audioSeconds(for: chunk)
+        receivedAudioSeconds += chunkAudioSeconds
         lastChunkReceivedAt = date
         refreshTiming(at: date)
     }
@@ -318,6 +332,11 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
            lastChunkReceivedAt == nil || otherLastChunkReceivedAt > lastChunkReceivedAt! {
             lastChunkReceivedAt = otherLastChunkReceivedAt
         }
+        if let otherFirstChunkReceivedAt = other.firstChunkReceivedAt,
+           firstChunkReceivedAt == nil || otherFirstChunkReceivedAt < firstChunkReceivedAt! {
+            firstChunkReceivedAt = otherFirstChunkReceivedAt
+        }
+        firstAudioInputDelaySeconds = max(firstAudioInputDelaySeconds, other.firstAudioInputDelaySeconds)
         refreshTiming(at: Date())
     }
 
@@ -337,6 +356,34 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         }
         if let forceStopReason {
             parts.append("forceStop=\(forceStopReason)")
+        }
+
+        return parts.joined(separator: ", ")
+    }
+
+    public var missingAudioSeconds: TimeInterval {
+        Self.sanitizedSeconds(sessionElapsedSeconds - receivedAudioSeconds)
+    }
+
+    public var coverageDiagnosticsSummary: String {
+        var parts = [
+            "session=\(Self.shortSeconds(sessionElapsedSeconds))s",
+            "received=\(Self.shortSeconds(receivedAudioSeconds))s",
+            "missing=\(Self.shortSeconds(missingAudioSeconds))s",
+            "coverage=\(Self.percent(audioCoverageRatio))"
+        ]
+
+        if firstAudioInputDelaySeconds > 1 {
+            parts.append("firstInputDelay=\(Self.shortSeconds(firstAudioInputDelaySeconds))s")
+        }
+        if longestChunkGapSeconds > 1 {
+            parts.append("longestGap=\(Self.shortSeconds(longestChunkGapSeconds))s")
+        }
+        if interruptionCount > 0 {
+            parts.append("interruptions=\(interruptionCount)")
+        }
+        if captureErrorCount > 0 {
+            parts.append("captureErrors=\(captureErrorCount)")
         }
 
         return parts.joined(separator: ", ")
@@ -404,6 +451,10 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
 
     private static func shortSeconds(_ value: TimeInterval) -> String {
         String(format: "%.2f", sanitizedSeconds(value))
+    }
+
+    private static func percent(_ value: Double) -> String {
+        String(format: "%.1f%%", clampedRatio(value) * 100)
     }
 
     private static func clampedRatio(_ value: Double) -> Double {

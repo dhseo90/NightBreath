@@ -69,9 +69,12 @@ public extension SleepAnalyzer {
         var features: [AudioFeatures] = []
         var rawOutputs: [DetectorOutput] = []
         var rejectedCountByReason: [RejectReason: Int] = [:]
+        if let firstChunk = chunks.first {
+            metrics.start(at: firstChunk.startedAt)
+        }
 
         for chunk in chunks {
-            metrics.recordReceived(chunk: chunk)
+            metrics.recordReceived(chunk: chunk, at: chunk.startedAt)
             let detection = detectOutputsWithFeatures(from: chunk, updating: &metrics)
             features.append(detection.features)
             rawOutputs.append(contentsOf: detection.outputs)

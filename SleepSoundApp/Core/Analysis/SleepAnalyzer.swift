@@ -84,7 +84,7 @@ public struct SleepAnalyzer: SleepAnalyzing, Sendable {
   ) -> (features: AudioFeatures, outputs: [DetectorOutput]) {
     let features = extractor.extractFeatures(from: chunk)
     let outputs = detector.detect(features: features)
-    metrics.recordAnalyzed(chunk: chunk)
+    metrics.recordAnalyzed(chunk: chunk, at: chunk.startedAt)
     return (features, outputs)
   }
 

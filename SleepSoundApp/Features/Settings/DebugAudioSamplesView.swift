@@ -35,6 +35,7 @@ struct DebugAudioSamplesView: View {
           ForEach(viewModel.records) { record in
             DebugAudioSampleRow(
               record: record,
+              isLinked: appState.isEventAudioSnippetLinked(fileName: record.fileName),
               isPlaying: viewModel.playingFileName == record.fileName
             ) {
               viewModel.play(record)
@@ -66,6 +67,28 @@ struct DebugAudioSamplesView: View {
         Text("연결되지 않은 샘플은 리포트 이벤트와 매칭되지 않은 짧은 로컬 오디오입니다. DEBUG 분석용으로만 확인하세요.")
           .font(.footnote)
           .foregroundStyle(.secondary)
+
+        Button {
+          appState.cleanupOrphanEventAudioSamples()
+          viewModel.refresh()
+        } label: {
+          Label("연결되지 않은 샘플 정리", systemImage: "link.badge.minus")
+        }
+        .buttonStyle(.nbSecondary)
+
+        Button {
+          appState.cleanupMissingEventAudioReferences()
+          viewModel.refresh()
+        } label: {
+          Label("파일 없는 참조 정리", systemImage: "waveform.slash")
+        }
+        .buttonStyle(.nbSecondary)
+
+        if let message = appState.eventAudioStorageMessage {
+          Text(message)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
       }
     }
     .navigationTitle("DEBUG 오디오 샘플")
@@ -82,6 +105,7 @@ struct DebugAudioSamplesView: View {
 
 private struct DebugAudioSampleRow: View {
   let record: EventAudioSnippetFileRecord
+  let isLinked: Bool
   let isPlaying: Bool
   let onPlay: () -> Void
   let onDelete: () -> Void
@@ -95,8 +119,15 @@ private struct DebugAudioSampleRow: View {
           .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 4) {
-          Text(record.isDebugPreview ? "DEBUG 미리듣기" : "이벤트 오디오 샘플")
-            .font(.subheadline.weight(.semibold))
+          VStack(alignment: .leading, spacing: 4) {
+            Text(record.isDebugPreview ? "DEBUG 미리듣기" : "이벤트 오디오 샘플")
+              .font(.subheadline.weight(.semibold))
+            NBStatusBadge(
+              isLinked ? "이벤트 연결됨" : "연결되지 않음",
+              kind: isLinked ? .good : .caution,
+              systemImage: isLinked ? "link" : "link.badge.plus"
+            )
+          }
           Text(detailText)
             .font(.caption)
             .foregroundStyle(NBColor.secondaryText)

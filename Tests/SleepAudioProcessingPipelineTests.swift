@@ -144,6 +144,47 @@ struct SleepAudioProcessingPipelineTests {
         #expect(diagnostics.eventAudioSampleStorageEnabled == false)
     }
 
+    @Test
+    func lowCoverageDiagnosticsUseAudioChunkTiming() async throws {
+        let sessionId = UUID()
+        let startedAt = Date(timeIntervalSince1970: 40_000)
+        let analyzer = DetectorTuningProfile.balanced.configuration.makeSleepAnalyzer()
+        let pipeline = SleepAudioProcessingPipeline(
+            sessionId: sessionId,
+            startedAt: startedAt,
+            analyzer: analyzer,
+            detectorBackend: analyzer.detectorBackend.displayName,
+            modelInstalled: analyzer.isModelInstalled,
+            thresholdsSnapshot: analyzer.thresholdsSnapshot,
+            tuningProfile: DetectorTuningProfile.balanced.displayName,
+            eventAudioSampleStorageEnabled: false
+        )
+
+        _ = await pipeline.process(
+            chunk: makeQuietSummaryOnlyChunk(
+                startedAt: startedAt.addingTimeInterval(60),
+                duration: 5
+            )
+        )
+
+        var stopMetrics = await pipeline.metricsSnapshot()
+        let endedAt = startedAt.addingTimeInterval(120)
+        stopMetrics.stop(at: endedAt)
+        stopMetrics.recordAnalyzerFinalizeStarted(at: endedAt)
+
+        let result = await pipeline.finalize(endedAt: endedAt, stopMetrics: stopMetrics)
+        let diagnostics = try #require(await pipeline.finalizeDiagnostics(
+            endedAt: endedAt,
+            finalEvents: [],
+            finalMetrics: result.metrics
+        ))
+
+        #expect(result.metrics.firstAudioInputDelaySeconds >= 55)
+        #expect(result.metrics.longestChunkGapSeconds >= 55)
+        #expect(diagnostics.notes.contains { $0.contains("Audio coverage diagnostics:") })
+        #expect(diagnostics.notes.contains { $0.contains("firstInputDelay=") })
+    }
+
     private func makeSnoreLikeChunk(startedAt: Date) -> AudioChunk {
         let sampleRate = 16_000.0
         let frameCount = 1_600

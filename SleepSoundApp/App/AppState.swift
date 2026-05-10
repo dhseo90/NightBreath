@@ -549,14 +549,19 @@ final class AppState: ObservableObject {
         let stopMetrics = audioCaptureMetrics
 
         #if DEBUG
-        let debugPreview = saveDebugAudioPreviewIfAllowed(sessionId: completedSession.id)
+        let debugPreviewTask = makeDebugAudioPreviewSaveTaskIfAllowed(
+            sessionId: completedSession.id,
+            chunks: recentChunksForReplay
+        )
         #else
-        let debugPreview: EventAudioSnippet? = nil
+        let debugPreviewTask: Task<EventAudioSnippet?, Never>? = nil
         #endif
 
         sleepFinalizationTask?.cancel()
         sleepFinalizationTask = Task { [weak self] in
+            await self?.updateSleepFinalizationMessage("남은 오디오 분석을 마무리하는 중입니다.")
             await pendingProcessingTask?.value
+            await self?.updateSleepFinalizationMessage("이벤트 후보와 리포트를 정리하는 중입니다.")
             let recentReplaySummary = recentChunksForReplay.isEmpty
                 ? nil
                 : replayAnalyzer.makeReplayDetectionSummary(
@@ -582,6 +587,13 @@ final class AppState: ObservableObject {
                 )
             }
 
+            let debugPreview = await debugPreviewTask?.value
+            #if DEBUG
+            await self?.recordDebugAudioPreviewSaveOutcome(
+                debugPreview,
+                attempted: debugPreviewTask != nil
+            )
+            #endif
             await self?.completeSleepSessionFinalization(
                 completedSession: completedSession,
                 finalizationResult: result,
@@ -590,6 +602,26 @@ final class AppState: ObservableObject {
                 debugPreview: debugPreview
             )
         }
+    }
+
+    #if DEBUG
+    private func recordDebugAudioPreviewSaveOutcome(
+        _ preview: EventAudioSnippet?,
+        attempted: Bool
+    ) {
+        guard attempted else { return }
+        if let preview {
+            recordDebugLifecycleEvent("debug audio preview saved: \(preview.fileName)")
+        } else {
+            recordDebugLifecycleEvent("debug audio preview skipped: no recent audio sample")
+        }
+    }
+    #endif
+
+    private func updateSleepFinalizationMessage(_ message: String) {
+        guard isFinalizingSleepSession else { return }
+        audioCaptureMessage = message
+        sleepRecordingPhase = .captureStoppedFinalizing
     }
 
     private func completeSleepSessionFinalization(
@@ -607,6 +639,7 @@ final class AppState: ObservableObject {
 
         captureStopSafetyTask?.cancel()
         captureStopSafetyTask = nil
+        audioCaptureMessage = "이벤트 후보를 수면 리포트로 저장하는 중입니다."
         audioCaptureMetrics = finalizationResult.metrics
         audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
         saveMissingEventAudioSnippets(sessionId: completedSession.id, outputs: finalizationResult.smoothedOutputs)
@@ -813,6 +846,56 @@ final class AppState: ObservableObject {
         } else {
             eventAudioStorageMessage = "정리할 연결되지 않은 이벤트 오디오 샘플이 없습니다."
         }
+    }
+
+    func cleanupMissingEventAudioReferences() {
+        var updatedSessionCount = 0
+        var clearedReferenceCount = 0
+
+        for session in repository.sessions() {
+            var events = repository.events(for: session.id)
+            var didUpdateEvents = false
+
+            for index in events.indices {
+                guard let fileName = events[index].audioSnippetFileName,
+                      !fileName.isEmpty,
+                      !eventAudioSnippetStore.snippetExists(fileName: fileName)
+                else {
+                    continue
+                }
+
+                events[index].audioSnippetFileName = nil
+                events[index].audioSnippetDuration = nil
+                didUpdateEvents = true
+                clearedReferenceCount += 1
+            }
+
+            guard didUpdateEvents, var report = repository.report(for: session.id) else { continue }
+            report.savedAudioDuration = events.reduce(0) { partialResult, event in
+                partialResult + max(0, event.audioSnippetDuration ?? 0)
+            }
+            repository.save(session: session, events: events, report: report)
+            updatedSessionCount += 1
+
+            if latestSession.id == session.id {
+                latestEvents = events
+                latestReport = report
+                latestDetectorDiagnostics = report.detectorDiagnostics
+            }
+        }
+
+        refreshRecentReports()
+        refreshEventAudioStorageStats()
+
+        if clearedReferenceCount > 0 {
+            eventAudioStorageMessage = "파일이 없는 오디오 참조 \(clearedReferenceCount)개를 \(updatedSessionCount)개 세션에서 정리했습니다."
+        } else {
+            eventAudioStorageMessage = "정리할 누락 오디오 참조가 없습니다."
+        }
+    }
+
+    func isEventAudioSnippetLinked(fileName: String) -> Bool {
+        linkedAudioSnippetFileNames().contains(fileName)
     }
 
     private func startAudioCaptureAndCreateSession() async {
@@ -1230,22 +1313,25 @@ final class AppState: ObservableObject {
     }
 
     #if DEBUG
-    private func saveDebugAudioPreviewIfAllowed(sessionId: UUID) -> EventAudioSnippet? {
+    private func makeDebugAudioPreviewSaveTaskIfAllowed(
+        sessionId: UUID,
+        chunks: [AudioChunk]
+    ) -> Task<EventAudioSnippet?, Never>? {
         guard isEventAudioSampleStorageEnabled else {
             recordDebugLifecycleEvent("debug audio preview skipped: sample storage disabled")
             return nil
         }
 
-        do {
-            let preview = try eventAudioSnippetStore.saveDebugPreview(
-                sessionId: sessionId,
-                chunks: recentAudioBuffer.snapshot()
-            )
-            recordDebugLifecycleEvent("debug audio preview saved: \(preview.fileName)")
-            return preview
-        } catch {
-            recordDebugLifecycleEvent("debug audio preview skipped: \(error.localizedDescription)")
-            return nil
+        let snippetStore = eventAudioSnippetStore
+        return Task.detached(priority: .utility) { [sessionId, chunks, snippetStore] in
+            do {
+                return try snippetStore.saveDebugPreview(
+                    sessionId: sessionId,
+                    chunks: chunks
+                )
+            } catch {
+                return nil
+            }
         }
     }
     #endif

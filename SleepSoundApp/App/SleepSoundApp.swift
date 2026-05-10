@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 struct SleepSoundApp: App {
     @StateObject private var appState = AppState()
+    @Environment(\.scenePhase) private var scenePhase
     #if DEBUG
     private let launchScreenshotScenario = ScreenshotScenario.launchArgumentScenario()
     private let launchScreenshotSurface = ScreenshotSurface.launchArgumentSurface()
@@ -64,7 +65,41 @@ struct SleepSoundApp: App {
             } message: {
                 Text(appState.fitdaysOpenInMessage ?? "")
             }
+            .overlay {
+                if scenePhase != .active {
+                    PrivacySnapshotCoverView()
+                        .transition(.opacity)
+                }
+            }
         }
+    }
+}
+
+private struct PrivacySnapshotCoverView: View {
+    var body: some View {
+        ZStack {
+            NBColor.pageBackground.ignoresSafeArea()
+
+            VStack(spacing: NBSpacing.large) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 54, weight: .semibold))
+                    .foregroundStyle(NBColor.privacyTint)
+                    .accessibilityHidden(true)
+
+                VStack(spacing: NBSpacing.xs) {
+                    Text("밤숨")
+                        .font(NBTypography.screenTitle)
+                        .foregroundStyle(NBColor.primaryText)
+                    Text("개인 데이터 보호 중")
+                        .font(NBTypography.body)
+                        .foregroundStyle(NBColor.secondaryText)
+                }
+            }
+            .padding(NBSpacing.xl)
+        }
+        .privacySensitive()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("개인 데이터 보호 화면")
     }
 }
 

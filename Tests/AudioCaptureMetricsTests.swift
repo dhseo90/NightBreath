@@ -57,6 +57,24 @@ struct AudioCaptureMetricsTests {
     }
 
     @Test
+    func firstInputDelayContributesToCoverageDiagnostics() {
+        let startedAt = Date(timeIntervalSince1970: 100)
+        var metrics = AudioCaptureMetrics()
+        metrics.start(at: startedAt)
+
+        metrics.recordReceived(
+            chunk: makeChunk(frameCount: 4_800, sampleRate: 48_000),
+            at: startedAt.addingTimeInterval(5.1)
+        )
+        let snapshot = metrics.snapshot(at: startedAt.addingTimeInterval(10))
+
+        #expect(abs(metrics.firstAudioInputDelaySeconds - 5.0) < 0.0001)
+        #expect(snapshot.missingAudioSeconds > 9)
+        #expect(snapshot.coverageDiagnosticsSummary.contains("firstInputDelay=5.00s"))
+        #expect(snapshot.coverageDiagnosticsSummary.contains("missing="))
+    }
+
+    @Test
     func analyzedMetricsAreTrackedSeparatelyFromReceivedMetrics() {
         let startedAt = Date(timeIntervalSince1970: 100)
         var metrics = AudioCaptureMetrics()
