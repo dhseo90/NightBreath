@@ -14,6 +14,7 @@
 - Dataset Replay
 - Offline Evaluation
 - Simulator QA scenarios
+- Clean simulator smoke automation
 - main/sub README link validation
 - iOS Debug build
 - 필요 시 Release build
@@ -32,6 +33,8 @@ DEBUG 빌드에서는 Simulator QA Scenario를 통해 예시 수면 세션과 ed
 - 저장 용량과 orphan 샘플 상태
 - detector diagnostic summary
 - zero-event analysis
+
+완전 초기화 상태 회귀는 `Tools/UI/run_clean_simulator_smoke.sh`로 simulator erase, Debug build, fresh install, first launch capture, 주요 screenshot scenario capture를 한 번에 실행합니다. system permission prompt와 짧은 수면 리포트 생성처럼 실제 탭이 필요한 부분은 manifest에 `manual-required`로 남기고 수동 확인합니다.
 
 ## 문서 링크 QA
 
@@ -59,6 +62,7 @@ Tools/Docs/validate_readme_links.sh
 | 문서 | 내용 |
 | --- | --- |
 | [QA_GUIDE](../QA_GUIDE.md) | 전체 QA 기준 |
+| [SIMULATOR_QA_AUTOMATION](../SIMULATOR_QA_AUTOMATION.md) | clean simulator smoke와 XcodeBuildMCP fallback 절차 |
 | [DEVELOPMENT_WORKFLOW](../DEVELOPMENT_WORKFLOW.md) | 개발/검증 workflow |
 | [DATASET_REPLAY](../DATASET_REPLAY.md) | Dataset Replay 사용법 |
 | [DATASET_GUIDE](../DATASET_GUIDE.md) | 데이터셋 준비 원칙 |

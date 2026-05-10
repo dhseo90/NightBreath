@@ -108,6 +108,7 @@ struct PrivacySnapshotCoverQAView: View {
     var body: some View {
         PrivacySnapshotCoverView()
             .navigationTitle("Privacy Snapshot")
+            .toolbar(.hidden, for: .navigationBar)
             .toolbar(.hidden, for: .tabBar)
             .background(NBColor.pageBackground)
             .nbAvoidFloatingTabBar()

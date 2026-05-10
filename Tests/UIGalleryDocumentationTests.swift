@@ -41,6 +41,10 @@ struct UIGalleryDocumentationTests {
       "Docs/Screenshots/Debug/cropped/detector_tuning_light.png",
       "Docs/Screenshots/Debug/cropped/audio_debug_light.png",
       "Docs/Screenshots/Debug/cropped/sample_capture_light.png",
+      "Docs/Screenshots/Debug/cropped/sleep-finalizing-slow.png",
+      "Docs/Screenshots/Debug/cropped/health-refresh-states.png",
+      "Docs/Screenshots/Debug/cropped/debug-audio-samples-fixture.png",
+      "Docs/Screenshots/Privacy/cropped/privacy_snapshot_cover_light.png",
     ]
 
     #expect(uiGallery.contains("Privacy/Support"))
@@ -81,6 +85,10 @@ struct UIGalleryDocumentationTests {
       "Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png",
       "Docs/Screenshots/EdgeStates/cropped/report-empty.png",
       "Docs/Screenshots/Debug/cropped/simulator-scenario.png",
+      "Docs/Screenshots/Debug/cropped/sleep-finalizing-slow.png",
+      "Docs/Screenshots/Debug/cropped/health-refresh-states.png",
+      "Docs/Screenshots/Debug/cropped/debug-audio-samples-fixture.png",
+      "Docs/Screenshots/Privacy/cropped/privacy_snapshot_cover_light.png",
     ]
 
     #expect(uiGallery.contains("Direct Scenario Capture Queue"))
@@ -143,6 +151,7 @@ struct UIGalleryDocumentationTests {
     #expect(uiGallery.contains("Privacy/Support"))
     #expect(uiGallery.contains("DEBUG observability"))
     #expect(uiGallery.contains("Sleep recording"))
+    #expect(uiGallery.contains("privacy-snapshot-cover"))
     #expect(uiGallery.contains("health-fitdays-result"))
     #expect(uiGallery.contains("결과 copy 공개용 문구"))
     #expect(uiGallery.contains("edge-event-audio-off"))
@@ -194,6 +203,7 @@ struct UIGalleryDocumentationTests {
     var edgeApprovedCount = 0
     var privacyApprovedCount = 0
     var releaseApprovedCount = 0
+    var pendingCount = 0
 
     for row in dataRows {
       #expect(row.count == header.count, "Every screenshot status row should keep the TSV schema: \(row)")
@@ -206,6 +216,9 @@ struct UIGalleryDocumentationTests {
 
       if status == "release-approved" {
         releaseApprovedCount += 1
+      }
+      if status == "screenshot pending" {
+        pendingCount += 1
       }
       if group == "App Store", status == "blocked, recapture required" {
         appStoreBlockedCount += 1
@@ -239,10 +252,11 @@ struct UIGalleryDocumentationTests {
     #expect(appStoreApprovedCount == 8)
     #expect(healthApprovedCount == 11)
     #expect(edgeApprovedCount == 7)
-    #expect(privacyApprovedCount == 4)
+    #expect(privacyApprovedCount == 5)
     #expect(readmePreviewCount == 8)
-    #expect(debugInternalCount >= 4)
-    #expect(releaseApprovedCount == 35)
+    #expect(debugInternalCount >= 8)
+    #expect(releaseApprovedCount == 36)
+    #expect(pendingCount == 0)
   }
 
   @Test
@@ -336,6 +350,10 @@ struct UIGalleryDocumentationTests {
     #expect(visualReview.contains("edge-event-audio-off\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("privacy-settings\t2026-05-09\tCodex\trelease-approved"))
     #expect(visualReview.contains("debug-simulator\t2026-05-09\tCodex\tinternal-only"))
+    #expect(visualReview.contains("debug-sleep-finalizing-slow\t2026-05-10\tCodex\tinternal-only"))
+    #expect(visualReview.contains("debug-health-refresh-states\t2026-05-10\tCodex\tinternal-only"))
+    #expect(visualReview.contains("debug-audio-samples-fixture\t2026-05-10\tCodex\tinternal-only"))
+    #expect(visualReview.contains("privacy-snapshot-cover\t2026-05-10\tCodex\trelease-approved"))
     #expect(screenshotGuide.contains("screenshot_visual_review.tsv"))
     #expect(toolGuide.contains("screenshot_visual_review.tsv"))
     #expect(uiGallery.contains("screenshot_visual_review.tsv"))

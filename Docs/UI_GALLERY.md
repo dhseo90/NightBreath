@@ -18,7 +18,7 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 - Light/Dark screenshot은 같은 예시 state에서 각각 확인하고, 긴 한국어 문구가 잘리지 않는지 봅니다.
 - Debug-only 화면은 Release 사용자 screenshot 후보에 포함하지 않습니다.
 
-현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, sleep recording screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다. 2026-05-09 기준 App Store 8개, Health/Fitdays, Sleep recording, Edge/Privacy/Support 문서 노출 가능 후보는 simulator contact sheet/evidence gate를 통과했습니다.
+현재 README 대표 screenshot, EHM/Health 상세 screenshot, privacy/support screenshot, DEBUG observability screenshot, edge state screenshot, sleep recording screenshot, App Store raw/review-cropped 후보는 `iPhone 17 Pro` simulator, DEBUG build, 예시 데이터 상태에서 생성했습니다. README 대표 8개는 프로젝트 소개용 문서 preview로 렌더링하지만 release-approved 상태는 아니며, App Store 후보와 상세 gallery 후보는 별도 visual QA 상태로 관리합니다. 2026-05-09 기준 App Store 8개, Health/Fitdays, Sleep recording, Edge/Privacy/Support 문서 노출 가능 후보는 simulator contact sheet/evidence gate를 통과했습니다. 2026-05-10에는 privacy snapshot cover를 QA chrome 없이 재캡처해 UI Gallery 전용으로 승인했습니다.
 
 ## Screenshot Quality Gate
 
@@ -52,23 +52,23 @@ NightBreath는 수면 중 소리 기반 지표에서 시작해 하루 건강 리
 | --- | --- | --- |
 | README 대표 8개 | captured, quality review pending | 루트 README에서 문서 preview로 렌더링하며 release-approved/App Store 승인과는 분리 |
 | Health/EHM 상세 | release-approved | Health/Fitdays 문서 노출 가능 후보는 모두 UI Gallery 전용 `release-approved`; README/App Store 승격과는 분리 |
-| Privacy/Support | release-approved | privacy settings, onboarding, device placement, calibration은 UI Gallery 전용 승인 |
+| Privacy/Support | release-approved | privacy settings, onboarding, device placement, calibration, privacy snapshot cover는 UI Gallery 전용 승인 |
 | Sleep/Edge direct scenario | release-approved where reviewed | sleep recording, edge states, report empty는 UI Gallery 전용 승인 |
-| DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture |
+| DEBUG observability | internal-only, quality review pending | dataset replay, detector tuning, audio debug, sample capture, slow finalization, health refresh states, debug audio sample fixtures |
 | App Store 후보 8개 | release-approved | 2026-05-09 raw 재캡처, contact sheet, export manifest/dimension QA 통과. 실기기 QA는 제외 |
 | 직접 scenario 상세 캡처 | release-approved where reviewed | trend, morning/evening check-in, Daily Health Card export/share state, report empty는 UI Gallery 전용 승인, simulator scenario는 DEBUG only |
 
 ## Quality Review Pending Classification
 
-2026-05-09 기준 screenshot 후보는 파일 존재 여부와 무관하게 아래처럼 노출 범위를 나눕니다. 이 분류는 `Docs/Screenshots/screenshot_status.tsv`의 상태를 대체하지 않으며, `release-approved`가 아닌 항목은 contact sheet와 실제 문서 렌더링 확인 전까지 image markdown을 추가하지 않습니다.
+2026-05-10 기준 screenshot 후보는 파일 존재 여부와 무관하게 아래처럼 노출 범위를 나눕니다. 이 분류는 `Docs/Screenshots/screenshot_status.tsv`의 상태를 대체하지 않으며, `release-approved`가 아닌 항목은 contact sheet와 실제 문서 렌더링 확인 전까지 image markdown을 추가하지 않습니다.
 
 | 묶음 | 항목 | 분류 | 다음 조치 |
 | --- | --- | --- | --- |
 | Health/EHM overview | `health-overview`, `health-calendar`, `health-daily-detail`, `health-metric-body-water`, `health-metric-basal`, `health-blood-pressure`, `health-body-composition`, `health-cross-metric` | UI Gallery 전용 release-approved. README/App Store로 승격하지 않음 | contact sheet에서 crop 여백, chart axis, 긴 한국어 문구, 출처 badge 가독성 확인 완료 |
 | Fitdays import | `health-fitdays`, `health-fitdays-result`, `health-fitdays-error` | UI Gallery 전용 release-approved. 로컬 가져오기 원칙과 결과/오류 설명용 | 실제 파일명/local path 없음, 결과 copy 공개용 문구로 재캡처 및 오류 copy 사용자 노출성 확인 완료 |
 | EdgeStates | `edge-zero-event`, `edge-low-coverage`, `edge-event-audio-off`, `edge-health-permission-empty`, `edge-metric-detail-empty`, `edge-cross-metric-insufficient`, `detail-report-empty` | UI Gallery 전용 release-approved. edge 상태 설명용이며 App Store 후보는 별도 App Store 8개 flow만 사용 | 상태가 건강 판정처럼 읽히지 않고, CTA/제한 안내/개인정보 경계가 crop 안에서 확인됨 |
-| Privacy/Support | `privacy-settings`, `privacy-onboarding`, `privacy-device-placement`, `privacy-calibration` | UI Gallery 전용 release-approved. 개인정보/온보딩/배치/캘리브레이션 설명용 | 서버 미전송, HealthKit read-only, 이벤트 샘플 opt-in/off copy와 주요 CTA 가독성 확인 완료 |
-| DEBUG observability | `debug-audio`, `debug-sample`, `debug-replay`, `debug-detector`, `debug-simulator` | 계속 격리. DEBUG only | 개발 문서에서 경로만 추적하고 Release/README/App Store에는 렌더링하지 않음 |
+| Privacy/Support | `privacy-settings`, `privacy-onboarding`, `privacy-device-placement`, `privacy-calibration`, `privacy-snapshot-cover` | UI Gallery 전용 release-approved. 개인정보/온보딩/배치/캘리브레이션/snapshot cover 설명용 | 서버 미전송, HealthKit read-only, 이벤트 샘플 opt-in/off copy와 주요 CTA 가독성 확인 완료. privacy snapshot은 QA navigation title 없이 cover-only 상태 확인 완료 |
+| DEBUG observability | `debug-audio`, `debug-sample`, `debug-replay`, `debug-detector`, `debug-simulator`, `debug-sleep-finalizing-slow`, `debug-health-refresh-states`, `debug-audio-samples-fixture` | 계속 격리. DEBUG only | 개발 문서에서 경로만 추적하고 Release/README/App Store에는 렌더링하지 않음 |
 | Sleep recording | `sleep_recording_light.png` | UI Gallery 전용 release-approved. README/App Store로 승격하지 않음 | active recording state, 현실적인 duration, 내부 screenshot label 없음, 저장 정책 copy 확인 완료 |
 
 ## App Store Screenshot Candidate Flow
@@ -103,6 +103,10 @@ App Store 후보 screenshot은 README 대표 screenshot과 분리해 관리합�
 | `DailyHealthCardPreviewView` export/share state | release-approved | `Docs/Screenshots/DailyRhythm/cropped/daily-health-card-export-preview.png` |
 | Report empty state | release-approved | `Docs/Screenshots/EdgeStates/cropped/report-empty.png` |
 | `SimulatorScenarioView` | internal-only, quality review pending | `Docs/Screenshots/Debug/cropped/simulator-scenario.png` |
+| Slow sleep finalization state | internal-only, quality review pending | `Docs/Screenshots/Debug/cropped/sleep-finalizing-slow.png` |
+| Health refresh state QA | internal-only, quality review pending | `Docs/Screenshots/Debug/cropped/health-refresh-states.png` |
+| DEBUG audio samples fixture | internal-only, quality review pending | `Docs/Screenshots/Debug/cropped/debug-audio-samples-fixture.png` |
+| Privacy snapshot cover | release-approved | `Docs/Screenshots/Privacy/cropped/privacy_snapshot_cover_light.png` |
 
 ## 예시 데이터 사용 원칙
 
@@ -152,6 +156,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `SleepStartView` | 수면 기능 동작과 결과 확인 | 측정 안내, 기기 배치, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 opt-in 상태 | 수면 시작, 최근 리포트, 타임라인, 수면 트렌드, 배치 가이드 | 원본 전체 오디오는 저장하지 않으며 이벤트 샘플은 opt-in일 때만 저장 | `ScreenshotSleepStartScenario` | `Docs/Screenshots/README/cropped/sleep_start_light.png` | captured, quality review pending | Release | `Docs/QA_GUIDE.md` |
 | `SleepRecordingView` | 수면 기록 중 상태 | 경과 시간, 실제 오디오 수신/분석 시간, 커버리지, detector backend | 수면 종료 | 수신 시간과 앱 실행 시간을 분리해 표시 | `ScreenshotRecordingScenario` | `Docs/Screenshots/Sleep/cropped/sleep_recording_light.png` | release-approved | Release | `Docs/QA_GUIDE.md` |
+| `SleepRecordingView` 종료 지연 상태 | 수면 종료 후 리포트 정리 상태 | 종료 요청 후 경과 시간, capture stop 완료, analyzer/report finalization 상태 | 대기 상태 확인, 상세 진단 펼침 | 녹음은 멈췄고 리포트 정리만 남았다는 점을 분리해 표시 | `ScreenshotSleepFinalizingScenario` | `Docs/Screenshots/Debug/cropped/sleep-finalizing-slow.png` | internal-only, quality review pending | DEBUG only | `Docs/QA_GUIDE.md` |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 이벤트 요약, diagnostics, zero-event 안내 | 타임라인 보기, 아침 체크인, 개인정보 설정 | 수면 중 소리 기반 지표이며 진단 목적이 아님 | `ScreenshotSleepReportScenario` | `Docs/Screenshots/README/cropped/sleep_report_light.png` | captured, quality review pending | Release | `Docs/UI_SCREEN_MAP.md` |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 타입, 시간, duration, confidence, 색상 legend, 샘플 보유 여부 | 샘플 재생/삭제, feedback 저장 | 샘플은 짧은 이벤트 구간만 opt-in 저장 | `ScreenshotTimelineScenario` | `Docs/Screenshots/README/cropped/sleep_timeline_light.png` | captured, quality review pending | Release | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 각성 기억, 메모 | 체크인 저장 | 사용자가 직접 입력한 주관 기록으로 표시 | `ScreenshotMorningCheckInScenario` | `Docs/Screenshots/Sleep/cropped/morning-check-in.png` | release-approved | Release | `Docs/UI_SCREEN_MAP.md` |
@@ -190,6 +195,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | `DevicePlacementGuideView` | iPhone 배치와 캘리브레이션 안내 | 배치 원칙, 충전, 마이크 가림 방지, 30초 캘리브레이션 | 캘리브레이션 실행 | 측정 품질을 높이기 위한 안내이며 결과를 단정하지 않음 | `ScreenshotDevicePlacementScenario` | `Docs/Screenshots/Privacy/cropped/device_placement_guide_light.png` | release-approved | Release | `Docs/QA_GUIDE.md` |
 | `OnboardingView` | 첫 사용 안내 | 온디바이스 분석, 개인정보 원칙, 이벤트 샘플 opt-in | 시작하기 | 초기 안내에서 서버 전송 없음과 원본 전체 오디오 미저장을 명확히 표시 | `ScreenshotOnboardingScenario` | `Docs/Screenshots/Privacy/cropped/onboarding_light.png` | release-approved | Release | `Docs/ONBOARDING_ILLUSTRATION_GUIDE.md` |
 | `CalibrationView` | 30초 입력 확인 | 입력 level, ambient baseline, calibration result | 캘리브레이션 시작/완료 | 마이크 입력 품질 확인용이며 건강 상태 해석이 아님 | `ScreenshotCalibrationScenario` | `Docs/Screenshots/Privacy/cropped/calibration_light.png` | release-approved | Release | `Docs/UI_SCREEN_MAP.md` |
+| `PrivacySnapshotCoverView` | 앱 전환 snapshot 보호 | 앱 이름, 개인 데이터 보호 중 상태 | 자동 표시 | inactive/background snapshot에서 개인 화면 내용을 가림 | `ScreenshotPrivacySnapshotScenario` | `Docs/Screenshots/Privacy/cropped/privacy_snapshot_cover_light.png` | release-approved | Release behavior, DEBUG capture | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 
 ## Empty / Edge States
 
@@ -213,5 +219,7 @@ EHM screenshot은 `ScreenshotScenario`의 DEBUG launch argument로 직접 진입
 | `DatasetReplayView` | 로컬/synthetic audio replay 검증 | replay 상태, diagnostics, 후보/이벤트 수 | replay 실행 | 개인 오디오 파일은 repo나 screenshot에 포함하지 않음 | `ScreenshotDatasetReplayScenario` | `Docs/Screenshots/Debug/cropped/dataset_replay_light.png` | quality review pending | DEBUG only | `Docs/DATASET_REPLAY.md` |
 | `DetectorTuningView` | detector profile 확인 | backend, tuning profile, fallback, threshold | profile 선택 | 결과는 개발 검증용이며 사용자 판단 문구로 쓰지 않음 | `ScreenshotDebugScenario` | `Docs/Screenshots/Debug/cropped/detector_tuning_light.png` | quality review pending | DEBUG only | `Docs/DETECTOR_TUNING.md` |
 | `SimulatorScenarioView` | 예시 scenario 적용 | scenario 목록, screenshot preset, 적용 상태, 화면 진입 링크 | scenario 적용/해제 | screenshot과 UI QA는 예시 데이터 기반 | `ScreenshotSimulatorScenario` | `Docs/Screenshots/Debug/cropped/simulator-scenario.png` | internal-only, quality review pending | DEBUG only | `Docs/QA_GUIDE.md` |
+| `HealthRefreshStateQAView` | 건강 데이터 새로고침 피드백 상태 검증 | 대기, 읽는 중, 완료, 빈 결과, 차단 상태 | 상태별 문구 확인 | 실제 HealthKit 데이터를 읽지 않는 DEBUG fixture | `ScreenshotHealthRefreshStatesScenario` | `Docs/Screenshots/Debug/cropped/health-refresh-states.png` | internal-only, quality review pending | DEBUG only | `Docs/HEALTH_DATA_GUIDE.md` |
+| `DebugAudioSamplesFixtureQAView` | 오디오 샘플 다건 관리 상태 검증 | 연결/미연결 샘플, 재생/삭제 버튼, 전체 삭제 | 다건 상태 가독성 확인 | 실제 오디오 파일을 만들거나 재생하지 않는 DEBUG fixture | `ScreenshotDebugAudioSamplesFixtureScenario` | `Docs/Screenshots/Debug/cropped/debug-audio-samples-fixture.png` | internal-only, quality review pending | DEBUG only | `Docs/PRIVACY_STORAGE_AUDIT.md` |
 | `AudioDebugView` | 오디오 입력/debug output 확인 | RMS, energy, detector output | 입력 상태 확인 | 원본 전체 오디오 저장을 암시하지 않음 | `ScreenshotAudioDebugScenario` | `Docs/Screenshots/Debug/cropped/audio_debug_light.png` | quality review pending | DEBUG only | `Docs/UI_SCREEN_MAP.md` |
 | `SampleCaptureView` | 짧은 개발용 샘플 캡처 | 샘플 수, 저장 경로, capture 상태 | 짧은 샘플 캡처 | 실제 screenshot에는 개인 오디오 파일명이나 샘플 내용을 노출하지 않음 | `ScreenshotSampleCaptureScenario` | `Docs/Screenshots/Debug/cropped/sample_capture_light.png` | quality review pending | DEBUG only | `Docs/QA_GUIDE.md` |

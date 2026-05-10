@@ -43,3 +43,7 @@ privacy-onboarding	2026-05-09	Codex	release-approved	Onboarding crop keeps first
 privacy-device-placement	2026-05-09	Codex	release-approved	Device placement crop keeps bedside, mic, and charging guidance readable	Render in UI Gallery only; keep out of README/App Store
 privacy-calibration	2026-05-09	Codex	release-approved	Calibration crop keeps input state, target time, coverage, and CTA readable	Render in UI Gallery only; keep out of README/App Store
 debug-simulator	2026-05-09	Codex	internal-only	DEBUG simulator scenario must not render in Release or App Store docs	Track path only and keep internal-only
+debug-sleep-finalizing-slow	2026-05-10	Codex	internal-only	Official simulator capture shows stopped capture and report finalization as separate states without personal data	Keep DEBUG-only and do not render in README/App Store
+debug-health-refresh-states	2026-05-10	Codex	internal-only	Official simulator capture shows idle, reading, completed, empty, and blocked refresh feedback states clearly	Keep DEBUG-only and do not render in README/App Store
+debug-audio-samples-fixture	2026-05-10	Codex	internal-only	Official simulator capture shows multiple fixture samples and row actions without real audio files	Keep DEBUG-only and do not render in README/App Store
+privacy-snapshot-cover	2026-05-10	Codex	release-approved	Recaptured cover hides QA navigation chrome and shows only the privacy shield, app name, and protection message	Render in UI Gallery only; keep out of README/App Store

@@ -126,6 +126,10 @@ UI Gallery crop 위치:
 - `Debug/sample_capture_light.png`
 - `Debug/dataset_replay_light.png`
 - `Debug/simulator-scenario.png`
+- `Debug/sleep-finalizing-slow.png`
+- `Debug/health-refresh-states.png`
+- `Debug/debug-audio-samples-fixture.png`
+- `Privacy/privacy_snapshot_cover_light.png`
 - `Home/trend-dashboard.png`
 - `Sleep/morning-check-in.png`
 - `DailyRhythm/evening-check-in.png`
@@ -150,6 +154,10 @@ UI Gallery crop 위치:
 - `Debug/cropped/sample_capture_light.png`
 - `Debug/cropped/dataset_replay_light.png`
 - `Debug/cropped/simulator-scenario.png`
+- `Debug/cropped/sleep-finalizing-slow.png`
+- `Debug/cropped/health-refresh-states.png`
+- `Debug/cropped/debug-audio-samples-fixture.png`
+- `Privacy/cropped/privacy_snapshot_cover_light.png`
 - `Home/cropped/trend-dashboard.png`
 - `Sleep/cropped/morning-check-in.png`
 - `DailyRhythm/cropped/evening-check-in.png`

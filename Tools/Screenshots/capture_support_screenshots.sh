@@ -13,11 +13,15 @@ CAPTURES=(
   "onboarding:Docs/Screenshots/Privacy/onboarding_light.png"
   "devicePlacement:Docs/Screenshots/Privacy/device_placement_guide_light.png"
   "calibration:Docs/Screenshots/Privacy/calibration_light.png"
+  "privacySnapshot:Docs/Screenshots/Privacy/privacy_snapshot_cover_light.png"
   "audioDebug:Docs/Screenshots/Debug/audio_debug_light.png"
   "sampleCapture:Docs/Screenshots/Debug/sample_capture_light.png"
   "datasetReplay:Docs/Screenshots/Debug/dataset_replay_light.png"
   "debugTools:Docs/Screenshots/Debug/detector_tuning_light.png"
   "simulatorScenario:Docs/Screenshots/Debug/simulator-scenario.png"
+  "sleepFinalizingSlow:Docs/Screenshots/Debug/sleep-finalizing-slow.png"
+  "healthRefreshStates:Docs/Screenshots/Debug/health-refresh-states.png"
+  "debugAudioSamplesFixture:Docs/Screenshots/Debug/debug-audio-samples-fixture.png"
   "eventAudioStorageOff:Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
 )
 

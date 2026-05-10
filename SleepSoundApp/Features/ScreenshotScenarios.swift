@@ -37,6 +37,10 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
   case lowCoverageReport
   case eventAudioStorageOff
   case reportEmpty
+  case sleepFinalizingSlow
+  case healthRefreshStates
+  case debugAudioSamplesFixture
+  case privacySnapshot
   case debugTools
   case simulatorScenario
   case audioDebug
@@ -161,6 +165,14 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "ScreenshotEventAudioStorageOffScenario"
     case .reportEmpty:
       "ScreenshotReportEmptyScenario"
+    case .sleepFinalizingSlow:
+      "ScreenshotSleepFinalizingScenario"
+    case .healthRefreshStates:
+      "ScreenshotHealthRefreshStatesScenario"
+    case .debugAudioSamplesFixture:
+      "ScreenshotDebugAudioSamplesFixtureScenario"
+    case .privacySnapshot:
+      "ScreenshotPrivacySnapshotScenario"
     case .debugTools:
       "ScreenshotDebugScenario"
     case .simulatorScenario:
@@ -246,6 +258,14 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 샘플 저장은 사용자가 선택"
     case .reportEmpty:
       "리포트가 없어도 시작 흐름은 명확하게"
+    case .sleepFinalizingSlow:
+      "수면 종료 지연도 진행 상태로"
+    case .healthRefreshStates:
+      "건강 데이터 새로고침 상태 확인"
+    case .debugAudioSamplesFixture:
+      "여러 오디오 샘플 상태를 한눈에"
+    case .privacySnapshot:
+      "앱 전환 시 개인 화면 가리기"
     case .debugTools:
       "DEBUG에서만 확인하는 검증 화면"
     case .simulatorScenario:
@@ -331,6 +351,14 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "이벤트 오디오 샘플 저장 꺼짐, 원본 전체 오디오 미저장 안내가 보이게 캡처합니다."
     case .reportEmpty:
       "수면 리포트가 아직 없는 초기 상태와 수면 시작 안내가 보이게 캡처합니다."
+    case .sleepFinalizingSlow:
+      "수면 종료 후 capture는 멈췄지만 리포트 정리가 이어지는 상태, 경과 시간, 상세 진단 row가 보이게 캡처합니다."
+    case .healthRefreshStates:
+      "건강 데이터 연결/새로고침의 대기, 읽는 중, 완료, 빈 결과, 차단 상태가 모두 보이게 캡처합니다."
+    case .debugAudioSamplesFixture:
+      "여러 DEBUG 오디오 샘플의 연결/미연결 상태, 개별 삭제, 전체 삭제 affordance를 예시 데이터로 캡처합니다."
+    case .privacySnapshot:
+      "앱 전환/백그라운드 snapshot 보호 화면이 실제 콘텐츠를 가리는지 캡처합니다."
     case .debugTools:
       "Dataset Replay 또는 Detector Tuning 같은 DEBUG 전용 검증 화면임이 보이게 캡처합니다."
     case .simulatorScenario:
@@ -364,7 +392,9 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       .lowAudioCoverageNight
     case .eventAudioStorageOff, .reportEmpty:
       .eventAudioStorageOff
-    case .debugTools, .simulatorScenario, .audioDebug, .sampleCapture, .datasetReplay:
+    case .sleepFinalizingSlow, .debugAudioSamplesFixture:
+      .orphanSamplesPresent
+    case .healthRefreshStates, .privacySnapshot, .debugTools, .simulatorScenario, .audioDebug, .sampleCapture, .datasetReplay:
       .zeroEventButGoodAudioCoverage
     }
   }
@@ -441,6 +471,14 @@ enum ScreenshotScenario: String, CaseIterable, Identifiable, Sendable {
       "Docs/Screenshots/EdgeStates/event_audio_storage_off_light.png"
     case .reportEmpty:
       "Docs/Screenshots/EdgeStates/report-empty.png"
+    case .sleepFinalizingSlow:
+      "Docs/Screenshots/Debug/sleep-finalizing-slow.png"
+    case .healthRefreshStates:
+      "Docs/Screenshots/Debug/health-refresh-states.png"
+    case .debugAudioSamplesFixture:
+      "Docs/Screenshots/Debug/debug-audio-samples-fixture.png"
+    case .privacySnapshot:
+      "Docs/Screenshots/Privacy/privacy_snapshot_cover_light.png"
     case .debugTools:
       "Docs/Screenshots/Debug/detector_tuning_light.png"
     case .simulatorScenario:
@@ -800,7 +838,7 @@ enum ScreenshotScenarioFactory {
     return FitdaysImportResult(
       batch: batch,
       samples: fitdaysSamples,
-      unknownColumns: ["지원하지 않는 열"],
+      unknownColumns: ["측정 메모"],
       rowErrors: [
         FitdaysImportRowError(rowNumber: 5, message: "측정시간 값을 해석하지 못했습니다."),
       ]

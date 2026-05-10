@@ -71,7 +71,7 @@ GitHub의 자동 license badge가 mixed/custom license를 단순하게 표시하
 | [Architecture](Docs/Architecture/README.md) | 앱 구조, 주요 모델, 분석 pipeline, storage 경계 | [CORE_ML_MODEL_INTEGRATION](Docs/CORE_ML_MODEL_INTEGRATION.md), [RULE_BASED_VS_ML_COMPARISON](Docs/RULE_BASED_VS_ML_COMPARISON.md) |
 | [Privacy](Docs/Privacy/README.md) | 로컬 저장, 이벤트 오디오 샘플, HealthKit read-only, 금지 경로 | [PRIVACY_STORAGE_AUDIT](Docs/PRIVACY_STORAGE_AUDIT.md), [APP_REVIEW_AUDIT](Docs/APP_REVIEW_AUDIT.md) |
 | [Health](Docs/Health/README.md) | Daily Rhythm, HealthKit, Fitdays import, Extended Health Metrics | [HEALTH_DATA_GUIDE](Docs/HEALTH_DATA_GUIDE.md), [DAILY_RHYTHM_SCORE](Docs/DAILY_RHYTHM_SCORE.md), [DAILY_HEALTH_CARD](Docs/DAILY_HEALTH_CARD.md) |
-| [QA](Docs/QA/README.md) | Simulator-first 개발, 테스트, Dataset Replay, 실기기 QA | [QA_GUIDE](Docs/QA_GUIDE.md), [DEVELOPMENT_WORKFLOW](Docs/DEVELOPMENT_WORKFLOW.md), [REAL_DEVICE_QA_RUNBOOK](Docs/REAL_DEVICE_QA_RUNBOOK.md) |
+| [QA](Docs/QA/README.md) | Simulator-first 개발, 테스트, Dataset Replay, 실기기 QA | [QA_GUIDE](Docs/QA_GUIDE.md), [SIMULATOR_QA_AUTOMATION](Docs/SIMULATOR_QA_AUTOMATION.md), [REAL_DEVICE_QA_RUNBOOK](Docs/REAL_DEVICE_QA_RUNBOOK.md) |
 | [Release](Docs/Release/README.md) | App Store 준비, product page copy, release gates, screenshot approval | [APP_RELEASE_GUIDE](Docs/APP_RELEASE_GUIDE.md), [APP_STORE_PRODUCT_PAGE_COPY](Docs/APP_STORE_PRODUCT_PAGE_COPY.md) |
 | [Licensing](Docs/LICENSING.md) | Apache-2.0 코드 범위, ESC-50/ESC-10 upstream license 경계, third-party notice | [LICENSE](LICENSE), [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md), [DEPENDENCIES](Docs/DEPENDENCIES.md) |
 

@@ -168,6 +168,30 @@ struct SimulatorScenarioView: View {
           .foregroundStyle(NBColor.secondaryText)
       }
 
+      Section("Sleep / Refresh QA States") {
+        NavigationLink {
+          ScreenshotScenarioDestinationView(scenario: .sleepFinalizingSlow)
+        } label: {
+          Label("수면 종료 지연 상태", systemImage: "hourglass")
+        }
+
+        NavigationLink {
+          HealthRefreshStateQAView()
+        } label: {
+          Label("건강 데이터 새로고침 상태", systemImage: "arrow.triangle.2.circlepath")
+        }
+
+        NavigationLink {
+          DebugAudioSamplesFixtureQAView()
+        } label: {
+          Label("DEBUG 오디오 샘플 다건 상태", systemImage: "waveform.circle")
+        }
+
+        Text("사용자가 헷갈리기 쉬운 종료 처리, 새로고침 피드백, 다건 샘플 관리 상태를 실데이터 없이 확인합니다.")
+          .font(.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+
       Section("EHM 화면 상태") {
         NavigationLink {
           HealthDashboardView(
@@ -514,6 +538,9 @@ struct ScreenshotScenarioDestinationView: View {
     case .sleepRecording:
       SleepRecordingView()
         .navigationTitle("수면 기록 중")
+    case .sleepFinalizingSlow:
+      SleepRecordingView()
+        .navigationTitle("수면 종료")
     case .onboarding:
       OnboardingView()
     case .devicePlacement:
@@ -644,10 +671,16 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .privacySettings:
       PrivacySettingsView()
+    case .privacySnapshot:
+      PrivacySnapshotCoverQAView()
     case .eventAudioStorageOff:
       ScreenshotEventAudioStorageOffView()
     case .reportEmpty:
       ScreenshotReportEmptyStateView()
+    case .healthRefreshStates:
+      HealthRefreshStateQAView()
+    case .debugAudioSamplesFixture:
+      DebugAudioSamplesFixtureQAView()
     case .debugTools:
       DetectorTuningView()
     case .simulatorScenario:

@@ -216,6 +216,39 @@ struct SimulatorQAScenarioTests {
   }
 
   @Test
+  func followupQAScreenshotScenariosExposeDirectLaunchDestinations() throws {
+    let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
+    let simulatorScenarioView = try sourceContents("SleepSoundApp/Features/Settings/SimulatorScenarioView.swift")
+    let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
+    let healthDashboard = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
+    let debugAudioSamples = try sourceContents("SleepSoundApp/Features/Settings/DebugAudioSamplesView.swift")
+    let supportCaptureScript = try sourceContents("Tools/Screenshots/capture_support_screenshots.sh")
+    let manifest = try sourceContents("Docs/Screenshots/screenshot_status.tsv")
+
+    let expectedScenarios = [
+      ("sleepFinalizingSlow", "ScreenshotSleepFinalizingScenario", "case .sleepFinalizingSlow:", "Docs/Screenshots/Debug/sleep-finalizing-slow.png"),
+      ("healthRefreshStates", "ScreenshotHealthRefreshStatesScenario", "HealthRefreshStateQAView()", "Docs/Screenshots/Debug/health-refresh-states.png"),
+      ("debugAudioSamplesFixture", "ScreenshotDebugAudioSamplesFixtureScenario", "DebugAudioSamplesFixtureQAView()", "Docs/Screenshots/Debug/debug-audio-samples-fixture.png"),
+      ("privacySnapshot", "ScreenshotPrivacySnapshotScenario", "PrivacySnapshotCoverQAView()", "Docs/Screenshots/Privacy/privacy_snapshot_cover_light.png"),
+    ]
+
+    for (rawValue, scenarioName, destination, screenshotPath) in expectedScenarios {
+      #expect(screenshotScenarios.contains("case \(rawValue)"), "\(scenarioName) should be a screenshot launch case.")
+      #expect(screenshotScenarios.contains(scenarioName), "\(scenarioName) should expose a stable display name.")
+      #expect(simulatorScenarioView.contains(destination), "\(scenarioName) should route directly to its QA destination.")
+      #expect(supportCaptureScript.contains("\(rawValue):\(screenshotPath)"), "\(scenarioName) should be scripted for direct capture.")
+      #expect(manifest.contains("\(scenarioName)\t\(screenshotPath)"), "\(screenshotPath) should be tracked in screenshot_status.tsv.")
+    }
+
+    #expect(appState.contains("sleepRecordingPhase = .captureStoppedFinalizing"))
+    #expect(appState.contains("isFinalizingSleepSession = true"))
+    #expect(healthDashboard.contains("struct HealthRefreshStateQAView"))
+    #expect(healthDashboard.contains("feedback: .reading(message: \"건강 데이터를 읽는 중\""))
+    #expect(debugAudioSamples.contains("struct DebugAudioSamplesFixtureQAView"))
+    #expect(debugAudioSamples.contains("실제 오디오 파일을 만들거나 재생하지 않습니다."))
+  }
+
+  @Test
   func screenshotScenariosDoNotExposeInternalQASourceInUserFacingData() throws {
     let appState = try sourceContents("SleepSoundApp/App/AppState.swift")
     let screenshotScenarios = try sourceContents("SleepSoundApp/Features/ScreenshotScenarios.swift")
@@ -245,12 +278,49 @@ struct SimulatorQAScenarioTests {
     #expect(appState.contains("latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
     #expect(appState.contains("sleepRecordingPhase = .recording"))
     #expect(appState.contains("session.startedAt = now.addingTimeInterval(-session.measurementDuration)"))
-    #expect(appState.contains("if scenario == .sleepRecording {\n            audioCaptureMessage = nil\n        }"))
+    #expect(appState.contains("audioCaptureMessage = nil"))
+    #expect(appState.contains("eventAudioStorageMessage = nil"))
+    #expect(!appState.contains("스크린샷 프리셋"))
     #expect(appState.contains("case .simulatorQA:\n            \"검증용 예시\""))
     #expect(!appState.contains("case .simulatorQA:\n            \"Simulator QA\""))
     #expect(screenshotScenarios.contains("state.latestReportSource = surface.isAppStoreMarketing ? .deviceAnalysis : .sample"))
     #expect(screenshotScenarios.contains("state.sleepRecordingPhase = .recording"))
     #expect(screenshotScenarios.contains("session.startedAt = now.addingTimeInterval(-session.measurementDuration)"))
+  }
+
+  @Test
+  func cleanSimulatorSmokeAutomationDocumentsResetFallbackAndManualRemainder() throws {
+    let script = try sourceContents("Tools/UI/run_clean_simulator_smoke.sh")
+    let automationGuide = try sourceContents("Docs/SIMULATOR_QA_AUTOMATION.md")
+    let qaReadme = try sourceContents("Docs/QA/README.md")
+    let rootReadme = try sourceContents("README.md")
+    let cleanQA = try sourceContents("Docs/Screenshots/CLEAN_SIMULATOR_QA_2026-05-10.md")
+    let appRoot = try sourceContents("SleepSoundApp/App/SleepSoundApp.swift")
+
+    #expect(script.contains("NIGHTBREATH_ALLOW_SIM_ERASE"))
+    #expect(script.contains("SIMULATOR_ID"))
+    #expect(script.contains("simctl erase"))
+    #expect(script.contains("xcodebuild"))
+    #expect(script.contains("simctl install"))
+    #expect(script.contains("01_first_launch.png"))
+    #expect(script.contains("--nightbreath-screenshot-scenario"))
+    #expect(script.contains("clean_simulator_smoke_manifest.tsv"))
+    #expect(script.contains("manual-required"))
+    #expect(script.contains("microphone-permission-prompt"))
+    #expect(script.contains("short-sleep-report"))
+    #expect(script.contains("real iPhone overnight"))
+
+    #expect(automationGuide.contains("Clean Simulator Smoke"))
+    #expect(automationGuide.contains("XcodeBuildMCP Fallback"))
+    #expect(automationGuide.contains("manual-required"))
+    #expect(automationGuide.contains("Tools/UI/run_clean_simulator_smoke.sh"))
+    #expect(automationGuide.contains("실제 iPhone overnight"))
+    #expect(qaReadme.contains("run_clean_simulator_smoke.sh"))
+    #expect(rootReadme.contains("SIMULATOR_QA_AUTOMATION"))
+    #expect(cleanQA.contains("run_clean_simulator_smoke.sh"))
+    #expect(cleanQA.contains("manual-required"))
+    #expect(appRoot.contains("PrivacySnapshotCoverQAView"))
+    #expect(appRoot.contains(".toolbar(.hidden, for: .navigationBar)"))
   }
 
   private func sourceContents(_ relativePath: String) throws -> String {

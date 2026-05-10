@@ -909,6 +909,57 @@ private struct HealthRefreshFeedbackSummary: View {
   }
 }
 
+#if DEBUG
+struct HealthRefreshStateQAView: View {
+  private let referenceDate = Date(timeIntervalSinceReferenceDate: 800_000_000)
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        NBReportSection(title: "건강 데이터 새로고침 상태", systemImage: "arrow.triangle.2.circlepath") {
+          VStack(spacing: NBSpacing.small) {
+            HealthRefreshFeedbackSummary(feedback: .idle, isLoading: false)
+            HealthRefreshFeedbackSummary(
+              feedback: .reading(message: "건강 데이터를 읽는 중", startedAt: referenceDate.addingTimeInterval(-18)),
+              isLoading: true
+            )
+            HealthRefreshFeedbackSummary(
+              feedback: .finished(sampleCount: 24, completedAt: referenceDate),
+              isLoading: false
+            )
+            HealthRefreshFeedbackSummary(
+              feedback: .finished(sampleCount: 0, completedAt: referenceDate.addingTimeInterval(30)),
+              isLoading: false
+            )
+            HealthRefreshFeedbackSummary(
+              feedback: .blocked(message: "HealthKit을 사용할 수 없는 환경입니다."),
+              isLoading: false
+            )
+          }
+        }
+
+        NBPrivacyNoticeCard(
+          title: "QA 기준",
+          messages: [
+            "버튼을 누른 직후 진행 중 상태가 보여야 합니다.",
+            "완료 시각과 샘플 수가 남아 두 번 눌렀는지 헷갈리지 않아야 합니다.",
+            "샘플 0개와 차단 상태를 오류처럼 과장하지 않고 구분합니다.",
+            "DEBUG 전용 예시 상태이며 실제 HealthKit 데이터를 읽지 않습니다.",
+          ],
+          systemImage: "checkmark.seal"
+        )
+      }
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
+    }
+    .background(NBColor.pageBackground)
+    .navigationTitle("새로고침 QA")
+    .toolbar(.hidden, for: .tabBar)
+    .nbAvoidFloatingTabBar()
+  }
+}
+#endif
+
 private struct HealthDashboardEntryCard: View {
   let title: String
   let subtitle: String

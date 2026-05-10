@@ -381,6 +381,7 @@ final class AppState: ObservableObject {
         activeSimulatorQAScenario = preset
         activeScreenshotScenario = nil
         activeSession = nil
+        isFinalizingSleepSession = false
         sleepRecordingPhase = .reportReady
 
         audioCaptureMetrics = AudioCaptureMetrics(
@@ -429,18 +430,12 @@ final class AppState: ObservableObject {
 
         if scenario == .sleepRecording {
             applyScreenshotRecordingState()
+        } else if scenario == .sleepFinalizingSlow {
+            applyScreenshotSlowFinalizationState()
         }
 
-        if scenario == .sleepRecording {
-            audioCaptureMessage = nil
-        } else {
-            audioCaptureMessage = surface.isAppStoreMarketing
-                ? "App Store 스크린샷 표면 ‘\(scenario.displayName)’를 적용했습니다. 실제 오디오 파일은 생성하지 않습니다."
-                : "스크린샷 프리셋 ‘\(scenario.displayName)’를 적용했습니다. 예시 데이터만 사용하며 실제 오디오 파일은 생성하지 않습니다."
-        }
-        eventAudioStorageMessage = surface.isAppStoreMarketing
-            ? "App Store 스크린샷 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
-            : "스크린샷 프리셋 예시 저장소 상태입니다. 실제 파일은 생성하지 않습니다."
+        audioCaptureMessage = nil
+        eventAudioStorageMessage = nil
         recordDebugLifecycleEvent("screenshot scenario applied: \(scenario.displayName)")
     }
 
@@ -560,9 +555,9 @@ final class AppState: ObservableObject {
 
         sleepFinalizationTask?.cancel()
         sleepFinalizationTask = Task { [weak self] in
-            await self?.updateSleepFinalizationMessage("남은 오디오 분석을 마무리하는 중입니다.")
+            self?.updateSleepFinalizationMessage("남은 오디오 분석을 마무리하는 중입니다.")
             await pendingProcessingTask?.value
-            await self?.updateSleepFinalizationMessage("이벤트 후보와 리포트를 정리하는 중입니다.")
+            self?.updateSleepFinalizationMessage("이벤트 후보와 리포트를 정리하는 중입니다.")
             let recentReplaySummary = recentChunksForReplay.isEmpty
                 ? nil
                 : replayAnalyzer.makeReplayDetectionSummary(
@@ -590,7 +585,7 @@ final class AppState: ObservableObject {
 
             let debugPreview = await debugPreviewTask?.value
             #if DEBUG
-            await self?.recordDebugAudioPreviewSaveOutcome(
+            self?.recordDebugAudioPreviewSaveOutcome(
                 debugPreview,
                 attempted: debugPreviewTask != nil
             )
@@ -1118,6 +1113,63 @@ final class AppState: ObservableObject {
         detectedEventCandidateCount = 6
         latestDetectedEventText = "코골기 후보"
         latestDetectedEventAt = now.addingTimeInterval(-12 * 60)
+    }
+
+    private func applyScreenshotSlowFinalizationState() {
+        var session = latestSession
+        session.measurementDuration = 7 * 60 * 60 + 42 * 60
+        let now = Date()
+        let stopRequestedAt = now.addingTimeInterval(-18)
+        session.startedAt = now.addingTimeInterval(-session.measurementDuration)
+        session.estimatedSleepStart = session.startedAt.addingTimeInterval(20 * 60)
+        session.estimatedWakeTime = nil
+        session.endedAt = nil
+
+        let receivedAudioSeconds = session.measurementDuration * 0.94
+        let analyzedAudioSeconds = session.measurementDuration * 0.91
+
+        activeSession = session
+        latestSession = session
+        sleepRecordingPhase = .captureStoppedFinalizing
+        audioCaptureState = .stopped
+        isFinalizingSleepSession = true
+        audioCaptureMetrics = AudioCaptureMetrics(
+            captureStartedAt: session.startedAt,
+            captureStoppedAt: stopRequestedAt.addingTimeInterval(2.2),
+            sessionElapsedSeconds: session.measurementDuration,
+            captureActiveSeconds: session.measurementDuration,
+            receivedAudioSeconds: receivedAudioSeconds,
+            analyzedAudioSeconds: analyzedAudioSeconds,
+            receivedChunkCount: Int(receivedAudioSeconds),
+            analyzedChunkCount: Int(analyzedAudioSeconds),
+            totalReceivedFrameCount: Int64(receivedAudioSeconds * 16_000),
+            totalAnalyzedFrameCount: Int64(analyzedAudioSeconds * 16_000),
+            sampleRate: 16_000,
+            lastChunkReceivedAt: stopRequestedAt.addingTimeInterval(-1),
+            lastChunkAnalyzedAt: stopRequestedAt.addingTimeInterval(-4),
+            interruptionCount: 1,
+            longestChunkGapSeconds: 16,
+            currentChunkGapSeconds: 0,
+            audioCoverageRatio: 0.94,
+            stopButtonTappedAt: stopRequestedAt,
+            stopRequestedAt: stopRequestedAt,
+            captureStopStartedAt: stopRequestedAt.addingTimeInterval(0.2),
+            inputTapRemovedAt: stopRequestedAt.addingTimeInterval(0.5),
+            audioEngineStoppedAt: stopRequestedAt.addingTimeInterval(1.1),
+            audioSessionDeactivatedAt: stopRequestedAt.addingTimeInterval(1.8),
+            captureTaskCancelledAt: stopRequestedAt.addingTimeInterval(2.2),
+            analyzerFinalizeStartedAt: stopRequestedAt.addingTimeInterval(2.5),
+            analyzerFinalizeFinishedAt: nil,
+            reportGenerationStartedAt: nil,
+            reportGenerationFinishedAt: nil,
+            chunksReceivedAfterStopRequest: 0,
+            secondsReceivingAudioAfterStopRequest: 0
+        )
+        latestAudioLevel = 0
+        capturedAudioChunkCount = Int(receivedAudioSeconds)
+        detectedEventCandidateCount = 12
+        latestDetectedEventText = "리포트 정리 중"
+        latestDetectedEventAt = stopRequestedAt.addingTimeInterval(-9 * 60)
     }
     #endif
 

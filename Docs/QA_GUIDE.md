@@ -93,6 +93,8 @@ Simulator preset 예시:
 
 DEBUG 빌드의 `SimulatorScenarioView`에서 preset을 적용하고 주요 화면을 확인합니다. QA 후에는 preset을 해제합니다.
 
+완전 초기화 상태 smoke는 `Docs/SIMULATOR_QA_AUTOMATION.md`와 `Tools/UI/run_clean_simulator_smoke.sh`를 사용합니다. 이 흐름은 simulator erase, fresh install, 첫 실행 onboarding, 주요 screenshot scenario를 자동 캡처하고, microphone prompt와 짧은 수면 리포트 생성은 manual-required evidence로 분리합니다.
+
 Event audio snippet safeguard 확인:
 
 - 기본값 OFF에서 새 샘플이 저장되지 않아야 합니다.

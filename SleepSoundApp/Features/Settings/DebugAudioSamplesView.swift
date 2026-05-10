@@ -122,6 +122,164 @@ struct DebugAudioSamplesView: View {
   }
 }
 
+struct DebugAudioSamplesFixtureQAView: View {
+  private let fixtures: [DebugAudioSampleFixture] = [
+    DebugAudioSampleFixture(
+      fileName: "event-snore_2026-05-10_2312.m4a",
+      title: "이벤트 오디오 샘플",
+      isLinked: true,
+      duration: 6,
+      sizeText: "192KB",
+      createdAtText: "5월 10일 23:12"
+    ),
+    DebugAudioSampleFixture(
+      fileName: "event-cough_2026-05-10_0418.m4a",
+      title: "이벤트 오디오 샘플",
+      isLinked: true,
+      duration: 5,
+      sizeText: "160KB",
+      createdAtText: "5월 11일 04:18"
+    ),
+    DebugAudioSampleFixture(
+      fileName: "debug-preview_2026-05-10_2330.m4a",
+      title: "DEBUG 미리듣기",
+      isLinked: false,
+      duration: 10,
+      sizeText: "320KB",
+      createdAtText: "5월 10일 23:30"
+    ),
+    DebugAudioSampleFixture(
+      fileName: "event-environment_2026-05-10_0522_orphan.m4a",
+      title: "이벤트 오디오 샘플",
+      isLinked: false,
+      duration: 4,
+      sizeText: "128KB",
+      createdAtText: "5월 11일 05:22"
+    ),
+  ]
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+        NBReportSection(title: "DEBUG 오디오 샘플 다건 상태", systemImage: "waveform.circle") {
+          VStack(alignment: .leading, spacing: NBSpacing.medium) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+              NBMetricCard(
+                title: "샘플",
+                value: "\(fixtures.count)",
+                unit: "개",
+                systemImage: "waveform.circle",
+                tint: NBColor.audioTint,
+                status: .debug
+              )
+              NBMetricCard(
+                title: "연결되지 않음",
+                value: "\(fixtures.filter { !$0.isLinked }.count)",
+                unit: "개",
+                systemImage: "link.badge.plus",
+                tint: NBColor.warning,
+                status: .caution
+              )
+            }
+
+            ForEach(fixtures) { fixture in
+              DebugAudioSampleFixtureRow(fixture: fixture)
+              if fixture.id != fixtures.last?.id {
+                Divider().overlay(NBColor.divider)
+              }
+            }
+
+            Button(role: .destructive) {
+            } label: {
+              Label("모든 DEBUG 샘플 삭제", systemImage: "trash")
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.danger))
+          }
+        }
+
+        NBPrivacyNoticeCard(
+          title: "QA fixture",
+          messages: [
+            "이 화면은 DEBUG screenshot용 예시 목록입니다.",
+            "실제 오디오 파일을 만들거나 재생하지 않습니다.",
+            "연결된 샘플과 연결되지 않은 샘플의 UI 상태만 확인합니다.",
+            "Release 사용자에게 노출되지 않습니다.",
+          ],
+          systemImage: "lock.shield"
+        )
+      }
+      .padding(.horizontal, NBSpacing.screenHorizontal)
+      .padding(.vertical, NBSpacing.sectionVertical)
+    }
+    .background(NBColor.pageBackground)
+    .navigationTitle("샘플 다건 QA")
+    .toolbar(.hidden, for: .tabBar)
+    .nbAvoidFloatingTabBar()
+  }
+}
+
+private struct DebugAudioSampleFixture: Identifiable {
+  var id: String { fileName }
+  let fileName: String
+  let title: String
+  let isLinked: Bool
+  let duration: TimeInterval
+  let sizeText: String
+  let createdAtText: String
+}
+
+private struct DebugAudioSampleFixtureRow: View {
+  let fixture: DebugAudioSampleFixture
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      HStack(alignment: .top, spacing: NBSpacing.small) {
+        Image(systemName: fixture.fileName.hasPrefix("debug-preview_") ? "waveform.circle" : "waveform.badge.magnifyingglass")
+          .foregroundStyle(fixture.fileName.hasPrefix("debug-preview_") ? NBColor.audioTint : NBColor.sleepTint)
+          .frame(width: 24)
+          .accessibilityHidden(true)
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(fixture.title)
+            .font(.subheadline.weight(.semibold))
+          NBStatusBadge(
+            fixture.isLinked ? "이벤트 연결됨" : "연결되지 않음",
+            kind: fixture.isLinked ? .good : .caution,
+            systemImage: fixture.isLinked ? "link" : "link.badge.plus"
+          )
+          Text("\(fixture.createdAtText) · \(SleepFormatters.compactDurationString(fixture.duration)) · \(fixture.sizeText)")
+            .font(.caption)
+            .foregroundStyle(NBColor.secondaryText)
+          Text(fixture.fileName)
+            .font(.caption2.monospaced())
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+        }
+
+        Spacer()
+      }
+
+      HStack(spacing: NBSpacing.sm) {
+        Button {
+        } label: {
+          Label("재생", systemImage: "play.circle")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.nbSecondary)
+
+        Button(role: .destructive) {
+        } label: {
+          Label("삭제", systemImage: "trash")
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.danger))
+      }
+    }
+    .padding(.vertical, 6)
+  }
+}
+
 private struct DebugAudioSampleRow: View {
   let record: EventAudioSnippetFileRecord
   let isLinked: Bool

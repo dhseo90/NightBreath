@@ -243,11 +243,15 @@ Docs/Screenshots/Debug/cropped/
 - `onboarding`
 - `devicePlacement`
 - `calibration`
+- `privacySnapshot`
 - `audioDebug`
 - `sampleCapture`
 - `datasetReplay`
 - `debugTools`
 - `simulatorScenario`
+- `sleepFinalizingSlow`
+- `healthRefreshStates`
+- `debugAudioSamplesFixture`
 - `eventAudioStorageOff`
 
 특정 scenario만 재캡처:
