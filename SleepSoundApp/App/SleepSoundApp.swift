@@ -75,7 +75,7 @@ struct SleepSoundApp: App {
     }
 }
 
-private struct PrivacySnapshotCoverView: View {
+struct PrivacySnapshotCoverView: View {
     var body: some View {
         ZStack {
             NBColor.pageBackground.ignoresSafeArea()
@@ -102,6 +102,18 @@ private struct PrivacySnapshotCoverView: View {
         .accessibilityLabel("개인 데이터 보호 화면")
     }
 }
+
+#if DEBUG
+struct PrivacySnapshotCoverQAView: View {
+    var body: some View {
+        PrivacySnapshotCoverView()
+            .navigationTitle("Privacy Snapshot")
+            .toolbar(.hidden, for: .tabBar)
+            .background(NBColor.pageBackground)
+            .nbAvoidFloatingTabBar()
+    }
+}
+#endif
 
 #if DEBUG
 private struct ScreenshotScenarioLaunchView: View {

@@ -91,11 +91,27 @@ struct SleepRecordingView: View {
   private var finalizationStatus: some View {
     NBInlineStatus(
       title: appState.sleepRecordingPhase.title,
-      detail: appState.audioCaptureMessage ?? appState.sleepRecordingPhase.message,
+      detail: finalizationDetailText,
       kind: .privacy,
       systemImage: appState.sleepRecordingPhase == .reportReady ? "checkmark.circle" : "hourglass",
       isLoading: appState.sleepRecordingPhase != .reportReady
     )
+  }
+
+  private var finalizationDetailText: String {
+    var details = [appState.audioCaptureMessage ?? appState.sleepRecordingPhase.message]
+    if let elapsedText = finalizationElapsedText {
+      details.append(elapsedText)
+    }
+    return details.joined(separator: "\n")
+  }
+
+  private var finalizationElapsedText: String? {
+    guard appState.sleepRecordingPhase != .recording else { return nil }
+    let metrics = appState.audioCaptureMetrics.snapshot(at: clockDate)
+    guard let startedAt = metrics.stopButtonTappedAt ?? metrics.stopRequestedAt else { return nil }
+    let elapsed = max(0, clockDate.timeIntervalSince(startedAt))
+    return "종료 요청 후 \(SleepFormatters.compactDurationString(elapsed)) 경과"
   }
 
   private func measurementStatus(session: SleepSession, asOf date: Date) -> some View {

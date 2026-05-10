@@ -5,6 +5,7 @@ import SwiftUI
 struct DebugAudioSamplesView: View {
   @EnvironmentObject private var appState: AppState
   @StateObject private var viewModel = DebugAudioSamplesViewModel()
+  @State private var isDeleteAllConfirmationPresented = false
 
   var body: some View {
     List {
@@ -84,6 +85,14 @@ struct DebugAudioSamplesView: View {
         }
         .buttonStyle(.nbSecondary)
 
+        Button(role: .destructive) {
+          isDeleteAllConfirmationPresented = true
+        } label: {
+          Label("모든 DEBUG 샘플 삭제", systemImage: "trash")
+        }
+        .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.danger))
+        .disabled(appState.eventAudioStorageStats.sampleCount == 0)
+
         if let message = appState.eventAudioStorageMessage {
           Text(message)
             .font(.footnote)
@@ -99,6 +108,16 @@ struct DebugAudioSamplesView: View {
     .onAppear {
       viewModel.refresh()
       appState.refreshEventAudioStorageStats()
+    }
+    .alert("모든 DEBUG 오디오 샘플 삭제", isPresented: $isDeleteAllConfirmationPresented) {
+      Button("모든 샘플 삭제", role: .destructive) {
+        viewModel.stopPlayback()
+        appState.deleteAllEventAudioSnippets()
+        viewModel.refresh()
+      }
+      Button("취소", role: .cancel) {}
+    } message: {
+      Text("리포트 이벤트에 연결된 샘플과 연결되지 않은 DEBUG 미리듣기 샘플을 모두 삭제합니다. 수면 리포트 기록은 유지됩니다.")
     }
   }
 }
@@ -217,8 +236,7 @@ private final class DebugAudioSamplesViewModel: ObservableObject {
 
   func delete(_ record: EventAudioSnippetFileRecord) {
     if playingFileName == record.fileName {
-      audioPlayer?.stop()
-      playingFileName = nil
+      stopPlayback()
     }
 
     do {
@@ -230,6 +248,12 @@ private final class DebugAudioSamplesViewModel: ObservableObject {
       message = "오디오 샘플을 삭제하지 못했습니다."
       messageIsError = true
     }
+  }
+
+  func stopPlayback() {
+    audioPlayer?.stop()
+    audioPlayer = nil
+    playingFileName = nil
   }
 }
 #endif

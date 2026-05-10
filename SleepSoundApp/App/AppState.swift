@@ -282,11 +282,12 @@ final class AppState: ObservableObject {
 
     func refreshMicrophonePermissionStateAfterTabTransition() {
         let audioSessionManager = audioSessionManager
-        Task.detached { [weak self] in
+        Task.detached(priority: .background) { [weak self] in
             await Task.yield()
             let permissionState = audioSessionManager.microphonePermissionState()
             await MainActor.run {
-                self?.microphonePermissionState = permissionState
+                guard let self, self.microphonePermissionState != permissionState else { return }
+                self.microphonePermissionState = permissionState
             }
         }
     }

@@ -126,11 +126,18 @@ struct FitdaysImportView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
+        FitdaysImportFlowStatus(
+          hasInput: !trimmedPastedText.isEmpty || importResult != nil,
+          hasPreview: importResult != nil,
+          hasSaved: lastSaveConfirmation != nil,
+          isPreviewing: isPreviewingPaste
+        )
+
         #if os(iOS)
         Button {
           pasteClipboardTextAndPreview()
         } label: {
-          Label(isPreviewingPaste ? "미리보기 생성 중" : "클립보드에서 바로 미리보기", systemImage: "doc.on.clipboard")
+          Label(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기", systemImage: "doc.on.clipboard")
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
@@ -214,7 +221,7 @@ struct FitdaysImportView: View {
           Button {
             pasteClipboardTextAndPreview()
           } label: {
-            Label(isPreviewingPaste ? "미리보기 생성 중" : "클립보드 붙여넣고 미리보기", systemImage: "doc.on.clipboard")
+            Label(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기", systemImage: "doc.on.clipboard")
               .frame(maxWidth: .infinity)
           }
           .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
@@ -225,7 +232,7 @@ struct FitdaysImportView: View {
             Button {
               previewPastedText()
             } label: {
-              Label("미리보기", systemImage: "eye")
+              Label("저장 전 미리보기 만들기", systemImage: "eye")
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.nbSecondary)
@@ -480,6 +487,13 @@ struct FitdaysImportView: View {
         if let duplicateSummary, duplicateSummary.hasDuplicates {
           duplicateSummarySection(duplicateSummary)
         }
+
+        NBInlineStatus(
+          title: "미리보기 완료 · 아직 저장 전",
+          detail: "샘플 수와 건너뛴 행을 확인한 뒤 아래 버튼으로 로컬 저장을 완료합니다.",
+          kind: result.samples.isEmpty ? .caution : .privacy,
+          systemImage: result.samples.isEmpty ? "exclamationmark.circle" : "eye"
+        )
 
         Button {
           save(result)
@@ -842,12 +856,12 @@ struct FitdaysImportView: View {
 
   private func saveButtonTitle(for summary: UnifiedHealthMetricImportDuplicateSummary?) -> String {
     guard let summary, summary.hasDuplicates else {
-      return "로컬에 저장"
+      return "미리보기 결과 로컬 저장"
     }
     if summary.hasChangedDuplicates {
-      return "중복 확인 후 저장"
+      return "중복 확인 후 로컬 저장"
     }
-    return "중복 정리하고 저장"
+    return "중복 정리하고 로컬 저장"
   }
 
   private func saveSuccessMessage(
@@ -1207,6 +1221,52 @@ struct FitdaysImportView: View {
     case .app:
       NBColor.dawn
     }
+  }
+}
+
+private struct FitdaysImportFlowStatus: View {
+  let hasInput: Bool
+  let hasPreview: Bool
+  let hasSaved: Bool
+  let isPreviewing: Bool
+
+  var body: some View {
+    HStack(spacing: NBSpacing.xs) {
+      flowPill(title: "입력", systemImage: "doc.text", isActive: hasInput || isPreviewing)
+      flowPill(title: "미리보기", systemImage: "eye", isActive: hasPreview || isPreviewing)
+      flowPill(title: "저장", systemImage: "tray.and.arrow.down", isActive: hasSaved)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(accessibilityLabel)
+  }
+
+  private func flowPill(title: String, systemImage: String, isActive: Bool) -> some View {
+    Label(title, systemImage: systemImage)
+      .font(NBTypography.captionEmphasis)
+      .foregroundStyle(isActive ? NBColor.primaryText : NBColor.secondaryText)
+      .padding(.horizontal, NBSpacing.sm)
+      .padding(.vertical, NBSpacing.xs)
+      .background(
+        (isActive ? NBColor.mistTeal : NBColor.divider).opacity(isActive ? 0.16 : 0.42),
+        in: Capsule()
+      )
+  }
+
+  private var accessibilityLabel: String {
+    if hasSaved {
+      return "Fitdays 가져오기 단계, 저장 완료"
+    }
+    if hasPreview {
+      return "Fitdays 가져오기 단계, 저장 전 미리보기 완료"
+    }
+    if isPreviewing {
+      return "Fitdays 가져오기 단계, 미리보기 생성 중"
+    }
+    if hasInput {
+      return "Fitdays 가져오기 단계, 입력 완료"
+    }
+    return "Fitdays 가져오기 단계, 입력 전"
   }
 }
 

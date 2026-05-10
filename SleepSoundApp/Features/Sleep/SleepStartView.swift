@@ -3,6 +3,7 @@ import SwiftUI
 struct SleepStartView: View {
   @EnvironmentObject private var appState: AppState
   @State private var showLatestReport = false
+  @State private var didQueuePermissionRefresh = false
 
   var body: some View {
     Group {
@@ -31,7 +32,7 @@ struct SleepStartView: View {
       }
     }
     .task {
-      appState.refreshMicrophonePermissionStateAfterTabTransition()
+      queueDeferredMicrophonePermissionRefresh()
     }
   }
 
@@ -81,6 +82,12 @@ struct SleepStartView: View {
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
+  }
+
+  private func queueDeferredMicrophonePermissionRefresh() {
+    guard !didQueuePermissionRefresh else { return }
+    didQueuePermissionRefresh = true
+    appState.refreshMicrophonePermissionStateAfterTabTransition()
   }
 
   private var latestResultSection: some View {

@@ -156,6 +156,18 @@ struct SimulatorScenarioView: View {
           .foregroundStyle(NBColor.secondaryText)
       }
 
+      Section("Privacy Snapshot") {
+        NavigationLink {
+          PrivacySnapshotCoverQAView()
+        } label: {
+          Label("앱 전환 보호 화면", systemImage: "lock.shield")
+        }
+
+        Text("앱이 inactive/background로 넘어갈 때 표시되는 보호 화면을 simulator에서 직접 확인합니다.")
+          .font(.footnote)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+
       Section("EHM 화면 상태") {
         NavigationLink {
           HealthDashboardView(

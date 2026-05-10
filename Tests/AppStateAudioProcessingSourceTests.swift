@@ -57,6 +57,8 @@ struct AppStateAudioProcessingSourceTests {
         #expect(source.contains("if shouldShowDetails"))
         #expect(source.contains("detailedMeasurementRows(metrics: metrics)"))
         #expect(source.contains("finalizationStatus"))
+        #expect(source.contains("finalizationDetailText"))
+        #expect(source.contains("finalizationElapsedText"))
         #expect(source.contains("appState.audioCaptureMessage ?? appState.sleepRecordingPhase.message"))
     }
 
@@ -72,6 +74,8 @@ struct AppStateAudioProcessingSourceTests {
         #expect(viewSource.contains("파일 없는 참조 정리"))
         #expect(viewSource.contains("이벤트 연결됨"))
         #expect(viewSource.contains("연결되지 않음"))
+        #expect(viewSource.contains("모든 DEBUG 샘플 삭제"))
+        #expect(viewSource.contains("viewModel.stopPlayback()"))
     }
 
     @Test
@@ -81,6 +85,7 @@ struct AppStateAudioProcessingSourceTests {
         #expect(source.contains("@Environment(\\.scenePhase) private var scenePhase"))
         #expect(source.contains("if scenePhase != .active"))
         #expect(source.contains("PrivacySnapshotCoverView()"))
+        #expect(source.contains("PrivacySnapshotCoverQAView"))
         #expect(source.contains("개인 데이터 보호 중"))
         #expect(source.contains(".privacySensitive()"))
     }

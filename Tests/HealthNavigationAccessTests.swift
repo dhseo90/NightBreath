@@ -120,6 +120,8 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("NavigationLink(value: SleepStartDestination.latestTimeline)"))
         #expect(contents.contains("NavigationLink(value: SleepStartDestination.trend)"))
         #expect(contents.contains("refreshMicrophonePermissionStateAfterTabTransition()"))
+        #expect(contents.contains("queueDeferredMicrophonePermissionRefresh"))
+        #expect(contents.contains("@State private var didQueuePermissionRefresh = false"))
         #expect(!contents.contains(".onAppear {\n      appState.refreshMicrophonePermissionState()"))
         #expect(contents.contains("SleepReportView(report: appState.latestReport"))
         #expect(contents.contains("SleepTimelineView(report: appState.latestReport"))

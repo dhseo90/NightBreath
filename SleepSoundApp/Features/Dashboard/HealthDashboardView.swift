@@ -168,6 +168,7 @@ struct HealthDashboardView: View {
         .opacity(isLoading || !service.isAvailable ? 0.68 : 1)
         .accessibilityHint(isLoading ? "이미 건강 데이터를 읽는 중입니다." : "Apple 건강앱 read-only 데이터를 요청합니다.")
 
+        healthRefreshFeedbackSummary
         healthDataRefreshFeedbackView
 
         if !service.isAvailable {
@@ -206,6 +207,13 @@ struct HealthDashboardView: View {
   }
 
   @ViewBuilder
+  private var healthRefreshFeedbackSummary: some View {
+    if hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted || refreshFeedback.isActive {
+      HealthRefreshFeedbackSummary(feedback: refreshFeedback, isLoading: isLoading)
+    }
+  }
+
+  @ViewBuilder
   private var healthDataRefreshFeedbackView: some View {
     switch refreshFeedback {
     case .idle:
@@ -217,10 +225,10 @@ struct HealthDashboardView: View {
           systemImage: "clock"
         )
       }
-    case let .reading(message):
+    case let .reading(message, startedAt):
       NBInlineStatus(
         title: message,
-        detail: "완료되기 전까지 버튼은 비활성화됩니다.",
+        detail: "요청 시각 \(SleepFormatters.shortTime(startedAt)) · 완료되기 전까지 버튼은 비활성화됩니다.",
         kind: .privacy,
         systemImage: "arrow.triangle.2.circlepath",
         isLoading: true
@@ -577,7 +585,7 @@ struct HealthDashboardView: View {
 
     isLoading = true
     let isRefresh = hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
-    refreshFeedback = .reading(message: isRefresh ? "새로고침 요청됨 · 읽는 중" : "건강 데이터 연결 요청됨 · 읽는 중")
+    refreshFeedback = .reading(message: isRefresh ? "새로고침 요청됨 · 읽는 중" : "건강 데이터 연결 요청됨 · 읽는 중", startedAt: Date())
     statusMessage = "Apple 건강앱 read-only 데이터를 읽기 시작했습니다."
 
     Task {
@@ -613,7 +621,7 @@ struct HealthDashboardView: View {
     hasRequestedHealthKitReadAccess = true
     permissionState = .readRequestCompleted
     isLoading = true
-    refreshFeedback = .reading(message: "이전 연결 상태 확인 중 · 읽는 중")
+    refreshFeedback = .reading(message: "이전 연결 상태 확인 중 · 읽는 중", startedAt: Date())
     statusMessage = "이전에 연결한 Apple 건강앱 데이터를 다시 읽고 있습니다."
 
     Task {
@@ -796,9 +804,109 @@ struct HealthDashboardView: View {
 
 private enum HealthDataRefreshFeedback {
   case idle
-  case reading(message: String)
+  case reading(message: String, startedAt: Date)
   case finished(sampleCount: Int, completedAt: Date)
   case blocked(message: String)
+
+  var isActive: Bool {
+    switch self {
+    case .idle:
+      return false
+    case .reading, .finished, .blocked:
+      return true
+    }
+  }
+}
+
+private struct HealthRefreshFeedbackSummary: View {
+  let feedback: HealthDataRefreshFeedback
+  let isLoading: Bool
+
+  var body: some View {
+    HStack(spacing: NBSpacing.sm) {
+      if isLoading {
+        ProgressView()
+          .controlSize(.small)
+          .tint(kind.tint)
+          .accessibilityHidden(true)
+      } else {
+        Image(systemName: systemImage)
+          .foregroundStyle(kind.tint)
+          .frame(width: 22)
+          .accessibilityHidden(true)
+      }
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(NBTypography.captionEmphasis)
+          .foregroundStyle(NBColor.primaryText)
+        Text(detail)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+      }
+
+      Spacer(minLength: NBSpacing.sm)
+    }
+    .padding(NBSpacing.sm)
+    .background(kind.tint.opacity(0.08), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous)
+        .stroke(kind.tint.opacity(0.18), lineWidth: 1)
+    }
+    .accessibilityElement(children: .combine)
+  }
+
+  private var title: String {
+    switch feedback {
+    case .idle:
+      "새로고침 대기 중"
+    case let .reading(message, _):
+      message
+    case let .finished(sampleCount, completedAt):
+      "완료 · \(SleepFormatters.shortTime(completedAt)) · \(sampleCount)개"
+    case .blocked:
+      "완료 안 됨"
+    }
+  }
+
+  private var detail: String {
+    switch feedback {
+    case .idle:
+      "버튼을 누르면 진행 상태가 이곳에 남습니다."
+    case let .reading(_, startedAt):
+      "요청 \(SleepFormatters.shortTime(startedAt)) · 읽는 중"
+    case let .finished(sampleCount, _):
+      sampleCount > 0 ? "읽은 샘플이 화면에 반영되었습니다." : "읽을 수 있는 샘플이 없어 빈 상태로 반영되었습니다."
+    case let .blocked(message):
+      message
+    }
+  }
+
+  private var kind: NBStatusKind {
+    switch feedback {
+    case .idle:
+      .neutral
+    case .reading:
+      .privacy
+    case let .finished(sampleCount, _):
+      sampleCount > 0 ? .good : .caution
+    case .blocked:
+      .caution
+    }
+  }
+
+  private var systemImage: String {
+    switch feedback {
+    case .idle:
+      "clock"
+    case .reading:
+      "arrow.triangle.2.circlepath"
+    case let .finished(sampleCount, _):
+      sampleCount > 0 ? "checkmark.circle" : "tray"
+    case .blocked:
+      "exclamationmark.circle"
+    }
+  }
 }
 
 private struct HealthDashboardEntryCard: View {

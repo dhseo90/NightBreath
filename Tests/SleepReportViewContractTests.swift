@@ -33,6 +33,9 @@ struct SleepReportViewContractTests {
     #expect(source.contains("상세 분석"))
     #expect(source.contains("배치/거리 안내"))
     #expect(source.contains("iPhone을 베개 쪽에 더 가깝게"))
+    #expect(source.contains("coverageDiagnosticItems"))
+    #expect(source.contains("커버리지 원인"))
+    #expect(source.contains("수신되지 않은 시간"))
   }
 
   private func sleepReportViewSource() throws -> String {

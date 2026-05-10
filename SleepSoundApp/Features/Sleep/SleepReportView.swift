@@ -199,6 +199,11 @@ struct SleepReportView: View {
             systemImage: "waveform.badge.exclamationmark",
             illustration: .devicePlacement
           )
+
+          NBDiagnosticItemList(
+            items: coverageDiagnosticItems,
+            showsDetails: true
+          )
         }
       }
     }
@@ -750,6 +755,52 @@ struct SleepReportView: View {
 
   private var shouldShowLowMeasurementQualityNote: Bool {
     report.measurementQuality == .limited || report.measurementQuality == .poor
+  }
+
+  private var missingAudioDuration: TimeInterval {
+    max(0, report.measurementDuration - report.receivedAudioDuration)
+  }
+
+  private var coverageDiagnosticItems: [NBDiagnosticItem] {
+    [
+      NBDiagnosticItem(
+        title: "커버리지 원인",
+        value: coverageRootCauseSummary,
+        detail: "측정 품질은 앱 동작 시간 대비 실제 오디오 수신 시간과 입력 공백을 함께 봅니다.",
+        status: coverageStatus
+      ),
+      NBDiagnosticItem(
+        title: "수신되지 않은 시간",
+        value: SleepFormatters.compactDurationString(missingAudioDuration),
+        detail: "앱은 켜져 있었지만 분석 가능한 마이크 입력으로 들어오지 않은 시간입니다.",
+        status: missingAudioDuration > 0 ? .caution : .good
+      ),
+      NBDiagnosticItem(
+        title: "가장 긴 입력 공백",
+        value: SleepFormatters.compactDurationString(report.longestAudioGapSeconds),
+        detail: "중간에 오디오 입력이 끊긴 가장 긴 구간입니다.",
+        status: report.longestAudioGapSeconds > 10 ? .caution : .neutral
+      ),
+      NBDiagnosticItem(
+        title: "중단 횟수",
+        value: "\(report.interruptionCount)회",
+        detail: "시스템 오디오 interruption이나 캡처 중단 진단에 남은 횟수입니다.",
+        status: report.interruptionCount > 0 ? .caution : .good
+      ),
+    ]
+  }
+
+  private var coverageRootCauseSummary: String {
+    if report.receivedAudioDuration <= 1 {
+      return "오디오 입력 거의 없음"
+    }
+    if report.longestAudioGapSeconds > 30 {
+      return "긴 입력 공백 있음"
+    }
+    if report.interruptionCount > 0 {
+      return "오디오 중단 기록 있음"
+    }
+    return "수신 시간이 짧음"
   }
 
   private var displayDetectedEventDuration: TimeInterval {
