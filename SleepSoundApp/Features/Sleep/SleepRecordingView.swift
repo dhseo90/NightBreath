@@ -80,7 +80,8 @@ struct SleepRecordingView: View {
         NBDangerButton(
           title: appState.sleepRecordingPhase.isStopButtonDisabled ? "종료 처리 중" : "수면 종료",
           systemImage: appState.sleepRecordingPhase.isStopButtonDisabled ? "hourglass" : "stop.fill",
-          isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled
+          isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled,
+          isBusy: appState.sleepRecordingPhase != .recording
         ) {
           appState.endSleepSession()
         }
