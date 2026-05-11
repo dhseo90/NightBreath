@@ -44,7 +44,7 @@ ROOT_SCREEN_SMOKE_CHECKS=(
   'SleepSoundApp/Features/Dashboard/HomeDashboardView.swift|Simulator QA / Screenshot Scenario|Debug settings must keep the screenshot scenario entry behind DEBUG.'
   'SleepSoundApp/Features/Sleep/SleepStartView.swift|Text("수면 시작")|Sleep root must show the start state title.'
   'SleepSoundApp/Features/Sleep/SleepStartView.swift|permissionStatusCard|Sleep root must show microphone permission state.'
-  'SleepSoundApp/Features/Sleep/SleepStartView.swift|NBPrimaryButton(title: startButtonTitle|Sleep root must keep an explicit start CTA.'
+  'SleepSoundApp/Features/Sleep/SleepStartView.swift|NBPrimaryButton(|Sleep root must keep an explicit start CTA.'
   'SleepSoundApp/Features/Sleep/SleepStartView.swift|sleepStartActionFeedbackView|Sleep root must keep action feedback states.'
   'SleepSoundApp/Features/Sleep/SleepStartView.swift|queueDeferredMicrophonePermissionRefresh|Sleep root must defer permission refresh off the immediate tab switch path.'
   'SleepSoundApp/Features/Sleep/SleepRecordingView.swift|finalizationDetailText|Sleep recording must keep stop/finalization progress feedback visible.'

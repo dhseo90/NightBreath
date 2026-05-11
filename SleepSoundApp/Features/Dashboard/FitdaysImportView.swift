@@ -23,6 +23,8 @@ struct FitdaysImportView: View {
   @State private var duplicateSummary: UnifiedHealthMetricImportDuplicateSummary?
   @State private var allowsChangedDuplicateOverwrite = false
   @State private var lastSaveConfirmation: FitdaysSaveConfirmation?
+  @State private var isSavingImportResult = false
+  @State private var isSavingManualMetric = false
   @State private var didPreviewInitialFile = false
   @State private var savedBatches: [ImportBatch] = []
   @State private var savedSampleCountsByBatchID: [UUID: Int] = [:]
@@ -137,11 +139,23 @@ struct FitdaysImportView: View {
         Button {
           pasteClipboardTextAndPreview()
         } label: {
-          Label(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기", systemImage: "doc.on.clipboard")
-            .frame(maxWidth: .infinity)
+          HStack(spacing: NBSpacing.sm) {
+            if isPreviewingPaste {
+              ProgressView()
+                .controlSize(.small)
+                .tint(.white)
+            } else {
+              Image(systemName: "doc.on.clipboard")
+                .foregroundStyle(.white)
+            }
+            Text(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기")
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: .infinity)
+          }
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
         .disabled(isPreviewingPaste)
+        .opacity(isPreviewingPaste ? 0.55 : 1)
         #endif
 
         Button {
@@ -221,22 +235,45 @@ struct FitdaysImportView: View {
           Button {
             pasteClipboardTextAndPreview()
           } label: {
-            Label(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기", systemImage: "doc.on.clipboard")
-              .frame(maxWidth: .infinity)
+            HStack(spacing: NBSpacing.sm) {
+              if isPreviewingPaste {
+                ProgressView()
+                  .controlSize(.small)
+                  .tint(.white)
+              } else {
+                Image(systemName: "doc.on.clipboard")
+                  .foregroundStyle(.white)
+              }
+              Text(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기")
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            }
           }
           .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
           .disabled(isPreviewingPaste)
+          .opacity(isPreviewingPaste ? 0.55 : 1)
           #endif
 
           HStack(spacing: NBSpacing.small) {
             Button {
               previewPastedText()
             } label: {
-              Label("저장 전 미리보기 만들기", systemImage: "eye")
-                .frame(maxWidth: .infinity)
+              HStack(spacing: NBSpacing.sm) {
+                if isPreviewingPaste {
+                  ProgressView()
+                    .controlSize(.small)
+                } else {
+                  Image(systemName: "eye")
+                    .foregroundStyle(NBColor.primaryText)
+                }
+                Text(isPreviewingPaste ? "미리보기 요청 중" : "저장 전 미리보기 만들기")
+                  .multilineTextAlignment(.center)
+                  .frame(maxWidth: .infinity)
+              }
             }
             .buttonStyle(.nbSecondary)
             .disabled(trimmedPastedText.isEmpty || isPreviewingPaste)
+            .opacity(trimmedPastedText.isEmpty || isPreviewingPaste ? 0.55 : 1)
 
             Button {
               clearPastedText()
@@ -246,6 +283,7 @@ struct FitdaysImportView: View {
             }
             .buttonStyle(.nbSecondary)
             .disabled(pastedExportText.isEmpty || isPreviewingPaste)
+            .opacity(pastedExportText.isEmpty || isPreviewingPaste ? 0.55 : 1)
           }
         }
 
@@ -321,10 +359,23 @@ struct FitdaysImportView: View {
         Button {
           saveManualMetricInput()
         } label: {
-          Label("수동 입력 로컬 저장", systemImage: "tray.and.arrow.down")
-            .frame(maxWidth: .infinity)
+          HStack(spacing: NBSpacing.sm) {
+            if isSavingManualMetric {
+              ProgressView()
+                .controlSize(.small)
+                .tint(.white)
+            } else {
+              Image(systemName: "tray.and.arrow.down")
+                .foregroundStyle(.white)
+            }
+            Text(isSavingManualMetric ? "수동 입력 저장 중" : "수동 입력 로컬 저장")
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: .infinity)
+          }
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
+        .disabled(isSavingManualMetric)
+        .opacity(isSavingManualMetric ? 0.55 : 1)
 
         if let manualStatusMessage {
           NBInlineStatus(
@@ -498,11 +549,23 @@ struct FitdaysImportView: View {
         Button {
           save(result)
         } label: {
-          Label(saveButtonTitle(for: duplicateSummary), systemImage: "tray.and.arrow.down")
-            .frame(maxWidth: .infinity)
+          HStack(spacing: NBSpacing.sm) {
+            if isSavingImportResult {
+              ProgressView()
+                .controlSize(.small)
+                .tint(.white)
+            } else {
+              Image(systemName: "tray.and.arrow.down")
+                .foregroundStyle(.white)
+            }
+            Text(isSavingImportResult ? "로컬 저장 중" : saveButtonTitle(for: duplicateSummary))
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: .infinity)
+          }
         }
         .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.sleepTint))
-        .disabled(result.samples.isEmpty || isPreviewingPaste || requiresChangedDuplicateConfirmation)
+        .disabled(result.samples.isEmpty || isSavingImportResult || isPreviewingPaste || requiresChangedDuplicateConfirmation)
+        .opacity(result.samples.isEmpty || isSavingImportResult || isPreviewingPaste || requiresChangedDuplicateConfirmation ? 0.55 : 1)
 
         if let lastSaveConfirmation {
           NBInlineStatus(
@@ -937,11 +1000,15 @@ struct FitdaysImportView: View {
   private func saveManualMetricInput() {
     manualStatusMessage = nil
     manualErrorMessage = nil
+    guard !isSavingManualMetric else { return }
 
     guard let value = parseManualValue(manualValueText) else {
       manualErrorMessage = "0 이상의 숫자 값을 입력해 주세요."
       return
     }
+
+    isSavingManualMetric = true
+    defer { isSavingManualMetric = false }
 
     do {
       let sample = try FitdaysManualMetricEntryBuilder.makeSample(
@@ -1126,10 +1193,13 @@ struct FitdaysImportView: View {
   }
 
   private func save(_ result: FitdaysImportResult) {
+    guard !isSavingImportResult else { return }
     guard !requiresChangedDuplicateConfirmation else {
       errorMessage = "값이 다른 중복 데이터가 있습니다. 새 붙여넣기 기준으로 교체할지 먼저 선택해 주세요."
       return
     }
+
+    isSavingImportResult = true
 
     do {
       try repository.save(batch: result.batch, samples: result.samples)
@@ -1151,6 +1221,8 @@ struct FitdaysImportView: View {
       lastSaveConfirmation = nil
       errorMessage = "저장에 실패했습니다: \(error.localizedDescription)"
     }
+
+    isSavingImportResult = false
   }
 
   private func importedDayStarts(from samples: [UnifiedHealthMetricSample]) -> [Date] {

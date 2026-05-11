@@ -56,13 +56,17 @@ struct SleepStartView: View {
           }
         }
 
-        permissionStatusCard
-
-        NBPrimaryButton(title: startButtonTitle, systemImage: startButtonIcon, isDisabled: appState.isPreparingCapture) {
+        NBPrimaryButton(
+          title: startButtonTitle,
+          systemImage: startButtonIcon,
+          isDisabled: appState.isPreparingCapture,
+          isBusy: appState.isPreparingCapture
+        ) {
           appState.startSleepSession()
         }
 
         sleepStartActionFeedbackView
+        permissionStatusCard
         setupSummaryCard
         latestResultSection
 

@@ -3,16 +3,23 @@ import SwiftUI
 private struct NBButtonLabel: View {
   let title: String
   let systemImage: String?
+  let isBusy: Bool
+  let spinnerColor: Color
 
   var body: some View {
     HStack(spacing: NBSpacing.sm) {
-      if let systemImage {
+      if isBusy {
+        ProgressView()
+          .controlSize(.small)
+          .tint(spinnerColor)
+      } else if let systemImage {
         Image(systemName: systemImage)
           .imageScale(.medium)
       }
       Text(title)
         .lineLimit(2)
         .multilineTextAlignment(.center)
+        .opacity(isBusy ? 0.92 : 1)
     }
     .frame(maxWidth: .infinity)
     .accessibilityElement(children: .combine)
@@ -83,15 +90,16 @@ struct NBPrimaryButton: View {
   let title: String
   var systemImage: String?
   var isDisabled: Bool = false
+  var isBusy: Bool = false
   let action: () -> Void
 
   var body: some View {
     Button(action: action) {
-      NBButtonLabel(title: title, systemImage: systemImage)
+      NBButtonLabel(title: title, systemImage: systemImage, isBusy: isBusy, spinnerColor: .white)
     }
     .buttonStyle(NBPrimaryButtonStyle())
-    .disabled(isDisabled)
-    .opacity(isDisabled ? 0.55 : 1)
+    .disabled(isDisabled || isBusy)
+    .opacity((isDisabled || isBusy) ? 0.55 : 1)
   }
 }
 
@@ -99,15 +107,16 @@ struct NBSecondaryButton: View {
   let title: String
   var systemImage: String?
   var isDisabled: Bool = false
+  var isBusy: Bool = false
   let action: () -> Void
 
   var body: some View {
     Button(action: action) {
-      NBButtonLabel(title: title, systemImage: systemImage)
+      NBButtonLabel(title: title, systemImage: systemImage, isBusy: isBusy, spinnerColor: NBColor.accent)
     }
     .buttonStyle(NBSecondaryButtonStyle())
-    .disabled(isDisabled)
-    .opacity(isDisabled ? 0.55 : 1)
+    .disabled(isDisabled || isBusy)
+    .opacity((isDisabled || isBusy) ? 0.55 : 1)
   }
 }
 
@@ -115,15 +124,16 @@ struct NBDangerButton: View {
   let title: String
   var systemImage: String?
   var isDisabled: Bool = false
+  var isBusy: Bool = false
   let action: () -> Void
 
   var body: some View {
     Button(role: .destructive, action: action) {
-      NBButtonLabel(title: title, systemImage: systemImage)
+      NBButtonLabel(title: title, systemImage: systemImage, isBusy: isBusy, spinnerColor: .white)
     }
     .buttonStyle(NBDangerButtonStyle())
-    .disabled(isDisabled)
-    .opacity(isDisabled ? 0.55 : 1)
+    .disabled(isDisabled || isBusy)
+    .opacity((isDisabled || isBusy) ? 0.55 : 1)
   }
 }
 
