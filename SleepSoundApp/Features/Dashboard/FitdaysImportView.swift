@@ -966,6 +966,10 @@ struct FitdaysImportView: View {
       get: { visiblePastedExportText },
       set: { newValue in
         guard newValue != visiblePastedExportText else { return }
+        guard pastedTextSummary?.isTruncatedForDisplay != true else {
+          statusMessage = "긴 붙여넣기는 전체 원문을 보존하기 위해 입력창 직접 편집을 막았습니다. 비운 뒤 다시 붙여넣어 주세요."
+          return
+        }
         stagePastedText(newValue, statusPrefix: nil)
       }
     )

@@ -323,6 +323,8 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         reportGenerationFinishedAt = reportGenerationFinishedAt ?? other.reportGenerationFinishedAt
         forceStopStartedAt = forceStopStartedAt ?? other.forceStopStartedAt
         forceStopReason = forceStopReason ?? other.forceStopReason
+        interruptionCount = max(interruptionCount, other.interruptionCount)
+        captureErrorCount = max(captureErrorCount, other.captureErrorCount)
         chunksReceivedAfterStopRequest = max(chunksReceivedAfterStopRequest, other.chunksReceivedAfterStopRequest)
         secondsReceivingAudioAfterStopRequest = max(
             secondsReceivingAudioAfterStopRequest,
