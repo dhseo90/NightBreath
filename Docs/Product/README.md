@@ -63,6 +63,7 @@ V1은 정확도 확정보다 앱 구조, 개인정보 원칙, 테스트 가능�
 | --- | --- |
 | [PRODUCT_DIRECTION](../PRODUCT_DIRECTION.md) | 제품 확장 방향과 Daily Rhythm 원칙 |
 | [CURRENT_STATUS](../CURRENT_STATUS.md) | 현재 구현/미구현 상태 |
+| [V1_1_ROADMAP](../V1_1_ROADMAP.md) | v1.1.0 안정화와 기능 보강 로드맵 |
 | [NEXT_ISSUES](../NEXT_ISSUES.md) | 다음 이슈 후보 |
 | [APP_STORE_PRODUCT_PAGE_COPY](../APP_STORE_PRODUCT_PAGE_COPY.md) | App Store용 제품 문구 후보 |
 | [LICENSING](../LICENSING.md) | Apache-2.0 코드 범위와 ESC-50/ESC-10 dataset license 경계 |

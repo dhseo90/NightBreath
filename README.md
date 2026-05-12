@@ -66,7 +66,7 @@ GitHub의 자동 license badge가 mixed/custom license를 단순하게 표시하
 
 | 문서 | 내용 | 대표 세부 문서 |
 | --- | --- | --- |
-| [Product](Docs/Product/README.md) | 제품 방향, V1 범위, 표현 원칙, 하지 않는 것 | [PRODUCT_DIRECTION](Docs/PRODUCT_DIRECTION.md), [CURRENT_STATUS](Docs/CURRENT_STATUS.md) |
+| [Product](Docs/Product/README.md) | 제품 방향, V1 범위, 표현 원칙, 하지 않는 것 | [PRODUCT_DIRECTION](Docs/PRODUCT_DIRECTION.md), [CURRENT_STATUS](Docs/CURRENT_STATUS.md), [V1_1_ROADMAP](Docs/V1_1_ROADMAP.md) |
 | [UI](Docs/UI/README.md) | 주요 화면, UI gallery, 디자인 시스템, screenshot 관리 | [UI_GALLERY](Docs/UI_GALLERY.md), [UI_SCREEN_MAP](Docs/UI_SCREEN_MAP.md), [DESIGN_SYSTEM](Docs/DESIGN_SYSTEM.md) |
 | [Architecture](Docs/Architecture/README.md) | 앱 구조, 주요 모델, 분석 pipeline, storage 경계 | [CORE_ML_MODEL_INTEGRATION](Docs/CORE_ML_MODEL_INTEGRATION.md), [RULE_BASED_VS_ML_COMPARISON](Docs/RULE_BASED_VS_ML_COMPARISON.md) |
 | [Privacy](Docs/Privacy/README.md) | 로컬 저장, 이벤트 오디오 샘플, HealthKit read-only, 금지 경로 | [PRIVACY_STORAGE_AUDIT](Docs/PRIVACY_STORAGE_AUDIT.md), [APP_REVIEW_AUDIT](Docs/APP_REVIEW_AUDIT.md) |
