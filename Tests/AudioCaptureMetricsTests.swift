@@ -163,6 +163,8 @@ struct AudioCaptureMetricsTests {
             chunk: makeChunk(frameCount: 2_400, sampleRate: 48_000),
             at: startedAt.addingTimeInterval(2.3)
         )
+        serviceMetrics.recordInterruption(at: startedAt.addingTimeInterval(2.35))
+        serviceMetrics.recordCaptureError(at: startedAt.addingTimeInterval(2.36))
         serviceMetrics.recordForceStop(reason: "timeout", at: startedAt.addingTimeInterval(2.4))
 
         appMetrics.mergeStopDiagnostics(from: serviceMetrics)
@@ -171,8 +173,12 @@ struct AudioCaptureMetricsTests {
         #expect(appMetrics.analyzedChunkCount == 1)
         #expect(appMetrics.inputTapRemovedAt == startedAt.addingTimeInterval(2.1))
         #expect(appMetrics.audioEngineStoppedAt == startedAt.addingTimeInterval(2.2))
+        #expect(appMetrics.interruptionCount == 1)
+        #expect(appMetrics.captureErrorCount == 1)
         #expect(appMetrics.chunksReceivedAfterStopRequest == 1)
         #expect(appMetrics.forceStopReason == "timeout")
+        #expect(appMetrics.coverageDiagnosticsSummary.contains("interruptions=1"))
+        #expect(appMetrics.coverageDiagnosticsSummary.contains("captureErrors=1"))
     }
 
     @Test(arguments: [
