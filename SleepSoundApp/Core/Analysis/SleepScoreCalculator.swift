@@ -26,6 +26,11 @@ public struct SleepScoreCalculator {
         let savedAudioDuration = events.reduce(0) { partialResult, event in
             partialResult + max(0, event.audioSnippetDuration ?? 0)
         }
+        let reason = reportReason(
+            defaultReason: result.mainDisturbanceReason,
+            summary: summary,
+            metrics: metrics
+        )
 
         return NightReport(
             sessionId: session.id,
@@ -51,7 +56,7 @@ public struct SleepScoreCalculator {
             awakeningSuspectedCount: summary.awakeningSuspectedCount,
             longestSuspectedPause: summary.longestSuspectedPause,
             mostDisturbedHourRange: summary.mostDisturbedHourRange,
-            mainDisturbanceReason: result.mainDisturbanceReason
+            mainDisturbanceReason: reason
         )
     }
 
@@ -172,6 +177,26 @@ public struct SleepScoreCalculator {
         }
 
         return "어젯밤은 감지된 소리 이벤트가 수면 소리 점수에 영향을 주었습니다."
+    }
+
+    private func reportReason(
+        defaultReason: String,
+        summary: SleepEventSummary,
+        metrics: AudioCaptureMetrics
+    ) -> String {
+        guard summary.detectedEventDuration == 0 else {
+            return defaultReason
+        }
+
+        if metrics.measurementQuality == .poor {
+            return "오디오 커버리지가 낮아 오늘 리포트의 참고 범위가 제한적입니다. 수신 시간과 입력 공백을 함께 확인해 주세요."
+        }
+
+        if metrics.measurementQuality == .limited || metrics.interruptionCount > 0 {
+            return "오디오 수신이 제한적이거나 중단 기록이 있어, 최종 이벤트가 없더라도 측정 환경과 커버리지를 함께 확인해 주세요."
+        }
+
+        return defaultReason
     }
 
     private func clamp(_ score: Int) -> Int {

@@ -34,6 +34,10 @@ public struct NightReport: Identifiable, Codable, Equatable, Sendable {
         max(0, suspectedPauseCount)
     }
 
+    public var isRecoveredUnfinishedRecording: Bool {
+        detectorDiagnostics?.isRecoveredUnfinishedRecording == true
+    }
+
     public var longestSuspectedBreathingPauseSeconds: TimeInterval {
         max(0, longestSuspectedPause)
     }

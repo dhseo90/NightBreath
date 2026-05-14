@@ -213,6 +213,35 @@ struct OfflineProfileComparisonTests {
   }
 
   @Test
+  func publicNegativeFinalSnoreHotspotCuesGuardBeforeThresholdRelaxation() {
+    let records = [
+      makeRecord(
+        profile: "balanced",
+        fileId: "washing-machine-a",
+        expectedLabels: ["environmentalNoise"],
+        finalEventCountByType: ["snore": 2],
+        rawCandidateCount: 3,
+        rawCandidateCountByType: ["snore": 3],
+        sourceCategory: "washing_machine"
+      ),
+    ]
+    let comparison = OfflineProfileComparisonRunner().makeComparison(
+      outputs: [
+        OfflineEvaluationOutput(
+          summary: OfflineEvaluationRunSummary(records: records, manifestSegmentCount: 1),
+          records: records
+        )
+      ]
+    )
+
+    let report = OfflineProfileComparisonRunner.makeMarkdownReport(comparison)
+
+    #expect(report.contains("washing_machine"))
+    #expect(report.contains("이 category에서 final snore가 생깁니다. threshold 완화 전 category별 guard를 먼저 확인하세요."))
+    #expect(report.contains("Release 기본 profile 기준선입니다."))
+  }
+
+  @Test
   func generatesManualThresholdSuggestionsWithoutApplyingThem() {
     let records = [
       makeRecord(profile: "balanced", fileId: "snore-a", expectedLabels: ["snore"], finalEventCountByType: [:], rawCandidateCount: 1),

@@ -41,6 +41,18 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 - `Tools/Docs/validate_readme_links.sh`를 추가해 루트 README와 주요 sub README의 문서/이미지 링크를 자동 검증합니다.
 - release readiness gate, 전체 Swift test, generic iOS Release build는 통과했습니다. 실제 iPhone overnight QA는 잠금 해제된 기기에서 manual run으로 남아 있습니다.
 
+## 2026-05-14 P0 Sleep Recording Stabilization Follow-up
+
+수면 기록 P0 안정화는 실기기 없이 진행 가능한 범위부터 순차 처리했습니다.
+
+- 미완료 수면 기록 draft를 `Application Support/NightBreath/sleep-recording-draft.json`에 로컬 메타데이터로만 저장하고, 앱 재실행 시 기존 리포트가 없으면 안전한 참고용 복구 리포트로 정리합니다.
+- 복구 리포트는 원본 밤새 오디오나 이벤트 오디오 파일을 요구하지 않으며, 세션 시간, capture metrics, detector threshold snapshot, tuning profile, interruption/capture error 요약만 보존합니다.
+- 복구된 리포트 UI는 일반 zero-event와 분리해 “조용한 밤”으로 해석하지 않고, 앱 재실행으로 중단된 기록을 로컬 측정 정보만으로 정리한 참고용 리포트라고 표시합니다.
+- 4~8시간 synthetic 세션에서 오디오 커버리지가 낮거나 interruption이 있는 zero-event report는 “조용하고 안정적” 문구 대신 커버리지/중단 확인 문구를 사용합니다.
+- 지금까지 받은 detector 피드백성 로그를 재검토했지만 추가 threshold 변경은 하지 않았습니다. Release 기본값은 계속 `balanced`/`보통`입니다.
+- 공개 negative residual hotspot(`washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm`)은 전역 threshold 완화가 아니라 category/texture guard 후보로 유지합니다.
+- 관련 detector/profile/zero-event/snore baseline 회귀 테스트 54개는 통과했습니다. 전체 Swift test와 iOS Debug build는 변경 마무리 후 다시 실행합니다.
+
 ## 완료
 
 - SwiftUI 앱 구조

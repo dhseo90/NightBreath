@@ -133,6 +133,8 @@
 
 ## Detector / ML
 
+- 2026-05-14 재검토 결과, 현재 repository에 남아 있는 실데이터성 근거와 공개 negative sweep 요약만으로는 Release 기본 threshold를 추가 완화하지 않습니다. `balanced`/`보통`을 유지하고, `sensitive`/`verySensitive`는 DEBUG 비교용으로 둡니다.
+- 공개 negative residual hotspot(`washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm`)은 전역 민감도 조절이 아니라 category/texture guard 후보로 추적합니다.
 - 공개 또는 로컬 데이터셋 manifest 작성
 - snore / non-snore labeled segment 정리
 - 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집

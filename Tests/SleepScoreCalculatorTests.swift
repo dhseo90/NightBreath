@@ -207,6 +207,80 @@ struct SleepScoreCalculatorTests {
     }
 
     @Test
+    func longLowCoverageZeroEventReportDoesNotReadAsQuietNight() {
+        let startedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let endedAt = startedAt.addingTimeInterval(8 * 60 * 60)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: endedAt,
+            measurementDuration: 8 * 60 * 60,
+            estimatedSleepDuration: 7.5 * 60 * 60
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: endedAt,
+            sessionElapsedSeconds: 8 * 60 * 60,
+            captureActiveSeconds: 8 * 60 * 60,
+            receivedAudioSeconds: 3.5 * 60 * 60,
+            analyzedAudioSeconds: 3.4 * 60 * 60,
+            receivedChunkCount: 1_260,
+            analyzedChunkCount: 1_224,
+            interruptionCount: 2,
+            longestChunkGapSeconds: 28 * 60,
+            audioCoverageRatio: 3.5 / 8
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementDuration == 8 * 60 * 60)
+        #expect(report.measurementQuality == .poor)
+        #expect(report.interruptionCount == 2)
+        #expect(report.longestAudioGapSeconds == 28 * 60)
+        #expect(report.mainDisturbanceReason.contains("오디오 커버리지"))
+        #expect(report.mainDisturbanceReason.contains("참고 범위"))
+        #expect(!report.mainDisturbanceReason.contains("조용하고 안정"))
+    }
+
+    @Test
+    func longLimitedCoverageZeroEventReportKeepsEnvironmentCaveat() {
+        let startedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let endedAt = startedAt.addingTimeInterval(4 * 60 * 60)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: endedAt,
+            measurementDuration: 4 * 60 * 60,
+            estimatedSleepDuration: 3.8 * 60 * 60
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: endedAt,
+            sessionElapsedSeconds: 4 * 60 * 60,
+            captureActiveSeconds: 4 * 60 * 60,
+            receivedAudioSeconds: 3 * 60 * 60,
+            analyzedAudioSeconds: 2.9 * 60 * 60,
+            receivedChunkCount: 1_080,
+            analyzedChunkCount: 1_044,
+            longestChunkGapSeconds: 11 * 60,
+            audioCoverageRatio: 0.75
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementQuality == .limited)
+        #expect(report.mainDisturbanceReason.contains("최종 이벤트가 없더라도"))
+        #expect(report.mainDisturbanceReason.contains("커버리지"))
+        #expect(!report.mainDisturbanceReason.contains("조용하고 안정"))
+    }
+
+    @Test
     func mockReportUsesNonDiagnosticLanguage() {
         let bundle = MockSleepDataFactory.latestBundle(now: Date(timeIntervalSince1970: 1_772_496_000))
         let report = bundle.2

@@ -31,6 +31,14 @@ v1.1.0은 v1.0.0 공개 기준점 위에서 진행하는 실사용 안정화와 
 | 앱 재실행 복구 | 수면 중 앱이 종료되거나 재실행됐을 때 세션 상태를 복구하거나 안전하게 정리 | simulator lifecycle smoke, 실제 iPhone 재실행 QA |
 | 배터리/발열/CPU 점검 | 밤새 사용 가능한 수준의 리소스 사용인지 확인 | 실제 iPhone overnight, 필요 시 Instruments |
 
+2026-05-14 로컬 진행 메모:
+
+- 수면 중 앱 재실행/종료 후 남은 미완료 기록은 로컬 draft metadata로 안전하게 참고용 리포트로 정리합니다.
+- 복구 리포트 UI는 일반 이벤트 0개 리포트와 분리해, detector가 전체 기록을 끝까지 분석하지 못한 기록임을 표시합니다.
+- 4~8시간 synthetic low-coverage/interruption report는 조용한 밤으로 단정하지 않고 측정 품질과 입력 공백을 안내합니다.
+- detector threshold는 추가 조절하지 않고 `balanced`/`보통`을 유지합니다. 공개 negative residual hotspot은 threshold 완화보다 category/texture guard 후보로 봅니다.
+- 실제 lock/background/overnight, 배터리/발열, 실제 마이크 배치별 detector evidence는 여전히 실기기 QA gate입니다.
+
 ## P1 UX 개선
 
 | 항목 | 목표 | 확인 방법 |

@@ -17,6 +17,9 @@ struct SleepReportView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.xLarge) {
         summaryCard
+        if report.isRecoveredUnfinishedRecording {
+          recoveryNoticeSection
+        }
         measurementQualitySection
         detectorDiagnosticsSection
         zeroEventStateSection
@@ -81,6 +84,37 @@ struct SleepReportView: View {
         Text(SleepFormatters.shortDate(report.generatedAt))
           .font(.caption)
           .foregroundStyle(NBColor.secondaryText)
+      }
+    }
+  }
+
+  private var recoveryNoticeSection: some View {
+    NBCard(background: NBColor.caution.opacity(0.08)) {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        SectionHeader(title: "복구된 수면 기록", systemImage: "arrow.clockwise.circle")
+
+        Text("앱 재실행으로 이전 수면 기록이 중단되어, 저장된 로컬 측정 정보만 참고용 리포트로 정리했습니다.")
+          .font(.callout)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
+
+        NBDiagnosticItemList(
+          items: [
+            NBDiagnosticItem(
+              title: "복구 방식",
+              value: "로컬 메타데이터 기반",
+              detail: "원본 밤새 오디오를 저장하거나 서버로 보내지 않고, 세션 시간과 캡처 진단만 정리했습니다.",
+              status: .privacy
+            ),
+            NBDiagnosticItem(
+              title: "이벤트 해석",
+              value: "최종 이벤트 없음",
+              detail: "앱이 중단된 뒤에는 detector가 전체 기록을 끝까지 분석하지 못했으므로 이벤트 0개를 조용한 밤으로 해석하지 않습니다.",
+              status: .caution
+            ),
+          ],
+          showsDetails: true
+        )
       }
     }
   }
@@ -403,8 +437,8 @@ struct SleepReportView: View {
       NBReportSection(title: "이벤트 0개 분석", systemImage: "waveform.slash") {
         VStack(alignment: .leading, spacing: NBSpacing.md) {
           NBEmptyStateView(
-            title: "감지 기준을 통과한 이벤트가 없습니다",
-            message: "오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다.\n측정 환경, iPhone 배치, 감지 기준 영향을 상세 분석에서 확인할 수 있습니다.",
+            title: zeroEventEmptyTitle,
+            message: zeroEventEmptyMessage,
             systemImage: "moon.zzz",
             illustration: .emptyReport
           )
@@ -755,6 +789,19 @@ struct SleepReportView: View {
 
   private var shouldShowLowMeasurementQualityNote: Bool {
     report.measurementQuality == .limited || report.measurementQuality == .poor
+  }
+
+  private var zeroEventEmptyTitle: String {
+    report.isRecoveredUnfinishedRecording
+      ? "복구된 기록에는 최종 이벤트가 없습니다"
+      : "감지 기준을 통과한 이벤트가 없습니다"
+  }
+
+  private var zeroEventEmptyMessage: String {
+    if report.isRecoveredUnfinishedRecording {
+      return "앱 재실행으로 기록이 중단되어 전체 detector 분석이 완료되지 않았습니다.\n이 리포트는 조용한 밤이라는 해석이 아니라 로컬 기록 정리용 참고 정보입니다."
+    }
+    return "오디오 입력은 수신되었지만 detector 기준을 통과한 이벤트가 없었습니다.\n측정 환경, iPhone 배치, 감지 기준 영향을 상세 분석에서 확인할 수 있습니다."
   }
 
   private var missingAudioDuration: TimeInterval {

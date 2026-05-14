@@ -38,6 +38,18 @@ struct SleepReportViewContractTests {
     #expect(source.contains("수신되지 않은 시간"))
   }
 
+  @Test
+  func reportViewSeparatesRecoveredRecordingFromOrdinaryZeroEventReport() throws {
+    let source = try sleepReportViewSource()
+
+    #expect(source.contains("report.isRecoveredUnfinishedRecording"))
+    #expect(source.contains("복구된 수면 기록"))
+    #expect(source.contains("로컬 메타데이터 기반"))
+    #expect(source.contains("이벤트 0개를 조용한 밤으로 해석하지 않습니다"))
+    #expect(source.contains("복구된 기록에는 최종 이벤트가 없습니다"))
+    #expect(source.contains("조용한 밤이라는 해석이 아니라 로컬 기록 정리용 참고 정보"))
+  }
+
   private func sleepReportViewSource() throws -> String {
     let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
       .appendingPathComponent("SleepSoundApp/Features/Sleep/SleepReportView.swift")

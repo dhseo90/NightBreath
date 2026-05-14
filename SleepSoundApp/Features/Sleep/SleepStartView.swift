@@ -56,8 +56,7 @@ struct SleepStartView: View {
           }
         }
 
-        NBPrimaryButton(
-          title: startButtonTitle,
+        NBPrimaryButton(title: startButtonTitle,
           systemImage: startButtonIcon,
           isDisabled: appState.isPreparingCapture,
           isBusy: appState.isPreparingCapture

@@ -47,6 +47,30 @@ struct AppStateAudioProcessingSourceTests {
     }
 
     @Test
+    func appStatePersistsAndRecoversUnfinishedRecordingDrafts() throws {
+        let source = try read("SleepSoundApp/App/AppState.swift")
+        let repositorySource = try read("SleepSoundApp/Core/Storage/SleepRepository.swift")
+        let diagnosticsSource = try read("SleepSoundApp/Core/Analysis/DetectorDiagnostics.swift")
+
+        #expect(repositorySource.contains("SleepRecordingRecoveryDraft"))
+        #expect(repositorySource.contains("SleepRecordingRecoveryPolicy"))
+        #expect(repositorySource.contains("SleepRecordingRecoveryReportBuilder"))
+        #expect(repositorySource.contains("JSONFileSleepRecordingRecoveryStore"))
+        #expect(repositorySource.contains("sleep-recording-draft.json"))
+        #expect(source.contains("recordingRecoveryStore: any SleepRecordingRecoveryStoreProtocol"))
+        #expect(source.contains("recoverUnfinishedSleepRecordingIfNeeded()"))
+        #expect(source.contains("saveActiveRecordingRecoveryDraft(lifecycleNote: \"capture started\")"))
+        #expect(source.contains("saveActiveRecordingRecoveryDraft(lifecycleNote: \"stop requested\")"))
+        #expect(source.contains("SleepRecordingRecoveryPolicy.shouldRecover"))
+        #expect(source.contains("SleepRecordingRecoveryReportBuilder().makeBundle(from: draft)"))
+        #expect(source.contains("recordingRecoveryStore.clear()"))
+        #expect(diagnosticsSource.contains("Recovered unfinished local sleep recording after app relaunch."))
+        #expect(repositorySource.contains("DetectorDiagnostics.recoveredUnfinishedRecordingNote"))
+        #expect(repositorySource.contains("앱 재실행으로 이전 수면 기록이 중단"))
+        #expect(source.contains("이전 수면 기록이 앱 재실행으로 중단"))
+    }
+
+    @Test
     func recordingViewKeepsClockAndDiagnosticsLightweight() throws {
         let source = try read("SleepSoundApp/Features/Sleep/SleepRecordingView.swift")
 
@@ -60,6 +84,27 @@ struct AppStateAudioProcessingSourceTests {
         #expect(source.contains("finalizationDetailText"))
         #expect(source.contains("finalizationElapsedText"))
         #expect(source.contains("appState.audioCaptureMessage ?? appState.sleepRecordingPhase.message"))
+    }
+
+    @Test
+    func stopFinalizingUXAndDuplicateStopGuardStayInPlace() throws {
+        let appStateSource = try read("SleepSoundApp/App/AppState.swift")
+        let recordingViewSource = try read("SleepSoundApp/Features/Sleep/SleepRecordingView.swift")
+
+        #expect(appStateSource.contains("guard !isFinalizingSleepSession else"))
+        #expect(appStateSource.contains("forceStopCapture(reason: \"duplicate stop request while finalizing\")"))
+        #expect(appStateSource.contains("recordDebugLifecycleEvent(\"duplicate stop request ignored\")"))
+        #expect(appStateSource.contains("sleepRecordingPhase = .stoppingCapture"))
+        #expect(appStateSource.contains("sleepRecordingPhase = audioCaptureState == .stopped ? .captureStoppedFinalizing : .stoppingCapture"))
+        #expect(appStateSource.contains("updateSleepFinalizationMessage(\"남은 오디오 분석을 마무리하는 중입니다.\")"))
+
+        #expect(recordingViewSource.contains("appState.sleepRecordingPhase.isStopButtonDisabled"))
+        #expect(recordingViewSource.contains("title: appState.sleepRecordingPhase.isStopButtonDisabled ? \"종료 처리 중\" : \"수면 종료\""))
+        #expect(recordingViewSource.contains("isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled"))
+        #expect(recordingViewSource.contains("isBusy: appState.sleepRecordingPhase != .recording"))
+        #expect(recordingViewSource.contains("finalizationElapsedText"))
+        #expect(recordingViewSource.contains("metrics.stopButtonTappedAt ?? metrics.stopRequestedAt"))
+        #expect(recordingViewSource.contains("종료 요청 후"))
     }
 
     @Test
