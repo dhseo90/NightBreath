@@ -126,6 +126,7 @@ struct DailyMeasurementDetailTests {
         #expect(contents.contains("DailyMetricSampleRow"))
         #expect(contents.contains("MetricDetailView("))
         #expect(contents.contains("MetricSourceBadgeStrip"))
+        #expect(contents.contains("하루 합계로 표시합니다."))
         #expect(contents.contains("HealthKit 연결, Fitdays CSV 가져오기 상태"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }

@@ -56,6 +56,30 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func cumulativeActivitySamplesCountAsOneVisibleMetricPerDay() {
+        let targetDate = date(2026, 5, 3)
+        let samples = [
+            sample(.stepCount, 1_200, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.stepCount, 2_300, targetDate.addingTimeInterval(60), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 120, targetDate.addingTimeInterval(120), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 180, targetDate.addingTimeInterval(180), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyMass, 71.6, targetDate.addingTimeInterval(240), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+
+        let summary = builder.summary(
+            for: targetDate,
+            samples: samples,
+            sleepReports: [],
+            calendar: calendar
+        )
+
+        #expect(summary.sampleCount == 3)
+        #expect(summary.hasActivity)
+        #expect(summary.hasBodyComposition)
+        #expect(summary.sourceTypes == [.healthKit])
+    }
+
+    @Test
     func emptyMonthCellsRemainExplicitlyEmpty() throws {
         let targetDate = date(2026, 5, 11)
         let summaries = builder.summaries(
@@ -212,20 +236,22 @@ struct HealthCalendarTests {
     }
 
     @Test
-    func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
+    func calendarViewKeepsCompactCalendarAndInlineDetailNavigation() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 
-        #expect(contents.contains("selectedDatePanel"))
         #expect(contents.contains("selectedDateInlineDetail"))
+        #expect(contents.contains("monthNavigator\n        selectedDateInlineDetail\n        weekdayHeader"))
+        #expect(contents.contains(".onAppear(perform: selectDataDateIfCurrentSelectionIsEmpty)"))
+        #expect(contents.contains(".onChange(of: dataAvailabilitySignature)"))
+        #expect(contents.contains("preferredDataDate(in: displayedMonth"))
         #expect(contents.contains("selectDate(date)"))
         #expect(contents.contains("let dates = monthDates"))
         #expect(contents.contains("let summaries = summariesByDay"))
-        #expect(contents.contains("let summary = selectedDaySummary"))
-        #expect(contents.contains("아래에서 선택 날짜 상세를 바로 확인합니다."))
-        #expect(contents.contains("선택 날짜 상세"))
-        #expect(contents.contains("CalendarDaySourceDotStrip"))
-        #expect(contents.contains("CalendarSelectedSourceStrip"))
-        #expect(contents.contains("출처 dot"))
+        #expect(contents.contains(".frame(height: 48)"))
+        #expect(!contents.contains("selectedDatePanel"))
+        #expect(!contents.contains("CalendarDaySourceDotStrip"))
+        #expect(!contents.contains("CalendarSelectedSourceStrip"))
+        #expect(!contents.contains("출처 dot"))
         #expect(contents.contains("DailyMeasurementDetailContent("))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }

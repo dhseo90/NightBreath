@@ -14,6 +14,9 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(contents.contains("requestAuthorization"))
         #expect(contents.contains("toShare: Set<HKSampleType>()"))
         #expect(contents.contains("HKSampleQuery"))
+        #expect(contents.contains("HKStatisticsCollectionQuery"))
+        #expect(contents.contains(".cumulativeSum"))
+        #expect(contents.contains("metricType.usesDailyCumulativeSum"))
 
         let forbiddenWriteSignatures = [
             ".save(",

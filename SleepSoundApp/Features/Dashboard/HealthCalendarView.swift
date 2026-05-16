@@ -35,25 +35,12 @@ struct HealthCalendarView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        header
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
         stateNotice
         monthNavigator
+        selectedDateInlineDetail
         weekdayHeader
         calendarGrid
-        selectedDatePanel
-        selectedDateInlineDetail
-        legend
-
-        NBPrivacyNoticeCard(
-          title: "날짜별 데이터 안내",
-          messages: [
-            "캘린더는 기기 안의 수면 리포트, HealthKit read-only 샘플, 로컬 import 샘플을 날짜 기준으로 묶어 보여줍니다.",
-            "같은 날짜에 여러 데이터가 있어도 인과관계를 의미하지 않습니다.",
-            "서버로 전송하지 않고 HealthKit에 데이터를 쓰지 않습니다.",
-          ],
-          systemImage: "lock.shield"
-        )
       }
       .padding(NBSpacing.screenHorizontal)
     }
@@ -61,6 +48,10 @@ struct HealthCalendarView: View {
     .nbAvoidFloatingTabBar()
     .navigationTitle("건강 캘린더")
     .toolbar(.hidden, for: .tabBar)
+    .onAppear(perform: selectDataDateIfCurrentSelectionIsEmpty)
+    .onChange(of: dataAvailabilitySignature) { _, _ in
+      selectDataDateIfCurrentSelectionIsEmpty()
+    }
   }
 
   private var monthDates: [Date] {
@@ -80,20 +71,6 @@ struct HealthCalendarView: View {
         )
         .map { ($0.date, $0) }
     )
-  }
-
-  private var header: some View {
-    NBReportSection(title: "월별 건강 캘린더", systemImage: "calendar") {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("수면, 혈압, 체성분, 활동, 체크인과 앱 계산 지표를 날짜별로 모아봅니다.")
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
-
-        Text("날짜를 선택하면 이날 기록된 데이터를 카테고리별로 확인할 수 있습니다.")
-          .font(NBTypography.footnote)
-          .foregroundStyle(NBColor.tertiaryText)
-      }
-    }
   }
 
   @ViewBuilder
@@ -128,7 +105,7 @@ struct HealthCalendarView: View {
           Text(monthTitle)
             .font(NBTypography.headline)
             .foregroundStyle(NBColor.primaryText)
-          Text("선택 \(SleepFormatters.shortDate(selectedDate)) · 오늘 \(SleepFormatters.shortDate(Date()))")
+          Text("선택 \(SleepFormatters.shortDate(selectedDate))")
             .font(NBTypography.caption)
             .foregroundStyle(NBColor.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
@@ -191,100 +168,13 @@ struct HealthCalendarView: View {
     }
   }
 
-  private var selectedDatePanel: some View {
-    let summary = selectedDaySummary
-
-    return NBReportSection(title: "선택 날짜", systemImage: "calendar.badge.clock") {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        HStack(alignment: .top, spacing: NBSpacing.small) {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(SleepFormatters.shortDate(selectedDate))
-              .font(NBTypography.headline)
-              .foregroundStyle(NBColor.primaryText)
-
-            Text(summary.hasAnyData ? "이 날짜의 데이터를 카테고리와 출처별로 확인합니다." : "이 날짜에는 표시할 데이터가 없습니다.")
-              .font(NBTypography.caption)
-              .foregroundStyle(NBColor.secondaryText)
-              .fixedSize(horizontal: false, vertical: true)
-          }
-
-          Spacer(minLength: NBSpacing.small)
-
-          NBStatusBadge(
-            summary.dataQuality.displayName,
-            kind: qualityBadgeKind(summary.dataQuality),
-            systemImage: "checkmark.seal"
-          )
-        }
-
-        if summary.hasAnyData {
-          VStack(alignment: .leading, spacing: NBSpacing.small) {
-            CalendarSelectedCategoryStrip(summary: summary)
-            CalendarSelectedSourceStrip(sourceTypes: summary.sourceTypes)
-          }
-        } else {
-          NBEmptyStateView(
-            title: "데이터 없는 날짜",
-            message: "다른 날짜를 선택하거나 HealthKit read-only 연결, Fitdays CSV 가져오기 상태를 확인하세요.",
-            systemImage: "tray"
-          )
-        }
-
-        if summary.hasAnyData {
-          NBStatusBadge(
-            "아래에서 선택 날짜 상세를 바로 확인합니다.",
-            kind: .neutral,
-            systemImage: "arrow.down.circle"
-          )
-        }
-      }
-    }
-  }
-
   @ViewBuilder
   private var selectedDateInlineDetail: some View {
-    if selectedDaySummary.hasAnyData {
-      DailyMeasurementDetailContent(
-        detailData: selectedDetailData,
-        allSamples: samples,
-        headerTitle: "선택 날짜 상세"
-      )
-    }
-  }
-
-  private var legend: some View {
-    NBReportSection(title: "표시 기준", systemImage: "circle.grid.2x2") {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          Text("분류 dot")
-            .font(NBTypography.captionEmphasis)
-            .foregroundStyle(NBColor.secondaryText)
-
-          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-            CalendarLegendItem(label: "수면", tint: NBColor.sleepTint)
-            CalendarLegendItem(label: "혈압", tint: NBColor.danger)
-            CalendarLegendItem(label: "체성분", tint: NBColor.mistTeal)
-            CalendarLegendItem(label: "활동", tint: NBColor.success)
-            CalendarLegendItem(label: "체크인", tint: NBColor.dawn)
-          }
-        }
-
-        Divider().overlay(NBColor.divider)
-
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          Text("출처 dot")
-            .font(NBTypography.captionEmphasis)
-            .foregroundStyle(NBColor.secondaryText)
-
-          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-            CalendarLegendItem(label: "Apple 건강앱", tint: calendarSourceTint(for: .healthKit))
-            CalendarLegendItem(label: "Fitdays CSV", tint: calendarSourceTint(for: .fitdaysCSV))
-            CalendarLegendItem(label: "앱 계산값", tint: calendarSourceTint(for: .appComputed))
-            CalendarLegendItem(label: "예시 데이터", tint: calendarSourceTint(for: .mock))
-          }
-        }
-      }
-    }
+    DailyMeasurementDetailContent(
+      detailData: selectedDetailData,
+      allSamples: samples,
+      headerTitle: SleepFormatters.shortDate(selectedDate)
+    )
   }
 
   private var calendarColumns: [GridItem] {
@@ -313,13 +203,31 @@ struct HealthCalendarView: View {
     )
   }
 
+  private var dataAvailabilitySignature: String {
+    summariesByDay.values
+      .filter(\.hasAnyData)
+      .sorted { $0.date < $1.date }
+      .map { summary in
+        let timestamp = Int(summary.date.timeIntervalSinceReferenceDate)
+        return [
+          "\(timestamp)",
+          "\(summary.sampleCount)",
+          summary.hasSleepReport ? "sleep" : "",
+          summary.hasBloodPressure ? "bp" : "",
+          summary.hasBodyComposition ? "body" : "",
+          summary.hasActivity ? "activity" : "",
+          summary.hasMorningCheckIn ? "morning" : "",
+          summary.hasEveningCheckIn ? "evening" : "",
+        ].joined(separator: ":")
+      }
+      .joined(separator: "|")
+  }
+
   private func moveMonth(by value: Int) {
     let nextMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
+    let carriedDate = calendar.date(byAdding: .month, value: value, to: selectedDate) ?? nextMonth
     displayedMonth = nextMonth
-
-    if !calendar.isDate(selectedDate, equalTo: nextMonth, toGranularity: .month) {
-      selectedDate = calendar.date(byAdding: .month, value: value, to: selectedDate) ?? nextMonth
-    }
+    selectedDate = preferredDataDate(in: nextMonth, preferredDate: carriedDate) ?? carriedDate
   }
 
   private func selectDate(_ date: Date) {
@@ -329,21 +237,48 @@ struct HealthCalendarView: View {
     }
   }
 
-  private func emptySummary(for date: Date) -> CalendarDaySummary {
-    CalendarDaySummary(date: calendar.startOfDay(for: date))
+  private func selectDataDateIfCurrentSelectionIsEmpty() {
+    guard !selectedDaySummary.hasAnyData,
+          let dataDate = preferredDataDate(in: displayedMonth) else {
+      return
+    }
+    selectedDate = dataDate
   }
 
-  private func qualityBadgeKind(_ quality: DailyDataQuality) -> NBStatusKind {
-    switch quality {
-    case .excellent, .good:
-      .good
-    case .limited:
-      .warning
-    case .poor:
-      .caution
-    case .insufficient:
-      .neutral
+  private func preferredDataDate(in month: Date, preferredDate: Date? = nil) -> Date? {
+    let summaries = builder.summaries(
+      forMonthContaining: month,
+      samples: samples,
+      sleepReports: sleepReports,
+      morningCheckIns: morningCheckIns,
+      eveningCheckIns: eveningCheckIns,
+      calendar: calendar
+    )
+    .filter {
+      calendar.isDate($0.date, equalTo: month, toGranularity: .month)
+        && $0.hasAnyData
     }
+
+    guard !summaries.isEmpty else {
+      return nil
+    }
+
+    if let preferredDate,
+       let matchingPreferredDate = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: preferredDate) }) {
+      return matchingPreferredDate.date
+    }
+
+    let today = Date()
+    if calendar.isDate(today, equalTo: month, toGranularity: .month),
+       let todaySummary = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: today) }) {
+      return todaySummary.date
+    }
+
+    return summaries.sorted { $0.date > $1.date }.first?.date
+  }
+
+  private func emptySummary(for date: Date) -> CalendarDaySummary {
+    CalendarDaySummary(date: calendar.startOfDay(for: date))
   }
 
   private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
@@ -376,7 +311,7 @@ struct DailyMeasurementDetailContent: View {
   private let catalog = MetricCatalog.default
 
   var body: some View {
-    VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
+    VStack(alignment: .leading, spacing: NBSpacing.medium) {
       header
 
       if !detailData.summary.hasAnyData {
@@ -384,47 +319,83 @@ struct DailyMeasurementDetailContent: View {
           title: "해당 날짜에 데이터가 없습니다",
           message: "다른 날짜를 선택하거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요."
         )
+      } else {
+        if !detailData.sleepReports.isEmpty {
+          sleepSection
+        }
+        if !detailData.morningCheckIns.isEmpty {
+          morningCheckInSection
+        }
+        if !detailData.eveningCheckIns.isEmpty {
+          eveningCheckInSection
+        }
+        if !detailData.bloodPressureSamples.isEmpty {
+          metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "")
+        }
+        if !detailData.bodyCompositionSamples.isEmpty {
+          metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "")
+        }
+        if !detailData.fitdaysExtendedSamples.isEmpty {
+          metricSection(title: "Fitdays 확장", systemImage: "square.and.arrow.down", samples: detailData.fitdaysExtendedSamples, emptyMessage: "")
+        }
+        if !detailData.activitySamples.isEmpty {
+          metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "")
+        }
+        if !detailData.appComputedSamples.isEmpty {
+          metricSection(title: "앱 계산", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "")
+        }
+
+        Text("개인 참고용 보기입니다. 같은 날짜에 함께 보여도 인과관계를 의미하지 않습니다.")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
-
-      sleepSection
-      morningCheckInSection
-      eveningCheckInSection
-      metricSection(title: "혈압", systemImage: "heart", samples: detailData.bloodPressureSamples, emptyMessage: "이날 기록된 혈압 샘플이 없습니다.")
-      metricSection(title: "체성분", systemImage: "scalemass", samples: detailData.bodyCompositionSamples, emptyMessage: "이날 기록된 체성분 샘플이 없습니다.")
-      metricSection(title: "Fitdays 확장 체성분", systemImage: "square.and.arrow.down", samples: detailData.fitdaysExtendedSamples, emptyMessage: "이날 가져온 Fitdays 확장 지표가 없습니다.")
-      metricSection(title: "활동", systemImage: "figure.walk", samples: detailData.activitySamples, emptyMessage: "이날 기록된 활동 샘플이 없습니다.")
-      metricSection(title: "앱 계산 지표", systemImage: "sparkles", samples: detailData.appComputedSamples, emptyMessage: "이날 앱 계산 지표 샘플이 없습니다.")
-      sourceSection
-
-      NBPrivacyNoticeCard(
-        title: "개인 참고용 보기",
-        messages: [
-          "이날 기록된 데이터를 한곳에 모아 보여줍니다.",
-          "서로 다른 지표가 같은 날짜에 있어도 인과관계를 의미하지 않습니다.",
-          "이 화면은 개인 참고용이며 확정적 해석을 제공하지 않습니다.",
-        ],
-        systemImage: "info.circle"
-      )
     }
   }
 
   private var header: some View {
-    NBReportSection(title: headerTitle, systemImage: "calendar.badge.clock") {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-        NBMetricCard(
-          title: "건강 샘플",
-          value: "\(detailData.summary.sampleCount)개",
-          systemImage: "number",
-          tint: NBColor.privacyTint
-        )
-        NBMetricCard(
-          title: "데이터 품질",
-          value: detailData.summary.dataQuality.displayName,
-          systemImage: "checkmark.seal",
-          tint: qualityTint(detailData.summary.dataQuality)
+    NBCard {
+      HStack(alignment: .center, spacing: NBSpacing.small) {
+        VStack(alignment: .leading, spacing: 3) {
+          Text(headerTitle)
+            .font(NBTypography.headline)
+            .foregroundStyle(NBColor.primaryText)
+          Text(summaryText)
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        Spacer(minLength: NBSpacing.small)
+        NBStatusBadge(
+          detailData.summary.dataQuality.displayName,
+          kind: qualityBadgeKind(detailData.summary.dataQuality),
+          systemImage: "checkmark.seal"
         )
       }
     }
+  }
+
+  private var summaryText: String {
+    var parts: [String] = []
+    if detailData.summary.sampleCount > 0 {
+      parts.append("샘플 \(detailData.summary.sampleCount)개")
+    }
+    if detailData.summary.hasSleepReport {
+      parts.append("수면")
+    }
+    if detailData.summary.hasBloodPressure {
+      parts.append("혈압")
+    }
+    if detailData.summary.hasBodyComposition {
+      parts.append("체성분")
+    }
+    if detailData.summary.hasActivity {
+      parts.append("활동")
+    }
+    if detailData.summary.hasMorningCheckIn || detailData.summary.hasEveningCheckIn {
+      parts.append("체크인")
+    }
+    return parts.isEmpty ? "표시할 데이터 없음" : parts.joined(separator: " · ")
   }
 
   private var sleepSection: some View {
@@ -547,8 +518,10 @@ struct DailyMeasurementDetailContent: View {
     samples: [UnifiedHealthMetricSample],
     emptyMessage: String
   ) -> some View {
-    NBReportSection(title: title, systemImage: systemImage) {
-      if samples.isEmpty {
+    let visibleSamples = dailyDisplaySamples(samples)
+
+    return NBReportSection(title: title, systemImage: systemImage) {
+      if visibleSamples.isEmpty {
         NBEmptyStateView(
           title: "\(title) 데이터 없음",
           message: emptyMessage,
@@ -556,7 +529,7 @@ struct DailyMeasurementDetailContent: View {
         )
       } else {
         VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(samples) { sample in
+          ForEach(visibleSamples) { sample in
             if let metadata = catalog.metadata(for: sample.metricID) {
               NavigationLink {
                 MetricDetailView(
@@ -578,66 +551,31 @@ struct DailyMeasurementDetailContent: View {
     }
   }
 
-  private var sourceSection: some View {
-    NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
-      if sourceBreakdown.isEmpty && detailData.sleepReports.isEmpty && detailData.morningCheckIns.isEmpty && detailData.eveningCheckIns.isEmpty {
-        NBEmptyStateView(
-          title: "표시할 데이터 출처가 없습니다",
-          message: "해당 날짜에 샘플이나 리포트가 없습니다.",
-          systemImage: "tray"
-        )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          if !detailData.sleepReports.isEmpty {
-            NBListRow(
-              title: "밤숨 앱",
-              value: "수면 리포트 \(detailData.sleepReports.count)개",
-              subtitle: "온디바이스 수면 소리 분석 결과",
-              systemImage: "iphone",
-              tint: NBColor.sleepTint
-            )
-          }
-
-          if !detailData.morningCheckIns.isEmpty || !detailData.eveningCheckIns.isEmpty {
-            NBListRow(
-              title: "밤숨 앱",
-              value: "체크인 \(detailData.morningCheckIns.count + detailData.eveningCheckIns.count)개",
-              subtitle: "사용자가 직접 남긴 컨디션 기록",
-              systemImage: "checklist",
-              tint: NBColor.dawn
-            )
-          }
-
-          ForEach(sourceBreakdown) { source in
-            NBListRow(
-              title: source.sourceType.displayName,
-              value: "\(source.sampleCount)개",
-              subtitle: "\(source.sourceName) · 최근 \(SleepFormatters.shortTime(source.latestMeasuredAt))",
-              systemImage: calendarSourceIcon(for: source.sourceType),
-              tint: calendarSourceTint(for: source.sourceType)
-            )
-          }
+  private func dailyDisplaySamples(_ samples: [UnifiedHealthMetricSample]) -> [UnifiedHealthMetricSample] {
+    let cumulativeMetricSamples = samples.filter { $0.metricID.usesDailyCumulativeSum }
+    let ordinarySamples = samples.filter { !$0.metricID.usesDailyCumulativeSum }
+    let cumulativeDailyTotals = Dictionary(grouping: cumulativeMetricSamples, by: \.metricID)
+      .compactMap { metricID, samples -> UnifiedHealthMetricSample? in
+        guard let first = samples.sortedByMeasuredAtAscending().first else {
+          return nil
         }
+        let total = samples.map(\.value).reduce(0, +)
+        let sourceNames = Set(samples.map(\.sourceName))
+        return UnifiedHealthMetricSample(
+          id: first.id,
+          metricID: metricID,
+          value: total,
+          unit: first.unit,
+          measuredAt: first.measuredAt,
+          sourceType: first.sourceType,
+          sourceName: sourceNames.count == 1 ? first.sourceName : "하루 합계",
+          sourceBundleIdentifier: first.sourceBundleIdentifier,
+          notes: "하루 합계로 표시합니다.",
+          createdAt: first.createdAt
+        )
       }
-    }
-  }
 
-  private var sourceBreakdown: [MetricSourceBreakdown] {
-    Dictionary(grouping: detailData.samples) { sample in
-      "\(sample.sourceType.rawValue)|\(sample.sourceName)"
-    }
-    .compactMap { _, samples in
-      guard let latest = samples.sortedByMeasuredAtDescending().first else {
-        return nil
-      }
-      return MetricSourceBreakdown(
-        sourceType: latest.sourceType,
-        sourceName: latest.sourceName,
-        sampleCount: samples.count,
-        latestMeasuredAt: latest.measuredAt
-      )
-    }
-    .sorted { $0.latestMeasuredAt > $1.latestMeasuredAt }
+    return (ordinarySamples + cumulativeDailyTotals).sortedByMeasuredAtAscending()
   }
 
   private func morningFlagText(_ checkIn: MorningCheckIn) -> String {
@@ -648,14 +586,16 @@ struct DailyMeasurementDetailContent: View {
     return flags.joined(separator: " · ")
   }
 
-  private func qualityTint(_ quality: DailyDataQuality) -> Color {
+  private func qualityBadgeKind(_ quality: DailyDataQuality) -> NBStatusKind {
     switch quality {
     case .excellent, .good:
-      NBColor.success
+      .good
     case .limited:
-      NBColor.warning
-    case .poor, .insufficient:
-      NBColor.caution
+      .warning
+    case .poor:
+      .caution
+    case .insufficient:
+      .neutral
     }
   }
 }
@@ -717,15 +657,8 @@ private struct CalendarDayCell: View {
         if summary.hasMorningCheckIn || summary.hasEveningCheckIn { dot(NBColor.dawn) }
       }
       .frame(height: 6)
-
-      CalendarDaySourceDotStrip(sourceTypes: summary.sourceTypes)
-        .frame(height: 6)
-
-      Text(summary.sampleCount > 0 ? "\(summary.sampleCount)" : " ")
-        .font(.caption2.monospacedDigit())
-        .foregroundStyle(summary.hasAnyData ? NBColor.secondaryText : NBColor.tertiaryText)
     }
-    .frame(height: 72)
+    .frame(height: 48)
     .frame(maxWidth: .infinity)
     .background(cellBackground)
     .overlay(
@@ -761,99 +694,6 @@ private struct CalendarDayCell: View {
     let sources = summary.sourceTypes.map(\.displayName).joined(separator: ", ")
     let sourceText = sources.isEmpty ? "출처 없음" : "출처 \(sources)"
     return "\(dateText), 샘플 \(summary.sampleCount)개, \(sourceText), 데이터 품질 \(summary.dataQuality.displayName)"
-  }
-}
-
-private struct CalendarDaySourceDotStrip: View {
-  let sourceTypes: [HealthMetricSourceType]
-
-  var body: some View {
-    HStack(spacing: 2) {
-      ForEach(sourceTypes.prefix(4)) { sourceType in
-        Circle()
-          .fill(calendarSourceTint(for: sourceType))
-          .frame(width: 4, height: 4)
-          .accessibilityHidden(true)
-      }
-
-      if sourceTypes.count > 4 {
-        Text("+")
-          .font(.system(size: 6, weight: .bold))
-          .foregroundStyle(NBColor.secondaryText)
-      }
-    }
-    .frame(maxWidth: .infinity)
-    .accessibilityLabel(sourceTypes.isEmpty ? "source 없음" : "source \(sourceTypes.map(\.displayName).joined(separator: ", "))")
-  }
-}
-
-struct CalendarSelectedCategoryStrip: View {
-  let summary: CalendarDaySummary
-
-  var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: NBSpacing.small) {
-        if summary.hasSleepReport { CalendarSelectionBadge(label: "수면", tint: NBColor.sleepTint, systemImage: "bed.double") }
-        if summary.hasBloodPressure { CalendarSelectionBadge(label: "혈압", tint: NBColor.danger, systemImage: "heart") }
-        if summary.hasBodyComposition { CalendarSelectionBadge(label: "체성분", tint: NBColor.mistTeal, systemImage: "scalemass") }
-        if summary.hasActivity { CalendarSelectionBadge(label: "활동", tint: NBColor.success, systemImage: "figure.walk") }
-        if summary.hasMorningCheckIn || summary.hasEveningCheckIn { CalendarSelectionBadge(label: "체크인", tint: NBColor.dawn, systemImage: "checklist") }
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-    }
-  }
-}
-
-struct CalendarSelectedSourceStrip: View {
-  let sourceTypes: [HealthMetricSourceType]
-
-  var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: NBSpacing.small) {
-        ForEach(sourceTypes) { sourceType in
-          CalendarSelectionBadge(
-            label: sourceType.displayName,
-            tint: calendarSourceTint(for: sourceType),
-            systemImage: calendarSourceIcon(for: sourceType)
-          )
-        }
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-    }
-  }
-}
-
-private struct CalendarSelectionBadge: View {
-  let label: String
-  let tint: Color
-  let systemImage: String
-
-  var body: some View {
-    Label(label, systemImage: systemImage)
-      .font(NBTypography.captionEmphasis)
-      .foregroundStyle(tint)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 6)
-      .background(tint.opacity(0.10))
-      .clipShape(Capsule())
-  }
-}
-
-private struct CalendarLegendItem: View {
-  let label: String
-  let tint: Color
-
-  var body: some View {
-    HStack(spacing: NBSpacing.small) {
-      Circle()
-        .fill(tint)
-        .frame(width: 8, height: 8)
-      Text(label)
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(NBColor.secondaryText)
-      Spacer()
-    }
-    .frame(maxWidth: .infinity)
   }
 }
 
@@ -898,36 +738,6 @@ private func calendarMetricTint(for metadata: MetricDisplayMetadata) -> Color {
     NBColor.privacyTint
   case .app:
     NBColor.dawn
-  }
-}
-
-private func calendarSourceIcon(for sourceType: HealthMetricSourceType) -> String {
-  switch sourceType {
-  case .healthKit:
-    "heart.text.square"
-  case .fitdaysCSV:
-    "square.and.arrow.down"
-  case .manual:
-    "pencil"
-  case .appComputed:
-    "sparkles"
-  case .mock:
-    "testtube.2"
-  }
-}
-
-private func calendarSourceTint(for sourceType: HealthMetricSourceType) -> Color {
-  switch sourceType {
-  case .healthKit:
-    NBColor.privacyTint
-  case .fitdaysCSV:
-    NBColor.mistTeal
-  case .manual:
-    NBColor.warning
-  case .appComputed:
-    NBColor.dawn
-  case .mock:
-    NBColor.lavender
   }
 }
 

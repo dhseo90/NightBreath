@@ -91,6 +91,17 @@ public enum HealthMetricType: String, Codable, CaseIterable, Identifiable, Senda
         }
     }
 
+    public var usesDailyCumulativeSum: Bool {
+        switch self {
+        case .stepCount, .activeEnergy:
+            true
+        case .systolicBloodPressure, .diastolicBloodPressure,
+             .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass,
+             .heartRate, .restingHeartRate, .sleepDuration, .respiratoryRate:
+            false
+        }
+    }
+
     public static var readOnlyHealthKitMetrics: [HealthMetricType] {
         [
             .systolicBloodPressure,

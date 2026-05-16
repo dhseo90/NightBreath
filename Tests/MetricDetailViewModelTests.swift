@@ -277,7 +277,10 @@ struct MetricDetailViewModelTests {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricsOverviewView.swift")
         let healthMetricChart = try sourceContents("SleepSoundApp/Features/Dashboard/HealthMetricChartView.swift")
 
-        #expect(contents.contains("MetricDetailPeriodPicker"))
+        #expect(contents.contains("MetricRangeNavigator"))
+        #expect(contents.contains("MetricAggregationIntervalPicker"))
+        #expect(contents.contains("좌우로 밀어 전후 데이터를 볼 수 있습니다."))
+        #expect(contents.contains("horizontalPagingGesture"))
         #expect(contents.contains("MetricDetailSourceFilterMenu"))
         #expect(contents.contains("MetricChartView"))
         #expect(contents.contains("RuleMark(y: .value(\"평균선\""))
@@ -286,12 +289,9 @@ struct MetricDetailViewModelTests {
         #expect(contents.contains("chartForegroundStyleScale(domain: uniqueSourceLabels, range: uniqueSourceColors)"))
         #expect(contents.contains("sourceTint(for: $0.sourceType)"))
         #expect(contents.contains("MetricSummaryCard"))
-        #expect(contents.contains("rawSampleListSection"))
         #expect(contents.contains("MetricSourceBadgeStrip"))
-        #expect(contents.contains("MetricSourceContextNotice"))
+        #expect(contents.contains("MetricDetailSourceSummaryLine"))
         #expect(contents.contains("Fitdays CSV · 로컬"))
-        #expect(contents.contains("가져오기 기록에 연결된 샘플"))
-        #expect(contents.contains("HealthKit에 저장하지 않음"))
         #expect(contents.contains("HealthKit 기반"))
         #expect(contents.contains("로컬 전용"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
@@ -308,8 +308,8 @@ struct MetricDetailViewModelTests {
         let noSource = MetricDetailEmptyStateReason.noSamplesForSource
         let noPeriod = MetricDetailEmptyStateReason.noSamplesForPeriod
 
-        #expect(contents.contains("선택한 기간에 표시할 샘플이 없습니다"))
-        #expect(contents.contains("기간을 바꾸거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요."))
+        #expect(contents.contains("선택한 구간에 표시할 데이터가 없습니다"))
+        #expect(contents.contains("그래프 단위나 출처 필터를 바꾸거나, HealthKit 연결과 Fitdays CSV 가져오기 상태를 확인하세요."))
         #expect(contents.contains("MetricChartView("))
         #expect(contents.contains("NBEmptyStateView("))
         #expect(noMetric.message.contains("HealthKit read-only"))

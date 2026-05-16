@@ -8,6 +8,7 @@ public struct MetricTrendDataPoint: Identifiable, Equatable, Sendable {
     public var sourceName: String
     public var sampleId: UUID
     public var dataQuality: DailyDataQuality?
+    public var contributingSampleCount: Int
 
     public init(
         date: Date,
@@ -15,7 +16,8 @@ public struct MetricTrendDataPoint: Identifiable, Equatable, Sendable {
         sourceType: HealthMetricSourceType,
         sourceName: String,
         sampleId: UUID,
-        dataQuality: DailyDataQuality? = nil
+        dataQuality: DailyDataQuality? = nil,
+        contributingSampleCount: Int = 1
     ) {
         self.date = date
         self.value = value.isFinite ? value : 0
@@ -23,6 +25,7 @@ public struct MetricTrendDataPoint: Identifiable, Equatable, Sendable {
         self.sourceName = sourceName
         self.sampleId = sampleId
         self.dataQuality = dataQuality
+        self.contributingSampleCount = max(0, contributingSampleCount)
     }
 
     public init(sample: UnifiedHealthMetricSample, dataQuality: DailyDataQuality? = nil) {
@@ -32,8 +35,92 @@ public struct MetricTrendDataPoint: Identifiable, Equatable, Sendable {
             sourceType: sample.sourceType,
             sourceName: sample.sourceName,
             sampleId: sample.id,
-            dataQuality: dataQuality
+            dataQuality: dataQuality,
+            contributingSampleCount: 1
         )
+    }
+}
+
+public enum MetricAggregationInterval: String, CaseIterable, Codable, Identifiable, Sendable {
+    case day
+    case week
+    case month
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .day:
+            "일"
+        case .week:
+            "주"
+        case .month:
+            "월"
+        }
+    }
+
+    public var averageTitle: String {
+        "\(displayName) 평균"
+    }
+
+    public init(trendPeriod: HealthMetricTrendPeriod) {
+        switch trendPeriod {
+        case .sevenDays, .thirtyDays:
+            self = .day
+        case .ninetyDays:
+            self = .week
+        case .oneYear:
+            self = .month
+        }
+    }
+
+    public func dateRange(anchorDate: Date = Date(), calendar: Calendar = .current) -> HealthMetricDateRange {
+        switch self {
+        case .day:
+            let start = calendar.dateInterval(of: .month, for: anchorDate)?.start
+                ?? calendar.startOfDay(for: anchorDate)
+            let end = calendar.date(byAdding: .month, value: 1, to: start)
+                ?? start.addingTimeInterval(31 * 24 * 60 * 60)
+            return HealthMetricDateRange(start: start, end: end.addingTimeInterval(-0.001))
+        case .week:
+            let currentWeekStart = calendar.dateInterval(of: .weekOfYear, for: anchorDate)?.start
+                ?? calendar.startOfDay(for: anchorDate)
+            let start = calendar.date(byAdding: .weekOfYear, value: -11, to: currentWeekStart)
+                ?? currentWeekStart.addingTimeInterval(-77 * 24 * 60 * 60)
+            let end = calendar.date(byAdding: .weekOfYear, value: 1, to: currentWeekStart)
+                ?? currentWeekStart.addingTimeInterval(7 * 24 * 60 * 60)
+            return HealthMetricDateRange(start: start, end: end.addingTimeInterval(-0.001))
+        case .month:
+            let currentMonthStart = calendar.dateInterval(of: .month, for: anchorDate)?.start
+                ?? calendar.startOfDay(for: anchorDate)
+            let start = calendar.date(byAdding: .month, value: -11, to: currentMonthStart)
+                ?? currentMonthStart.addingTimeInterval(-365 * 24 * 60 * 60)
+            let end = calendar.date(byAdding: .month, value: 1, to: currentMonthStart)
+                ?? currentMonthStart.addingTimeInterval(31 * 24 * 60 * 60)
+            return HealthMetricDateRange(start: start, end: end.addingTimeInterval(-0.001))
+        }
+    }
+
+    public func bucketStart(for date: Date, calendar: Calendar = .current) -> Date {
+        switch self {
+        case .day:
+            calendar.startOfDay(for: date)
+        case .week:
+            calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
+        case .month:
+            calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
+        }
+    }
+
+    public func movingAnchor(_ anchorDate: Date, byPageOffset offset: Int, calendar: Calendar = .current) -> Date {
+        switch self {
+        case .day:
+            return calendar.date(byAdding: .month, value: offset, to: anchorDate) ?? anchorDate
+        case .week:
+            return calendar.date(byAdding: .weekOfYear, value: offset * 12, to: anchorDate) ?? anchorDate
+        case .month:
+            return calendar.date(byAdding: .month, value: offset * 12, to: anchorDate) ?? anchorDate
+        }
     }
 }
 
@@ -124,6 +211,29 @@ public struct MetricStatisticsCalculator: Equatable, Sendable {
             .map { MetricTrendDataPoint(sample: $0) }
     }
 
+    public func aggregatedPoints(
+        samples: [UnifiedHealthMetricSample],
+        metricID: UnifiedHealthMetricID,
+        dateRange: HealthMetricDateRange,
+        interval: MetricAggregationInterval,
+        calendar: Calendar = .current
+    ) -> [MetricTrendDataPoint] {
+        let scopedSamples = self.samples(samples, metricID: metricID, dateRange: dateRange)
+        guard !scopedSamples.isEmpty else {
+            return []
+        }
+
+        if metricID.usesDailyCumulativeSum {
+            let dailyTotals = aggregateDailyCumulativeSamples(scopedSamples, calendar: calendar)
+            guard interval != .day else {
+                return dailyTotals
+            }
+            return aggregatePoints(dailyTotals, interval: interval, calendar: calendar)
+        }
+
+        return aggregateSamples(scopedSamples, interval: interval, calendar: calendar)
+    }
+
     public func summary(
         samples: [UnifiedHealthMetricSample],
         metricID: UnifiedHealthMetricID,
@@ -150,6 +260,46 @@ public struct MetricStatisticsCalculator: Equatable, Sendable {
             sampleCount: currentSamples.count,
             firstMeasuredAt: currentSamples.first?.measuredAt,
             latestMeasuredAt: currentSamples.last?.measuredAt
+        )
+    }
+
+    public func aggregatedSummary(
+        samples: [UnifiedHealthMetricSample],
+        metricID: UnifiedHealthMetricID,
+        dateRange: HealthMetricDateRange,
+        interval: MetricAggregationInterval,
+        calendar: Calendar = .current
+    ) -> MetricStatisticsSummary {
+        let currentPoints = aggregatedPoints(
+            samples: samples,
+            metricID: metricID,
+            dateRange: dateRange,
+            interval: interval,
+            calendar: calendar
+        )
+        let previousRange = previousDateRange(for: dateRange)
+        let previousPoints = aggregatedPoints(
+            samples: samples,
+            metricID: metricID,
+            dateRange: previousRange,
+            interval: interval,
+            calendar: calendar
+        )
+        let currentValues = currentPoints.map(\.value)
+
+        return MetricStatisticsSummary(
+            metricID: metricID,
+            latestValue: currentPoints.last?.value,
+            average: average(currentValues),
+            min: currentValues.min(),
+            max: currentValues.max(),
+            deltaFromPreviousPeriod: changeFromPreviousPeriod(
+                currentValues: currentValues,
+                previousValues: previousPoints.map(\.value)
+            ),
+            sampleCount: currentPoints.count,
+            firstMeasuredAt: currentPoints.first?.date,
+            latestMeasuredAt: currentPoints.last?.date
         )
     }
 
@@ -191,11 +341,7 @@ public struct MetricStatisticsCalculator: Equatable, Sendable {
         metricID: UnifiedHealthMetricID,
         dateRange: HealthMetricDateRange
     ) -> [UnifiedHealthMetricSample] {
-        let duration = max(dateRange.end.timeIntervalSince(dateRange.start), 1)
-        let previousRange = HealthMetricDateRange(
-            start: dateRange.start.addingTimeInterval(-duration),
-            end: dateRange.start
-        )
+        let previousRange = previousDateRange(for: dateRange)
 
         return samples
             .filter { sample in
@@ -204,6 +350,123 @@ public struct MetricStatisticsCalculator: Equatable, Sendable {
                     && sample.measuredAt < previousRange.end
             }
             .sortedByMeasuredAtAscending()
+    }
+
+    private func previousDateRange(for dateRange: HealthMetricDateRange) -> HealthMetricDateRange {
+        let duration = max(dateRange.end.timeIntervalSince(dateRange.start), 1)
+        return HealthMetricDateRange(
+            start: dateRange.start.addingTimeInterval(-duration),
+            end: dateRange.start
+        )
+    }
+
+    private func aggregateDailyCumulativeSamples(
+        _ samples: [UnifiedHealthMetricSample],
+        calendar: Calendar
+    ) -> [MetricTrendDataPoint] {
+        Dictionary(grouping: samples) { sample in
+            calendar.startOfDay(for: sample.measuredAt)
+        }
+        .compactMap { dayStart, samples in
+            makePoint(
+                date: dayStart,
+                samples: samples,
+                value: samples.map(\.value).reduce(0, +)
+            )
+        }
+        .sorted { $0.date < $1.date }
+    }
+
+    private func aggregateSamples(
+        _ samples: [UnifiedHealthMetricSample],
+        interval: MetricAggregationInterval,
+        calendar: Calendar
+    ) -> [MetricTrendDataPoint] {
+        Dictionary(grouping: samples) { sample in
+            interval.bucketStart(for: sample.measuredAt, calendar: calendar)
+        }
+        .compactMap { bucketStart, samples in
+            makePoint(date: bucketStart, samples: samples, value: average(samples.map(\.value)))
+        }
+        .sorted { $0.date < $1.date }
+    }
+
+    private func aggregatePoints(
+        _ points: [MetricTrendDataPoint],
+        interval: MetricAggregationInterval,
+        calendar: Calendar
+    ) -> [MetricTrendDataPoint] {
+        Dictionary(grouping: points) { point in
+            interval.bucketStart(for: point.date, calendar: calendar)
+        }
+        .compactMap { bucketStart, points in
+            let values = points.map(\.value)
+            guard let averageValue = average(values),
+                  let firstPoint = points.sorted(by: { $0.date < $1.date }).first else {
+                return nil
+            }
+            return MetricTrendDataPoint(
+                date: bucketStart,
+                value: averageValue,
+                sourceType: sourceType(for: points),
+                sourceName: sourceName(for: points),
+                sampleId: firstPoint.sampleId,
+                contributingSampleCount: points.reduce(0) { $0 + $1.contributingSampleCount }
+            )
+        }
+        .sorted { $0.date < $1.date }
+    }
+
+    private func makePoint(
+        date: Date,
+        samples: [UnifiedHealthMetricSample],
+        value: Double?
+    ) -> MetricTrendDataPoint? {
+        let orderedSamples = samples.sortedByMeasuredAtAscending()
+        guard let firstSample = orderedSamples.first,
+              let value else {
+            return nil
+        }
+        return MetricTrendDataPoint(
+            date: date,
+            value: value,
+            sourceType: sourceType(for: orderedSamples),
+            sourceName: sourceName(for: orderedSamples),
+            sampleId: firstSample.id,
+            contributingSampleCount: orderedSamples.count
+        )
+    }
+
+    private func sourceType(for samples: [UnifiedHealthMetricSample]) -> HealthMetricSourceType {
+        let uniqueSourceTypes = Set(samples.map(\.sourceType))
+        if uniqueSourceTypes.count == 1, let sourceType = uniqueSourceTypes.first {
+            return sourceType
+        }
+        return samples.sortedByMeasuredAtDescending().first?.sourceType ?? .appComputed
+    }
+
+    private func sourceName(for samples: [UnifiedHealthMetricSample]) -> String {
+        let uniqueSourceNames = Set(samples.map(\.sourceName))
+        if uniqueSourceNames.count == 1, let sourceName = uniqueSourceNames.first {
+            return sourceName
+        }
+        return "여러 출처"
+    }
+
+    private func sourceType(for points: [MetricTrendDataPoint]) -> HealthMetricSourceType {
+        let uniqueSourceTypes = Set(points.map(\.sourceType))
+        if uniqueSourceTypes.count == 1, let sourceType = uniqueSourceTypes.first {
+            return sourceType
+        }
+        return points.sorted { $0.date > $1.date }.first?.sourceType ?? .appComputed
+    }
+
+    private func sourceName(for points: [MetricTrendDataPoint]) -> String {
+        let uniqueSourceNames = Set(points.map(\.sourceName))
+        if uniqueSourceNames.count == 1, let sourceName = uniqueSourceNames.first {
+            return sourceName
+        }
+        return "여러 출처"
     }
 
     private func changeFromPreviousPeriod(

@@ -63,47 +63,21 @@ public final class RealHealthKitService: HealthKitServiceProtocol, HealthDataSer
             return []
         }
 
-        return await withCheckedContinuation { continuation in
-            let predicate = HKQuery.predicateForSamples(
-                withStart: dateRange.start,
-                end: dateRange.end,
-                options: [.strictStartDate]
+        if metricType.usesDailyCumulativeSum {
+            return await fetchDailyCumulativeSamples(
+                metricType: metricType,
+                quantityType: quantityType,
+                unit: unit,
+                dateRange: dateRange
             )
-            let sortDescriptor = NSSortDescriptor(
-                key: HKSampleSortIdentifierStartDate,
-                ascending: true
-            )
-            let query = HKSampleQuery(
-                sampleType: quantityType,
-                predicate: predicate,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [sortDescriptor]
-            ) { _, samples, error in
-                guard error == nil,
-                      let quantitySamples = samples as? [HKQuantitySample] else {
-                    continuation.resume(returning: [])
-                    return
-                }
-
-                let mappedSamples = quantitySamples.map { sample in
-                    HealthMetricSample(
-                        metricType: metricType,
-                        value: HealthMetricUnitConverter.displayValue(
-                            metricType: metricType,
-                            healthKitQuantityValue: sample.quantity.doubleValue(for: unit)
-                        ),
-                        unit: metricType.unitLabel,
-                        measuredAt: sample.startDate,
-                        sourceName: sample.sourceRevision.source.name,
-                        sourceBundleIdentifier: sample.sourceRevision.source.bundleIdentifier
-                    )
-                }
-
-                continuation.resume(returning: mappedSamples.sortedByMeasuredAtAscending())
-            }
-
-            healthStore.execute(query)
         }
+
+        return await fetchQuantitySamples(
+            metricType: metricType,
+            quantityType: quantityType,
+            unit: unit,
+            dateRange: dateRange
+        )
         #else
         []
         #endif
@@ -147,6 +121,112 @@ public typealias HealthKitService = RealHealthKitService
 
 #if canImport(HealthKit) && os(iOS)
 private extension RealHealthKitService {
+    func fetchQuantitySamples(
+        metricType: HealthMetricType,
+        quantityType: HKQuantityType,
+        unit: HKUnit,
+        dateRange: HealthMetricDateRange
+    ) async -> [HealthMetricSample] {
+        return await withCheckedContinuation { continuation in
+            let predicate = HKQuery.predicateForSamples(
+                withStart: dateRange.start,
+                end: dateRange.end,
+                options: [.strictStartDate]
+            )
+            let sortDescriptor = NSSortDescriptor(
+                key: HKSampleSortIdentifierStartDate,
+                ascending: true
+            )
+            let query = HKSampleQuery(
+                sampleType: quantityType,
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [sortDescriptor]
+            ) { _, samples, error in
+                guard error == nil,
+                      let quantitySamples = samples as? [HKQuantitySample] else {
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                let mappedSamples = quantitySamples.map { sample in
+                    HealthMetricSample(
+                        metricType: metricType,
+                        value: HealthMetricUnitConverter.displayValue(
+                            metricType: metricType,
+                            healthKitQuantityValue: sample.quantity.doubleValue(for: unit)
+                        ),
+                        unit: metricType.unitLabel,
+                        measuredAt: sample.startDate,
+                        sourceName: sample.sourceRevision.source.name,
+                        sourceBundleIdentifier: sample.sourceRevision.source.bundleIdentifier
+                    )
+                }
+
+                continuation.resume(returning: mappedSamples.sortedByMeasuredAtAscending())
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    func fetchDailyCumulativeSamples(
+        metricType: HealthMetricType,
+        quantityType: HKQuantityType,
+        unit: HKUnit,
+        dateRange: HealthMetricDateRange,
+        calendar: Calendar = .current
+    ) async -> [HealthMetricSample] {
+        await withCheckedContinuation { continuation in
+            let predicate = HKQuery.predicateForSamples(
+                withStart: dateRange.start,
+                end: dateRange.end,
+                options: [.strictStartDate]
+            )
+            var interval = DateComponents()
+            interval.day = 1
+            let query = HKStatisticsCollectionQuery(
+                quantityType: quantityType,
+                quantitySamplePredicate: predicate,
+                options: [.cumulativeSum],
+                anchorDate: calendar.startOfDay(for: dateRange.start),
+                intervalComponents: interval
+            )
+
+            query.initialResultsHandler = { _, collection, error in
+                guard error == nil, let collection else {
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                var samples: [HealthMetricSample] = []
+                collection.enumerateStatistics(from: dateRange.start, to: dateRange.end) { statistics, _ in
+                    guard let quantity = statistics.sumQuantity() else {
+                        return
+                    }
+                    let value = HealthMetricUnitConverter.displayValue(
+                        metricType: metricType,
+                        healthKitQuantityValue: quantity.doubleValue(for: unit)
+                    )
+                    samples.append(
+                        HealthMetricSample(
+                            metricType: metricType,
+                            value: value,
+                            unit: metricType.unitLabel,
+                            measuredAt: statistics.startDate,
+                            sourceName: "Apple 건강앱 합계",
+                            sourceBundleIdentifier: "apple-health-aggregate"
+                        )
+                    )
+                }
+
+                continuation.resume(returning: samples.sortedByMeasuredAtAscending())
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
     static func supportedQuantityTypes() -> [HealthMetricType: HKQuantityType] {
         var quantityTypes: [HealthMetricType: HKQuantityType] = [:]
 

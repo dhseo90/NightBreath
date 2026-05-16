@@ -168,12 +168,78 @@ struct MetricStatisticsCalculatorTests {
         #expect(points.map(\.sourceName) == ["Fitdays CSV Import", "수동 입력"])
     }
 
+    @Test
+    func aggregatedDailyPointsSumCumulativeActivitySamplesBeforeAveraging() throws {
+        let dayStart = referenceDate.addingTimeInterval(-day)
+        let samples = [
+            sample(.stepCount, 1_200, measuredAt: dayStart.addingTimeInterval(60), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.stepCount, 2_300, measuredAt: dayStart.addingTimeInterval(120), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.stepCount, 4_000, measuredAt: referenceDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+        let range = HealthMetricDateRange(
+            start: dayStart,
+            end: referenceDate
+        )
+
+        let points = calculator.aggregatedPoints(
+            samples: samples,
+            metricID: .stepCount,
+            dateRange: range,
+            interval: .day,
+            calendar: calendar
+        )
+        let summary = calculator.aggregatedSummary(
+            samples: samples,
+            metricID: .stepCount,
+            dateRange: range,
+            interval: .day,
+            calendar: calendar
+        )
+
+        #expect(points.map(\.value) == [3_500, 4_000])
+        #expect(points.map(\.contributingSampleCount) == [2, 1])
+        #expect(summary.sampleCount == 2)
+        #expect(summary.average == 3_750)
+        #expect(summary.latestValue == 4_000)
+    }
+
+    @Test
+    func aggregatedWeeklyPointsUseAverageOfDailyTotalsForCumulativeMetrics() throws {
+        let firstDay = calendar.dateInterval(of: .weekOfYear, for: referenceDate)!.start.addingTimeInterval(day)
+        let samples = [
+            sample(.activeEnergy, 200, measuredAt: firstDay, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 100, measuredAt: firstDay.addingTimeInterval(60), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 500, measuredAt: firstDay.addingTimeInterval(day), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+        let range = HealthMetricDateRange(start: firstDay, end: firstDay.addingTimeInterval(2 * day))
+
+        let points = calculator.aggregatedPoints(
+            samples: samples,
+            metricID: .activeEnergy,
+            dateRange: range,
+            interval: .week,
+            calendar: calendar
+        )
+
+        #expect(points.count == 1)
+        let point = try #require(points.first)
+        #expect(point.value == 400)
+        #expect(point.contributingSampleCount == 3)
+    }
+
     private var referenceDate: Date {
         Date(timeIntervalSince1970: 1_777_680_000)
     }
 
     private var day: TimeInterval {
         24 * 60 * 60
+    }
+
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 1
+        return calendar
     }
 
     private func sample(

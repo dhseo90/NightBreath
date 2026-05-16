@@ -120,10 +120,12 @@ struct HealthMetricsOverviewView: View {
   }
 
   private func metricRow(_ metadata: MetricDisplayMetadata) -> some View {
-    let summary = calculator.summary(
+    let interval = MetricAggregationInterval(trendPeriod: selectedPeriod)
+    let summary = calculator.aggregatedSummary(
       samples: samples,
       metricID: metadata.metricID,
-      dateRange: selectedDateRange
+      dateRange: selectedDateRange,
+      interval: interval
     )
     let sources = calculator.sourceBreakdown(
       samples: samples,
@@ -162,7 +164,8 @@ struct HealthMetricsOverviewView: View {
     summary: MetricStatisticsSummary,
     sources: [MetricSourceBreakdown]
   ) -> String {
-    var parts: [String] = ["\(selectedPeriod.displayName) 기록 \(summary.sampleCount)개"]
+    let interval = MetricAggregationInterval(trendPeriod: selectedPeriod)
+    var parts: [String] = ["\(selectedPeriod.displayName) \(interval.displayName) \(summary.sampleCount)개"]
 
     if let latestMeasuredAt = summary.latestMeasuredAt {
       parts.append("최근 \(SleepFormatters.shortDate(latestMeasuredAt))")
@@ -198,7 +201,8 @@ struct MetricDetailView: View {
   let metricID: UnifiedHealthMetricID
   let samples: [UnifiedHealthMetricSample]
 
-  @State private var period: MetricDetailPeriod
+  @State private var aggregationInterval: MetricAggregationInterval
+  @State private var rangeAnchorDate = Date()
   @State private var sourceFilter: MetricDetailSourceFilter = .all
 
   private let catalog = MetricCatalog.default
@@ -210,7 +214,7 @@ struct MetricDetailView: View {
   ) {
     self.metricID = metric.metricID
     self.samples = samples
-    _period = State(initialValue: MetricDetailPeriod(trendPeriod: selectedPeriod))
+    _aggregationInterval = State(initialValue: MetricAggregationInterval(trendPeriod: selectedPeriod))
   }
 
   init(
@@ -220,13 +224,12 @@ struct MetricDetailView: View {
   ) {
     self.metricID = metricID
     self.samples = samples
-    _period = State(initialValue: selectedPeriod)
+    _aggregationInterval = State(initialValue: Self.aggregationInterval(for: selectedPeriod))
   }
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        header
         controls
 
         if let emptyState = viewModel.emptyStateReason {
@@ -238,29 +241,30 @@ struct MetricDetailView: View {
 
         MetricSummaryCard(
           metric: metric,
-          summary: viewModel.summary,
-          sources: viewModel.sourceBreakdown,
-          periodDisplayName: period.displayName
+          summary: viewModel.aggregatedSummary,
+          sources: viewModel.aggregationSourceBreakdown,
+          periodDisplayName: rangeTitle,
+          averageTitle: aggregationInterval.averageTitle,
+          countLabel: aggregationInterval.displayName
         )
 
         MetricChartView(
           metric: metric,
-          points: viewModel.points,
+          points: viewModel.aggregatedPoints,
+          interval: aggregationInterval,
           tint: metricTint(for: metric)
         )
 
-        rawSampleListSection
-        sourceSection
-        manualInputPlaceholder
+        MetricDetailSourceFilterMenu(selection: $sourceFilter)
 
-        NBPrivacyNoticeCard(
-          title: "지표 안내",
-          messages: MetricDetailExplanation.make(for: metric).messages,
-          systemImage: "info.circle"
+        MetricDetailSourceSummaryLine(
+          metric: metric,
+          sources: viewModel.aggregationSourceBreakdown
         )
       }
       .padding(NBSpacing.screenHorizontal)
     }
+    .simultaneousGesture(horizontalPagingGesture)
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(metric.displayNameKo)
@@ -284,136 +288,136 @@ struct MetricDetailView: View {
     MetricDetailViewModel(
       metricID: metricID,
       samples: samples,
-      period: period,
+      period: .all,
+      aggregationInterval: aggregationInterval,
       sourceFilter: sourceFilter,
+      endDate: rangeAnchorDate,
       catalog: catalog
     )
   }
 
   private var controls: some View {
-    VStack(alignment: .leading, spacing: NBSpacing.medium) {
-      MetricDetailPeriodPicker(selection: $period)
-      MetricDetailSourceFilterMenu(selection: $sourceFilter)
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      MetricRangeNavigator(
+        title: rangeTitle,
+        onPrevious: { moveRange(by: -1) },
+        onNext: { moveRange(by: 1) },
+        onToday: { rangeAnchorDate = Date() }
+      )
+      MetricAggregationIntervalPicker(selection: $aggregationInterval)
     }
   }
 
-  private var header: some View {
-    NBReportSection(title: metric.displayNameKo, systemImage: metricIcon(for: metric)) {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        MetricSourceBadgeStrip(
-          metadata: metric,
-          sourceTypes: viewModel.metricSamples.map(\.sourceType)
-        )
+  private var rangeTitle: String {
+    let range = viewModel.aggregationDateRange
+    switch aggregationInterval {
+    case .day:
+      let formatter = DateFormatter()
+      formatter.locale = Locale(identifier: "ko_KR")
+      formatter.dateFormat = "yyyy년 M월"
+      return formatter.string(from: range.start)
+    case .week:
+      return "\(SleepFormatters.shortDate(range.start))~\(SleepFormatters.shortDate(range.end))"
+    case .month:
+      let formatter = DateFormatter()
+      formatter.locale = Locale(identifier: "ko_KR")
+      formatter.dateFormat = "yyyy.MM"
+      return "\(formatter.string(from: range.start))~\(formatter.string(from: range.end))"
+    }
+  }
 
-        MetricSourceContextNotice(
-          metadata: metric,
-          sourceTypes: viewModel.metricSamples.map(\.sourceType)
-        )
-
-        Text(metric.description)
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
-
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-          NBMetricCard(
-            title: "최근 값",
-            value: viewModel.latestSample.map { UnifiedMetricFormatting.valueString($0.value, unit: $0.unit) } ?? "--",
-            systemImage: metricIcon(for: metric),
-            tint: metricTint(for: metric)
-          )
-          NBMetricCard(
-            title: "단위",
-            value: metric.unit.isEmpty ? "--" : metric.unit,
-            systemImage: "ruler",
-            tint: NBColor.privacyTint
-          )
-          NBMetricCard(
-            title: "최근 측정",
-            value: viewModel.latestSample.map { SleepFormatters.shortDate($0.measuredAt) } ?? "--",
-            systemImage: "clock",
-            tint: NBColor.dawn
-          )
-          NBMetricCard(
-            title: "데이터 출처",
-            value: viewModel.latestSample?.sourceType.displayName ?? "--",
-            systemImage: "square.stack.3d.up",
-            tint: NBColor.mistTeal
-          )
+  private var horizontalPagingGesture: some Gesture {
+    DragGesture(minimumDistance: 36)
+      .onEnded { value in
+        guard abs(value.translation.width) > abs(value.translation.height),
+              abs(value.translation.width) > 48 else {
+          return
         }
+        moveRange(by: value.translation.width < 0 ? 1 : -1)
       }
+  }
+
+  private func moveRange(by offset: Int) {
+    rangeAnchorDate = aggregationInterval.movingAnchor(
+      rangeAnchorDate,
+      byPageOffset: offset
+    )
+  }
+
+  private static func aggregationInterval(for period: MetricDetailPeriod) -> MetricAggregationInterval {
+    switch period {
+    case .sevenDays, .thirtyDays:
+      .day
+    case .ninetyDays:
+      .week
+    case .oneYear, .all:
+      .month
     }
   }
 
-  private var rawSampleListSection: some View {
-    NBReportSection(title: "기록 목록", systemImage: "list.bullet.rectangle") {
-      if viewModel.rawSampleList.isEmpty {
-        NBEmptyStateView(
-          title: "표시할 기록이 없습니다",
-          message: "기간 또는 출처 필터를 바꾸면 다른 기록을 볼 수 있습니다.",
-          systemImage: "tray"
-        )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(viewModel.rawSampleList) { sample in
-            MetricSampleListRow(
-              sample: sample,
-              metric: metric
-            )
-          }
+}
+
+private struct MetricRangeNavigator: View {
+  let title: String
+  let onPrevious: () -> Void
+  let onNext: () -> Void
+  let onToday: () -> Void
+
+  var body: some View {
+    NBCard {
+      HStack(spacing: NBSpacing.small) {
+        Button(action: onPrevious) {
+          Image(systemName: "chevron.left")
+            .frame(width: 34, height: 34)
         }
-      }
-    }
-  }
+        .buttonStyle(.plain)
+        .accessibilityLabel("이전 구간")
 
-  private var sourceSection: some View {
-    NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
-      if viewModel.sourceBreakdown.isEmpty {
-        NBEmptyStateView(
-          title: "선택한 기간에 출처가 없습니다",
-          message: "다른 기간이나 출처 필터를 선택해 보세요.",
-          systemImage: "tray"
-        )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(viewModel.sourceBreakdown) { source in
-            NBListRow(
-              title: source.sourceType.displayName,
-              value: "\(source.sampleCount)개",
-              subtitle: "\(source.sourceName) · 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt)) \(SleepFormatters.shortTime(source.latestMeasuredAt))",
-              systemImage: sourceIcon(for: source.sourceType),
-              tint: sourceTint(for: source.sourceType)
-            )
-          }
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title)
+            .font(NBTypography.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Text("좌우로 밀어 전후 데이터를 볼 수 있습니다.")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
         }
-      }
-    }
-  }
+        .frame(maxWidth: .infinity, alignment: .leading)
 
-  private var manualInputPlaceholder: some View {
-    NBReportSection(title: "수동 입력", systemImage: "pencil") {
-      NBSecondaryButton(
-        title: "수동 입력은 다음 작업에서 추가",
-        systemImage: "plus",
-        isDisabled: true
-      ) {}
+        Button(action: onToday) {
+          Text("최근")
+            .font(NBTypography.caption.weight(.semibold))
+            .foregroundStyle(NBColor.privacyTint)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(NBColor.privacyTint.opacity(0.10))
+            .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+        }
+        .buttonStyle(.plain)
+
+        Button(action: onNext) {
+          Image(systemName: "chevron.right")
+            .frame(width: 34, height: 34)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("다음 구간")
+      }
     }
   }
 }
 
-private struct MetricDetailPeriodPicker: View {
-  @Binding var selection: MetricDetailPeriod
+private struct MetricAggregationIntervalPicker: View {
+  @Binding var selection: MetricAggregationInterval
 
   var body: some View {
     NBCard {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label("기간 선택", systemImage: "calendar")
+        Label("그래프 단위", systemImage: "chart.bar.xaxis")
           .font(NBTypography.subheadline)
           .foregroundStyle(NBColor.primaryText)
 
-        Picker("기간 선택", selection: $selection) {
-          ForEach(MetricDetailPeriod.allCases) { period in
-            Text(period.displayName).tag(period)
+        Picker("그래프 단위", selection: $selection) {
+          ForEach(MetricAggregationInterval.allCases) { interval in
+            Text(interval.displayName).tag(interval)
           }
         }
         .pickerStyle(.segmented)
@@ -464,75 +468,18 @@ private struct MetricDetailSourceFilterMenu: View {
   }
 }
 
-private struct MetricSampleListRow: View {
-  let sample: UnifiedHealthMetricSample
-  let metric: MetricDisplayMetadata
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      NBListRow(
-        title: "\(SleepFormatters.shortDate(sample.measuredAt)) \(SleepFormatters.shortTime(sample.measuredAt))",
-        value: UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit),
-        subtitle: "\(sample.sourceType.displayName) · \(sample.sourceName)",
-        systemImage: sourceIcon(for: sample.sourceType),
-        tint: sourceTint(for: sample.sourceType),
-        accessibilityLabel: "\(metric.displayNameKo), \(UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit))"
-      )
-
-      VStack(alignment: .leading, spacing: 3) {
-        ForEach(sourceNotes, id: \.self) { note in
-          Text(note)
-        }
-        if let notes = sample.notes, !notes.isEmpty {
-          Text(notes)
-        }
-      }
-      .font(NBTypography.caption)
-      .foregroundStyle(NBColor.tertiaryText)
-      .padding(.leading, 34)
-    }
-  }
-
-  private var sourceNotes: [String] {
-    var notes: [String] = []
-
-    switch sample.sourceType {
-    case .fitdaysCSV:
-      notes.append("Fitdays CSV 로컬 import 샘플")
-      notes.append("HealthKit에 저장하지 않음")
-    case .manual:
-      notes.append("기기 안에 저장된 수동 입력 샘플")
-    case .appComputed:
-      notes.append("밤숨 앱에서 기기 안에서 계산한 샘플")
-    case .healthKit:
-      notes.append("Apple 건강앱 read-only 샘플")
-    case .mock:
-      notes.append("예시 데이터 샘플")
-    }
-
-    if sample.importBatchId?.isEmpty == false {
-      notes.append("가져오기 기록에 연결된 샘플")
-    }
-
-    if metric.isExtendedLocalOnly {
-      notes.append("로컬 전용 지표")
-    }
-
-    return notes
-  }
-}
-
 struct MetricChartView: View {
   let metric: MetricDisplayMetadata
   let points: [MetricTrendDataPoint]
+  let interval: MetricAggregationInterval
   var tint: Color = NBColor.privacyTint
 
   var body: some View {
     NBReportSection(title: "그래프", systemImage: "chart.xyaxis.line") {
       if points.isEmpty {
         NBEmptyStateView(
-          title: "선택한 기간에 표시할 샘플이 없습니다",
-          message: "기간을 바꾸거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요.",
+          title: "선택한 구간에 표시할 데이터가 없습니다",
+          message: "그래프 단위나 출처 필터를 바꾸거나, HealthKit 연결과 Fitdays CSV 가져오기 상태를 확인하세요.",
           systemImage: "chart.xyaxis.line"
         )
       } else {
@@ -569,8 +516,13 @@ struct MetricChartView: View {
             AxisMarks(values: .automatic(desiredCount: 4)) {
               AxisGridLine()
                 .foregroundStyle(NBColor.divider)
-              AxisValueLabel(format: .dateTime.month().day())
-                .foregroundStyle(NBColor.secondaryText)
+              if interval == .month {
+                AxisValueLabel(format: .dateTime.year().month())
+                  .foregroundStyle(NBColor.secondaryText)
+              } else {
+                AxisValueLabel(format: .dateTime.month().day())
+                  .foregroundStyle(NBColor.secondaryText)
+              }
             }
           }
           .chartYAxis {
@@ -600,7 +552,7 @@ struct MetricChartView: View {
         value: latestPoint.map { formattedValue($0.value) } ?? "--"
       )
       MetricChartSummaryPill(
-        title: "평균",
+        title: interval.averageTitle,
         value: averageValue.map(formattedValue) ?? "--"
       )
       MetricChartSummaryPill(
@@ -746,6 +698,8 @@ struct MetricSummaryCard: View {
   let summary: MetricStatisticsSummary
   let sources: [MetricSourceBreakdown]
   let periodDisplayName: String
+  let averageTitle: String
+  let countLabel: String
 
   var body: some View {
     NBCard {
@@ -764,13 +718,13 @@ struct MetricSummaryCard: View {
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           summaryTile("최근 값", summary.latestValue)
-          summaryTile("평균", summary.average)
+          summaryTile(averageTitle, summary.average)
           summaryTile("최소", summary.min)
           summaryTile("최대", summary.max)
         }
 
         HStack(spacing: NBSpacing.small) {
-          NBStatusBadge("측정 \(summary.sampleCount)개", kind: .neutral, systemImage: "number")
+          NBStatusBadge("\(countLabel) \(summary.sampleCount)개", kind: .neutral, systemImage: "number")
           NBStatusBadge(deltaText, kind: .privacy, systemImage: "arrow.left.arrow.right")
         }
 
@@ -831,6 +785,41 @@ struct MetricSummaryCard: View {
         .minimumScaleFactor(0.75)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+private struct MetricDetailSourceSummaryLine: View {
+  let metric: MetricDisplayMetadata
+  let sources: [MetricSourceBreakdown]
+
+  var body: some View {
+    Text(summaryText)
+      .font(NBTypography.caption)
+      .foregroundStyle(NBColor.secondaryText)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityLabel(summaryText)
+  }
+
+  private var summaryText: String {
+    var parts: [String] = []
+    if metric.isHealthKitBacked {
+      parts.append("HealthKit read-only")
+    }
+    if metric.isExtendedLocalOnly {
+      parts.append("로컬 전용")
+    }
+    if sources.isEmpty {
+      parts.append("출처 없음")
+    } else {
+      let sourceText = sources
+        .prefix(3)
+        .map { $0.sourceType.displayName }
+        .joined(separator: " · ")
+      parts.append(sourceText)
+    }
+    parts.append("개인 참고용")
+    return parts.joined(separator: " · ")
   }
 }
 
@@ -907,32 +896,6 @@ struct MetricSourceBadgeStrip: View {
     case .mock:
       .debug
     }
-  }
-}
-
-private struct MetricSourceContextNotice: View {
-  let metadata: MetricDisplayMetadata
-  let sourceTypes: [HealthMetricSourceType]
-
-  private var summary: MetricDetailSourceSummary {
-    MetricDetailSourceSummary.make(for: metadata, sourceTypes: sourceTypes)
-  }
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-      Label("출처 구분", systemImage: "square.stack.3d.up")
-        .font(NBTypography.caption.weight(.semibold))
-        .foregroundStyle(NBColor.primaryText)
-
-      ForEach(summary.messages, id: \.self) { message in
-        Text(message)
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
   }
 }
 

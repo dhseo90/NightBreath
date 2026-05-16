@@ -190,6 +190,7 @@ public struct HealthCalendarBuilder: Equatable, Sendable {
         let hasFitdaysExtended = metricIDs.intersects(HealthCalendarDataGrouping.fitdaysExtendedMetricIDs)
         let hasActivity = metricIDs.intersects(HealthCalendarDataGrouping.activityMetricIDs)
         let sourceTypes = sortedSourceTypes(from: daySamples)
+        let effectiveSampleCount = displaySampleCount(daySamples)
         let categoryCount = [
             !dayReports.isEmpty,
             hasBloodPressure,
@@ -206,9 +207,9 @@ public struct HealthCalendarBuilder: Equatable, Sendable {
             hasActivity: hasActivity,
             hasMorningCheckIn: !dayMorningCheckIns.isEmpty,
             hasEveningCheckIn: !dayEveningCheckIns.isEmpty,
-            sampleCount: daySamples.count,
+            sampleCount: effectiveSampleCount,
             sourceTypes: sourceTypes,
-            dataQuality: dataQuality(categoryCount: categoryCount, sampleCount: daySamples.count)
+            dataQuality: dataQuality(categoryCount: categoryCount, sampleCount: effectiveSampleCount)
         )
     }
 
@@ -314,6 +315,12 @@ public struct HealthCalendarBuilder: Equatable, Sendable {
     private func sortedSourceTypes(from samples: [UnifiedHealthMetricSample]) -> [HealthMetricSourceType] {
         let sourceTypes = Set(samples.map(\.sourceType))
         return HealthMetricSourceType.allCases.filter { sourceTypes.contains($0) }
+    }
+
+    private func displaySampleCount(_ samples: [UnifiedHealthMetricSample]) -> Int {
+        let ordinarySampleCount = samples.filter { !$0.metricID.usesDailyCumulativeSum }.count
+        let cumulativeMetricCount = Set(samples.filter { $0.metricID.usesDailyCumulativeSum }.map(\.metricID)).count
+        return ordinarySampleCount + cumulativeMetricCount
     }
 
     private func dataQuality(categoryCount: Int, sampleCount: Int) -> DailyDataQuality {
