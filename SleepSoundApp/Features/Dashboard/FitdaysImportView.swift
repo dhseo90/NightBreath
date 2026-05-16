@@ -64,12 +64,8 @@ struct FitdaysImportView: View {
         if prioritizesInitialImportResult, let importResult {
           importResultSections(importResult)
           headerSection
-          pastedTextSection
-          manualInputSection
         } else {
           headerSection
-          pastedTextSection
-          manualInputSection
 
           if let importResult {
             importResultSections(importResult)
@@ -78,6 +74,8 @@ struct FitdaysImportView: View {
           }
         }
 
+        pastedTextSection
+        manualInputSection
         savedBatchesSection
         policySection
         exportUnavailableSection
@@ -124,16 +122,9 @@ struct FitdaysImportView: View {
   private var headerSection: some View {
     NBReportSection(title: "Fitdays 데이터 가져오기", systemImage: "square.and.arrow.down") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("월별 데이터 복사 텍스트나 사용자가 직접 확보한 CSV/text export 파일을 로컬에서만 정리합니다.")
+        Text("Fitdays 데이터는 복사한 월별 표를 붙여넣거나, 직접 받은 CSV/text 파일을 선택해서 로컬에 저장합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
-
-        FitdaysImportFlowStatus(
-          hasInput: !trimmedPastedText.isEmpty || importResult != nil,
-          hasPreview: importResult != nil,
-          hasSaved: lastSaveConfirmation != nil,
-          isPreviewing: isPreviewingPaste
-        )
 
         #if os(iOS)
         Button {
@@ -148,7 +139,7 @@ struct FitdaysImportView: View {
               Image(systemName: "doc.on.clipboard")
                 .foregroundStyle(.white)
             }
-            Text(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기")
+            Text(isPreviewingPaste ? "클립보드 확인 중" : "클립보드 붙여넣기")
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
           }
@@ -177,7 +168,7 @@ struct FitdaysImportView: View {
         if let statusMessage {
           NBInlineStatus(
             title: statusMessage,
-            detail: "파일 선택, 붙여넣기, 저장, 삭제 결과는 이 화면 안에서 바로 확인할 수 있습니다.",
+            detail: "확인이 끝나면 저장 버튼이 바로 아래 저장할 데이터 영역에 표시됩니다.",
             kind: .good,
             systemImage: "checkmark.circle"
           )
@@ -198,7 +189,7 @@ struct FitdaysImportView: View {
   private var pastedTextSection: some View {
     NBReportSection(title: "월별 데이터 붙여넣기", systemImage: "doc.on.clipboard") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("Fitdays에서 월별 데이터를 복사했다면 표 형태의 텍스트를 여기에 붙여넣고 저장 전 미리보기를 확인합니다.")
+        Text("복사한 월별 표를 직접 붙여넣은 뒤 확인 버튼을 누르면 저장할 샘플 수를 계산합니다.")
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
@@ -221,7 +212,7 @@ struct FitdaysImportView: View {
             .accessibilityLabel("Fitdays 월별 데이터 붙여넣기 입력")
 
           if visiblePastedExportText.isEmpty {
-            Text("Fitdays에서 복사한 월별 데이터 표를 붙여넣거나 아래 버튼을 누르세요.")
+            Text("Fitdays에서 복사한 월별 데이터 표를 붙여넣으세요.")
               .font(NBTypography.footnote)
               .foregroundStyle(NBColor.secondaryText)
               .padding(.horizontal, NBSpacing.medium)
@@ -230,67 +221,42 @@ struct FitdaysImportView: View {
           }
         }
 
-        VStack(spacing: NBSpacing.small) {
-          #if os(iOS)
+        HStack(spacing: NBSpacing.small) {
           Button {
-            pasteClipboardTextAndPreview()
+            previewPastedText()
           } label: {
             HStack(spacing: NBSpacing.sm) {
               if isPreviewingPaste {
                 ProgressView()
                   .controlSize(.small)
-                  .tint(.white)
               } else {
-                Image(systemName: "doc.on.clipboard")
-                  .foregroundStyle(.white)
+                Image(systemName: "checklist")
+                  .foregroundStyle(NBColor.primaryText)
               }
-              Text(isPreviewingPaste ? "저장 전 미리보기 생성 중" : "클립보드 붙여넣고 저장 전 미리보기")
+              Text(isPreviewingPaste ? "확인 중" : "입력한 내용 확인")
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
             }
           }
-          .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.mistTeal))
-          .disabled(isPreviewingPaste)
-          .opacity(isPreviewingPaste ? 0.55 : 1)
-          #endif
+          .buttonStyle(.nbSecondary)
+          .disabled(trimmedPastedText.isEmpty || isPreviewingPaste)
+          .opacity(trimmedPastedText.isEmpty || isPreviewingPaste ? 0.55 : 1)
 
-          HStack(spacing: NBSpacing.small) {
-            Button {
-              previewPastedText()
-            } label: {
-              HStack(spacing: NBSpacing.sm) {
-                if isPreviewingPaste {
-                  ProgressView()
-                    .controlSize(.small)
-                } else {
-                  Image(systemName: "eye")
-                    .foregroundStyle(NBColor.primaryText)
-                }
-                Text(isPreviewingPaste ? "미리보기 요청 중" : "저장 전 미리보기 만들기")
-                  .multilineTextAlignment(.center)
-                  .frame(maxWidth: .infinity)
-              }
-            }
-            .buttonStyle(.nbSecondary)
-            .disabled(trimmedPastedText.isEmpty || isPreviewingPaste)
-            .opacity(trimmedPastedText.isEmpty || isPreviewingPaste ? 0.55 : 1)
-
-            Button {
-              clearPastedText()
-            } label: {
-              Label("비우기", systemImage: "xmark.circle")
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.nbSecondary)
-            .disabled(pastedExportText.isEmpty || isPreviewingPaste)
-            .opacity(pastedExportText.isEmpty || isPreviewingPaste ? 0.55 : 1)
+          Button {
+            clearPastedText()
+          } label: {
+            Label("비우기", systemImage: "xmark.circle")
+              .frame(maxWidth: .infinity)
           }
+          .buttonStyle(.nbSecondary)
+          .disabled(pastedExportText.isEmpty || isPreviewingPaste)
+          .opacity(pastedExportText.isEmpty || isPreviewingPaste ? 0.55 : 1)
         }
 
         if isPreviewingPaste {
           NBInlineStatus(
-            title: "미리보기 요청됨 · 분석 중",
-            detail: "붙여넣은 데이터를 로컬에서 분석하는 중입니다. 완료되기 전까지 관련 버튼은 비활성화됩니다.",
+            title: "데이터 확인 중",
+            detail: "붙여넣은 데이터를 로컬에서 확인하는 중입니다. 완료되면 저장 버튼이 위쪽에 표시됩니다.",
             kind: .privacy,
             systemImage: "doc.on.clipboard",
             isLoading: true
@@ -413,13 +379,10 @@ struct FitdaysImportView: View {
 
   private var emptyState: some View {
     NBEmptyStateView(
-      title: "가져온 파일이 없습니다",
+      title: "아직 확인한 데이터가 없습니다",
       message: FitdaysImportFallbackGuidance.emptyStateMessage,
-      systemImage: "doc.text.magnifyingglass",
-      actionTitle: "파일 선택"
-    ) {
-      isFileImporterPresented = true
-    }
+      systemImage: "tray.and.arrow.down"
+    )
   }
 
   private var exportUnavailableSection: some View {
@@ -481,7 +444,7 @@ struct FitdaysImportView: View {
   }
 
   private func resultSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "저장 전 미리보기", systemImage: "list.bullet.rectangle") {
+    NBReportSection(title: "저장할 데이터", systemImage: "list.bullet.rectangle") {
       VStack(spacing: NBSpacing.medium) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           NBMetricCard(
@@ -489,7 +452,7 @@ struct FitdaysImportView: View {
             value: "\(result.importedSampleCount)",
             systemImage: "number",
             tint: NBColor.mistTeal,
-            footnote: "저장 전 미리보기"
+            footnote: "저장 대상"
           )
 
           NBMetricCard(
@@ -502,29 +465,17 @@ struct FitdaysImportView: View {
         }
 
         if !result.unknownColumns.isEmpty {
-          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-            Text("지원하지 않는 열")
-              .font(NBTypography.caption.weight(.semibold))
-              .foregroundStyle(NBColor.primaryText)
-            Text(result.unknownColumns.joined(separator: ", "))
-              .font(NBTypography.footnote)
-              .foregroundStyle(NBColor.secondaryText)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
+          Text("지원하지 않는 열 \(result.unknownColumns.count)개는 아래 저장 전 확인에서 볼 수 있습니다.")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
 
         if !result.rowErrors.isEmpty {
-          VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-            Text("확인 필요")
-              .font(NBTypography.caption.weight(.semibold))
-              .foregroundStyle(NBColor.primaryText)
-            ForEach(result.rowErrors.prefix(4)) { error in
-              Text("\(error.rowNumber)행: \(error.message)")
-                .font(NBTypography.footnote)
-                .foregroundStyle(NBColor.secondaryText)
-            }
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
+          Text("확인 필요 행 \(result.rowErrors.count)개는 저장하지 않고 건너뜁니다.")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
 
         if result.samples.isEmpty {
@@ -538,13 +489,6 @@ struct FitdaysImportView: View {
         if let duplicateSummary, duplicateSummary.hasDuplicates {
           duplicateSummarySection(duplicateSummary)
         }
-
-        NBInlineStatus(
-          title: "미리보기 완료 · 아직 저장 전",
-          detail: "샘플 수와 건너뛴 행을 확인한 뒤 아래 버튼으로 로컬 저장을 완료합니다.",
-          kind: result.samples.isEmpty ? .caution : .privacy,
-          systemImage: result.samples.isEmpty ? "exclamationmark.circle" : "eye"
-        )
 
         Button {
           save(result)
@@ -567,6 +511,13 @@ struct FitdaysImportView: View {
         .disabled(result.samples.isEmpty || isSavingImportResult || isPreviewingPaste || requiresChangedDuplicateConfirmation)
         .opacity(result.samples.isEmpty || isSavingImportResult || isPreviewingPaste || requiresChangedDuplicateConfirmation ? 0.55 : 1)
 
+        NBInlineStatus(
+          title: "저장 준비 완료",
+          detail: "샘플 수와 건너뛴 행을 확인한 뒤 바로 로컬에 저장할 수 있습니다.",
+          kind: result.samples.isEmpty ? .caution : .privacy,
+          systemImage: result.samples.isEmpty ? "exclamationmark.circle" : "checkmark.circle"
+        )
+
         if let lastSaveConfirmation {
           NBInlineStatus(
             title: lastSaveConfirmation.displayMessage,
@@ -582,7 +533,7 @@ struct FitdaysImportView: View {
   }
 
   private func previewSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "미리보기", systemImage: "eye") {
+    NBReportSection(title: "저장될 샘플", systemImage: "list.bullet") {
       VStack(spacing: NBSpacing.small) {
         ForEach(result.samples.prefix(8)) { sample in
           if let displayModel = sample.displayModel() {
@@ -607,7 +558,7 @@ struct FitdaysImportView: View {
   }
 
   private func previewDiagnosticsSection(_ result: FitdaysImportResult) -> some View {
-    NBReportSection(title: "미리보기 판단", systemImage: "checklist") {
+    NBReportSection(title: "저장 전 확인", systemImage: "checklist") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           NBMetricCard(
@@ -687,7 +638,7 @@ struct FitdaysImportView: View {
             Text("아직 로컬에 저장한 Fitdays 가져오기 기록이 없습니다.")
               .font(NBTypography.callout)
               .foregroundStyle(NBColor.primaryText)
-            Text("미리보기 확인 후 로컬에 저장을 누르면 이곳에서 저장된 기록과 샘플 수를 확인하고 삭제할 수 있습니다.")
+            Text("데이터 확인 후 로컬에 저장하면 이곳에서 저장된 기록과 샘플 수를 확인하고 삭제할 수 있습니다.")
               .font(NBTypography.footnote)
               .foregroundStyle(NBColor.secondaryText)
               .fixedSize(horizontal: false, vertical: true)
@@ -842,7 +793,7 @@ struct FitdaysImportView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
       if summary.isTruncatedForDisplay {
-        Text("입력창에는 앞부분만 표시하고, 미리보기와 저장은 전체 붙여넣기 원문으로 처리합니다.")
+        Text("입력창에는 앞부분만 표시하고, 확인과 저장은 전체 붙여넣기 원문으로 처리합니다.")
           .font(NBTypography.caption)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
@@ -919,12 +870,12 @@ struct FitdaysImportView: View {
 
   private func saveButtonTitle(for summary: UnifiedHealthMetricImportDuplicateSummary?) -> String {
     guard let summary, summary.hasDuplicates else {
-      return "미리보기 결과 로컬 저장"
+      return "로컬에 저장"
     }
     if summary.hasChangedDuplicates {
-      return "중복 확인 후 로컬 저장"
+      return "중복 확인 후 저장"
     }
-    return "중복 정리하고 로컬 저장"
+    return "중복 정리하고 저장"
   }
 
   private func saveSuccessMessage(
@@ -950,7 +901,7 @@ struct FitdaysImportView: View {
       guard let url = try result.get().first else {
         return
       }
-      preview(fileURL: url, successMessage: "저장 전 미리보기를 만들었습니다.")
+      preview(fileURL: url, successMessage: "파일을 확인했습니다. 저장할 수 있습니다.")
     } catch {
       importResult = nil
       errorMessage = userFacingImportErrorMessage(error)
@@ -1113,7 +1064,7 @@ struct FitdaysImportView: View {
     didPreviewInitialFile = true
     preview(
       fileURL: initialFileURL,
-      successMessage: initialFileStatusMessage ?? "공유/export 파일 미리보기를 만들었습니다."
+      successMessage: initialFileStatusMessage ?? "공유/export 파일을 확인했습니다. 저장할 수 있습니다."
     )
   }
 
@@ -1158,7 +1109,7 @@ struct FitdaysImportView: View {
   private func previewPastedText(_ textOverride: String? = nil) {
     pastePreviewTask?.cancel()
     errorMessage = nil
-    statusMessage = "붙여넣은 데이터 미리보기를 준비하고 있습니다."
+    statusMessage = "붙여넣은 데이터를 확인하고 있습니다."
     importResult = nil
     duplicateSummary = nil
     allowsChangedDuplicateOverwrite = false
@@ -1186,7 +1137,7 @@ struct FitdaysImportView: View {
             existingSamples: repository.fetchSamples(),
             incomingSamples: result.samples
           )
-          statusMessage = "붙여넣은 월별 데이터에서 저장 전 미리보기를 만들었습니다."
+          statusMessage = "붙여넣은 월별 데이터를 확인했습니다. 저장할 수 있습니다."
         case .failure(let error):
           importResult = nil
           duplicateSummary = nil
@@ -1297,52 +1248,6 @@ struct FitdaysImportView: View {
     case .app:
       NBColor.dawn
     }
-  }
-}
-
-private struct FitdaysImportFlowStatus: View {
-  let hasInput: Bool
-  let hasPreview: Bool
-  let hasSaved: Bool
-  let isPreviewing: Bool
-
-  var body: some View {
-    HStack(spacing: NBSpacing.xs) {
-      flowPill(title: "입력", systemImage: "doc.text", isActive: hasInput || isPreviewing)
-      flowPill(title: "미리보기", systemImage: "eye", isActive: hasPreview || isPreviewing)
-      flowPill(title: "저장", systemImage: "tray.and.arrow.down", isActive: hasSaved)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(accessibilityLabel)
-  }
-
-  private func flowPill(title: String, systemImage: String, isActive: Bool) -> some View {
-    Label(title, systemImage: systemImage)
-      .font(NBTypography.captionEmphasis)
-      .foregroundStyle(isActive ? NBColor.primaryText : NBColor.secondaryText)
-      .padding(.horizontal, NBSpacing.sm)
-      .padding(.vertical, NBSpacing.xs)
-      .background(
-        (isActive ? NBColor.mistTeal : NBColor.divider).opacity(isActive ? 0.16 : 0.42),
-        in: Capsule()
-      )
-  }
-
-  private var accessibilityLabel: String {
-    if hasSaved {
-      return "Fitdays 가져오기 단계, 저장 완료"
-    }
-    if hasPreview {
-      return "Fitdays 가져오기 단계, 저장 전 미리보기 완료"
-    }
-    if isPreviewing {
-      return "Fitdays 가져오기 단계, 미리보기 생성 중"
-    }
-    if hasInput {
-      return "Fitdays 가져오기 단계, 입력 완료"
-    }
-    return "Fitdays 가져오기 단계, 입력 전"
   }
 }
 

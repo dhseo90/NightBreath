@@ -605,7 +605,7 @@ struct ScreenshotScenarioDestinationView: View {
       FitdaysImportView(
         repository: InMemoryUnifiedHealthMetricSampleRepository(),
         initialImportResult: ScreenshotScenarioFactory.makeScreenshotFitdaysImportResult(referenceDate: appState.latestReport.generatedAt),
-        initialStatusMessage: "저장 전 미리보기를 만들었습니다.",
+        initialStatusMessage: "저장할 데이터를 확인했습니다.",
         prioritizesInitialImportResult: true
       )
     case .importError:

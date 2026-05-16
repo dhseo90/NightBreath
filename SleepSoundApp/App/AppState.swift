@@ -350,7 +350,7 @@ final class AppState: ObservableObject {
 
         pendingFitdaysImportFile = PendingFitdaysImportFile(
             url: url,
-            statusMessage: "Fitdays export 파일 미리보기를 만들었습니다."
+            statusMessage: "Fitdays export 파일을 확인했습니다. 저장할 수 있습니다."
         )
     }
 
