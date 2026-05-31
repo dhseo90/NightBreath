@@ -113,6 +113,7 @@
 
 ## 실제 iPhone QA
 
+- 수면 시작 실패 상태 정리, AVAudioSession route/media-services diagnostics, interruption 후 로컬 리포트 정리 안내는 실기기 없이 구현/검증 완료
 - foreground 1분 smoke test
 - P0 fix 이후 `Docs/QA_GUIDE.md`의 Foreground stop smoke / Double stop tap / Lock/background short stop 통과
 - stop 이후 actual audio received time이 증가하지 않는 evidence template 기록

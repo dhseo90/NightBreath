@@ -594,3 +594,453 @@ public struct UnifiedHealthMetricOverviewGrouping: Equatable, Sendable {
         ]
     }
 }
+
+public enum KoreanBMIReferenceCategory: String, Codable, CaseIterable, Identifiable, Sendable {
+    case belowReference
+    case reference
+    case preObesity
+    case obesityStage1
+    case obesityStage2
+    case obesityStage3
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .belowReference:
+            "저체중 참고 범위"
+        case .reference:
+            "참고 범위"
+        case .preObesity:
+            "비만 전 단계 참고 범위"
+        case .obesityStage1:
+            "1단계 비만 참고 범위"
+        case .obesityStage2:
+            "2단계 비만 참고 범위"
+        case .obesityStage3:
+            "3단계 비만 참고 범위"
+        }
+    }
+
+    public var lowerBound: Double? {
+        switch self {
+        case .belowReference:
+            nil
+        case .reference:
+            18.5
+        case .preObesity:
+            23
+        case .obesityStage1:
+            25
+        case .obesityStage2:
+            30
+        case .obesityStage3:
+            35
+        }
+    }
+
+    public var upperBound: Double? {
+        switch self {
+        case .belowReference:
+            18.5
+        case .reference:
+            23
+        case .preObesity:
+            25
+        case .obesityStage1:
+            30
+        case .obesityStage2:
+            35
+        case .obesityStage3:
+            nil
+        }
+    }
+
+    public static func category(for bmi: Double) -> KoreanBMIReferenceCategory? {
+        guard bmi.isFinite, bmi > 0 else {
+            return nil
+        }
+
+        switch bmi {
+        case ..<18.5:
+            return .belowReference
+        case 18.5..<23:
+            return .reference
+        case 23..<25:
+            return .preObesity
+        case 25..<30:
+            return .obesityStage1
+        case 30..<35:
+            return .obesityStage2
+        default:
+            return .obesityStage3
+        }
+    }
+}
+
+public enum BodyCompositionReferenceBoundaryKind: String, Codable, Sendable {
+    case lowerReference
+    case upperReference
+}
+
+public struct BodyCompositionReferenceBoundary: Equatable, Sendable {
+    public var kind: BodyCompositionReferenceBoundaryKind
+    public var bmiBoundary: Double
+    public var boundaryWeightKg: Double
+    public var deltaKg: Double
+
+    public init(
+        kind: BodyCompositionReferenceBoundaryKind,
+        bmiBoundary: Double,
+        boundaryWeightKg: Double,
+        deltaKg: Double
+    ) {
+        self.kind = kind
+        self.bmiBoundary = bmiBoundary
+        self.boundaryWeightKg = boundaryWeightKg
+        self.deltaKg = deltaKg
+    }
+}
+
+public enum BodyCompositionTrendNoticeKind: String, Codable, Sendable {
+    case muscleDecrease
+    case bodyFatIncrease
+    case weightAndMuscleDecrease
+    case consecutiveDecrease
+    case insufficientSamples
+}
+
+public struct BodyCompositionTrendNotice: Identifiable, Equatable, Sendable {
+    public var id: String
+    public var kind: BodyCompositionTrendNoticeKind
+    public var metricID: UnifiedHealthMetricID?
+    public var title: String
+    public var message: String
+    public var changeValue: Double?
+    public var unit: String
+
+    public init(
+        id: String,
+        kind: BodyCompositionTrendNoticeKind,
+        metricID: UnifiedHealthMetricID?,
+        title: String,
+        message: String,
+        changeValue: Double? = nil,
+        unit: String = ""
+    ) {
+        self.id = id
+        self.kind = kind
+        self.metricID = metricID
+        self.title = title
+        self.message = message
+        self.changeValue = changeValue
+        self.unit = unit
+    }
+}
+
+public struct BodyCompositionReferenceSummary: Equatable, Sendable {
+    public var latestWeightKg: Double?
+    public var latestBMI: Double?
+    public var latestBodyFatPercentage: Double?
+    public var latestSkeletalMuscleMassKg: Double?
+    public var latestMuscleMassKg: Double?
+    public var bmiCategory: KoreanBMIReferenceCategory?
+    public var trendNotices: [BodyCompositionTrendNotice]
+    public var sampleCount: Int
+    public var latestMeasuredAt: Date?
+
+    public init(
+        latestWeightKg: Double?,
+        latestBMI: Double?,
+        latestBodyFatPercentage: Double?,
+        latestSkeletalMuscleMassKg: Double?,
+        latestMuscleMassKg: Double?,
+        bmiCategory: KoreanBMIReferenceCategory?,
+        trendNotices: [BodyCompositionTrendNotice],
+        sampleCount: Int,
+        latestMeasuredAt: Date?
+    ) {
+        self.latestWeightKg = latestWeightKg
+        self.latestBMI = latestBMI
+        self.latestBodyFatPercentage = latestBodyFatPercentage
+        self.latestSkeletalMuscleMassKg = latestSkeletalMuscleMassKg
+        self.latestMuscleMassKg = latestMuscleMassKg
+        self.bmiCategory = bmiCategory
+        self.trendNotices = trendNotices
+        self.sampleCount = sampleCount
+        self.latestMeasuredAt = latestMeasuredAt
+    }
+}
+
+public struct BodyCompositionReferenceAnalyzer: Equatable, Sendable {
+    public static let metricIDs: [UnifiedHealthMetricID] = [
+        .bodyMass,
+        .bodyMassIndex,
+        .bodyFatPercentage,
+        .leanBodyMass,
+        .skeletalMuscleMass,
+        .muscleMass,
+        .bodyWaterPercentage,
+        .visceralFatLevel,
+        .visceralFatPercentage,
+        .subcutaneousFatPercentage,
+        .proteinPercentage,
+        .boneMass,
+        .mineralMass,
+        .basalMetabolicRate,
+        .metabolicAge,
+        .bodyScore,
+        .obesityLevel,
+    ]
+
+    private static let bodyCompositionMetricSet = Set(metricIDs)
+    private let trendWindowDays: Int
+
+    public init(trendWindowDays: Int = 30) {
+        self.trendWindowDays = max(7, trendWindowDays)
+    }
+
+    public func summary(
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date = Date()
+    ) -> BodyCompositionReferenceSummary {
+        let bodyCompositionSamples = samples
+            .filter { Self.bodyCompositionMetricSet.contains($0.metricID) }
+            .sortedByMeasuredAtAscending()
+        let latestBMI = latestValue(.bodyMassIndex, in: bodyCompositionSamples)
+        let latestWeight = latestValue(.bodyMass, in: bodyCompositionSamples)
+        let bmiCategory = latestBMI.flatMap(KoreanBMIReferenceCategory.category(for:))
+
+        return BodyCompositionReferenceSummary(
+            latestWeightKg: latestWeight,
+            latestBMI: latestBMI,
+            latestBodyFatPercentage: latestValue(.bodyFatPercentage, in: bodyCompositionSamples),
+            latestSkeletalMuscleMassKg: latestValue(.skeletalMuscleMass, in: bodyCompositionSamples),
+            latestMuscleMassKg: latestValue(.muscleMass, in: bodyCompositionSamples),
+            bmiCategory: bmiCategory,
+            trendNotices: trendNotices(samples: bodyCompositionSamples, endingAt: endDate),
+            sampleCount: bodyCompositionSamples.count,
+            latestMeasuredAt: bodyCompositionSamples.last?.measuredAt
+        )
+    }
+
+    public func referenceBoundary(
+        weightKg: Double?,
+        heightMeters: Double?,
+        bmiCategory: KoreanBMIReferenceCategory?
+    ) -> BodyCompositionReferenceBoundary? {
+        guard let weightKg,
+              let heightMeters,
+              let bmiCategory,
+              weightKg.isFinite,
+              heightMeters.isFinite,
+              weightKg > 0,
+              heightMeters > 0 else {
+            return nil
+        }
+
+        let boundaryBMI: Double
+        let kind: BodyCompositionReferenceBoundaryKind
+
+        switch bmiCategory {
+        case .belowReference:
+            boundaryBMI = 18.5
+            kind = .lowerReference
+        case .reference, .preObesity, .obesityStage1, .obesityStage2, .obesityStage3:
+            boundaryBMI = 23
+            kind = .upperReference
+        }
+
+        let boundaryWeight = boundaryBMI * heightMeters * heightMeters
+        return BodyCompositionReferenceBoundary(
+            kind: kind,
+            bmiBoundary: boundaryBMI,
+            boundaryWeightKg: boundaryWeight,
+            deltaKg: weightKg - boundaryWeight
+        )
+    }
+
+    public func trendNotices(
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date = Date()
+    ) -> [BodyCompositionTrendNotice] {
+        let notices = [
+            combinedWeightAndMuscleNotice(samples: samples, endingAt: endDate),
+            muscleNotice(metricID: .skeletalMuscleMass, samples: samples, endingAt: endDate),
+            muscleNotice(metricID: .muscleMass, samples: samples, endingAt: endDate),
+            bodyFatNotice(samples: samples, endingAt: endDate),
+            consecutiveDecreaseNotice(metricID: .skeletalMuscleMass, samples: samples),
+            consecutiveDecreaseNotice(metricID: .muscleMass, samples: samples),
+        ]
+        .compactMap { $0 }
+
+        if notices.isEmpty {
+            return [
+                BodyCompositionTrendNotice(
+                    id: "insufficient-body-composition-samples",
+                    kind: .insufficientSamples,
+                    metricID: nil,
+                    title: "변화 알림 대기 중",
+                    message: "최근 30일과 이전 30일을 비교할 샘플이 더 쌓이면 근육량과 체지방률 변화를 표시합니다."
+                ),
+            ]
+        }
+
+        return Array(notices.prefix(3))
+    }
+
+    private func latestSample(
+        _ metricID: UnifiedHealthMetricID,
+        in samples: [UnifiedHealthMetricSample]
+    ) -> UnifiedHealthMetricSample? {
+        samples
+            .filter { $0.metricID == metricID }
+            .sortedByMeasuredAtDescending()
+            .first
+    }
+
+    private func latestValue(
+        _ metricID: UnifiedHealthMetricID,
+        in samples: [UnifiedHealthMetricSample]
+    ) -> Double? {
+        latestSample(metricID, in: samples)?.value
+    }
+
+    private func combinedWeightAndMuscleNotice(
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date
+    ) -> BodyCompositionTrendNotice? {
+        guard let weightChange = recentChange(metricID: .bodyMass, samples: samples, endingAt: endDate),
+              weightChange <= -1 else {
+            return nil
+        }
+
+        let muscleChange = recentChange(metricID: .skeletalMuscleMass, samples: samples, endingAt: endDate)
+            ?? recentChange(metricID: .muscleMass, samples: samples, endingAt: endDate)
+            ?? recentChange(metricID: .leanBodyMass, samples: samples, endingAt: endDate)
+
+        guard let muscleChange,
+              muscleChange <= -0.5 else {
+            return nil
+        }
+
+        return BodyCompositionTrendNotice(
+            id: "weight-and-muscle-decrease",
+            kind: .weightAndMuscleDecrease,
+            metricID: nil,
+            title: "체중과 근육량이 함께 내려가는 흐름",
+            message: "최근 30일 평균 기준으로 체중과 근육량 계열이 함께 낮아졌습니다.",
+            changeValue: muscleChange,
+            unit: "kg"
+        )
+    }
+
+    private func muscleNotice(
+        metricID: UnifiedHealthMetricID,
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date
+    ) -> BodyCompositionTrendNotice? {
+        guard let change = recentChange(metricID: metricID, samples: samples, endingAt: endDate),
+              change <= -0.5 else {
+            return nil
+        }
+
+        let title = metricID == .skeletalMuscleMass ? "골격근량 감소 추세" : "근육량 감소 추세"
+        let metricName = metricID == .skeletalMuscleMass ? "골격근량" : "근육량"
+        return BodyCompositionTrendNotice(
+            id: "\(metricID.rawValue)-recent-decrease",
+            kind: .muscleDecrease,
+            metricID: metricID,
+            title: title,
+            message: "최근 30일 평균 \(metricName)이 이전 30일보다 낮습니다.",
+            changeValue: change,
+            unit: "kg"
+        )
+    }
+
+    private func bodyFatNotice(
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date
+    ) -> BodyCompositionTrendNotice? {
+        guard let change = recentChange(metricID: .bodyFatPercentage, samples: samples, endingAt: endDate),
+              change >= 0.7 else {
+            return nil
+        }
+
+        return BodyCompositionTrendNotice(
+            id: "body-fat-recent-increase",
+            kind: .bodyFatIncrease,
+            metricID: .bodyFatPercentage,
+            title: "체지방률 상승 추세",
+            message: "최근 30일 평균 체지방률이 이전 30일보다 높습니다.",
+            changeValue: change,
+            unit: "%"
+        )
+    }
+
+    private func consecutiveDecreaseNotice(
+        metricID: UnifiedHealthMetricID,
+        samples: [UnifiedHealthMetricSample]
+    ) -> BodyCompositionTrendNotice? {
+        let recent = samples
+            .filter { $0.metricID == metricID }
+            .sortedByMeasuredAtAscending()
+            .suffix(3)
+
+        guard recent.count == 3 else {
+            return nil
+        }
+
+        let values = recent.map(\.value)
+        guard values[0] > values[1], values[1] > values[2] else {
+            return nil
+        }
+
+        let change = values[2] - values[0]
+        let metricName = metricID == .skeletalMuscleMass ? "골격근량" : "근육량"
+        return BodyCompositionTrendNotice(
+            id: "\(metricID.rawValue)-three-sample-decrease",
+            kind: .consecutiveDecrease,
+            metricID: metricID,
+            title: "\(metricName) 연속 감소",
+            message: "최근 3회 측정에서 \(metricName)이 연속으로 낮아졌습니다.",
+            changeValue: change,
+            unit: "kg"
+        )
+    }
+
+    private func recentChange(
+        metricID: UnifiedHealthMetricID,
+        samples: [UnifiedHealthMetricSample],
+        endingAt endDate: Date
+    ) -> Double? {
+        let day: TimeInterval = 24 * 60 * 60
+        let window = Double(trendWindowDays) * day
+        let recentStart = endDate.addingTimeInterval(-window)
+        let previousStart = recentStart.addingTimeInterval(-window)
+
+        let metricSamples = samples.filter { $0.metricID == metricID }
+        let recentValues = metricSamples
+            .filter { $0.measuredAt >= recentStart && $0.measuredAt <= endDate }
+            .map(\.value)
+        let previousValues = metricSamples
+            .filter { $0.measuredAt >= previousStart && $0.measuredAt < recentStart }
+            .map(\.value)
+
+        guard recentValues.count >= 2,
+              previousValues.count >= 2,
+              let recentAverage = average(recentValues),
+              let previousAverage = average(previousValues) else {
+            return nil
+        }
+
+        return recentAverage - previousAverage
+    }
+
+    private func average(_ values: [Double]) -> Double? {
+        guard !values.isEmpty else {
+            return nil
+        }
+        return values.reduce(0, +) / Double(values.count)
+    }
+}

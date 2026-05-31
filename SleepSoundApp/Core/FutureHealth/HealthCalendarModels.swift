@@ -98,6 +98,98 @@ public struct DailyMeasurementDetailData: Equatable {
     public var appComputedSamples: [UnifiedHealthMetricSample] {
         samples(for: HealthCalendarDataGrouping.appComputedMetricIDs)
     }
+
+    public var sleepSummary: DailySleepReportSummary? {
+        DailySleepReportSummary(reports: sleepReports)
+    }
+}
+
+public struct DailySleepReportSummary: Equatable, Sendable {
+    public var reportCount: Int
+    public var firstGeneratedAt: Date
+    public var latestGeneratedAt: Date
+    public var measurementDuration: TimeInterval
+    public var estimatedSleepDuration: TimeInterval
+    public var detectedEventDuration: TimeInterval
+    public var savedAudioDuration: TimeInterval
+    public var receivedAudioDuration: TimeInterval
+    public var analyzedAudioDuration: TimeInterval
+    public var audioCoverageRatio: Double
+    public var interruptionCount: Int
+    public var longestAudioGapSeconds: TimeInterval
+    public var measurementQuality: MeasurementQuality
+    public var sleepSoundScore: Int
+    public var snoreTotalSeconds: TimeInterval
+    public var snoreRatio: Double
+    public var bruxismLikeCount: Int
+    public var suspectedPauseCount: Int
+    public var gaspLikeCount: Int
+    public var coughLikeCount: Int
+    public var sleepTalkLikeCount: Int
+    public var environmentalNoiseCount: Int
+    public var awakeningSuspectedCount: Int
+    public var longestSuspectedPause: TimeInterval
+    public var mainDisturbanceReason: String
+
+    public var isAggregated: Bool {
+        reportCount > 1
+    }
+
+    public init?(reports: [NightReport]) {
+        let sortedReports = reports.sorted { $0.generatedAt < $1.generatedAt }
+        guard let first = sortedReports.first, let latest = sortedReports.last else {
+            return nil
+        }
+
+        reportCount = sortedReports.count
+        firstGeneratedAt = first.generatedAt
+        latestGeneratedAt = latest.generatedAt
+        measurementDuration = sortedReports.map(\.measurementDuration).reduce(0, +)
+        estimatedSleepDuration = sortedReports.map(\.estimatedSleepDuration).reduce(0, +)
+        detectedEventDuration = sortedReports.map(\.detectedEventDuration).reduce(0, +)
+        savedAudioDuration = sortedReports.map(\.savedAudioDuration).reduce(0, +)
+        receivedAudioDuration = sortedReports.map(\.receivedAudioDuration).reduce(0, +)
+        analyzedAudioDuration = sortedReports.map(\.analyzedAudioDuration).reduce(0, +)
+        audioCoverageRatio = Self.ratio(receivedAudioDuration, measurementDuration)
+        interruptionCount = sortedReports.map(\.interruptionCount).reduce(0, +)
+        longestAudioGapSeconds = sortedReports.map(\.longestAudioGapSeconds).max() ?? 0
+        measurementQuality = MeasurementQuality.quality(for: audioCoverageRatio)
+        sleepSoundScore = Self.weightedScore(sortedReports)
+        snoreTotalSeconds = sortedReports.map(\.snoreTotalSeconds).reduce(0, +)
+        snoreRatio = Self.ratio(snoreTotalSeconds, max(estimatedSleepDuration, 1))
+        bruxismLikeCount = sortedReports.map(\.bruxismLikeCount).reduce(0, +)
+        suspectedPauseCount = sortedReports.map(\.suspectedPauseCount).reduce(0, +)
+        gaspLikeCount = sortedReports.map(\.gaspLikeCount).reduce(0, +)
+        coughLikeCount = sortedReports.map(\.coughLikeCount).reduce(0, +)
+        sleepTalkLikeCount = sortedReports.map(\.sleepTalkLikeCount).reduce(0, +)
+        environmentalNoiseCount = sortedReports.map(\.environmentalNoiseCount).reduce(0, +)
+        awakeningSuspectedCount = sortedReports.map(\.awakeningSuspectedCount).reduce(0, +)
+        longestSuspectedPause = sortedReports.map(\.longestSuspectedPause).max() ?? 0
+        mainDisturbanceReason = reportCount > 1
+            ? "\(reportCount)개 수면 기록을 하루 단위로 합산했습니다."
+            : latest.mainDisturbanceReason
+    }
+
+    private static func weightedScore(_ reports: [NightReport]) -> Int {
+        let weights = reports.map { max($0.estimatedSleepDuration, $0.measurementDuration, 1) }
+        let totalWeight = weights.reduce(0, +)
+        guard totalWeight > 0 else {
+            return reports.last?.sleepSoundScore ?? 0
+        }
+
+        let weightedTotal = zip(reports, weights)
+            .map { report, weight in Double(report.sleepSoundScore) * weight }
+            .reduce(0, +)
+
+        return min(max(Int((weightedTotal / totalWeight).rounded()), 0), 100)
+    }
+
+    private static func ratio(_ numerator: TimeInterval, _ denominator: TimeInterval) -> Double {
+        guard numerator.isFinite, denominator.isFinite, denominator > 0 else {
+            return 0
+        }
+        return min(max(numerator / denominator, 0), 1)
+    }
 }
 
 public enum HealthCalendarDataGrouping {

@@ -180,6 +180,9 @@ public actor SleepAudioProcessingPipeline {
         if metrics.audioCoverageRatio < 0.85 {
             diagnosticsCollector.addNote("Audio coverage diagnostics: \(metrics.coverageDiagnosticsSummary)")
         }
+        if let audioSessionEventSummary = metrics.audioSessionEventSummary {
+            diagnosticsCollector.addNote("Audio session diagnostics: \(audioSessionEventSummary)")
+        }
         return diagnosticsCollector.finalize(endedAt: endedAt, metrics: metrics)
     }
 

@@ -254,7 +254,7 @@ struct SimulatorScenarioView: View {
 
         NavigationLink {
           BodyCompositionDashboardView(
-            samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: ehmReferenceDate),
+            samples: ehmMixedSourceSamples,
             permissionState: .mockDataOnly,
             isPreviewData: true
           )
@@ -284,7 +284,7 @@ struct SimulatorScenarioView: View {
             initialMonth: ehmReferenceDate
           )
         } label: {
-          Label("HealthCalendar 출처 혼합", systemImage: "calendar")
+          Label("CalendarMetric 종합", systemImage: "calendar.badge.clock")
         }
 
         NavigationLink {
@@ -298,7 +298,7 @@ struct SimulatorScenarioView: View {
             initialMonth: ehmReferenceDate
           )
         } label: {
-          Label("HealthCalendar 빈 날짜", systemImage: "calendar.badge.exclamationmark")
+          Label("CalendarMetric 빈 날짜", systemImage: "calendar.badge.exclamationmark")
         }
 
         NavigationLink {
@@ -588,7 +588,7 @@ struct ScreenshotScenarioDestinationView: View {
       )
     case .bodyCompositionDashboard:
       BodyCompositionDashboardView(
-        samples: ScreenshotScenarioFactory.makeScreenshotStandardHealthSamples(referenceDate: appState.latestReport.generatedAt),
+        samples: ScreenshotScenarioFactory.makeScreenshotHealthSamples(referenceDate: appState.latestReport.generatedAt),
         permissionState: .mockDataOnly,
         isPreviewData: true
       )

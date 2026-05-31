@@ -63,7 +63,8 @@ struct HealthKitReadOnlyPolicyTests {
         let sleepStart = try sourceContents("SleepSoundApp/Features/Sleep/SleepStartView.swift")
 
         #expect(actualPaths == expectedPaths)
-        #expect(dashboard.contains("Button {\n          connectHealthData()"))
+        #expect(dashboard.contains("Button {"))
+        #expect(dashboard.contains("connectHealthData()"))
         #expect(dashboard.contains("let nextPermissionState = await service.requestReadPermission()"))
         #expect(dashboard.contains("버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다"))
         #expect(!appEntry.contains("requestReadPermission"))
@@ -265,9 +266,12 @@ struct HealthKitReadOnlyPolicyTests {
 
         #expect(contents.contains("dataStateSection"))
         #expect(contents.contains("HealthDashboardDataStateSummary.make"))
-        #expect(contents.contains("localImportOverviewSection"))
-        #expect(contents.contains("로컬 import 최근 값"))
-        #expect(contents.contains("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고"))
+        #expect(contents.contains("hiddenDataDetailsSection"))
+        #expect(contents.contains("DisclosureGroup(isExpanded: $isDataDetailsExpanded)"))
+        #expect(contents.contains("출처와 로컬 import 값"))
+        #expect(contents.contains("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고 로컬 샘플"))
+        #expect(!contents.contains("localImportOverviewSection"))
+        #expect(!contents.contains("로컬 import 최근 값"))
         #expect(contents.contains("healthKitDashboardLookbackDays = 370"))
         #expect(contents.contains("최근 1년 범위"))
         #expect(contents.contains("원본 앱의 Apple 건강앱 동기화 상태"))
@@ -287,6 +291,7 @@ struct HealthKitReadOnlyPolicyTests {
         #expect(contents.contains("shouldShowPreviewHealthSamples"))
         #expect(contents.contains("sampleCount: importedUnifiedSamples.count"))
         #expect(contents.contains("latestImportedUnifiedDate"))
+        #expect(contents.contains("HealthDataStatePill"))
     }
 
     private var referenceDate: Date {

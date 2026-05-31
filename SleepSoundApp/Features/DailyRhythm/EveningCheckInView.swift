@@ -107,7 +107,7 @@ struct EveningCheckInView: View {
       if let savedCheckIn {
         NBInlineStatus(
           title: "저녁 체크인 저장 완료 · \(SleepFormatters.shortTime(savedCheckIn.updatedAt))",
-          detail: "저장한 컨디션과 생활 태그가 건강 캘린더의 오늘 날짜에 반영됩니다.",
+          detail: "저장한 컨디션과 생활 태그가 캘린더 지표 종합의 오늘 날짜에 반영됩니다.",
           kind: .good,
           systemImage: "checkmark.circle.fill"
         )
@@ -137,7 +137,7 @@ struct EveningCheckInView: View {
       } else {
         NBEmptyStateView(
           title: "아직 저장된 체크인이 없습니다",
-          message: "저장하면 이 기기 안에 로컬로 보관되고 건강 캘린더의 해당 날짜에 함께 표시됩니다.",
+          message: "저장하면 이 기기 안에 로컬로 보관되고 캘린더 지표 종합의 해당 날짜에 함께 표시됩니다.",
           systemImage: "tray"
         )
       }

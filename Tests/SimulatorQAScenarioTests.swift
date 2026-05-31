@@ -133,7 +133,7 @@ struct SimulatorQAScenarioTests {
     #expect(simulatorScenarioView.contains("EHM 화면 상태"))
     #expect(simulatorScenarioView.contains("HealthKit 사용 불가"))
     #expect(simulatorScenarioView.contains("출처 혼합"))
-    #expect(simulatorScenarioView.contains("HealthCalendar 빈 날짜"))
+    #expect(simulatorScenarioView.contains("CalendarMetric 빈 날짜"))
     #expect(simulatorScenarioView.contains("MetricDetail HealthKit 기반"))
     #expect(simulatorScenarioView.contains("BloodPressure dashboard"))
     #expect(simulatorScenarioView.contains("BodyComposition dashboard"))

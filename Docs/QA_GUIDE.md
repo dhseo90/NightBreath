@@ -150,6 +150,7 @@ Offline Evaluation은 manifest에 정의된 로컬 audio segment를 detector pro
 
 - 앱 동작 시간, 실제 오디오 수신 시간, 실제 분석 시간, audio coverage
 - `audioChunkCount`, `analyzedChunkCount`
+- `audioSessionEventSummary`
 - `rawCandidateCountByType`
 - `preSmoothingCandidateCountByType`
 - `postSmoothingEventCountByType`

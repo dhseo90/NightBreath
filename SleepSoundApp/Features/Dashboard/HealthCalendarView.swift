@@ -35,18 +35,19 @@ struct HealthCalendarView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+      VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         stateNotice
+        selectedDateSummarySection
         monthNavigator
-        selectedDateInlineDetail
-        weekdayHeader
-        calendarGrid
+        calendarSection
+        selectedDateDetailSection
       }
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
-    .navigationTitle("건강 캘린더")
+    .navigationTitle("캘린더 지표 종합")
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
     .onAppear(perform: selectDataDateIfCurrentSelectionIsEmpty)
     .onChange(of: dataAvailabilitySignature) { _, _ in
@@ -168,12 +169,29 @@ struct HealthCalendarView: View {
     }
   }
 
-  @ViewBuilder
-  private var selectedDateInlineDetail: some View {
+  private var calendarSection: some View {
+    NBReportSection(title: "날짜 선택", systemImage: "calendar") {
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        weekdayHeader
+        calendarGrid
+      }
+    }
+  }
+
+  private var selectedDateSummarySection: some View {
+    CalendarSelectedDateSummaryCard(
+      detailData: selectedDetailData,
+      allSamples: samples,
+      permissionState: permissionState,
+      isPreviewData: isPreviewData
+    )
+  }
+
+  private var selectedDateDetailSection: some View {
     DailyMeasurementDetailContent(
       detailData: selectedDetailData,
       allSamples: samples,
-      headerTitle: SleepFormatters.shortDate(selectedDate)
+      headerTitle: "선택일 지표 종합"
     )
   }
 
@@ -238,7 +256,7 @@ struct HealthCalendarView: View {
   }
 
   private func selectDataDateIfCurrentSelectionIsEmpty() {
-    guard !selectedDaySummary.hasAnyData,
+    guard shouldAutoSelectPreferredDataDate(selectedDaySummary),
           let dataDate = preferredDataDate(in: displayedMonth) else {
       return
     }
@@ -263,18 +281,50 @@ struct HealthCalendarView: View {
       return nil
     }
 
+    let rankedSummaries = summaries.sorted { lhs, rhs in
+      let lhsScore = preferredDateScore(lhs)
+      let rhsScore = preferredDateScore(rhs)
+      if lhsScore == rhsScore {
+        return lhs.date > rhs.date
+      }
+      return lhsScore > rhsScore
+    }
+
     if let preferredDate,
-       let matchingPreferredDate = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: preferredDate) }) {
+       let matchingPreferredDate = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: preferredDate) }),
+       preferredDateScore(matchingPreferredDate) >= 2 {
       return matchingPreferredDate.date
     }
 
     let today = Date()
     if calendar.isDate(today, equalTo: month, toGranularity: .month),
-       let todaySummary = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: today) }) {
+       let todaySummary = summaries.first(where: { calendar.isDate($0.date, inSameDayAs: today) }),
+       preferredDateScore(todaySummary) >= (rankedSummaries.first.map(preferredDateScore) ?? 0) {
       return todaySummary.date
     }
 
-    return summaries.sorted { $0.date > $1.date }.first?.date
+    return rankedSummaries.first?.date
+  }
+
+  private func shouldAutoSelectPreferredDataDate(_ summary: CalendarDaySummary) -> Bool {
+    if !summary.hasAnyData {
+      return true
+    }
+
+    return summary.sampleCount == 0
+      && !summary.hasSleepReport
+      && !summary.hasBloodPressure
+      && !summary.hasBodyComposition
+      && !summary.hasActivity
+  }
+
+  private func preferredDateScore(_ summary: CalendarDaySummary) -> Int {
+    (summary.hasSleepReport ? 4 : 0)
+      + (summary.hasBloodPressure ? 3 : 0)
+      + (summary.hasBodyComposition ? 3 : 0)
+      + (summary.hasActivity ? 2 : 0)
+      + (summary.hasMorningCheckIn || summary.hasEveningCheckIn ? 1 : 0)
+      + min(summary.sampleCount, 8)
   }
 
   private func emptySummary(for date: Date) -> CalendarDaySummary {
@@ -282,6 +332,309 @@ struct HealthCalendarView: View {
   }
 
   private static let weekdays = ["일", "월", "화", "수", "목", "금", "토"]
+}
+
+private struct CalendarSelectedDateSummaryCard: View {
+  let detailData: DailyMeasurementDetailData
+  let allSamples: [UnifiedHealthMetricSample]
+  let permissionState: HealthMetricPermissionState
+  let isPreviewData: Bool
+
+  var body: some View {
+    NBCard {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        HStack(alignment: .firstTextBaseline, spacing: NBSpacing.small) {
+          VStack(alignment: .leading, spacing: 3) {
+            Text(SleepFormatters.shortDate(detailData.date))
+              .font(NBTypography.headline)
+              .foregroundStyle(NBColor.primaryText)
+              .lineLimit(1)
+
+            Text("선택한 날짜의 수면, 컨디션, 건강 지표를 한곳에 모았습니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+
+          Spacer(minLength: NBSpacing.small)
+
+          NBStatusBadge(
+            detailData.summary.dataQuality.displayName,
+            kind: qualityBadgeKind(detailData.summary.dataQuality),
+            systemImage: "checkmark.seal"
+          )
+        }
+
+        if summaryItems.isEmpty {
+          HStack(spacing: NBSpacing.small) {
+            Image(systemName: "tray")
+              .foregroundStyle(NBColor.secondaryText)
+              .accessibilityHidden(true)
+            Text("선택한 날짜에 표시할 데이터가 없습니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+          }
+        } else {
+          LazyVGrid(columns: summaryGridColumns, spacing: NBSpacing.small) {
+            ForEach(summaryItems.prefix(6)) { item in
+              CalendarMetricSummaryTile(item: item)
+            }
+          }
+        }
+
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: allSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HStack(spacing: NBSpacing.small) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+              .foregroundStyle(NBColor.privacyTint)
+              .accessibilityHidden(true)
+            Text("전체 지표 그래프")
+              .font(NBTypography.callout.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+            Spacer()
+            Image(systemName: "chevron.right")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(NBColor.tertiaryText)
+          }
+          .padding(NBSpacing.small)
+          .background(NBColor.privacyTint.opacity(0.08), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
+    }
+  }
+
+  private var summaryItems: [CalendarMetricSummaryItem] {
+    [
+      sleepScoreItem,
+      bloodPressureItem,
+      bodyMassItem,
+      bmiItem,
+      bodyFatItem,
+      muscleItem,
+      stepsItem,
+      activeEnergyItem,
+      checkInItem,
+    ]
+    .compactMap { $0 }
+  }
+
+  private var summaryGridColumns: [GridItem] {
+    summaryItems.count == 1
+      ? [GridItem(.flexible(), spacing: NBSpacing.small)]
+      : [GridItem(.adaptive(minimum: 142), spacing: NBSpacing.small)]
+  }
+
+  private var sleepScoreItem: CalendarMetricSummaryItem? {
+    guard let summary = detailData.sleepSummary else {
+      return nil
+    }
+    return CalendarMetricSummaryItem(
+      title: "수면 소리",
+      value: "\(summary.sleepSoundScore)점",
+      subtitle: summary.isAggregated ? "\(summary.reportCount)개 기록 합산" : summary.measurementQuality.displayName,
+      systemImage: "waveform",
+      tint: NBColor.sleepTint
+    )
+  }
+
+  private var bloodPressureItem: CalendarMetricSummaryItem? {
+    guard let systolic = latestSample(.systolicBloodPressure),
+          let diastolic = latestSample(.diastolicBloodPressure) else {
+      return nil
+    }
+    return CalendarMetricSummaryItem(
+      title: "혈압",
+      value: "\(wholeNumber(systolic.value))/\(wholeNumber(diastolic.value))",
+      subtitle: "mmHg · \(sourceSummary(for: [systolic, diastolic]))",
+      systemImage: "heart",
+      tint: NBColor.danger
+    )
+  }
+
+  private var bodyMassItem: CalendarMetricSummaryItem? {
+    guard let sample = latestSample(.bodyMass) else {
+      return nil
+    }
+    return metricItem(title: "체중", sample: sample, systemImage: "scalemass", tint: NBColor.breathBlue)
+  }
+
+  private var bmiItem: CalendarMetricSummaryItem? {
+    guard let sample = latestSample(.bodyMassIndex) else {
+      return nil
+    }
+    return metricItem(title: "BMI", sample: sample, systemImage: "number", tint: NBColor.privacyTint)
+  }
+
+  private var bodyFatItem: CalendarMetricSummaryItem? {
+    guard let sample = latestSample(.bodyFatPercentage) else {
+      return nil
+    }
+    return metricItem(title: "체지방률", sample: sample, systemImage: "percent", tint: NBColor.warning)
+  }
+
+  private var muscleItem: CalendarMetricSummaryItem? {
+    guard let sample = latestSample(.skeletalMuscleMass) ?? latestSample(.muscleMass) ?? latestSample(.leanBodyMass) else {
+      return nil
+    }
+    return metricItem(title: "근육", sample: sample, systemImage: "figure.strengthtraining.traditional", tint: NBColor.mistTeal)
+  }
+
+  private var stepsItem: CalendarMetricSummaryItem? {
+    let stepSamples = detailData.activitySamples.filter { $0.metricID == .stepCount }
+    guard !stepSamples.isEmpty else {
+      return nil
+    }
+    let total = stepSamples.map(\.value).reduce(0, +)
+    return CalendarMetricSummaryItem(
+      title: "걸음",
+      value: "\(wholeNumber(total))보",
+      subtitle: sourceSummary(for: stepSamples),
+      systemImage: "figure.walk",
+      tint: NBColor.success
+    )
+  }
+
+  private var activeEnergyItem: CalendarMetricSummaryItem? {
+    let energySamples = detailData.activitySamples.filter { $0.metricID == .activeEnergy }
+    guard !energySamples.isEmpty else {
+      return nil
+    }
+    let total = energySamples.map(\.value).reduce(0, +)
+    return CalendarMetricSummaryItem(
+      title: "활동량",
+      value: "\(wholeNumber(total))kcal",
+      subtitle: sourceSummary(for: energySamples),
+      systemImage: "flame",
+      tint: NBColor.warning
+    )
+  }
+
+  private var checkInItem: CalendarMetricSummaryItem? {
+    if let evening = detailData.eveningCheckIns.last {
+      return CalendarMetricSummaryItem(
+        title: "저녁",
+        value: "피로 \(evening.fatigueScore)/5",
+        subtitle: "스트레스 \(evening.stressScore)/5",
+        systemImage: "moon.haze",
+        tint: NBColor.sleepTint
+      )
+    }
+
+    if let morning = detailData.morningCheckIns.last {
+      return CalendarMetricSummaryItem(
+        title: "아침",
+        value: "개운함 \(morning.refreshScore)/5",
+        subtitle: "피로 \(morning.fatigueScore)/5",
+        systemImage: "sunrise",
+        tint: NBColor.dawn
+      )
+    }
+
+    return nil
+  }
+
+  private func latestSample(_ metricID: UnifiedHealthMetricID) -> UnifiedHealthMetricSample? {
+    detailData.samples
+      .filter { $0.metricID == metricID }
+      .sortedByMeasuredAtDescending()
+      .first
+  }
+
+  private func metricItem(
+    title: String,
+    sample: UnifiedHealthMetricSample,
+    systemImage: String,
+    tint: Color
+  ) -> CalendarMetricSummaryItem {
+    CalendarMetricSummaryItem(
+      title: title,
+      value: UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit),
+      subtitle: "\(SleepFormatters.shortTime(sample.measuredAt)) · \(sample.sourceType.displayName)",
+      systemImage: systemImage,
+      tint: tint
+    )
+  }
+
+  private func sourceSummary(for samples: [UnifiedHealthMetricSample]) -> String {
+    let sourceTypes = Array(Set(samples.map(\.sourceType.displayName))).sorted()
+    return sourceTypes.isEmpty ? "출처 없음" : sourceTypes.joined(separator: ", ")
+  }
+
+  private func wholeNumber(_ value: Double) -> String {
+    String(format: "%.0f", value)
+  }
+
+  private func qualityBadgeKind(_ quality: DailyDataQuality) -> NBStatusKind {
+    switch quality {
+    case .excellent, .good:
+      .good
+    case .limited:
+      .warning
+    case .poor:
+      .caution
+    case .insufficient:
+      .neutral
+    }
+  }
+}
+
+private struct CalendarMetricSummaryItem: Identifiable {
+  var id: String { "\(title)-\(value)-\(subtitle)" }
+  let title: String
+  let value: String
+  let subtitle: String
+  let systemImage: String
+  let tint: Color
+}
+
+private struct CalendarMetricSummaryTile: View {
+  let item: CalendarMetricSummaryItem
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xs) {
+      HStack(spacing: NBSpacing.small) {
+        Image(systemName: item.systemImage)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(item.tint)
+          .frame(width: 24, height: 24)
+          .background(item.tint.opacity(0.10), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+          .accessibilityHidden(true)
+
+        Text(item.title)
+          .font(NBTypography.captionEmphasis)
+          .foregroundStyle(NBColor.secondaryText)
+          .lineLimit(1)
+          .minimumScaleFactor(0.78)
+      }
+
+      Text(item.value)
+        .font(NBTypography.callout.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+
+      Text(item.subtitle)
+        .font(.caption2)
+        .foregroundStyle(NBColor.tertiaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(NBSpacing.small)
+    .background(item.tint.opacity(0.06), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous)
+        .stroke(item.tint.opacity(0.14), lineWidth: 1)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(item.title), \(item.value), \(item.subtitle)")
+  }
 }
 
 struct DailyMeasurementDetailView: View {
@@ -299,6 +652,7 @@ struct DailyMeasurementDetailView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(SleepFormatters.shortDate(detailData.date))
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
   }
 }
@@ -400,45 +754,61 @@ struct DailyMeasurementDetailContent: View {
 
   private var sleepSection: some View {
     NBReportSection(title: "수면", systemImage: "bed.double") {
-      if detailData.sleepReports.isEmpty {
+      if let summary = detailData.sleepSummary {
+        VStack(alignment: .leading, spacing: NBSpacing.small) {
+          if summary.isAggregated {
+            NBStatusBadge(
+              "\(summary.reportCount)개 수면 기록을 하루 단위로 합산",
+              kind: .neutral,
+              systemImage: "square.stack.3d.up"
+            )
+          }
+
+          LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
+            NBMetricCard(title: "수면 소리 점수", value: "\(summary.sleepSoundScore)점", systemImage: "waveform", tint: NBColor.sleepTint)
+            NBMetricCard(title: "측정 품질", value: summary.measurementQuality.displayName, systemImage: "gauge.with.dots.needle.bottom.50percent", tint: NBColor.privacyTint)
+            NBMetricCard(title: "코골기", value: SleepFormatters.durationString(summary.snoreTotalSeconds), systemImage: "waveform.path", tint: NBColor.warning)
+            NBMetricCard(title: "오디오 수신", value: SleepFormatters.durationString(summary.receivedAudioDuration), systemImage: "dot.radiowaves.left.and.right", tint: NBColor.audioTint)
+          }
+
+          if summary.isAggregated {
+            NBListRow(
+              title: "수면 기록",
+              value: "\(summary.reportCount)개 합산",
+              subtitle: "\(SleepFormatters.shortTime(summary.firstGeneratedAt))~\(SleepFormatters.shortTime(summary.latestGeneratedAt))에 생성된 리포트",
+              systemImage: "square.stack.3d.up",
+              tint: NBColor.dawn
+            )
+          }
+
+          NBListRow(
+            title: "이갈이 의심 소리",
+            value: "\(summary.bruxismLikeCount)회",
+            subtitle: "수면 중 소리 기반 지표입니다.",
+            systemImage: "waveform.badge.magnifyingglass",
+            tint: NBColor.lavender
+          )
+          NBListRow(
+            title: "호흡정지 의심 구간",
+            value: "\(summary.suspectedPauseCount)회",
+            subtitle: "개인 참고용 소리 지표입니다.",
+            systemImage: "lungs",
+            tint: NBColor.mistTeal
+          )
+          NBListRow(
+            title: "주요 요약",
+            value: summary.mainDisturbanceReason,
+            subtitle: "인과관계를 의미하지 않습니다.",
+            systemImage: "text.bubble",
+            tint: NBColor.sleepTint
+          )
+        }
+      } else {
         NBEmptyStateView(
           title: "수면 리포트 없음",
           message: "이날 생성된 수면 소리 리포트가 없습니다.",
           systemImage: "tray"
         )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(detailData.sleepReports) { report in
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-              NBMetricCard(title: "수면 소리 점수", value: "\(report.sleepSoundScore)점", systemImage: "waveform", tint: NBColor.sleepTint)
-              NBMetricCard(title: "측정 품질", value: report.measurementQuality.displayName, systemImage: "gauge.with.dots.needle.bottom.50percent", tint: NBColor.privacyTint)
-              NBMetricCard(title: "코골기", value: SleepFormatters.durationString(report.snoreTotalSeconds), systemImage: "waveform.path", tint: NBColor.warning)
-              NBMetricCard(title: "오디오 수신", value: SleepFormatters.durationString(report.receivedAudioDuration), systemImage: "dot.radiowaves.left.and.right", tint: NBColor.audioTint)
-            }
-
-            NBListRow(
-              title: "이갈이 의심 소리",
-              value: "\(report.bruxismLikeCount)회",
-              subtitle: "수면 중 소리 기반 지표입니다.",
-              systemImage: "waveform.badge.magnifyingglass",
-              tint: NBColor.lavender
-            )
-            NBListRow(
-              title: "호흡정지 의심 구간",
-              value: "\(report.suspectedPauseCount)회",
-              subtitle: "개인 참고용 소리 지표입니다.",
-              systemImage: "lungs",
-              tint: NBColor.mistTeal
-            )
-            NBListRow(
-              title: "주요 요약",
-              value: report.mainDisturbanceReason,
-              subtitle: "인과관계를 의미하지 않습니다.",
-              systemImage: "text.bubble",
-              tint: NBColor.sleepTint
-            )
-          }
-        }
       }
     }
   }

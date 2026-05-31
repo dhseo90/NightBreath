@@ -916,6 +916,7 @@ final class AppState: ObservableObject {
             audioCaptureMetrics.recordCaptureError()
             audioCaptureState = .failed(message: AudioCaptureError.microphonePermissionDenied.message)
             audioCaptureMessage = AudioCaptureError.microphonePermissionDenied.message
+            resetSleepRecordingStateAfterStartFailure()
             return
         }
 
@@ -958,17 +959,32 @@ final class AppState: ObservableObject {
             recordDebugLifecycleEvent("capture error: \(error.message)")
             audioCaptureState = .failed(message: error.message)
             audioCaptureMessage = error.message
+            resetSleepRecordingStateAfterStartFailure()
         } catch let error as AudioSessionError {
             audioCaptureMetrics.recordCaptureError()
             recordDebugLifecycleEvent("capture error: \(error.message)")
             audioCaptureState = .failed(message: error.message)
             audioCaptureMessage = error.message
+            resetSleepRecordingStateAfterStartFailure()
         } catch {
             audioCaptureMetrics.recordCaptureError()
             recordDebugLifecycleEvent("capture error: \(error.localizedDescription)")
             audioCaptureState = .failed(message: error.localizedDescription)
             audioCaptureMessage = error.localizedDescription
+            resetSleepRecordingStateAfterStartFailure()
         }
+    }
+
+    private func resetSleepRecordingStateAfterStartFailure() {
+        activeSession = nil
+        isFinalizingSleepSession = false
+        sleepRecordingPhase = .reportReady
+        audioProcessingTask?.cancel()
+        audioProcessingTask = nil
+        audioProcessingPipeline = nil
+        audioProcessingGeneration &+= 1
+        lastAudioProcessingUIUpdateAt = nil
+        recordingRecoveryStore.clear()
     }
 
     private func enqueueAudioChunk(_ chunk: AudioChunk) {
@@ -1061,11 +1077,16 @@ final class AppState: ObservableObject {
         }
 
         if case .failed(let message) = state {
+            audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
             if message == AudioCaptureError.captureInterrupted.message {
-                audioCaptureMetrics.recordInterruption()
+                if audioCaptureMetrics.interruptionCount == 0 {
+                    audioCaptureMetrics.recordInterruption()
+                }
                 recordDebugLifecycleEvent("audio interruption began")
             }
-            audioCaptureMetrics.recordCaptureError()
+            if audioCaptureMetrics.captureErrorCount == 0 {
+                audioCaptureMetrics.recordCaptureError()
+            }
             recordDebugLifecycleEvent("capture error: \(message)")
             audioCaptureMessage = message
             saveActiveRecordingRecoveryDraft(lifecycleNote: message)

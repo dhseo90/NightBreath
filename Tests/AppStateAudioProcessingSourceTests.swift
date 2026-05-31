@@ -71,6 +71,39 @@ struct AppStateAudioProcessingSourceTests {
     }
 
     @Test
+    func startFailureResetsRecordingPhaseAndClearsDraft() throws {
+        let source = try read("SleepSoundApp/App/AppState.swift")
+
+        #expect(source.contains("resetSleepRecordingStateAfterStartFailure()"))
+        #expect(source.contains("sleepRecordingPhase = .reportReady"))
+        #expect(source.contains("recordingRecoveryStore.clear()"))
+        #expect(source.contains("audioCaptureState = .failed(message: AudioCaptureError.microphonePermissionDenied.message)"))
+        #expect(source.contains("audioCaptureState = .failed(message: error.message)"))
+    }
+
+    @Test
+    func audioSessionRouteAndMediaServiceEventsStayInDiagnostics() throws {
+        let serviceSource = try read("SleepSoundApp/Core/Audio/AudioCaptureService.swift")
+        let metricsSource = try read("SleepSoundApp/Core/Audio/AudioCaptureMetrics.swift")
+        let pipelineSource = try read("SleepSoundApp/Core/Analysis/SleepAudioProcessingPipeline.swift")
+        let recordingViewSource = try read("SleepSoundApp/Features/Sleep/SleepRecordingView.swift")
+
+        #expect(serviceSource.contains("AVAudioSession.routeChangeNotification"))
+        #expect(serviceSource.contains("AVAudioSession.mediaServicesWereLostNotification"))
+        #expect(serviceSource.contains("AVAudioSession.mediaServicesWereResetNotification"))
+        #expect(serviceSource.contains("handleRouteChange(rawReason:"))
+        #expect(serviceSource.contains("handleMediaServicesEvent("))
+        #expect(serviceSource.contains("recordAudioSessionEvent(\"routeChange=\\(routeChangeReasonText(rawReason))\")"))
+        #expect(serviceSource.contains("state = .failed(message: AudioCaptureError.audioSessionReset.message)"))
+        #expect(metricsSource.contains("public var audioSessionEventSummary: String?"))
+        #expect(metricsSource.contains("recordAudioSessionEvent"))
+        #expect(pipelineSource.contains("Audio session diagnostics:"))
+        #expect(recordingViewSource.contains("오디오 세션 이벤트"))
+        #expect(recordingViewSource.contains("수면 기록 중단됨"))
+        #expect(recordingViewSource.contains("리포트 정리"))
+    }
+
+    @Test
     func recordingViewKeepsClockAndDiagnosticsLightweight() throws {
         let source = try read("SleepSoundApp/Features/Sleep/SleepRecordingView.swift")
 
@@ -99,9 +132,12 @@ struct AppStateAudioProcessingSourceTests {
         #expect(appStateSource.contains("updateSleepFinalizationMessage(\"남은 오디오 분석을 마무리하는 중입니다.\")"))
 
         #expect(recordingViewSource.contains("appState.sleepRecordingPhase.isStopButtonDisabled"))
-        #expect(recordingViewSource.contains("title: appState.sleepRecordingPhase.isStopButtonDisabled ? \"종료 처리 중\" : \"수면 종료\""))
-        #expect(recordingViewSource.contains("isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled"))
-        #expect(recordingViewSource.contains("isBusy: appState.sleepRecordingPhase != .recording"))
+        #expect(recordingViewSource.contains("private var stopButtonTitle: String"))
+        #expect(recordingViewSource.contains("return appState.sleepRecordingPhase.isStopButtonDisabled ? \"종료 처리 중\" : \"수면 종료\""))
+        #expect(recordingViewSource.contains("private var isStopButtonDisabled: Bool"))
+        #expect(recordingViewSource.contains("appState.sleepRecordingPhase.isStopButtonDisabled && !isCaptureFailed"))
+        #expect(recordingViewSource.contains("private var isStopButtonBusy: Bool"))
+        #expect(recordingViewSource.contains("appState.sleepRecordingPhase != .recording && !isCaptureFailed"))
         #expect(recordingViewSource.contains("finalizationElapsedText"))
         #expect(recordingViewSource.contains("metrics.stopButtonTappedAt ?? metrics.stopRequestedAt"))
         #expect(recordingViewSource.contains("종료 요청 후"))

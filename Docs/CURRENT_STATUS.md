@@ -53,6 +53,17 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 - 공개 negative residual hotspot(`washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm`)은 전역 threshold 완화가 아니라 category/texture guard 후보로 유지합니다.
 - 관련 detector/profile/zero-event/snore baseline 회귀 테스트 54개는 통과했습니다. 전체 Swift test와 iOS Debug build는 변경 마무리 후 다시 실행합니다.
 
+## 2026-05-17 P0 No-device Closeout
+
+실기기 없이 닫을 수 있는 수면 기록 P0 잔여 이슈를 추가로 정리했습니다.
+
+- 수면 시작 중 마이크 권한 거부 또는 오디오 캡처 시작 실패가 발생하면 `sleepRecordingPhase`를 `.reportReady`로 되돌리고 미완료 기록 draft를 남기지 않도록 정리했습니다.
+- AVAudioSession route change, media services lost/reset 이벤트를 `AudioCaptureMetrics.audioSessionEventSummary`에 기록하고, 리포트 diagnostics note와 기록 중 상세 진단 UI에 노출합니다.
+- media services lost/reset처럼 capture를 신뢰하기 어려운 이벤트는 안전하게 force stop 후 사용자에게 로컬 측정 정보 기반 리포트 정리를 안내합니다.
+- interruption/route/media-services diagnostics는 기존 draft JSON 호환성을 유지하기 위해 optional field로 추가했습니다.
+- 수면 기록 focused tests 42개(`SleepAudioProcessingPipeline`, `AudioCaptureStopFlow`, `AudioCaptureMetrics`, `SleepRecordingRecoveryStore`, `SleepReportViewContract`, `AppStateAudioProcessingSource`)를 통과했습니다.
+- 남은 release-blocking gate는 실제 iPhone foreground stop, lock/background short stop, overnight, 배터리/발열, 실제 배치별 detector diagnostics evidence입니다.
+
 ## 완료
 
 - SwiftUI 앱 구조

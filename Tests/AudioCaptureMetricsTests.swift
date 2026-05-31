@@ -166,6 +166,7 @@ struct AudioCaptureMetricsTests {
         serviceMetrics.recordInterruption(at: startedAt.addingTimeInterval(2.35))
         serviceMetrics.recordCaptureError(at: startedAt.addingTimeInterval(2.36))
         serviceMetrics.recordForceStop(reason: "timeout", at: startedAt.addingTimeInterval(2.4))
+        serviceMetrics.recordAudioSessionEvent("routeChange=oldDeviceUnavailable", at: startedAt.addingTimeInterval(2.45))
 
         appMetrics.mergeStopDiagnostics(from: serviceMetrics)
 
@@ -177,8 +178,28 @@ struct AudioCaptureMetricsTests {
         #expect(appMetrics.captureErrorCount == 1)
         #expect(appMetrics.chunksReceivedAfterStopRequest == 1)
         #expect(appMetrics.forceStopReason == "timeout")
+        #expect(appMetrics.audioSessionEventSummary == "routeChange=oldDeviceUnavailable")
         #expect(appMetrics.coverageDiagnosticsSummary.contains("interruptions=1"))
         #expect(appMetrics.coverageDiagnosticsSummary.contains("captureErrors=1"))
+        #expect(appMetrics.coverageDiagnosticsSummary.contains("audioSession=routeChange=oldDeviceUnavailable"))
+    }
+
+    @Test
+    func audioSessionEventSummaryIsTrimmedDeduplicatedAndResetOnStart() {
+        let startedAt = Date(timeIntervalSince1970: 100)
+        var metrics = AudioCaptureMetrics()
+        metrics.start(at: startedAt)
+
+        metrics.recordAudioSessionEvent(" routeChange=oldDeviceUnavailable ", at: startedAt.addingTimeInterval(1))
+        metrics.recordAudioSessionEvent("routeChange=oldDeviceUnavailable", at: startedAt.addingTimeInterval(2))
+        metrics.recordAudioSessionEvent("mediaServicesWereReset", at: startedAt.addingTimeInterval(3))
+
+        #expect(metrics.audioSessionEventSummary == "routeChange=oldDeviceUnavailable; mediaServicesWereReset")
+        #expect(metrics.coverageDiagnosticsSummary.contains("audioSession=routeChange=oldDeviceUnavailable; mediaServicesWereReset"))
+
+        metrics.start(at: startedAt.addingTimeInterval(4))
+
+        #expect(metrics.audioSessionEventSummary == nil)
     }
 
     @Test(arguments: [

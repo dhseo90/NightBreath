@@ -565,7 +565,8 @@ struct AppStoreReadinessTests {
         #expect(navigationChromeGate.contains("prioritizesInitialImportResult: true"))
         #expect(homeDashboard.contains("TabView(selection: $selectedTab)"))
         #expect(homeDashboard.contains("selectedTab = .sleep"))
-        #expect(homeDashboard.contains("selectedTab = .health"))
+        #expect(homeDashboard.contains(".tag(HomeDashboardTab.health)"))
+        #expect(!homeDashboard.contains("selectedTab = .health"))
         #expect(!homeDashboard.contains("NavigationLink {\n        SleepStartView()"))
         #expect(!homeDashboard.contains("NavigationLink {\n        HealthDashboardView()"))
 
