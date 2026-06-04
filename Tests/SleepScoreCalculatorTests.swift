@@ -281,6 +281,114 @@ struct SleepScoreCalculatorTests {
     }
 
     @Test
+    func shortLowCoverageZeroEventReportSeparatesShortDurationFromCoverage() {
+        let startedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let endedAt = startedAt.addingTimeInterval(2.5 * 60 * 60)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: endedAt,
+            measurementDuration: 2.5 * 60 * 60,
+            estimatedSleepDuration: 2.3 * 60 * 60
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: endedAt,
+            sessionElapsedSeconds: 2.5 * 60 * 60,
+            captureActiveSeconds: 2.5 * 60 * 60,
+            receivedAudioSeconds: 45 * 60,
+            analyzedAudioSeconds: 40 * 60,
+            receivedChunkCount: 270,
+            analyzedChunkCount: 240,
+            interruptionCount: 1,
+            longestChunkGapSeconds: 18 * 60,
+            audioCoverageRatio: 0.3
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementQuality == .poor)
+        #expect(report.mainDisturbanceReason.contains("측정 시간이 짧"))
+        #expect(report.mainDisturbanceReason.contains("오디오 수신도 제한적"))
+        #expect(report.mainDisturbanceReason.contains("기록된 구간"))
+        #expect(!report.mainDisturbanceReason.contains("조용하고 안정"))
+    }
+
+    @Test
+    func shortExcellentCoverageInterruptionZeroEventReportDoesNotClaimLimitedAudio() {
+        let startedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let endedAt = startedAt.addingTimeInterval(2.7 * 60 * 60)
+        let session = SleepSession(
+            startedAt: startedAt,
+            endedAt: endedAt,
+            measurementDuration: 2.7 * 60 * 60,
+            estimatedSleepDuration: 2.7 * 60 * 60
+        )
+        let metrics = AudioCaptureMetrics(
+            captureStartedAt: startedAt,
+            captureStoppedAt: endedAt,
+            sessionElapsedSeconds: 2.7 * 60 * 60,
+            captureActiveSeconds: 2.7 * 60 * 60,
+            receivedAudioSeconds: 2.68 * 60 * 60,
+            analyzedAudioSeconds: 2.68 * 60 * 60,
+            receivedChunkCount: 96_400,
+            analyzedChunkCount: 96_400,
+            interruptionCount: 1,
+            longestChunkGapSeconds: 0.02,
+            audioCoverageRatio: 0.996
+        )
+
+        let report = SleepScoreCalculator().makeReport(
+            session: session,
+            events: [],
+            captureMetrics: metrics
+        )
+
+        #expect(report.measurementQuality == .excellent)
+        #expect(report.mainDisturbanceReason.contains("측정 시간이 짧"))
+        #expect(report.mainDisturbanceReason.contains("중단 기록"))
+        #expect(!report.mainDisturbanceReason.contains("오디오 수신도 제한적"))
+    }
+
+    @Test
+    func legacyShortInterruptionReasonDecodesToInterruptionSpecificCopy() throws {
+        let legacyReason = "측정 시간이 짧고 오디오 수신도 제한적이어서 오늘 리포트는 기록된 구간만 참고용으로 확인해 주세요."
+        let report = NightReport(
+            sessionId: UUID(),
+            measurementDuration: 2.7 * 60 * 60,
+            estimatedSleepDuration: 2.7 * 60 * 60,
+            receivedAudioDuration: 2.68 * 60 * 60,
+            analyzedAudioDuration: 2.68 * 60 * 60,
+            audioCoverageRatio: 0.996,
+            interruptionCount: 1,
+            longestAudioGapSeconds: 0.02,
+            measurementQuality: .excellent,
+            sleepSoundScore: 86,
+            snoreTotalSeconds: 0,
+            snoreRatio: 0,
+            bruxismLikeCount: 0,
+            suspectedPauseCount: 0,
+            gaspLikeCount: 0,
+            coughLikeCount: 0,
+            sleepTalkLikeCount: 0,
+            environmentalNoiseCount: 0,
+            awakeningSuspectedCount: 0,
+            longestSuspectedPause: 0,
+            mostDisturbedHourRange: nil,
+            mainDisturbanceReason: legacyReason
+        )
+
+        let data = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(NightReport.self, from: data)
+
+        #expect(decoded.mainDisturbanceReason.contains("중단 기록"))
+        #expect(!decoded.mainDisturbanceReason.contains("오디오 수신도 제한적"))
+    }
+
+    @Test
     func mockReportUsesNonDiagnosticLanguage() {
         let bundle = MockSleepDataFactory.latestBundle(now: Date(timeIntervalSince1970: 1_772_496_000))
         let report = bundle.2

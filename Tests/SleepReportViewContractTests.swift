@@ -36,6 +36,10 @@ struct SleepReportViewContractTests {
     #expect(source.contains("coverageDiagnosticItems"))
     #expect(source.contains("커버리지 원인"))
     #expect(source.contains("수신되지 않은 시간"))
+    #expect(source.contains("measurementReliabilityNotice"))
+    #expect(source.contains("짧은 측정 기록"))
+    #expect(source.contains("긴 세션의 커버리지 확인"))
+    #expect(source.contains("장시간 측정 기준 충족"))
   }
 
   @Test

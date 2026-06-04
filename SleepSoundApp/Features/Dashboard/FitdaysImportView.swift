@@ -127,6 +127,14 @@ struct FitdaysImportView: View {
           .font(NBTypography.callout)
           .foregroundStyle(NBColor.secondaryText)
 
+        FitdaysImportFlowStatus(
+          hasInput: hasImportInput,
+          isPreviewing: isPreviewingPaste,
+          hasPreviewResult: importResult != nil,
+          hasSavedResult: lastSaveConfirmation != nil,
+          hasError: errorMessage != nil
+        )
+
         #if os(iOS)
         Button {
           pasteClipboardTextAndPreview()
@@ -871,7 +879,7 @@ struct FitdaysImportView: View {
 
   private func saveButtonTitle(for summary: UnifiedHealthMetricImportDuplicateSummary?) -> String {
     guard let summary, summary.hasDuplicates else {
-      return "로컬에 저장"
+      return "미리보기 결과 로컬 저장"
     }
     if summary.hasChangedDuplicates {
       return "중복 확인 후 저장"
@@ -911,6 +919,10 @@ struct FitdaysImportView: View {
 
   private var trimmedPastedText: String {
     pastedExportText.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private var hasImportInput: Bool {
+    !trimmedPastedText.isEmpty || importResult != nil || didPreviewInitialFile
   }
 
   private var pastedTextBinding: Binding<String> {
@@ -1304,6 +1316,95 @@ private struct FitdaysSaveConfirmation: Equatable {
     }
 
     return "\(sampleCount)개 샘플이 들어간 \(dayText)를 엽니다."
+  }
+}
+
+private struct FitdaysImportFlowStatus: View {
+  var hasInput: Bool
+  var isPreviewing: Bool
+  var hasPreviewResult: Bool
+  var hasSavedResult: Bool
+  var hasError: Bool
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+      Text("가져오기 단계")
+        .font(NBTypography.caption.weight(.semibold))
+        .foregroundStyle(NBColor.primaryText)
+
+      ViewThatFits(in: .horizontal) {
+        HStack(spacing: NBSpacing.xSmall) {
+          stepBadges
+        }
+        VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+          stepBadges
+        }
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  @ViewBuilder
+  private var stepBadges: some View {
+    stepBadge(
+      hasInput ? "입력 확인됨" : "입력 대기",
+      kind: hasInput ? .good : .neutral,
+      systemImage: hasInput ? "doc.text.magnifyingglass" : "square.and.arrow.down"
+    )
+    stepBadge(
+      previewTitle,
+      kind: previewKind,
+      systemImage: previewIcon
+    )
+    stepBadge(
+      hasSavedResult ? "로컬 저장 완료" : "로컬 저장 대기",
+      kind: hasSavedResult ? .good : .privacy,
+      systemImage: hasSavedResult ? "checkmark.circle.fill" : "internaldrive"
+    )
+  }
+
+  private var previewTitle: String {
+    if isPreviewing {
+      return "미리보기 확인 중"
+    }
+    if hasPreviewResult {
+      return "미리보기 완료"
+    }
+    if hasError {
+      return "미리보기 확인 필요"
+    }
+    return "미리보기 대기"
+  }
+
+  private var previewKind: NBStatusKind {
+    if isPreviewing {
+      return .privacy
+    }
+    if hasPreviewResult {
+      return .good
+    }
+    if hasError {
+      return .warning
+    }
+    return .neutral
+  }
+
+  private var previewIcon: String {
+    if isPreviewing {
+      return "arrow.triangle.2.circlepath"
+    }
+    if hasPreviewResult {
+      return "checkmark.circle"
+    }
+    if hasError {
+      return "exclamationmark.triangle"
+    }
+    return "checklist"
+  }
+
+  private func stepBadge(_ title: String, kind: NBStatusKind, systemImage: String) -> some View {
+    NBStatusBadge(title, kind: kind, systemImage: systemImage)
+      .fixedSize(horizontal: false, vertical: true)
   }
 }
 

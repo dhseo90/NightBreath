@@ -9,7 +9,8 @@ struct HealthNavigationAccessTests {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HomeDashboardView.swift")
 
         #expect(contents.contains("Label(\"건강\", systemImage: \"heart.text.square\")"))
-        #expect(!contents.contains("건강 탭에서 자세히"))
+        #expect(contents.contains("Label(\"건강 탭에서 자세히\", systemImage: \"heart.text.square\")"))
+        #expect(contents.contains("selectedTab = .health"))
         #expect(contents.contains("HomeDashboardActionLabel(\"하루 리듬 카드\""))
         #expect(contents.contains("HealthDashboardView()"))
         #expect(!contents.contains("requestReadPermission"))
@@ -67,7 +68,7 @@ struct HealthNavigationAccessTests {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
 
         #expect(contents.contains("dashboardEntrySection"))
-        #expect(contents.contains("calendarShortcutSection"))
+        #expect(contents.contains("recentMeasurementShortcutSection"))
         #expect(contents.contains("HealthCalendarPrimaryCard"))
         #expect(contents.contains("dataStateSection"))
         #expect(contents.contains("hiddenDataDetailsSection"))
@@ -81,7 +82,7 @@ struct HealthNavigationAccessTests {
         #expect(contents.contains("밤숨 앱 · 하루 합산"))
         #expect(contents.contains("출처와 로컬 import 값"))
         #expect(!contents.contains("title: \"건강 지표\""))
-        #expect(!contents.contains("recentMeasurementShortcutSection"))
+        #expect(!contents.contains("calendarShortcutSection"))
         #expect(!contents.contains("title: \"바로가기\""))
         #expect(!contents.contains("최근 날짜 자세히 보기"))
         #expect(!contents.contains("HealthDashboardShortcutCard"))
@@ -90,7 +91,7 @@ struct HealthNavigationAccessTests {
         #expect(!contents.contains("calendarBuilder.detailData"))
         #expect(contents.contains("healthCalendarLatestDate"))
 
-        let bodyCalendarShortcut = try #require(contents.range(of: "calendarShortcutSection")?.lowerBound)
+        let bodyCalendarShortcut = try #require(contents.range(of: "recentMeasurementShortcutSection")?.lowerBound)
         let bodyEntry = try #require(contents.range(of: "dashboardEntrySection")?.lowerBound)
         let bodyDataState = try #require(contents.range(of: "dataStateSection")?.lowerBound)
         #expect(bodyCalendarShortcut < bodyEntry)

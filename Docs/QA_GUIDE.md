@@ -184,6 +184,41 @@ zero-event 판독:
 - `snore` raw 후보가 있었지만 최종 이벤트가 0이면 confidence histogram과 `snoreRejectReasonTop`을 우선 확인합니다.
 - user-facing 문구는 “감지 기준을 통과한 이벤트가 없었습니다”, “감지 기준이 보수적으로 동작했을 수 있습니다” 수준으로 유지합니다.
 
+## 실제 iPhone 수면 리포트 신뢰도 review
+
+v1.1.0 고정 진행 순서 2번을 닫을 때는 실제 iPhone에서 4~8시간 수면 세션을 최소 1회 확인합니다. 이 review는 리포트가 건강 상태를 단정하는지 보는 절차가 아니라, 기록된 오디오 수신 상태와 화면 문구가 서로 맞는지 확인하는 절차입니다.
+
+사전 조건:
+
+- 충전 상태에서 실행합니다.
+- 이벤트 오디오 샘플 저장은 기본 OFF로 둡니다. ON을 검증하는 경우에도 짧은 opt-in 샘플만 허용합니다.
+- 실제 개인 오디오 파일명, local path, 잠꼬대 내용, 개인 건강 데이터 값은 repository에 기록하지 않습니다.
+
+세션 종료 후 확인:
+
+- `SleepReportView`에서 측정 시간, 실제 오디오 수신 시간, 실제 분석 시간, audio coverage, interruption count, longest audio gap이 표시된 값과 debug/QA readout 값이 일치하는지 봅니다.
+- 4시간 이상 기록이면 “장시간 측정 기준 충족” 또는 coverage/interruption 상태에 맞는 “긴 세션의 커버리지 확인” 문구가 나와야 합니다.
+- 4시간 미만 기록이면 “짧은 측정 기록”으로 표시되고, 낮은 coverage를 조용한 밤처럼 설명하지 않아야 합니다.
+- low coverage 또는 interruption이 있으면 최종 이벤트 0개여도 “오디오 커버리지”, “수신 시간”, “입력 공백”, “중단 기록”을 함께 확인하라는 문구가 보여야 합니다.
+- `SleepSessionHistoryView`에서 해당 날짜 리포트가 보이고, 측정 품질, coverage, interruption count, 이벤트 수, 아침 체크인 상태가 요약되어야 합니다.
+- `SleepSessionDetailView`에서 리포트의 측정 신뢰도, 오디오 커버리지, 실제 오디오 수신/분석 시간, 가장 긴 입력 공백, interruption, 이벤트 요약이 한 화면에 보여야 합니다.
+- 아침 체크인을 저장한 뒤 같은 세션 상세에서 “아침 체크인 다시 보기”로 돌아가면 기존 값이 로컬에서 다시 불러와져야 합니다.
+- 문구는 “개인 패턴 참고용”, “기록된 구간” 수준으로 유지하고 건강 상태를 판정하거나 조치를 단정하는 표현, 확정적 원인 표현을 쓰지 않아야 합니다.
+
+private QA note에 남길 수 있는 민감정보 없는 evidence:
+
+- session length band: `4h 미만`, `4~8h`, `8h 초과`
+- measurement quality
+- audio coverage percentage band: `95%+`, `85~95%`, `60~85%`, `60% 미만`
+- interruption count
+- longest audio gap band: `10초 미만`, `10~60초`, `60초 초과`
+- final event count by type
+- history row visible: yes/no
+- session detail visible: yes/no
+- morning check-in reload: pass/fail/not-run
+- user-facing reliability copy category: short / long-coverage / long-sufficient / medium
+- privacy/copy issue found: yes/no
+
 ## 실제 코골이 짧은 샘플 디버깅
 
 실제 코골이 소리가 있었지만 리포트 이벤트가 0개인 경우, 전체 밤 원본 오디오 저장을 만들지 않고 짧은 local debug sample로만 원인을 좁힙니다.

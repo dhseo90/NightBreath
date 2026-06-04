@@ -188,12 +188,33 @@ public struct SleepScoreCalculator {
             return defaultReason
         }
 
+        let isShortMeasurement = summary.measurementDuration < 4 * 60 * 60
+        let hasCoverageIssue = metrics.measurementQuality == .poor
+            || metrics.measurementQuality == .limited
+        let hasInterruptionIssue = metrics.interruptionCount > 0
+
+        if isShortMeasurement && hasCoverageIssue {
+            return "측정 시간이 짧고 오디오 수신도 제한적이어서 오늘 리포트는 기록된 구간만 참고용으로 확인해 주세요."
+        }
+
+        if isShortMeasurement && hasInterruptionIssue {
+            return "측정 시간이 짧고 중단 기록이 있어, 오늘 리포트는 기록된 구간과 중단 정보를 함께 참고해 주세요."
+        }
+
+        if isShortMeasurement {
+            return defaultReason
+        }
+
         if metrics.measurementQuality == .poor {
             return "오디오 커버리지가 낮아 오늘 리포트의 참고 범위가 제한적입니다. 수신 시간과 입력 공백을 함께 확인해 주세요."
         }
 
-        if metrics.measurementQuality == .limited || metrics.interruptionCount > 0 {
-            return "오디오 수신이 제한적이거나 중단 기록이 있어, 최종 이벤트가 없더라도 측정 환경과 커버리지를 함께 확인해 주세요."
+        if hasCoverageIssue {
+            return "오디오 수신이 제한적이어서, 최종 이벤트가 없더라도 측정 환경과 커버리지를 함께 확인해 주세요."
+        }
+
+        if hasInterruptionIssue {
+            return "중단 기록이 있어, 최종 이벤트가 없더라도 측정 환경과 중단 정보를 함께 확인해 주세요."
         }
 
         return defaultReason

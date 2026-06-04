@@ -243,6 +243,14 @@ struct HomeDashboardView: View {
       }
 
       dailyRhythmLinks
+
+      Button {
+        selectedTab = .health
+      } label: {
+        Label("건강 탭에서 자세히", systemImage: "heart.text.square")
+          .frame(maxWidth: .infinity)
+      }
+      .buttonStyle(.nbSecondary)
     }
   }
 

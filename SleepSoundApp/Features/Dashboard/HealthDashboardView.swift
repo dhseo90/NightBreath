@@ -34,7 +34,7 @@ struct HealthDashboardView: View {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
         stateNotice
-        calendarShortcutSection
+        recentMeasurementShortcutSection
         dashboardEntrySection
         dataStateSection
 
@@ -174,7 +174,7 @@ struct HealthDashboardView: View {
             .accessibilityHidden(true)
 
           VStack(alignment: .leading, spacing: NBSpacing.xs) {
-            Text("Apple 건강앱")
+            Text("건강 데이터 허브")
               .font(NBTypography.headline)
               .foregroundStyle(NBColor.primaryText)
               .lineLimit(1)
@@ -323,7 +323,7 @@ struct HealthDashboardView: View {
     }
   }
 
-  private var calendarShortcutSection: some View {
+  private var recentMeasurementShortcutSection: some View {
     NavigationLink {
       HealthCalendarView(
         samples: unifiedDashboardSamples,
@@ -345,6 +345,24 @@ struct HealthDashboardView: View {
   private var dashboardEntrySection: some View {
     NBReportSection(title: "건강 화면", systemImage: "rectangle.grid.1x2") {
       VStack(spacing: NBSpacing.medium) {
+        NavigationLink {
+          HealthMetricsOverviewView(
+            samples: unifiedDashboardSamples,
+            permissionState: permissionState,
+            isPreviewData: isPreviewData
+          )
+        } label: {
+          HealthDashboardEntryCard(
+            title: "전체 건강 지표",
+            subtitle: "출처별 통계와 그래프",
+            systemImage: "chart.xyaxis.line",
+            tint: NBColor.privacyTint,
+            sampleCount: unifiedDashboardSamples.count,
+            latestDate: unifiedDashboardLatestDate
+          )
+        }
+        .buttonStyle(.plain)
+
         NavigationLink {
           BodyCompositionDashboardView(
             samples: unifiedDashboardSamples,

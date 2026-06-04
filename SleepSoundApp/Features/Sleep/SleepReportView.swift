@@ -216,6 +216,8 @@ struct SleepReportView: View {
           )
         }
 
+        measurementReliabilityNotice
+
         Text("가장 긴 입력 공백: \(SleepFormatters.compactDurationString(report.longestAudioGapSeconds))")
           .font(.caption)
           .foregroundStyle(NBColor.secondaryText)
@@ -789,6 +791,74 @@ struct SleepReportView: View {
 
   private var shouldShowLowMeasurementQualityNote: Bool {
     report.measurementQuality == .limited || report.measurementQuality == .poor
+  }
+
+  private var measurementReliabilityNotice: some View {
+    NBInlineStatus(
+      title: measurementReliabilityTitle,
+      detail: measurementReliabilityDetail,
+      kind: measurementReliabilityStatus,
+      systemImage: measurementReliabilityIcon
+    )
+  }
+
+  private var measurementReliabilityTitle: String {
+    if isShortMeasurement {
+      return "짧은 측정 기록"
+    }
+    if hasCoverageOrInterruptionIssue {
+      return "긴 세션의 커버리지 확인"
+    }
+    if report.measurementDuration >= 6 * 60 * 60 {
+      return "장시간 측정 기준 충족"
+    }
+    return "중간 길이 측정"
+  }
+
+  private var measurementReliabilityDetail: String {
+    if isShortMeasurement && hasCoverageOrInterruptionIssue {
+      return "측정 시간이 짧고 오디오 수신도 제한적입니다. 오늘 리포트는 기록된 구간의 수면 소리만 참고해 주세요."
+    }
+    if isShortMeasurement {
+      return "측정 시간이 4시간보다 짧아 전체 밤 패턴으로 보기에는 제한이 있습니다. 점수와 이벤트는 기록된 구간 기준입니다."
+    }
+    if hasCoverageOrInterruptionIssue {
+      return "4시간 이상 기록됐지만 실제 오디오 수신, 입력 공백, 중단 기록이 함께 남았습니다. 이벤트 0개라도 측정 환경을 같이 확인해 주세요."
+    }
+    if report.measurementDuration >= 6 * 60 * 60 {
+      return "장시간 기록에서 수신/분석 시간이 함께 확보되었습니다. 수면 소리 점수와 이벤트 요약은 개인 패턴 참고용입니다."
+    }
+    return "4시간 이상 기록됐습니다. 커버리지와 중단 기록을 함께 보며 개인 패턴 참고용으로 확인해 주세요."
+  }
+
+  private var measurementReliabilityStatus: NBStatusKind {
+    if isShortMeasurement || report.measurementQuality == .poor {
+      return .danger
+    }
+    if hasCoverageOrInterruptionIssue {
+      return .caution
+    }
+    return .good
+  }
+
+  private var measurementReliabilityIcon: String {
+    if isShortMeasurement {
+      return "clock.badge.exclamationmark"
+    }
+    if hasCoverageOrInterruptionIssue {
+      return "waveform.badge.exclamationmark"
+    }
+    return "checkmark.seal"
+  }
+
+  private var isShortMeasurement: Bool {
+    report.measurementDuration < 4 * 60 * 60
+  }
+
+  private var hasCoverageOrInterruptionIssue: Bool {
+    report.measurementQuality == .limited
+      || report.measurementQuality == .poor
+      || report.interruptionCount > 0
   }
 
   private var zeroEventEmptyTitle: String {

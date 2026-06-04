@@ -2,6 +2,23 @@
 
 이 문서는 NightBreath / 밤숨 V1 프로토타입의 현재 구현 상태와 의도적으로 남겨둔 범위를 정리합니다.
 
+## 2026-06-02 v1.1.0 수면 리포트 신뢰도 Follow-up
+
+v1.1.0 고정 진행 순서 2번인 수면 리포트 신뢰도는 simulator-first로 닫을 수 있는 구현 범위를 보강했습니다.
+
+- 수면 tab에서 저장된 수면 리포트를 날짜별 히스토리로 다시 볼 수 있습니다.
+- 세션 상세 화면에서 측정 신뢰도, 오디오 커버리지, 실제 오디오 수신/분석 시간, 가장 긴 입력 공백, interruption, 이벤트 요약, 아침 체크인 연결 상태를 한 화면에 모았습니다.
+- 과거 세션의 아침 체크인을 다시 열 때도 해당 sessionId의 로컬 체크인 값을 불러옵니다.
+- 수면 리포트 화면은 짧은 측정 기록, 긴 세션의 커버리지/interruption 문제, 장시간 측정 기준 충족 문구를 분리해 표시합니다.
+- 짧고 커버리지가 낮은 zero-event report는 조용한 밤으로 보이지 않도록 “측정 시간이 짧고 오디오 수신도 제한적”이라는 별도 리포트 이유를 생성합니다.
+
+남은 닫는 기준:
+
+- 실제 iPhone 4~8시간 세션 review에서 세션 상세과 리포트 문구가 실제 coverage/interruption 상태와 맞는지 확인해야 합니다.
+- 현재 변경 상태에서 `swift test --no-parallel`은 636 tests / 87 suites 통과했습니다.
+- 앱 Swift source typecheck와 필수 로컬 gate(`git diff --check`, README link, navigation chrome, screenshot manifest, App Store screenshot approval, tracked artifact audit)는 통과했습니다.
+- iOS Debug `xcodebuild`는 Swift compile 단계까지 들어갔지만 asset catalog 단계에서 CoreSimulatorService 접근이 sandbox에 막혀 완료하지 못했습니다. unsandboxed 재시도도 현재 정책에서 거절됐습니다.
+
 ## 2026-05-07 Simulator-first Batch
 
 실기기 없이 진행 가능한 후속 개발 batch는 privacy/export, Fitdays local import, health dashboard edge state, detector diagnostics, event audio snippet guard, real-device QA runbook, screenshot 문서 상태 정렬까지 완료했습니다.

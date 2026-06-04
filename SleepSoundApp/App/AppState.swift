@@ -70,6 +70,19 @@ enum SleepRecordingPhase: Equatable {
     }
 }
 
+struct SleepSessionHistoryItem: Identifiable, Equatable {
+    var id: UUID { session.id }
+
+    var session: SleepSession
+    var report: NightReport
+    var events: [SleepEvent]
+    var morningCheckIn: MorningCheckIn?
+
+    var hasMorningCheckIn: Bool {
+        morningCheckIn != nil
+    }
+}
+
 struct PendingFitdaysImportFile: Identifiable {
     let id = UUID()
     var url: URL
@@ -248,6 +261,40 @@ final class AppState: ObservableObject {
             return morningCheckIn
         }
         return repository.checkIn(for: sessionId)
+    }
+
+    func sleepSessionHistory(limit: Int = 90) -> [SleepSessionHistoryItem] {
+        let items = repository.sessions().compactMap { session -> SleepSessionHistoryItem? in
+            guard let report = repository.report(for: session.id) else { return nil }
+            return SleepSessionHistoryItem(
+                session: session,
+                report: report,
+                events: repository.events(for: session.id),
+                morningCheckIn: checkIn(for: session.id)
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.session.startedAt == rhs.session.startedAt {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return lhs.session.startedAt > rhs.session.startedAt
+        }
+
+        return Array(items.prefix(max(limit, 1)))
+    }
+
+    func sleepSessionHistoryItem(for sessionId: UUID) -> SleepSessionHistoryItem? {
+        guard let session = repository.session(for: sessionId),
+              let report = repository.report(for: sessionId) else {
+            return nil
+        }
+
+        return SleepSessionHistoryItem(
+            session: session,
+            report: report,
+            events: repository.events(for: sessionId),
+            morningCheckIn: checkIn(for: sessionId)
+        )
     }
 
     func eveningCheckIn(for date: Date, calendar: Calendar = .current) -> EveningCheckIn? {
