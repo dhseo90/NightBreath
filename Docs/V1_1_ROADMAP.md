@@ -132,3 +132,28 @@ v1.1.0 개발은 아래 순서로만 진행합니다. 한 단계를 닫은 뒤�
 | 6 | 검증 자동화와 실기기 QA | 수면 기록 unit test 확대, clean simulator smoke, 주요 CTA smoke, release guardrail, UI screenshot 품질 관리, 실기기 QA 체크리스트 | 필수 로컬 gate와 필요한 Swift tests/iOS Debug build 통과, private 실기기 evidence 정리 |
 | 7 | 문서와 release evidence 정리 | README 유지, 실제 iPhone QA 문서 최신화, Privacy 문구 재점검, license/dependency notice 유지, screenshot/release evidence 정리 | README link gate, screenshot manifest/release approval gate, 공개 문서 범위 검토 통과 |
 | 8 | v1.1.0 release candidate 결정 | 1~7 단계 결과를 기준으로 남은 blocker 여부 확인 | 완료 기준 8개를 만족하고 RC 후보로 고정 |
+
+## 5.6 모델 및 추론 추천 리스트
+
+로드맵 작업을 새로 시작하거나 후속 작업을 제시할 때는 아래 추천 모델, 추론 수준, 선정 근거를 함께 표시합니다. VATester 점수는 영향도, 불확실성, 검증 난이도, 변경 범위를 각각 0~2점으로 평가한 합계입니다.
+
+| 순서 | 범주 | VATester 점수 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 수면 기록 P0 안정화 | 8점 (2/2/2/2) | 5.6 Sol | 매우 높음 (xhigh) | 장시간 실기기 기록, 복구, interruption, 데이터 유실 가능성을 함께 다루는 핵심 안정성 작업입니다. |
+| 2 | 수면 리포트 신뢰도 | 7점 (2/1/2/2) | 5.6 Sol | 높음 (high) | 리포트 문구, coverage/interruption 해석, 실제 세션 review가 사용자 신뢰도와 정확도 계약에 직접 영향을 줍니다. |
+| 3 | 수면 UX와 공통 피드백 | 5점 (1/1/1/2) | 5.6 Terra | 높음 (high) | 여러 SwiftUI 화면과 navigation chrome을 건드리지만 데이터 계약이나 분석 정확도 자체를 바꾸지 않는 UX 통합 작업입니다. |
+| 4 | Health/Fitdays 사용성 정리 | 7점 (2/1/2/2) | 5.6 Sol | 높음 (high) | HealthKit read-only, Fitdays local-only, source 표시, 권한 상태가 개인정보와 건강 데이터 오해 가능성에 연결됩니다. |
+| 5 | Daily Rhythm v1.1 보강 | 7점 (2/2/1/2) | 5.6 Sol | 높음 (high) | 수면, 컨디션, 건강 데이터 품질을 함께 요약하므로 인과관계 금지 copy와 점수 해석 품질이 중요합니다. |
+| 6 | 검증 자동화와 실기기 QA | 7점 (2/1/2/2) | 5.6 Sol | 높음 (high) | release guardrail, iOS Debug build, 실기기 evidence를 묶어 회귀 방지와 릴리스 판단 근거를 만듭니다. |
+| 7 | 문서와 release evidence 정리 | 5점 (1/1/1/2) | 5.6 Sol | 높음 (high) | 기본 점수는 Terra 범위지만 Privacy, 의료 오해 방지, 공개 문서 범위 검토가 포함되어 상향합니다. |
+| 8 | v1.1.0 release candidate 결정 | 8점 (2/2/2/2) | 5.6 Sol | 최대 (max) | 완료 기준 8개, blocker 여부, 실기기 안정성, privacy/release gate를 종합하는 최종 품질 우선 판단입니다. |
+
+후속 작업 제시 형식:
+
+```text
+추천 모델: 5.6 Terra
+추론 수준: 높음 (high)
+선정 근거: 여러 화면의 버튼 상태와 navigation chrome을 검증하지만 수면 분석 정확도 계약을 변경하지 않는 UX 통합 작업
+```
+
+반복 점검, 대량 문서 정리, 단순 목록화처럼 VATester 0~2점에 머무르는 작업은 5.6 Luna와 low 또는 medium을 우선 사용합니다. 단, 정확도, 동등성, 보안, 데이터 손상, 개인정보, 의료 오해 가능성, release-blocking 판단이 포함되면 AGENTS.md의 상향 규칙을 우선 적용합니다.
