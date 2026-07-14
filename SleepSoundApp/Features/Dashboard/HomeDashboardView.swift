@@ -248,6 +248,7 @@ struct HomeDashboardView: View {
         selectedTab = .health
       } label: {
         Label("건강 탭에서 자세히", systemImage: "heart.text.square")
+          .frame(maxWidth: .infinity)
       }
       .buttonStyle(.nbSecondary)
     }
@@ -267,7 +268,7 @@ struct HomeDashboardView: View {
               morningCheckIn: appState.morningCheckIn
             )
           } label: {
-            Label("아침 리포트", systemImage: "sunrise")
+            HomeDashboardActionLabel("아침 리포트", systemImage: "sunrise")
           }
           .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.dawn))
 
@@ -277,7 +278,7 @@ struct HomeDashboardView: View {
               morningCheckIn: appState.morningCheckIn
             )
           } label: {
-            Label("오늘의 리듬", systemImage: "gauge.with.dots.needle.67percent")
+            HomeDashboardActionLabel("오늘의 리듬", systemImage: "gauge.with.dots.needle.67percent")
           }
           .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.accent))
         }
@@ -286,7 +287,7 @@ struct HomeDashboardView: View {
           NavigationLink {
             EveningCheckInView()
           } label: {
-            Label("저녁 체크인", systemImage: "moon.haze")
+            HomeDashboardActionLabel("저녁 체크인", systemImage: "moon.haze")
           }
           .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.sleepTint))
 
@@ -296,7 +297,7 @@ struct HomeDashboardView: View {
               morningCheckIn: appState.morningCheckIn
             )
           } label: {
-            Label("하루 리듬 카드", systemImage: "rectangle.on.rectangle")
+            HomeDashboardActionLabel("하루 리듬 카드", systemImage: "rectangle.on.rectangle")
           }
           .buttonStyle(NBSecondaryButtonStyle(tint: NBColor.privacyTint))
         }
@@ -506,6 +507,33 @@ private enum HomeDashboardTab: Hashable {
   case sleep
   case health
   case settings
+}
+
+private struct HomeDashboardActionLabel: View {
+  let title: String
+  let systemImage: String
+
+  init(_ title: String, systemImage: String) {
+    self.title = title
+    self.systemImage = systemImage
+  }
+
+  var body: some View {
+    HStack(spacing: NBSpacing.xs) {
+      Image(systemName: systemImage)
+        .imageScale(.medium)
+        .accessibilityHidden(true)
+
+      Text(title)
+        .font(NBTypography.subheadline.weight(.semibold))
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+        .allowsTightening(true)
+    }
+    .frame(maxWidth: .infinity)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(title)
+  }
 }
 
 private struct DetectorSensitivitySettingsView: View {

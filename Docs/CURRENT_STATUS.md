@@ -2,6 +2,23 @@
 
 이 문서는 NightBreath / 밤숨 V1 프로토타입의 현재 구현 상태와 의도적으로 남겨둔 범위를 정리합니다.
 
+## 2026-06-02 v1.1.0 수면 리포트 신뢰도 Follow-up
+
+v1.1.0 고정 진행 순서 2번인 수면 리포트 신뢰도는 simulator-first로 닫을 수 있는 구현 범위를 보강했습니다.
+
+- 수면 tab에서 저장된 수면 리포트를 날짜별 히스토리로 다시 볼 수 있습니다.
+- 세션 상세 화면에서 측정 신뢰도, 오디오 커버리지, 실제 오디오 수신/분석 시간, 가장 긴 입력 공백, interruption, 이벤트 요약, 아침 체크인 연결 상태를 한 화면에 모았습니다.
+- 과거 세션의 아침 체크인을 다시 열 때도 해당 sessionId의 로컬 체크인 값을 불러옵니다.
+- 수면 리포트 화면은 짧은 측정 기록, 긴 세션의 커버리지/interruption 문제, 장시간 측정 기준 충족 문구를 분리해 표시합니다.
+- 짧고 커버리지가 낮은 zero-event report는 조용한 밤으로 보이지 않도록 “측정 시간이 짧고 오디오 수신도 제한적”이라는 별도 리포트 이유를 생성합니다.
+
+남은 닫는 기준:
+
+- 실제 iPhone 4~8시간 세션 review에서 세션 상세과 리포트 문구가 실제 coverage/interruption 상태와 맞는지 확인해야 합니다.
+- 현재 변경 상태에서 `swift test --no-parallel`은 636 tests / 87 suites 통과했습니다.
+- 앱 Swift source typecheck와 필수 로컬 gate(`git diff --check`, README link, navigation chrome, screenshot manifest, App Store screenshot approval, tracked artifact audit)는 통과했습니다.
+- iOS Debug `xcodebuild`는 Swift compile 단계까지 들어갔지만 asset catalog 단계에서 CoreSimulatorService 접근이 sandbox에 막혀 완료하지 못했습니다. unsandboxed 재시도도 현재 정책에서 거절됐습니다.
+
 ## 2026-05-07 Simulator-first Batch
 
 실기기 없이 진행 가능한 후속 개발 batch는 privacy/export, Fitdays local import, health dashboard edge state, detector diagnostics, event audio snippet guard, real-device QA runbook, screenshot 문서 상태 정렬까지 완료했습니다.
@@ -40,6 +57,29 @@ README 대표 screenshot 8개 contact sheet visual QA, App Store raw 8개 재캡
 - 실제 iPhone Debug build와 install은 성공했지만, 기기 잠금 상태로 launch/시각 검수는 보류했습니다.
 - `Tools/Docs/validate_readme_links.sh`를 추가해 루트 README와 주요 sub README의 문서/이미지 링크를 자동 검증합니다.
 - release readiness gate, 전체 Swift test, generic iOS Release build는 통과했습니다. 실제 iPhone overnight QA는 잠금 해제된 기기에서 manual run으로 남아 있습니다.
+
+## 2026-05-14 P0 Sleep Recording Stabilization Follow-up
+
+수면 기록 P0 안정화는 실기기 없이 진행 가능한 범위부터 순차 처리했습니다.
+
+- 미완료 수면 기록 draft를 `Application Support/NightBreath/sleep-recording-draft.json`에 로컬 메타데이터로만 저장하고, 앱 재실행 시 기존 리포트가 없으면 안전한 참고용 복구 리포트로 정리합니다.
+- 복구 리포트는 원본 밤새 오디오나 이벤트 오디오 파일을 요구하지 않으며, 세션 시간, capture metrics, detector threshold snapshot, tuning profile, interruption/capture error 요약만 보존합니다.
+- 복구된 리포트 UI는 일반 zero-event와 분리해 “조용한 밤”으로 해석하지 않고, 앱 재실행으로 중단된 기록을 로컬 측정 정보만으로 정리한 참고용 리포트라고 표시합니다.
+- 4~8시간 synthetic 세션에서 오디오 커버리지가 낮거나 interruption이 있는 zero-event report는 “조용하고 안정적” 문구 대신 커버리지/중단 확인 문구를 사용합니다.
+- 지금까지 받은 detector 피드백성 로그를 재검토했지만 추가 threshold 변경은 하지 않았습니다. Release 기본값은 계속 `balanced`/`보통`입니다.
+- 공개 negative residual hotspot(`washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm`)은 전역 threshold 완화가 아니라 category/texture guard 후보로 유지합니다.
+- 관련 detector/profile/zero-event/snore baseline 회귀 테스트 54개는 통과했습니다. 전체 Swift test와 iOS Debug build는 변경 마무리 후 다시 실행합니다.
+
+## 2026-05-17 P0 No-device Closeout
+
+실기기 없이 닫을 수 있는 수면 기록 P0 잔여 이슈를 추가로 정리했습니다.
+
+- 수면 시작 중 마이크 권한 거부 또는 오디오 캡처 시작 실패가 발생하면 `sleepRecordingPhase`를 `.reportReady`로 되돌리고 미완료 기록 draft를 남기지 않도록 정리했습니다.
+- AVAudioSession route change, media services lost/reset 이벤트를 `AudioCaptureMetrics.audioSessionEventSummary`에 기록하고, 리포트 diagnostics note와 기록 중 상세 진단 UI에 노출합니다.
+- media services lost/reset처럼 capture를 신뢰하기 어려운 이벤트는 안전하게 force stop 후 사용자에게 로컬 측정 정보 기반 리포트 정리를 안내합니다.
+- interruption/route/media-services diagnostics는 기존 draft JSON 호환성을 유지하기 위해 optional field로 추가했습니다.
+- 수면 기록 focused tests 42개(`SleepAudioProcessingPipeline`, `AudioCaptureStopFlow`, `AudioCaptureMetrics`, `SleepRecordingRecoveryStore`, `SleepReportViewContract`, `AppStateAudioProcessingSource`)를 통과했습니다.
+- 남은 release-blocking gate는 실제 iPhone foreground stop, lock/background short stop, overnight, 배터리/발열, 실제 배치별 detector diagnostics evidence입니다.
 
 ## 완료
 

@@ -10,6 +10,7 @@ public enum AudioCaptureError: Error, Equatable, Sendable {
     case unsupportedPCMFormat
     case engineStartFailed(String)
     case captureInterrupted
+    case audioSessionReset
 
     public var message: String {
         switch self {
@@ -24,7 +25,9 @@ public enum AudioCaptureError: Error, Equatable, Sendable {
         case .engineStartFailed(let reason):
             "오디오 엔진을 시작하지 못했습니다. \(reason)"
         case .captureInterrupted:
-            "오디오 캡처가 중단되었습니다. 수면 종료 후 리포트를 확인해 주세요."
+            "오디오 세션 interruption으로 캡처가 중단되었습니다. 수면 종료를 눌러 로컬 측정 정보로 리포트를 정리해 주세요."
+        case .audioSessionReset:
+            "오디오 세션이 시스템에 의해 재설정되었습니다. 수면 종료를 눌러 로컬 측정 정보로 리포트를 정리해 주세요."
         }
     }
 }

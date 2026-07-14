@@ -70,6 +70,19 @@ enum SleepRecordingPhase: Equatable {
     }
 }
 
+struct SleepSessionHistoryItem: Identifiable, Equatable {
+    var id: UUID { session.id }
+
+    var session: SleepSession
+    var report: NightReport
+    var events: [SleepEvent]
+    var morningCheckIn: MorningCheckIn?
+
+    var hasMorningCheckIn: Bool {
+        morningCheckIn != nil
+    }
+}
+
 struct PendingFitdaysImportFile: Identifiable {
     let id = UUID()
     var url: URL
@@ -114,6 +127,7 @@ final class AppState: ObservableObject {
     #endif
 
     private let repository: any SleepRepository
+    private let recordingRecoveryStore: any SleepRecordingRecoveryStoreProtocol
     private let eveningCheckInRepository: any EveningCheckInRepositoryProtocol
     private let audioSessionManager: AudioSessionManaging
     private let audioCaptureService: AudioCaptureServiceProtocol
@@ -140,6 +154,7 @@ final class AppState: ObservableObject {
 
     init(
         repository: any SleepRepository = JSONFileSleepRepository(),
+        recordingRecoveryStore: any SleepRecordingRecoveryStoreProtocol = JSONFileSleepRecordingRecoveryStore(),
         eveningCheckInRepository: any EveningCheckInRepositoryProtocol = JSONEveningCheckInRepository(),
         audioSessionManager: AudioSessionManaging = AudioSessionManager(),
         audioCaptureService: AudioCaptureServiceProtocol? = nil,
@@ -162,6 +177,7 @@ final class AppState: ObservableObject {
         let initialEveningCheckIns = eveningCheckInRepository.all()
 
         self.repository = repository
+        self.recordingRecoveryStore = recordingRecoveryStore
         self.eveningCheckInRepository = eveningCheckInRepository
         self.audioSessionManager = audioSessionManager
         self.audioCaptureService = audioCaptureService ?? AudioCaptureService(sessionManager: audioSessionManager)
@@ -197,6 +213,7 @@ final class AppState: ObservableObject {
         }
 
         installLifecycleObservers()
+        recoverUnfinishedSleepRecordingIfNeeded()
     }
 
     var isRecording: Bool {
@@ -244,6 +261,40 @@ final class AppState: ObservableObject {
             return morningCheckIn
         }
         return repository.checkIn(for: sessionId)
+    }
+
+    func sleepSessionHistory(limit: Int = 90) -> [SleepSessionHistoryItem] {
+        let items = repository.sessions().compactMap { session -> SleepSessionHistoryItem? in
+            guard let report = repository.report(for: session.id) else { return nil }
+            return SleepSessionHistoryItem(
+                session: session,
+                report: report,
+                events: repository.events(for: session.id),
+                morningCheckIn: checkIn(for: session.id)
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.session.startedAt == rhs.session.startedAt {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return lhs.session.startedAt > rhs.session.startedAt
+        }
+
+        return Array(items.prefix(max(limit, 1)))
+    }
+
+    func sleepSessionHistoryItem(for sessionId: UUID) -> SleepSessionHistoryItem? {
+        guard let session = repository.session(for: sessionId),
+              let report = repository.report(for: sessionId) else {
+            return nil
+        }
+
+        return SleepSessionHistoryItem(
+            session: session,
+            report: report,
+            events: repository.events(for: sessionId),
+            morningCheckIn: checkIn(for: sessionId)
+        )
     }
 
     func eveningCheckIn(for date: Date, calendar: Calendar = .current) -> EveningCheckIn? {
@@ -346,7 +397,7 @@ final class AppState: ObservableObject {
 
         pendingFitdaysImportFile = PendingFitdaysImportFile(
             url: url,
-            statusMessage: "Fitdays export 파일 미리보기를 만들었습니다."
+            statusMessage: "Fitdays export 파일을 확인했습니다. 저장할 수 있습니다."
         )
     }
 
@@ -482,6 +533,7 @@ final class AppState: ObservableObject {
         recentAudioBuffer.removeAll()
         captureStopSafetyTask?.cancel()
         captureStopSafetyTask = nil
+        recordingRecoveryStore.clear()
 
         Task {
             await startAudioCaptureAndCreateSession()
@@ -522,6 +574,7 @@ final class AppState: ObservableObject {
         audioCaptureMetrics.recordStopRequested(at: stopTappedAt)
         audioCaptureService.stopCapture()
         audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
+        saveActiveRecordingRecoveryDraft(lifecycleNote: "stop requested")
         recordDebugLifecycleEvent("audio capture stop requested")
         audioCaptureState = audioCaptureService.state
         sleepRecordingPhase = audioCaptureState == .stopped ? .captureStoppedFinalizing : .stoppingCapture
@@ -685,6 +738,7 @@ final class AppState: ObservableObject {
         audioCaptureMessage = chunkMessage + debugPreviewMessage
 
         repository.save(session: completedSession, events: events, report: report)
+        recordingRecoveryStore.clear()
         refreshRecentReports()
         refreshEventAudioStorageStats()
         recordDebugLifecycleEvent("sleep report finalized")
@@ -738,6 +792,7 @@ final class AppState: ObservableObject {
 
     func deleteAllSleepData() {
         repository.deleteAllSleepData()
+        recordingRecoveryStore.clear()
         try? eventFeedbackStore.deleteAllFeedback()
         try? eventAudioSnippetStore.deleteAllSnippets()
         loadLatestStoredReportOrSample(message: "로컬 수면 데이터가 모두 삭제되었습니다.")
@@ -908,6 +963,7 @@ final class AppState: ObservableObject {
             audioCaptureMetrics.recordCaptureError()
             audioCaptureState = .failed(message: AudioCaptureError.microphonePermissionDenied.message)
             audioCaptureMessage = AudioCaptureError.microphonePermissionDenied.message
+            resetSleepRecordingStateAfterStartFailure()
             return
         }
 
@@ -944,22 +1000,38 @@ final class AppState: ObservableObject {
                 tuningProfile: detectorTuningProfile.displayName,
                 eventAudioSampleStorageEnabled: isEventAudioSampleStorageEnabled
             )
+            saveActiveRecordingRecoveryDraft(lifecycleNote: "capture started")
         } catch let error as AudioCaptureError {
             audioCaptureMetrics.recordCaptureError()
             recordDebugLifecycleEvent("capture error: \(error.message)")
             audioCaptureState = .failed(message: error.message)
             audioCaptureMessage = error.message
+            resetSleepRecordingStateAfterStartFailure()
         } catch let error as AudioSessionError {
             audioCaptureMetrics.recordCaptureError()
             recordDebugLifecycleEvent("capture error: \(error.message)")
             audioCaptureState = .failed(message: error.message)
             audioCaptureMessage = error.message
+            resetSleepRecordingStateAfterStartFailure()
         } catch {
             audioCaptureMetrics.recordCaptureError()
             recordDebugLifecycleEvent("capture error: \(error.localizedDescription)")
             audioCaptureState = .failed(message: error.localizedDescription)
             audioCaptureMessage = error.localizedDescription
+            resetSleepRecordingStateAfterStartFailure()
         }
+    }
+
+    private func resetSleepRecordingStateAfterStartFailure() {
+        activeSession = nil
+        isFinalizingSleepSession = false
+        sleepRecordingPhase = .reportReady
+        audioProcessingTask?.cancel()
+        audioProcessingTask = nil
+        audioProcessingPipeline = nil
+        audioProcessingGeneration &+= 1
+        lastAudioProcessingUIUpdateAt = nil
+        recordingRecoveryStore.clear()
     }
 
     private func enqueueAudioChunk(_ chunk: AudioChunk) {
@@ -1018,6 +1090,7 @@ final class AppState: ObservableObject {
         }
         audioCaptureState = audioCaptureService.state
         lastAudioProcessingUIUpdateAt = now
+        saveActiveRecordingRecoveryDraft()
     }
 
     private func scheduleCaptureStopSafetyCheck(sessionId: UUID) {
@@ -1051,13 +1124,19 @@ final class AppState: ObservableObject {
         }
 
         if case .failed(let message) = state {
+            audioCaptureMetrics.mergeStopDiagnostics(from: audioCaptureService.metrics)
             if message == AudioCaptureError.captureInterrupted.message {
-                audioCaptureMetrics.recordInterruption()
+                if audioCaptureMetrics.interruptionCount == 0 {
+                    audioCaptureMetrics.recordInterruption()
+                }
                 recordDebugLifecycleEvent("audio interruption began")
             }
-            audioCaptureMetrics.recordCaptureError()
+            if audioCaptureMetrics.captureErrorCount == 0 {
+                audioCaptureMetrics.recordCaptureError()
+            }
             recordDebugLifecycleEvent("capture error: \(message)")
             audioCaptureMessage = message
+            saveActiveRecordingRecoveryDraft(lifecycleNote: message)
         }
     }
 
@@ -1273,6 +1352,57 @@ final class AppState: ObservableObject {
         eventAudioSnippetTasks.removeAll(keepingCapacity: true)
         scheduledSnippetKeys.removeAll(keepingCapacity: true)
         latestSnippetStartedAtByType.removeAll(keepingCapacity: true)
+    }
+
+    private func saveActiveRecordingRecoveryDraft(lifecycleNote: String? = nil) {
+        guard let activeSession else { return }
+
+        recordingRecoveryStore.save(
+            SleepRecordingRecoveryDraft(
+                session: activeSession,
+                metrics: audioCaptureMetrics,
+                detectorBackend: currentDetectorBackend.displayName,
+                modelInstalled: isCurrentDetectorModelInstalled,
+                thresholdsSnapshot: currentDetectorThresholdSnapshot,
+                tuningProfile: detectorTuningProfile.displayName,
+                eventAudioSampleStorageEnabled: isEventAudioSampleStorageEnabled,
+                lastUpdatedAt: Date(),
+                lifecycleNote: lifecycleNote
+            )
+        )
+    }
+
+    private func recoverUnfinishedSleepRecordingIfNeeded() {
+        guard let draft = recordingRecoveryStore.load() else { return }
+        let hasExistingReport = repository.report(for: draft.session.id) != nil
+        guard SleepRecordingRecoveryPolicy.shouldRecover(draft, hasExistingReport: hasExistingReport) else {
+            recordingRecoveryStore.clear()
+            return
+        }
+
+        let recoveryBundle = SleepRecordingRecoveryReportBuilder().makeBundle(from: draft)
+
+        latestSession = recoveryBundle.session
+        latestEvents = []
+        latestReport = recoveryBundle.report
+        latestDetectorDiagnostics = recoveryBundle.report.detectorDiagnostics
+        latestReportSource = .deviceAnalysis
+        morningCheckIn = MorningCheckIn(sessionId: recoveryBundle.session.id)
+        activeSession = nil
+        isFinalizingSleepSession = false
+        sleepRecordingPhase = .reportReady
+        audioCaptureState = .idle
+        audioCaptureMetrics = recoveryBundle.metrics
+        capturedAudioChunkCount = recoveryBundle.metrics.analyzedChunkCount
+        detectedEventCandidateCount = 0
+        latestDetectedEventText = "복구된 기록"
+        latestDetectedEventAt = nil
+        audioCaptureMessage = "이전 수면 기록이 앱 재실행으로 중단되어 안전하게 정리되었습니다."
+
+        repository.save(session: recoveryBundle.session, events: [], report: recoveryBundle.report)
+        recordingRecoveryStore.clear()
+        refreshRecentReports()
+        recordDebugLifecycleEvent("unfinished sleep recording recovered")
     }
 
     private func loadLatestStoredReportOrSample(message: String? = nil) {

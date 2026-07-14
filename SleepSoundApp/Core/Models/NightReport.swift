@@ -34,6 +34,10 @@ public struct NightReport: Identifiable, Codable, Equatable, Sendable {
         max(0, suspectedPauseCount)
     }
 
+    public var isRecoveredUnfinishedRecording: Bool {
+        detectorDiagnostics?.isRecoveredUnfinishedRecording == true
+    }
+
     public var longestSuspectedBreathingPauseSeconds: TimeInterval {
         max(0, longestSuspectedPause)
     }
@@ -147,6 +151,12 @@ public struct NightReport: Identifiable, Codable, Equatable, Sendable {
             mainDisturbanceReason: try container.decode(String.self, forKey: .mainDisturbanceReason),
             detectorDiagnostics: detectorDiagnostics
         )
+        self.mainDisturbanceReason = Self.migratedMainDisturbanceReason(
+            self.mainDisturbanceReason,
+            measurementDuration: self.measurementDuration,
+            measurementQuality: self.measurementQuality,
+            interruptionCount: self.interruptionCount
+        )
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -194,5 +204,22 @@ public struct NightReport: Identifiable, Codable, Equatable, Sendable {
     private static func clampedRatio(_ value: Double) -> Double {
         guard value.isFinite else { return 0 }
         return min(max(value, 0), 1)
+    }
+
+    private static func migratedMainDisturbanceReason(
+        _ reason: String,
+        measurementDuration: TimeInterval,
+        measurementQuality: MeasurementQuality,
+        interruptionCount: Int
+    ) -> String {
+        let legacyShortInterruptionReason = "측정 시간이 짧고 오디오 수신도 제한적이어서 오늘 리포트는 기록된 구간만 참고용으로 확인해 주세요."
+        guard reason == legacyShortInterruptionReason,
+              measurementDuration < 4 * 60 * 60,
+              measurementQuality == .excellent,
+              interruptionCount > 0 else {
+            return reason
+        }
+
+        return "측정 시간이 짧고 중단 기록이 있어, 오늘 리포트는 기록된 구간과 중단 정보를 함께 참고해 주세요."
     }
 }

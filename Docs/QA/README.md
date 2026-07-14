@@ -62,6 +62,7 @@ Tools/Docs/validate_readme_links.sh
 | 문서 | 내용 |
 | --- | --- |
 | [QA_GUIDE](../QA_GUIDE.md) | 전체 QA 기준 |
+| [V1_1_ROADMAP](../V1_1_ROADMAP.md) | v1.1.0 안정화와 추가 기능 검증 범위 |
 | [SIMULATOR_QA_AUTOMATION](../SIMULATOR_QA_AUTOMATION.md) | clean simulator smoke와 XcodeBuildMCP fallback 절차 |
 | [DEVELOPMENT_WORKFLOW](../DEVELOPMENT_WORKFLOW.md) | 개발/검증 workflow |
 | [DATASET_REPLAY](../DATASET_REPLAY.md) | Dataset Replay 사용법 |

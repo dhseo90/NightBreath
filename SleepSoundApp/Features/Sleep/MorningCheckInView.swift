@@ -247,14 +247,14 @@ struct MorningCheckInView: View {
     guard !didLoadExisting else { return }
     didLoadExisting = true
 
-    guard appState.morningCheckIn.sessionId == sessionId else { return }
-    refreshScore = appState.morningCheckIn.refreshScore
-    fatigueScore = appState.morningCheckIn.fatigueScore
-    headache = appState.morningCheckIn.headache
-    dryMouth = appState.morningCheckIn.dryMouth
-    soreThroat = appState.morningCheckIn.soreThroat
-    rememberedAwakenings = appState.morningCheckIn.rememberedAwakenings
-    memo = appState.morningCheckIn.memo
+    guard let existingCheckIn = appState.checkIn(for: sessionId) else { return }
+    refreshScore = existingCheckIn.refreshScore
+    fatigueScore = existingCheckIn.fatigueScore
+    headache = existingCheckIn.headache
+    dryMouth = existingCheckIn.dryMouth
+    soreThroat = existingCheckIn.soreThroat
+    rememberedAwakenings = existingCheckIn.rememberedAwakenings
+    memo = existingCheckIn.memo
   }
 
   private func save() {

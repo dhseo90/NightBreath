@@ -71,6 +71,7 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
     public var forceStopReason: String?
     public var chunksReceivedAfterStopRequest: Int
     public var secondsReceivingAudioAfterStopRequest: TimeInterval
+    public var audioSessionEventSummary: String?
 
     public var measurementQuality: MeasurementQuality {
         MeasurementQuality.quality(for: audioCoverageRatio)
@@ -111,7 +112,8 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         forceStopStartedAt: Date? = nil,
         forceStopReason: String? = nil,
         chunksReceivedAfterStopRequest: Int = 0,
-        secondsReceivingAudioAfterStopRequest: TimeInterval = 0
+        secondsReceivingAudioAfterStopRequest: TimeInterval = 0,
+        audioSessionEventSummary: String? = nil
     ) {
         self.captureStartedAt = captureStartedAt
         self.captureStoppedAt = captureStoppedAt
@@ -148,6 +150,7 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         self.forceStopReason = forceStopReason?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.chunksReceivedAfterStopRequest = max(0, chunksReceivedAfterStopRequest)
         self.secondsReceivingAudioAfterStopRequest = Self.sanitizedSeconds(secondsReceivingAudioAfterStopRequest)
+        self.audioSessionEventSummary = Self.sanitizedSummary(audioSessionEventSummary)
     }
 
     public mutating func start(at date: Date = Date()) {
@@ -186,6 +189,7 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         forceStopReason = nil
         chunksReceivedAfterStopRequest = 0
         secondsReceivingAudioAfterStopRequest = 0
+        audioSessionEventSummary = nil
     }
 
     public mutating func stop(at date: Date = Date()) {
@@ -234,6 +238,19 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
 
     public mutating func recordCaptureError(at date: Date = Date()) {
         captureErrorCount += 1
+        refreshTiming(at: date)
+    }
+
+    public mutating func recordAudioSessionEvent(_ message: String, at date: Date = Date()) {
+        guard let sanitizedMessage = Self.sanitizedSummary(message) else {
+            refreshTiming(at: date)
+            return
+        }
+
+        audioSessionEventSummary = Self.mergedAudioSessionSummary(
+            audioSessionEventSummary,
+            appending: sanitizedMessage
+        )
         refreshTiming(at: date)
     }
 
@@ -323,6 +340,7 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         reportGenerationFinishedAt = reportGenerationFinishedAt ?? other.reportGenerationFinishedAt
         forceStopStartedAt = forceStopStartedAt ?? other.forceStopStartedAt
         forceStopReason = forceStopReason ?? other.forceStopReason
+        mergeAudioSessionEventSummary(other.audioSessionEventSummary)
         interruptionCount = max(interruptionCount, other.interruptionCount)
         captureErrorCount = max(captureErrorCount, other.captureErrorCount)
         chunksReceivedAfterStopRequest = max(chunksReceivedAfterStopRequest, other.chunksReceivedAfterStopRequest)
@@ -359,6 +377,9 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         if let forceStopReason {
             parts.append("forceStop=\(forceStopReason)")
         }
+        if let audioSessionEventSummary {
+            parts.append("audioSession=\(audioSessionEventSummary)")
+        }
 
         return parts.joined(separator: ", ")
     }
@@ -386,6 +407,9 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
         }
         if captureErrorCount > 0 {
             parts.append("captureErrors=\(captureErrorCount)")
+        }
+        if let audioSessionEventSummary {
+            parts.append("audioSession=\(audioSessionEventSummary)")
         }
 
         return parts.joined(separator: ", ")
@@ -457,6 +481,33 @@ public struct AudioCaptureMetrics: Codable, Equatable, Sendable {
 
     private static func percent(_ value: Double) -> String {
         String(format: "%.1f%%", clampedRatio(value) * 100)
+    }
+
+    private mutating func mergeAudioSessionEventSummary(_ otherSummary: String?) {
+        audioSessionEventSummary = Self.mergedAudioSessionSummary(
+            audioSessionEventSummary,
+            appending: otherSummary
+        )
+    }
+
+    private static func mergedAudioSessionSummary(_ current: String?, appending next: String?) -> String? {
+        var events: [String] = []
+        for summary in [current, next] {
+            guard let summary = sanitizedSummary(summary) else { continue }
+            let items = summary.split(separator: ";").compactMap { sanitizedSummary(String($0)) }
+            for item in items where !events.contains(item) {
+                events.append(item)
+            }
+        }
+        guard !events.isEmpty else { return nil }
+        return String(events.joined(separator: "; ").prefix(240))
+    }
+
+    private static func sanitizedSummary(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return String(trimmed.prefix(240))
     }
 
     private static func clampedRatio(_ value: Double) -> Double {

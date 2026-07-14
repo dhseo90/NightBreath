@@ -258,6 +258,7 @@ public struct MetricDetailViewModel: Equatable, Sendable {
     public var metricID: UnifiedHealthMetricID
     public var samples: [UnifiedHealthMetricSample]
     public var period: MetricDetailPeriod
+    public var aggregationInterval: MetricAggregationInterval
     public var sourceFilter: MetricDetailSourceFilter
     public var endDate: Date
     public var catalog: MetricCatalog
@@ -268,6 +269,7 @@ public struct MetricDetailViewModel: Equatable, Sendable {
         metricID: UnifiedHealthMetricID,
         samples: [UnifiedHealthMetricSample],
         period: MetricDetailPeriod = .thirtyDays,
+        aggregationInterval: MetricAggregationInterval = .day,
         sourceFilter: MetricDetailSourceFilter = .all,
         endDate: Date = Date(),
         catalog: MetricCatalog = .default
@@ -275,6 +277,7 @@ public struct MetricDetailViewModel: Equatable, Sendable {
         self.metricID = metricID
         self.samples = samples
         self.period = period
+        self.aggregationInterval = aggregationInterval
         self.sourceFilter = sourceFilter
         self.endDate = endDate
         self.catalog = catalog
@@ -291,6 +294,10 @@ public struct MetricDetailViewModel: Equatable, Sendable {
             sourceFilter: sourceFilter,
             endingAt: endDate
         )
+    }
+
+    public var aggregationDateRange: HealthMetricDateRange {
+        aggregationInterval.dateRange(anchorDate: endDate)
     }
 
     public var metricSamples: [UnifiedHealthMetricSample] {
@@ -333,11 +340,37 @@ public struct MetricDetailViewModel: Equatable, Sendable {
         )
     }
 
+    public var aggregatedSummary: MetricStatisticsSummary {
+        calculator.aggregatedSummary(
+            samples: sourceFilteredSamples,
+            metricID: metricID,
+            dateRange: aggregationDateRange,
+            interval: aggregationInterval
+        )
+    }
+
+    public var aggregatedPoints: [MetricTrendDataPoint] {
+        calculator.aggregatedPoints(
+            samples: sourceFilteredSamples,
+            metricID: metricID,
+            dateRange: aggregationDateRange,
+            interval: aggregationInterval
+        )
+    }
+
     public var sourceBreakdown: [MetricSourceBreakdown] {
         calculator.sourceBreakdown(
             samples: sourceFilteredSamples,
             metricID: metricID,
             dateRange: dateRange
+        )
+    }
+
+    public var aggregationSourceBreakdown: [MetricSourceBreakdown] {
+        calculator.sourceBreakdown(
+            samples: sourceFilteredSamples,
+            metricID: metricID,
+            dateRange: aggregationDateRange
         )
     }
 

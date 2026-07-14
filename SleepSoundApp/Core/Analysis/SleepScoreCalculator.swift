@@ -26,6 +26,11 @@ public struct SleepScoreCalculator {
         let savedAudioDuration = events.reduce(0) { partialResult, event in
             partialResult + max(0, event.audioSnippetDuration ?? 0)
         }
+        let reason = reportReason(
+            defaultReason: result.mainDisturbanceReason,
+            summary: summary,
+            metrics: metrics
+        )
 
         return NightReport(
             sessionId: session.id,
@@ -51,7 +56,7 @@ public struct SleepScoreCalculator {
             awakeningSuspectedCount: summary.awakeningSuspectedCount,
             longestSuspectedPause: summary.longestSuspectedPause,
             mostDisturbedHourRange: summary.mostDisturbedHourRange,
-            mainDisturbanceReason: result.mainDisturbanceReason
+            mainDisturbanceReason: reason
         )
     }
 
@@ -172,6 +177,47 @@ public struct SleepScoreCalculator {
         }
 
         return "어젯밤은 감지된 소리 이벤트가 수면 소리 점수에 영향을 주었습니다."
+    }
+
+    private func reportReason(
+        defaultReason: String,
+        summary: SleepEventSummary,
+        metrics: AudioCaptureMetrics
+    ) -> String {
+        guard summary.detectedEventDuration == 0 else {
+            return defaultReason
+        }
+
+        let isShortMeasurement = summary.measurementDuration < 4 * 60 * 60
+        let hasCoverageIssue = metrics.measurementQuality == .poor
+            || metrics.measurementQuality == .limited
+        let hasInterruptionIssue = metrics.interruptionCount > 0
+
+        if isShortMeasurement && hasCoverageIssue {
+            return "측정 시간이 짧고 오디오 수신도 제한적이어서 오늘 리포트는 기록된 구간만 참고용으로 확인해 주세요."
+        }
+
+        if isShortMeasurement && hasInterruptionIssue {
+            return "측정 시간이 짧고 중단 기록이 있어, 오늘 리포트는 기록된 구간과 중단 정보를 함께 참고해 주세요."
+        }
+
+        if isShortMeasurement {
+            return defaultReason
+        }
+
+        if metrics.measurementQuality == .poor {
+            return "오디오 커버리지가 낮아 오늘 리포트의 참고 범위가 제한적입니다. 수신 시간과 입력 공백을 함께 확인해 주세요."
+        }
+
+        if hasCoverageIssue {
+            return "오디오 수신이 제한적이어서, 최종 이벤트가 없더라도 측정 환경과 커버리지를 함께 확인해 주세요."
+        }
+
+        if hasInterruptionIssue {
+            return "중단 기록이 있어, 최종 이벤트가 없더라도 측정 환경과 중단 정보를 함께 확인해 주세요."
+        }
+
+        return defaultReason
     }
 
     private func clamp(_ score: Int) -> Int {

@@ -6,7 +6,6 @@ struct HealthDashboardView: View {
   private let userSettings: UserSettingsProviding
   private let mockService = MockHealthKitService()
   private let calculator = HealthMetricTrendCalculator()
-  private let calendarBuilder = HealthCalendarBuilder()
   private let healthKitDashboardLookbackDays = 370
 
   @EnvironmentObject private var appState: AppState
@@ -17,6 +16,7 @@ struct HealthDashboardView: View {
   @State private var statusMessage: String?
   @State private var refreshFeedback: HealthDataRefreshFeedback = .idle
   @State private var hasRequestedHealthKitReadAccess: Bool
+  @State private var isDataDetailsExpanded = false
 
   init(
     service: any HealthKitServiceProtocol = RealHealthKitService(),
@@ -33,10 +33,10 @@ struct HealthDashboardView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
         header
-        recentMeasurementShortcutSection
         stateNotice
-        dataStateSection
+        recentMeasurementShortcutSection
         dashboardEntrySection
+        dataStateSection
 
         if dataStateSummary.shouldShowEmptyState {
           HealthDataEmptyStateView(
@@ -45,11 +45,10 @@ struct HealthDashboardView: View {
           )
         } else if !visibleSamples.isEmpty {
           overviewSection
-          HealthSourceSummarySection(sourceSummaries: calculator.sourceSummaries(samples: visibleSamples))
         }
 
-        if !importedUnifiedSamples.isEmpty {
-          localImportOverviewSection
+        if shouldShowDataDetailsSection {
+          hiddenDataDetailsSection
         }
 
         NBPrivacyNoticeCard(
@@ -70,6 +69,7 @@ struct HealthDashboardView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("건강 데이터")
+    .navigationBarTitleDisplayMode(.inline)
     .onAppear {
       loadImportedUnifiedSamples()
       refreshHealthDataIfPreviouslyConnected()
@@ -129,67 +129,83 @@ struct HealthDashboardView: View {
   }
 
   private var appComputedCalendarSamples: [UnifiedHealthMetricSample] {
-    calendarReports.flatMap { report in
-      [
+    let calendar = Calendar.current
+    let summaries = Dictionary(grouping: calendarReports) { report in
+      calendar.startOfDay(for: report.generatedAt)
+    }
+    .values
+    .compactMap { DailySleepReportSummary(reports: $0) }
+    .sorted { $0.latestGeneratedAt < $1.latestGeneratedAt }
+
+    return summaries.flatMap { summary in
+      let sourceName = summary.isAggregated ? "밤숨 앱 · 하루 합산" : "밤숨 앱"
+      let notes = summary.isAggregated ? "\(summary.reportCount)개 수면 기록을 하루 단위로 합산했습니다." : nil
+      return [
         UnifiedHealthMetricSample(
           metricID: .sleepSoundScore,
-          value: Double(report.sleepSoundScore),
+          value: Double(summary.sleepSoundScore),
           unit: "점",
-          measuredAt: report.generatedAt,
+          measuredAt: summary.latestGeneratedAt,
           sourceType: .appComputed,
-          sourceName: "밤숨 앱"
+          sourceName: sourceName,
+          notes: notes
         ),
         UnifiedHealthMetricSample(
           metricID: .audioCoverageRatio,
-          value: report.audioCoverageRatio * 100,
+          value: summary.audioCoverageRatio * 100,
           unit: "%",
-          measuredAt: report.generatedAt,
+          measuredAt: summary.latestGeneratedAt,
           sourceType: .appComputed,
-          sourceName: "밤숨 앱"
+          sourceName: sourceName,
+          notes: notes
         ),
       ]
     }
   }
 
   private var header: some View {
-    NBReportSection(title: "건강 데이터 허브", systemImage: "heart.text.square") {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        Text("Apple 건강앱 read-only 샘플, 밤숨 수면 결과, Fitdays 로컬 import 데이터를 날짜와 지표별로 함께 정리합니다.")
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
+    NBCard {
+      VStack(alignment: .leading, spacing: NBSpacing.sm) {
+        HStack(alignment: .center, spacing: NBSpacing.md) {
+          Image(systemName: "heart.text.square")
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(NBColor.privacyTint)
+            .frame(width: 32, height: 32)
+            .accessibilityHidden(true)
 
-        Button {
-          connectHealthData()
-        } label: {
-          healthConnectButtonLabel
+          VStack(alignment: .leading, spacing: NBSpacing.xs) {
+            Text("건강 데이터 허브")
+              .font(NBTypography.headline)
+              .foregroundStyle(NBColor.primaryText)
+              .lineLimit(1)
+
+            Text(service.isAvailable ? "버튼을 누를 때만 권한 요청" : service.authorizationStatusDescription())
+              .font(NBTypography.caption)
+              .foregroundStyle(service.isAvailable ? NBColor.secondaryText : NBColor.warning)
+              .lineLimit(2)
+          }
+
+          Spacer(minLength: NBSpacing.sm)
+
+          Button {
+            connectHealthData()
+          } label: {
+            compactHealthConnectButtonLabel
+          }
+          .buttonStyle(.plain)
+          .disabled(isLoading || !service.isAvailable)
+          .opacity(isLoading || !service.isAvailable ? 0.68 : 1)
+          .accessibilityHint(isLoading ? "이미 건강 데이터를 읽는 중입니다." : "버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다.")
         }
-        .buttonStyle(NBPrimaryButtonStyle(tint: NBColor.privacyTint))
-        .disabled(isLoading || !service.isAvailable)
-        .opacity(isLoading || !service.isAvailable ? 0.68 : 1)
-        .accessibilityHint(isLoading ? "이미 건강 데이터를 읽는 중입니다." : "Apple 건강앱 read-only 데이터를 요청합니다.")
 
         healthRefreshFeedbackSummary
         healthDataRefreshFeedbackView
-
-        if !service.isAvailable {
-          Text(service.authorizationStatusDescription())
-            .font(NBTypography.footnote)
-            .foregroundStyle(NBColor.warning)
-        } else {
-          Text("버튼을 누를 때만 Apple 건강앱 읽기 권한을 요청합니다. 첫 실행이나 수면 측정 시작 시에는 요청하지 않습니다.")
-            .font(NBTypography.footnote)
-            .foregroundStyle(NBColor.secondaryText)
-          Text("이전 달 데이터가 비어 있으면 항목별 HealthKit 권한, Apple 건강앱에 실제 샘플이 있는지, Omron/Fitdays 같은 원본 앱의 Apple 건강앱 동기화 상태를 확인하세요.")
-            .font(NBTypography.footnote)
-            .foregroundStyle(NBColor.tertiaryText)
-            .fixedSize(horizontal: false, vertical: true)
-        }
       }
     }
   }
 
   @ViewBuilder
-  private var healthConnectButtonLabel: some View {
+  private var compactHealthConnectButtonLabel: some View {
     HStack(spacing: NBSpacing.sm) {
       if isLoading {
         ProgressView()
@@ -199,10 +215,17 @@ struct HealthDashboardView: View {
       } else {
         Image(systemName: healthConnectButtonIcon)
           .imageScale(.medium)
-        Text(healthConnectButtonTitle)
+        Text(compactHealthConnectButtonTitle)
       }
     }
-    .frame(maxWidth: .infinity)
+    .font(NBTypography.subheadline)
+    .foregroundStyle(.white)
+    .lineLimit(1)
+    .minimumScaleFactor(0.82)
+    .padding(.horizontal, NBSpacing.md)
+    .frame(minWidth: 112, minHeight: 42)
+    .background(NBColor.privacyTint)
+    .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
     .accessibilityElement(children: .combine)
   }
 
@@ -300,8 +323,27 @@ struct HealthDashboardView: View {
     }
   }
 
+  private var recentMeasurementShortcutSection: some View {
+    NavigationLink {
+      HealthCalendarView(
+        samples: unifiedDashboardSamples,
+        sleepReports: calendarReports,
+        morningCheckIns: calendarMorningCheckIns,
+        eveningCheckIns: calendarEveningCheckIns,
+        permissionState: permissionState,
+        isPreviewData: isPreviewData
+      )
+    } label: {
+      HealthCalendarPrimaryCard(
+        sampleCount: unifiedDashboardSamples.count + calendarReports.count,
+        latestDate: healthCalendarLatestDate
+      )
+    }
+    .buttonStyle(.plain)
+  }
+
   private var dashboardEntrySection: some View {
-    NBReportSection(title: "대시보드", systemImage: "rectangle.grid.1x2") {
+    NBReportSection(title: "건강 화면", systemImage: "rectangle.grid.1x2") {
       VStack(spacing: NBSpacing.medium) {
         NavigationLink {
           HealthMetricsOverviewView(
@@ -312,8 +354,8 @@ struct HealthDashboardView: View {
         } label: {
           HealthDashboardEntryCard(
             title: "전체 건강 지표",
-            subtitle: "HealthKit, Fitdays CSV, 수동/앱 계산 지표 통계",
-            systemImage: "chart.line.uptrend.xyaxis",
+            subtitle: "출처별 통계와 그래프",
+            systemImage: "chart.xyaxis.line",
             tint: NBColor.privacyTint,
             sampleCount: unifiedDashboardSamples.count,
             latestDate: unifiedDashboardLatestDate
@@ -322,58 +364,19 @@ struct HealthDashboardView: View {
         .buttonStyle(.plain)
 
         NavigationLink {
-          HealthCalendarView(
-            samples: unifiedDashboardSamples,
-            sleepReports: calendarReports,
-            morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: calendarEveningCheckIns,
-            permissionState: permissionState,
-            isPreviewData: isPreviewData
-          )
-        } label: {
-          HealthDashboardEntryCard(
-            title: "건강 캘린더",
-            subtitle: "날짜별 수면·건강·체크인 데이터 보기",
-            systemImage: "calendar",
-            tint: NBColor.dawn,
-            sampleCount: unifiedDashboardSamples.count + calendarReports.count,
-            latestDate: healthCalendarLatestDate
-          )
-        }
-        .buttonStyle(.plain)
-
-        NavigationLink {
-          BloodPressureDashboardView(
-            samples: visibleSamples,
-            permissionState: permissionState,
-            isPreviewData: isPreviewData
-          )
-        } label: {
-          HealthDashboardEntryCard(
-            title: "혈압",
-            subtitle: "혈압 데이터를 보기 쉽게 정리합니다",
-            systemImage: "heart",
-            tint: NBColor.danger,
-            sampleCount: categorySampleCount(HealthDashboardMetrics.bloodPressure),
-            latestDate: latestDate(for: HealthDashboardMetrics.bloodPressure)
-          )
-        }
-        .buttonStyle(.plain)
-
-        NavigationLink {
           BodyCompositionDashboardView(
-            samples: visibleSamples,
+            samples: unifiedDashboardSamples,
             permissionState: permissionState,
             isPreviewData: isPreviewData
           )
         } label: {
           HealthDashboardEntryCard(
-            title: "체중/체성분",
-            subtitle: "체중, 체지방률, BMI, 제지방량 추세",
-            systemImage: "scalemass",
-            tint: NBColor.mistTeal,
-            sampleCount: categorySampleCount(HealthDashboardMetrics.bodyComposition),
-            latestDate: latestDate(for: HealthDashboardMetrics.bodyComposition)
+            title: "체성분 종합",
+            subtitle: "BMI 참고 구간과 변화",
+            systemImage: "figure.strengthtraining.traditional",
+            tint: NBColor.breathBlue,
+            sampleCount: bodyCompositionDashboardSamples.count,
+            latestDate: latestBodyCompositionDate
           )
         }
         .buttonStyle(.plain)
@@ -382,8 +385,8 @@ struct HealthDashboardView: View {
           FitdaysImportView()
         } label: {
           HealthDashboardEntryCard(
-            title: "Fitdays 붙여넣기/CSV",
-            subtitle: "월별 데이터 복사 텍스트와 로컬 파일 가져오기",
+            title: "Fitdays 가져오기",
+            subtitle: "붙여넣기 또는 파일",
             systemImage: "square.and.arrow.down",
             tint: NBColor.mistTeal,
             sampleCount: importedUnifiedSamples.count,
@@ -391,97 +394,6 @@ struct HealthDashboardView: View {
           )
         }
         .buttonStyle(.plain)
-
-        NavigationLink {
-          CrossMetricDashboardView(
-            reports: appState.trendReports(days: 90),
-            samples: visibleSamples,
-            permissionState: permissionState,
-            isPreviewData: isPreviewData
-          )
-        } label: {
-          HealthDashboardEntryCard(
-            title: "수면 소리 × 건강",
-            subtitle: "개인 패턴을 살펴보기 위한 참고용 보기",
-            systemImage: "chart.dots.scatter",
-            tint: NBColor.sleepTint,
-            sampleCount: crossMetricHealthSampleCount,
-            latestDate: crossMetricLatestDate
-          )
-        }
-        .buttonStyle(.plain)
-      }
-    }
-  }
-
-  @ViewBuilder
-  private var recentMeasurementShortcutSection: some View {
-    NBReportSection(
-      title: "바로가기",
-      subtitle: "자주 보는 건강 데이터 화면을 한 번에 엽니다.",
-      systemImage: "arrow.up.right.square"
-    ) {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        if let latestDate = healthCalendarLatestDate {
-          let detailData = calendarBuilder.detailData(
-            for: latestDate,
-            samples: unifiedDashboardSamples,
-            sleepReports: calendarReports,
-            morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: calendarEveningCheckIns
-          )
-
-          NavigationLink {
-            DailyMeasurementDetailView(
-              detailData: detailData,
-              allSamples: unifiedDashboardSamples
-            )
-          } label: {
-            HealthDashboardShortcutCard(
-              title: "최근 날짜 자세히 보기",
-              subtitle: "수면, 혈압, 체성분, Fitdays import를 한 날짜에서 확인",
-              systemImage: "calendar.badge.clock",
-              tint: NBColor.dawn
-            )
-          }
-          .buttonStyle(.plain)
-        }
-
-        NavigationLink {
-          HealthCalendarView(
-            samples: unifiedDashboardSamples,
-            sleepReports: calendarReports,
-            morningCheckIns: calendarMorningCheckIns,
-            eveningCheckIns: calendarEveningCheckIns,
-            permissionState: permissionState,
-            isPreviewData: isPreviewData
-          )
-        } label: {
-          HealthDashboardShortcutCard(
-            title: "건강 캘린더",
-            subtitle: "날짜별 수면·건강·체크인 데이터 보기",
-            systemImage: "calendar",
-            tint: NBColor.privacyTint
-          )
-        }
-        .buttonStyle(.plain)
-
-        NavigationLink {
-          FitdaysImportView()
-        } label: {
-          HealthDashboardShortcutCard(
-            title: "Fitdays 붙여넣기",
-            subtitle: "월별 복사 텍스트나 CSV 파일을 로컬로 저장",
-            systemImage: "doc.on.clipboard",
-            tint: NBColor.mistTeal
-          )
-        }
-        .buttonStyle(.plain)
-
-        Text("최근 날짜는 로컬 import, Apple 건강앱 read-only 샘플, 밤숨 앱 계산 지표 중 가장 최신 측정일 기준입니다.")
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -489,7 +401,7 @@ struct HealthDashboardView: View {
   private var dataStateSection: some View {
     NBReportSection(title: "데이터 상태", systemImage: "waveform.path.ecg.rectangle") {
       VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
+        VStack(alignment: .leading, spacing: 4) {
           Text(dataStateSummary.title)
             .font(NBTypography.callout.weight(.semibold))
             .foregroundStyle(NBColor.primaryText)
@@ -499,29 +411,29 @@ struct HealthDashboardView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
 
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-          NBMetricCard(
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: NBSpacing.small)], spacing: NBSpacing.small) {
+          HealthDataStatePill(
             title: isPreviewData ? "예시" : "Apple 건강앱",
             value: "\(dataStateSummary.healthOrPreviewSampleCount)",
             systemImage: isPreviewData ? "eye" : "heart.text.square",
             tint: NBColor.privacyTint,
-            footnote: isPreviewData ? "미리보기" : "read-only"
+            caption: isPreviewData ? "미리보기" : "read-only"
           )
 
-          NBMetricCard(
-            title: "로컬 import",
+          HealthDataStatePill(
+            title: "로컬",
             value: "\(dataStateSummary.localImportSampleCount)",
             systemImage: "square.and.arrow.down",
             tint: NBColor.mistTeal,
-            footnote: "Fitdays CSV"
+            caption: "Fitdays"
           )
 
-          NBMetricCard(
+          HealthDataStatePill(
             title: "앱 계산",
             value: "\(dataStateSummary.appComputedSampleCount)",
             systemImage: "sparkles",
             tint: NBColor.dawn,
-            footnote: "기기 안"
+            caption: "기기 안"
           )
         }
 
@@ -545,35 +457,68 @@ struct HealthDashboardView: View {
 
   private var overviewSection: some View {
     NBReportSection(title: "최근 값", systemImage: "clock") {
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
-        latestMetricCard(.systolicBloodPressure)
-        latestMetricCard(.diastolicBloodPressure)
-        latestMetricCard(.bodyMass)
-        latestMetricCard(.bodyFatPercentage)
+      VStack(spacing: NBSpacing.small) {
+        latestMetricRow(.systolicBloodPressure)
+        Divider().overlay(NBColor.divider)
+        latestMetricRow(.diastolicBloodPressure)
+        Divider().overlay(NBColor.divider)
+        latestMetricRow(.bodyMass)
+        Divider().overlay(NBColor.divider)
+        latestMetricRow(.bodyFatPercentage)
       }
     }
   }
 
-  private var localImportOverviewSection: some View {
-    NBReportSection(title: "로컬 import 최근 값", systemImage: "square.and.arrow.down") {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        ForEach(importedUnifiedSamples.sortedByMeasuredAtDescending().prefix(6)) { sample in
-          if let displayModel = sample.displayModel() {
-            NBListRow(
-              title: displayModel.metadata.displayNameKo,
-              value: displayModel.valueText,
-              subtitle: "\(SleepFormatters.shortDate(sample.measuredAt)) · \(sample.sourceType.displayName)",
-              systemImage: "internaldrive",
-              tint: NBColor.mistTeal,
-              accessibilityLabel: "\(displayModel.metadata.displayNameKo), \(displayModel.valueText), 로컬 import"
-            )
+  private var hiddenDataDetailsSection: some View {
+    NBReportSection(title: "세부 데이터", systemImage: "line.3.horizontal.decrease.circle") {
+      DisclosureGroup(isExpanded: $isDataDetailsExpanded) {
+        VStack(alignment: .leading, spacing: NBSpacing.medium) {
+          if !visibleSamples.isEmpty {
+            HealthDataDetailGroupTitle("데이터 출처")
+            ForEach(calculator.sourceSummaries(samples: visibleSamples), id: \.sourceBundleIdentifier) { source in
+              HealthDataDetailRow(
+                title: source.sourceName,
+                value: "\(source.sampleCount)개",
+                subtitle: "\(source.sourceBundleIdentifier) · 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt))",
+                systemImage: "app.connected.to.app.below.fill",
+                tint: NBColor.privacyTint
+              )
+            }
           }
-        }
 
-        Text("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고 기기 안의 로컬 샘플로만 표시합니다.")
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
+          if !importedUnifiedSamples.isEmpty {
+            HealthDataDetailGroupTitle("로컬 import 값")
+            ForEach(importedUnifiedSamples.sortedByMeasuredAtDescending().prefix(6)) { sample in
+              if let displayModel = sample.displayModel() {
+                HealthDataDetailRow(
+                  title: displayModel.metadata.displayNameKo,
+                  value: displayModel.valueText,
+                  subtitle: "\(SleepFormatters.shortDate(sample.measuredAt)) · \(sample.sourceType.displayName)",
+                  systemImage: "internaldrive",
+                  tint: NBColor.mistTeal
+                )
+              }
+            }
+          }
+
+          Text("Fitdays CSV/text import 값은 HealthKit에 쓰지 않고 로컬 샘플로만 표시합니다.")
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.top, NBSpacing.small)
+      } label: {
+        HStack(spacing: NBSpacing.small) {
+          Image(systemName: "internaldrive")
+            .foregroundStyle(NBColor.mistTeal)
+          Text("출처와 로컬 import 값")
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Spacer()
+          Text("\(hiddenDataDetailCount)개")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
+        }
       }
     }
   }
@@ -681,6 +626,12 @@ struct HealthDashboardView: View {
       : "건강 데이터 연결"
   }
 
+  private var compactHealthConnectButtonTitle: String {
+    hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
+      ? "새로고침"
+      : "연결"
+  }
+
   private var healthConnectButtonIcon: String {
     hasRequestedHealthKitReadAccess || permissionState == .readRequestCompleted
       ? "arrow.triangle.2.circlepath"
@@ -739,49 +690,34 @@ struct HealthDashboardView: View {
     )
   }
 
-  private func latestMetricCard(_ metricType: HealthMetricType) -> NBMetricCard {
-    let sample = visibleSamples.latestSample(metricType: metricType)
-    return NBMetricCard(
+  private var shouldShowDataDetailsSection: Bool {
+    !visibleSamples.isEmpty || !importedUnifiedSamples.isEmpty
+  }
+
+  private var hiddenDataDetailCount: Int {
+    calculator.sourceSummaries(samples: visibleSamples).count + importedUnifiedSamples.count
+  }
+
+  private func latestMetricRow(_ metricType: HealthMetricType) -> NBListRow {
+    guard let sample = visibleSamples.latestSample(metricType: metricType) else {
+      return NBListRow(
+        title: metricType.displayName,
+        value: "--",
+        subtitle: "최근 값 없음",
+        systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
+        tint: HealthMetricDashboardFormatting.tint(for: metricType)
+      )
+    }
+
+    let value = HealthMetricDashboardFormatting.valueString(sample.value, unit: sample.unit)
+    return NBListRow(
       title: metricType.displayName,
-      value: sample.map {
-        HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit)
-      } ?? "--",
+      value: value,
+      subtitle: "최근 \(SleepFormatters.shortDate(sample.measuredAt))",
       systemImage: HealthMetricDashboardFormatting.icon(for: metricType),
       tint: HealthMetricDashboardFormatting.tint(for: metricType),
-      footnote: sample.map { "\(SleepFormatters.shortDate($0.measuredAt)) · \($0.sourceName)" },
-      accessibilityLabel: "\(metricType.displayName), \(sample.map { HealthMetricDashboardFormatting.valueString($0.value, unit: $0.unit) } ?? "데이터 없음")"
+      accessibilityLabel: "\(metricType.displayName), \(value), 최근 \(SleepFormatters.shortDate(sample.measuredAt))"
     )
-  }
-
-  private func categorySampleCount(_ metricTypes: [HealthMetricType]) -> Int {
-    let metricSet = Set(metricTypes)
-    return visibleSamples.filter { metricSet.contains($0.metricType) }.count
-  }
-
-  private func latestDate(for metricTypes: [HealthMetricType]) -> Date? {
-    let metricSet = Set(metricTypes)
-    return visibleSamples
-      .filter { metricSet.contains($0.metricType) }
-      .sortedByMeasuredAtDescending()
-      .first?
-      .measuredAt
-  }
-
-  private var crossMetricHealthSampleCount: Int {
-    let metricSet = Set(CrossMetricAnalyzer.supportedHealthMetrics)
-    return visibleSamples.filter { metricSet.contains($0.metricType) }.count
-  }
-
-  private var crossMetricLatestDate: Date? {
-    let metricSet = Set(CrossMetricAnalyzer.supportedHealthMetrics)
-    let latestHealthDate = visibleSamples
-      .filter { metricSet.contains($0.metricType) }
-      .sortedByMeasuredAtDescending()
-      .first?
-      .measuredAt
-    let latestSleepDate = appState.trendReports(days: 90).last?.generatedAt
-
-    return [latestHealthDate, latestSleepDate].compactMap { $0 }.max()
   }
 
   private var unifiedDashboardLatestDate: Date? {
@@ -790,6 +726,17 @@ struct HealthDashboardView: View {
 
   private var latestImportedUnifiedDate: Date? {
     importedUnifiedSamples.sortedByMeasuredAtDescending().first?.measuredAt
+  }
+
+  private var bodyCompositionDashboardSamples: [UnifiedHealthMetricSample] {
+    let metricIDs = Set(BodyCompositionReferenceAnalyzer.metricIDs)
+    return unifiedDashboardSamples
+      .filter { metricIDs.contains($0.metricID) }
+      .sortedByMeasuredAtAscending()
+  }
+
+  private var latestBodyCompositionDate: Date? {
+    bodyCompositionDashboardSamples.sortedByMeasuredAtDescending().first?.measuredAt
   }
 
   private var healthCalendarLatestDate: Date? {
@@ -960,6 +907,64 @@ struct HealthRefreshStateQAView: View {
 }
 #endif
 
+private struct HealthCalendarPrimaryCard: View {
+  let sampleCount: Int
+  let latestDate: Date?
+
+  var body: some View {
+    NBCard(background: NBColor.dawn.opacity(0.10), stroke: NBColor.dawn.opacity(0.24)) {
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        HStack(alignment: .top, spacing: NBSpacing.medium) {
+          Image(systemName: "calendar.badge.clock")
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(NBColor.dawn)
+            .frame(width: 42, height: 42)
+            .background(NBColor.dawn.opacity(0.14), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+            .accessibilityHidden(true)
+
+          VStack(alignment: .leading, spacing: 4) {
+            Text("캘린더 지표 종합")
+              .font(NBTypography.headline.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+              .lineLimit(1)
+              .minimumScaleFactor(0.82)
+
+            Text("날짜별 수면, 체성분, 활동 기록을 한 화면에서 봅니다.")
+              .font(NBTypography.footnote)
+              .foregroundStyle(NBColor.secondaryText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        HStack(spacing: NBSpacing.small) {
+          HealthDashboardEntryBadge(text: "기록 \(sampleCount)개", tint: NBColor.dawn)
+          if let latestDate {
+            HealthDashboardEntryBadge(text: "최근 \(SleepFormatters.shortDate(latestDate))", tint: NBColor.breathBlue)
+          }
+
+          Spacer(minLength: NBSpacing.small)
+
+          Label("캘린더 보기", systemImage: "arrow.right.circle.fill")
+            .font(NBTypography.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.dawn)
+            .lineLimit(1)
+            .minimumScaleFactor(0.82)
+        }
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("캘린더 지표 종합, 날짜별 수면 체성분 활동 기록 보기, \(latestText)")
+    }
+  }
+
+  private var latestText: String {
+    guard let latestDate else {
+      return "기록 \(sampleCount)개"
+    }
+    return "기록 \(sampleCount)개, 최근 \(SleepFormatters.shortDate(latestDate))"
+  }
+}
+
 private struct HealthDashboardEntryCard: View {
   let title: String
   let subtitle: String
@@ -970,22 +975,43 @@ private struct HealthDashboardEntryCard: View {
 
   var body: some View {
     NBCard {
-      HStack(spacing: NBSpacing.medium) {
-        NBListRow(
-          title: title,
-          value: latestText,
-          subtitle: subtitle,
-          systemImage: systemImage,
-          tint: tint,
-          accessibilityLabel: "\(title), \(subtitle), \(latestText)"
-        )
-        .frame(maxWidth: .infinity)
-        Spacer()
+      VStack(alignment: .leading, spacing: NBSpacing.small) {
+        HStack(spacing: NBSpacing.medium) {
+          Image(systemName: systemImage)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(tint)
+            .frame(width: 32, height: 32)
+            .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+            .accessibilityHidden(true)
 
-        Image(systemName: "chevron.right")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(NBColor.tertiaryText)
+          VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+              .font(NBTypography.callout.weight(.semibold))
+              .foregroundStyle(NBColor.primaryText)
+              .lineLimit(1)
+            Text(subtitle)
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+              .lineLimit(1)
+              .minimumScaleFactor(0.82)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+
+          Image(systemName: "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(NBColor.tertiaryText)
+            .accessibilityHidden(true)
+        }
+
+        HStack(spacing: NBSpacing.small) {
+          HealthDashboardEntryBadge(text: "기록 \(sampleCount)개", tint: tint)
+          if let latestDate {
+            HealthDashboardEntryBadge(text: "최근 \(SleepFormatters.shortDate(latestDate))", tint: NBColor.dawn)
+          }
+        }
       }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("\(title), \(subtitle), \(latestText)")
     }
   }
 
@@ -997,46 +1023,119 @@ private struct HealthDashboardEntryCard: View {
   }
 }
 
-private struct HealthDashboardShortcutCard: View {
+private struct HealthDashboardEntryBadge: View {
+  let text: String
+  let tint: Color
+
+  var body: some View {
+    Text(text)
+      .font(NBTypography.captionEmphasis)
+      .foregroundStyle(tint)
+      .lineLimit(1)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 5)
+      .background(tint.opacity(0.10), in: Capsule())
+  }
+}
+
+private struct HealthDataStatePill: View {
   let title: String
+  let value: String
+  let systemImage: String
+  let tint: Color
+  let caption: String
+
+  var body: some View {
+    HStack(spacing: NBSpacing.small) {
+      Image(systemName: systemImage)
+        .font(.caption.weight(.bold))
+        .foregroundStyle(tint)
+        .frame(width: 24, height: 24)
+        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+        .accessibilityHidden(true)
+
+      VStack(alignment: .leading, spacing: 1) {
+        Text(title)
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .lineLimit(1)
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+          Text(value)
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+            .monospacedDigit()
+          Text(caption)
+            .font(NBTypography.caption)
+            .foregroundStyle(NBColor.tertiaryText)
+            .lineLimit(1)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(.horizontal, NBSpacing.small)
+    .padding(.vertical, 8)
+    .background(NBColor.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous)
+        .stroke(NBColor.border.opacity(0.52), lineWidth: 1)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(title), \(value)개, \(caption)")
+  }
+}
+
+private struct HealthDataDetailGroupTitle: View {
+  let title: String
+
+  init(_ title: String) {
+    self.title = title
+  }
+
+  var body: some View {
+    Text(title)
+      .font(NBTypography.captionEmphasis)
+      .foregroundStyle(NBColor.secondaryText)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+private struct HealthDataDetailRow: View {
+  let title: String
+  let value: String
   let subtitle: String
   let systemImage: String
   let tint: Color
 
   var body: some View {
-    HStack(spacing: NBSpacing.medium) {
+    HStack(alignment: .top, spacing: NBSpacing.small) {
       Image(systemName: systemImage)
-        .font(.headline)
+        .font(.caption.weight(.semibold))
         .foregroundStyle(tint)
-        .frame(width: 32, height: 32)
-        .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: NBCornerRadius.small))
+        .frame(width: 24, height: 24)
+        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
         .accessibilityHidden(true)
 
-      VStack(alignment: .leading, spacing: 4) {
-        Text(title)
-          .font(NBTypography.callout.weight(.semibold))
-          .foregroundStyle(NBColor.primaryText)
-          .lineLimit(1)
+      VStack(alignment: .leading, spacing: 3) {
+        HStack(alignment: .firstTextBaseline, spacing: NBSpacing.small) {
+          Text(title)
+            .font(NBTypography.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+            .lineLimit(1)
+            .minimumScaleFactor(0.82)
+          Spacer()
+          Text(value)
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
+            .lineLimit(1)
+        }
         Text(subtitle)
           .font(NBTypography.caption)
           .foregroundStyle(NBColor.secondaryText)
           .fixedSize(horizontal: false, vertical: true)
       }
-
-      Spacer(minLength: NBSpacing.small)
-
-      Image(systemName: "chevron.right")
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(NBColor.tertiaryText)
-        .accessibilityHidden(true)
     }
-    .padding(NBSpacing.small)
-    .background(NBColor.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: NBCornerRadius.small))
-    .overlay {
-      RoundedRectangle(cornerRadius: NBCornerRadius.small)
-        .stroke(NBColor.border.opacity(0.7), lineWidth: 1)
-    }
+    .padding(.vertical, 2)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(title), \(subtitle)")
+    .accessibilityLabel("\(title), \(value), \(subtitle)")
   }
 }

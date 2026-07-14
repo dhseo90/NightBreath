@@ -19,6 +19,8 @@
 | `SleepStartView` | 수면 기능 동작과 결과 확인 화면 | 측정 안내, 기기 배치 요약, 마이크 권한, 최근 수면 결과, 이벤트 오디오 샘플 저장 ON/OFF, 원본 전체 오디오 저장 안 함, 온디바이스 분석 안내 | 수면 시작, 최근 리포트/타임라인/수면 트렌드, 배치 가이드/개인정보 설정 진입 |
 | `SleepRecordingView` | 수면 기록 중 상태 화면 | 세션 경과 시간, 실제 오디오 수신 시간, 실제 분석 시간, 녹음 커버리지, 마지막 입력/분석 시각, 입력 공백, detector backend, tuning profile, 이벤트 오디오 샘플 저장 상태 | 수면 종료, 리포트 보기 |
 | `SleepReportView` | 아침 수면 소리 리포트 | 수면 소리 점수, 측정 품질, 측정 시간, 오디오 커버리지, 주요 이벤트 카드, 저장된 이벤트 오디오 시간/용량, detector diagnostics 요약, zero-event analysis, 주요 원인 설명 | 타임라인 보기, 아침 체크인 진입, 개인정보 설정 진입 |
+| `SleepSessionHistoryView` | 과거 수면 기록 히스토리 | 날짜별 저장 리포트, 수면 소리 점수, 측정 품질, 커버리지, interruption, 이벤트 수, 아침 체크인 연결 상태 | 세션 상세 진입 |
+| `SleepSessionDetailView` | 저장된 세션 상세 | 세션 시작 시각, 측정 신뢰도, coverage/interruption 요약, 이벤트 요약, 아침 체크인 상태 | 전체 리포트, 타임라인, 아침 체크인 진입 |
 | `SleepTimelineView` | 수면 이벤트 상세 목록 | 이벤트 시간, 이벤트 타입, duration, confidence, 설명, 오디오 샘플 보유 여부, feedback 상태 | 오디오 샘플 재생/삭제, 이벤트 feedback 저장 |
 | `MorningCheckInView` | 아침 주관적 컨디션 기록 | 개운함, 피로감, 두통 여부, 입마름 여부, 목아픔 여부, 기억나는 중간 각성 횟수, 메모 | 체크인 저장 |
 | `MorningBriefView` | 오늘 아침 리포트 | 지난밤 수면 요약, 수면 소리 점수, 측정 품질, 아침 컨디션, 예시 아침 혈압/체중/체성분, 데이터 준비 상태, 제한 항목, 개인 참고용 안내 | 수면 리포트와 Daily Rhythm 흐름 확인 |
@@ -78,6 +80,11 @@ TabView
     - SleepTimelineView
   - SleepTimelineView
   - TrendDashboardView
+  - SleepSessionHistoryView
+    - SleepSessionDetailView
+      - SleepReportView
+      - SleepTimelineView
+      - MorningCheckInView
   - DevicePlacementGuideView
     - CalibrationView
   - PrivacySettingsView

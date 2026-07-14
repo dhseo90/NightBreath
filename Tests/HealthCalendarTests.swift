@@ -56,6 +56,30 @@ struct HealthCalendarTests {
     }
 
     @Test
+    func cumulativeActivitySamplesCountAsOneVisibleMetricPerDay() {
+        let targetDate = date(2026, 5, 3)
+        let samples = [
+            sample(.stepCount, 1_200, targetDate, sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.stepCount, 2_300, targetDate.addingTimeInterval(60), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 120, targetDate.addingTimeInterval(120), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.activeEnergy, 180, targetDate.addingTimeInterval(180), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+            sample(.bodyMass, 71.6, targetDate.addingTimeInterval(240), sourceType: .healthKit, sourceName: "Apple 건강앱"),
+        ]
+
+        let summary = builder.summary(
+            for: targetDate,
+            samples: samples,
+            sleepReports: [],
+            calendar: calendar
+        )
+
+        #expect(summary.sampleCount == 3)
+        #expect(summary.hasActivity)
+        #expect(summary.hasBodyComposition)
+        #expect(summary.sourceTypes == [.healthKit])
+    }
+
+    @Test
     func emptyMonthCellsRemainExplicitlyEmpty() throws {
         let targetDate = date(2026, 5, 11)
         let summaries = builder.summaries(
@@ -120,6 +144,57 @@ struct HealthCalendarTests {
         #expect(detail.summary.hasMorningCheckIn)
         #expect(detail.morningCheckIns.map { $0.sessionId } == [sessionID])
         #expect(detail.morningCheckIns.first?.createdAt == linkedCheckIn.createdAt)
+    }
+
+    @Test
+    func detailAggregatesMultipleSleepReportsIntoOneDailySleepSummary() throws {
+        let reportDay = date(2026, 5, 3)
+        let firstSessionID = UUID(uuidString: "44000000-0000-0000-0000-000000000101")!
+        let secondSessionID = UUID(uuidString: "44000000-0000-0000-0000-000000000102")!
+        let firstReport = report(
+            sessionID: firstSessionID,
+            generatedAt: reportDay.addingTimeInterval(60 * 60),
+            measurementDuration: 60,
+            estimatedSleepDuration: 60,
+            receivedAudioDuration: 60,
+            sleepSoundScore: 80,
+            snoreTotalSeconds: 12,
+            bruxismLikeCount: 1,
+            suspectedPauseCount: 0
+        )
+        let secondReport = report(
+            sessionID: secondSessionID,
+            generatedAt: reportDay.addingTimeInterval(2 * 60 * 60),
+            measurementDuration: 180,
+            estimatedSleepDuration: 180,
+            receivedAudioDuration: 120,
+            sleepSoundScore: 60,
+            snoreTotalSeconds: 18,
+            bruxismLikeCount: 2,
+            suspectedPauseCount: 1
+        )
+
+        let detail = builder.detailData(
+            for: reportDay,
+            samples: [],
+            sleepReports: [secondReport, firstReport],
+            calendar: calendar
+        )
+        let summary = try #require(detail.sleepSummary)
+
+        #expect(detail.sleepReports.count == 2)
+        #expect(summary.reportCount == 2)
+        #expect(summary.measurementDuration == 240)
+        #expect(summary.estimatedSleepDuration == 240)
+        #expect(summary.receivedAudioDuration == 180)
+        #expect(abs(summary.audioCoverageRatio - 0.75) < 0.0001)
+        #expect(summary.measurementQuality == .limited)
+        #expect(summary.sleepSoundScore == 65)
+        #expect(summary.snoreTotalSeconds == 30)
+        #expect(abs(summary.snoreRatio - 0.125) < 0.0001)
+        #expect(summary.bruxismLikeCount == 3)
+        #expect(summary.suspectedPauseCount == 1)
+        #expect(summary.mainDisturbanceReason == "2개 수면 기록을 하루 단위로 합산했습니다.")
     }
 
     @Test
@@ -212,21 +287,34 @@ struct HealthCalendarTests {
     }
 
     @Test
-    func calendarViewKeepsDateSelectionPanelSourceDotsAndDetailNavigation() throws {
+    func calendarViewCombinesCalendarWithMetricSummaryAndDetail() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthCalendarView.swift")
 
-        #expect(contents.contains("selectedDatePanel"))
-        #expect(contents.contains("selectedDateInlineDetail"))
+        #expect(contents.contains(".navigationTitle(\"캘린더 지표 종합\")"))
+        #expect(contents.contains("selectedDateSummarySection"))
+        #expect(contents.contains("selectedDateSummarySection\n        monthNavigator\n        calendarSection\n        selectedDateDetailSection"))
+        #expect(contents.contains("CalendarMetricSummaryTile"))
+        #expect(contents.contains("전체 지표 그래프"))
+        #expect(contents.contains("HealthMetricsOverviewView("))
+        #expect(contents.contains("headerTitle: \"선택일 지표 종합\""))
+        #expect(contents.contains(".onAppear(perform: selectDataDateIfCurrentSelectionIsEmpty)"))
+        #expect(contents.contains(".onChange(of: dataAvailabilitySignature)"))
+        #expect(contents.contains("preferredDataDate(in: displayedMonth"))
         #expect(contents.contains("selectDate(date)"))
         #expect(contents.contains("let dates = monthDates"))
         #expect(contents.contains("let summaries = summariesByDay"))
-        #expect(contents.contains("let summary = selectedDaySummary"))
-        #expect(contents.contains("아래에서 선택 날짜 상세를 바로 확인합니다."))
-        #expect(contents.contains("선택 날짜 상세"))
-        #expect(contents.contains("CalendarDaySourceDotStrip"))
-        #expect(contents.contains("CalendarSelectedSourceStrip"))
-        #expect(contents.contains("출처 dot"))
+        #expect(contents.contains(".frame(height: 48)"))
+        #expect(!contents.contains("selectedDatePanel"))
+        #expect(!contents.contains("CalendarDaySourceDotStrip"))
+        #expect(!contents.contains("CalendarSelectedSourceStrip"))
+        #expect(!contents.contains("출처 dot"))
+        #expect(!contents.contains("selectedDateInlineDetail"))
+        #expect(!contents.contains("CalendarInlineSummaryPill"))
+        #expect(contents.contains("CalendarSelectedDateSummaryCard("))
         #expect(contents.contains("DailyMeasurementDetailContent("))
+        #expect(contents.contains("detailData.sleepSummary"))
+        #expect(contents.contains("개 수면 기록을 하루 단위로 합산"))
+        #expect(!contents.contains("ForEach(detailData.sleepReports)"))
         #expect(contents.contains(".nbAvoidFloatingTabBar()"))
     }
 
@@ -286,19 +374,28 @@ struct HealthCalendarTests {
         )
     }
 
-    private func report(sessionID: UUID, generatedAt: Date) -> NightReport {
+    private func report(
+        sessionID: UUID,
+        generatedAt: Date,
+        measurementDuration: TimeInterval = 8 * 60 * 60,
+        estimatedSleepDuration: TimeInterval = 7.2 * 60 * 60,
+        receivedAudioDuration: TimeInterval? = nil,
+        sleepSoundScore: Int = 82,
+        snoreTotalSeconds: TimeInterval = 18 * 60,
+        bruxismLikeCount: Int = 2,
+        suspectedPauseCount: Int = 1
+    ) -> NightReport {
         NightReport(
             sessionId: sessionID,
             generatedAt: generatedAt,
-            measurementDuration: 8 * 60 * 60,
-            estimatedSleepDuration: 7.2 * 60 * 60,
-            receivedAudioDuration: 7.9 * 60 * 60,
-            audioCoverageRatio: 0.94,
-            sleepSoundScore: 82,
-            snoreTotalSeconds: 18 * 60,
-            snoreRatio: 0.04,
-            bruxismLikeCount: 2,
-            suspectedPauseCount: 1,
+            measurementDuration: measurementDuration,
+            estimatedSleepDuration: estimatedSleepDuration,
+            receivedAudioDuration: receivedAudioDuration ?? measurementDuration * 0.94,
+            sleepSoundScore: sleepSoundScore,
+            snoreTotalSeconds: snoreTotalSeconds,
+            snoreRatio: max(estimatedSleepDuration, 1) > 0 ? min(max(snoreTotalSeconds / max(estimatedSleepDuration, 1), 0), 1) : 0,
+            bruxismLikeCount: bruxismLikeCount,
+            suspectedPauseCount: suspectedPauseCount,
             gaspLikeCount: 0,
             coughLikeCount: 1,
             sleepTalkLikeCount: 0,

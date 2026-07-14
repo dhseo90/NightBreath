@@ -108,6 +108,22 @@ public enum UnifiedHealthMetricID: String, Codable, CaseIterable, Identifiable, 
             nil
         }
     }
+
+    public var usesDailyCumulativeSum: Bool {
+        switch self {
+        case .stepCount, .activeEnergy:
+            true
+        case .systolicBloodPressure, .diastolicBloodPressure,
+             .bodyMass, .bodyFatPercentage, .bodyMassIndex, .leanBodyMass,
+             .heartRate, .restingHeartRate, .sleepDuration, .respiratoryRate,
+             .bodyWaterPercentage, .visceralFatPercentage, .visceralFatLevel,
+             .skeletalMuscleMass, .mineralMass, .boneMass, .basalMetabolicRate,
+             .proteinPercentage, .muscleMass, .subcutaneousFatPercentage,
+             .metabolicAge, .bodyScore, .obesityLevel,
+             .sleepSoundScore, .dailyRhythmScore, .audioCoverageRatio:
+            false
+        }
+    }
 }
 
 public enum HealthMetricSourceType: String, Codable, CaseIterable, Identifiable, Sendable {

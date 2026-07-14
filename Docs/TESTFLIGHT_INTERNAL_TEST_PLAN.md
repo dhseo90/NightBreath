@@ -113,6 +113,7 @@ audioEngineStoppedAt:
 lastAudioChunkReceivedAt:
 chunksReceivedAfterStopRequest:
 receivedAudioDurationAfterStop:
+audioSessionEventSummary:
 rawCandidateCountByType:
 postSmoothingEventCountByType:
 finalEventCountByType:

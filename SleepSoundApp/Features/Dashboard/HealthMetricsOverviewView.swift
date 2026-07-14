@@ -6,7 +6,7 @@ struct HealthMetricsOverviewView: View {
   let permissionState: HealthMetricPermissionState
   let isPreviewData: Bool
 
-  @State private var selectedPeriod: HealthMetricTrendPeriod = .thirtyDays
+  @State private var aggregationInterval: MetricAggregationInterval = .day
 
   private let catalog = MetricCatalog.default
   private let calculator = MetricStatisticsCalculator()
@@ -15,9 +15,8 @@ struct HealthMetricsOverviewView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        header
         stateNotice
-        HealthMetricPeriodPicker(selection: $selectedPeriod)
+        MetricAggregationIntervalPicker(selection: $aggregationInterval)
 
         if samples.isEmpty {
           HealthDataEmptyStateView(
@@ -45,25 +44,12 @@ struct HealthMetricsOverviewView: View {
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle("전체 건강 지표")
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
   }
 
   private var selectedDateRange: HealthMetricDateRange {
-    selectedPeriod.dateRange()
-  }
-
-  private var header: some View {
-    NBReportSection(title: "전체 건강 지표", systemImage: "chart.line.uptrend.xyaxis") {
-      VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Text("혈압, 체성분, 활동, 수면/앱 지표와 Fitdays 확장 지표를 기간별로 정리합니다.")
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
-
-        Text("최근 값, 평균, 최소, 최대, 최근 변화와 측정 횟수를 출처별로 구분해 볼 수 있습니다.")
-          .font(NBTypography.footnote)
-          .foregroundStyle(NBColor.tertiaryText)
-      }
-    }
+    aggregationInterval.dateRange()
   }
 
   @ViewBuilder
@@ -103,7 +89,7 @@ struct HealthMetricsOverviewView: View {
               MetricDetailView(
                 metric: metadata,
                 samples: samples,
-                selectedPeriod: selectedPeriod
+                selectedInterval: aggregationInterval
               )
             } label: {
               metricRow(metadata)
@@ -120,35 +106,22 @@ struct HealthMetricsOverviewView: View {
   }
 
   private func metricRow(_ metadata: MetricDisplayMetadata) -> some View {
-    let summary = calculator.summary(
+    let summary = calculator.aggregatedSummary(
       samples: samples,
       metricID: metadata.metricID,
-      dateRange: selectedDateRange
-    )
-    let sources = calculator.sourceBreakdown(
-      samples: samples,
-      metricID: metadata.metricID,
-      dateRange: selectedDateRange
+      dateRange: selectedDateRange,
+      interval: aggregationInterval
     )
 
     return HStack(alignment: .center, spacing: NBSpacing.medium) {
-      VStack(alignment: .leading, spacing: 0) {
-        NBListRow(
-          title: metadata.displayNameKo,
-          value: summary.latestValue.map { UnifiedMetricFormatting.valueString($0, unit: metadata.unit) } ?? "--",
-          subtitle: metricRowSubtitle(summary: summary, sources: sources),
-          systemImage: metricIcon(for: metadata),
-          tint: metricTint(for: metadata),
-          accessibilityLabel: "\(metadata.displayNameKo), 기록 \(summary.sampleCount)개"
-        )
-
-        MetricSourceBadgeStrip(
-          metadata: metadata,
-          sourceTypes: sources.map(\.sourceType)
-        )
-        .padding(.leading, 40)
-        .padding(.bottom, NBSpacing.small)
-      }
+      NBListRow(
+        title: metadata.displayNameKo,
+        value: summary.latestValue.map { UnifiedMetricFormatting.valueString($0, unit: metadata.unit) } ?? "--",
+        subtitle: metricRowSubtitle(summary: summary),
+        systemImage: metricIcon(for: metadata),
+        tint: metricTint(for: metadata),
+        accessibilityLabel: "\(metadata.displayNameKo), 기록 \(summary.sampleCount)개"
+      )
 
       Spacer()
 
@@ -158,19 +131,11 @@ struct HealthMetricsOverviewView: View {
     }
   }
 
-  private func metricRowSubtitle(
-    summary: MetricStatisticsSummary,
-    sources: [MetricSourceBreakdown]
-  ) -> String {
-    var parts: [String] = ["\(selectedPeriod.displayName) 기록 \(summary.sampleCount)개"]
+  private func metricRowSubtitle(summary: MetricStatisticsSummary) -> String {
+    var parts: [String] = ["기록 \(summary.sampleCount)개"]
 
     if let latestMeasuredAt = summary.latestMeasuredAt {
       parts.append("최근 \(SleepFormatters.shortDate(latestMeasuredAt))")
-    }
-
-    if !sources.isEmpty {
-      let sourceNames = sources.prefix(2).map { $0.sourceType.displayName }.joined(separator: ", ")
-      parts.append(sourceNames)
     }
 
     return parts.joined(separator: " · ")
@@ -198,8 +163,10 @@ struct MetricDetailView: View {
   let metricID: UnifiedHealthMetricID
   let samples: [UnifiedHealthMetricSample]
 
-  @State private var period: MetricDetailPeriod
+  @State private var aggregationInterval: MetricAggregationInterval
+  @State private var rangeAnchorDate = Date()
   @State private var sourceFilter: MetricDetailSourceFilter = .all
+  @State private var isSourceDetailsExpanded = false
 
   private let catalog = MetricCatalog.default
 
@@ -210,7 +177,17 @@ struct MetricDetailView: View {
   ) {
     self.metricID = metric.metricID
     self.samples = samples
-    _period = State(initialValue: MetricDetailPeriod(trendPeriod: selectedPeriod))
+    _aggregationInterval = State(initialValue: MetricAggregationInterval(trendPeriod: selectedPeriod))
+  }
+
+  init(
+    metric: MetricDisplayMetadata,
+    samples: [UnifiedHealthMetricSample],
+    selectedInterval: MetricAggregationInterval
+  ) {
+    self.metricID = metric.metricID
+    self.samples = samples
+    _aggregationInterval = State(initialValue: selectedInterval)
   }
 
   init(
@@ -220,14 +197,33 @@ struct MetricDetailView: View {
   ) {
     self.metricID = metricID
     self.samples = samples
-    _period = State(initialValue: selectedPeriod)
+    _aggregationInterval = State(initialValue: Self.aggregationInterval(for: selectedPeriod))
   }
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: NBSpacing.sectionVertical) {
-        header
         controls
+
+        MetricChartView(
+          metric: metric,
+          points: viewModel.aggregatedPoints,
+          interval: aggregationInterval,
+          tint: metricTint(for: metric),
+          rangeTitle: rangeTitle,
+          onPreviousRange: { moveRange(by: -1) },
+          onNextRange: { moveRange(by: 1) },
+          onTodayRange: { rangeAnchorDate = Date() }
+        )
+        .gesture(horizontalPagingGesture)
+
+        MetricSummaryCard(
+          metric: metric,
+          summary: viewModel.aggregatedSummary,
+          periodDisplayName: rangeTitle,
+          averageTitle: aggregationInterval.averageTitle,
+          countLabel: aggregationInterval.displayName
+        )
 
         if let emptyState = viewModel.emptyStateReason {
           HealthDataEmptyStateView(
@@ -236,34 +232,14 @@ struct MetricDetailView: View {
           )
         }
 
-        MetricSummaryCard(
-          metric: metric,
-          summary: viewModel.summary,
-          sources: viewModel.sourceBreakdown,
-          periodDisplayName: period.displayName
-        )
-
-        MetricChartView(
-          metric: metric,
-          points: viewModel.points,
-          tint: metricTint(for: metric)
-        )
-
-        rawSampleListSection
-        sourceSection
-        manualInputPlaceholder
-
-        NBPrivacyNoticeCard(
-          title: "지표 안내",
-          messages: MetricDetailExplanation.make(for: metric).messages,
-          systemImage: "info.circle"
-        )
+        sourceDetailsSection
       }
       .padding(NBSpacing.screenHorizontal)
     }
     .background(NBColor.pageBackground)
     .nbAvoidFloatingTabBar()
     .navigationTitle(metric.displayNameKo)
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar(.hidden, for: .tabBar)
   }
 
@@ -284,136 +260,165 @@ struct MetricDetailView: View {
     MetricDetailViewModel(
       metricID: metricID,
       samples: samples,
-      period: period,
+      period: .all,
+      aggregationInterval: aggregationInterval,
       sourceFilter: sourceFilter,
+      endDate: rangeAnchorDate,
       catalog: catalog
     )
   }
 
   private var controls: some View {
-    VStack(alignment: .leading, spacing: NBSpacing.medium) {
-      MetricDetailPeriodPicker(selection: $period)
-      MetricDetailSourceFilterMenu(selection: $sourceFilter)
+    VStack(alignment: .leading, spacing: NBSpacing.small) {
+      MetricAggregationIntervalPicker(selection: $aggregationInterval)
     }
   }
 
-  private var header: some View {
-    NBReportSection(title: metric.displayNameKo, systemImage: metricIcon(for: metric)) {
-      VStack(alignment: .leading, spacing: NBSpacing.medium) {
-        MetricSourceBadgeStrip(
-          metadata: metric,
-          sourceTypes: viewModel.metricSamples.map(\.sourceType)
-        )
+  private var sourceDetailsSection: some View {
+    NBReportSection(title: "세부 데이터", systemImage: "square.stack.3d.up") {
+      DisclosureGroup(isExpanded: $isSourceDetailsExpanded) {
+        VStack(alignment: .leading, spacing: NBSpacing.medium) {
+          MetricDetailSourceFilterMenu(selection: $sourceFilter)
 
-        MetricSourceContextNotice(
-          metadata: metric,
-          sourceTypes: viewModel.metricSamples.map(\.sourceType)
-        )
+          MetricDetailSourceSummaryLine(
+            metric: metric,
+            sources: viewModel.aggregationSourceBreakdown
+          )
 
-        Text(metric.description)
-          .font(NBTypography.callout)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
-
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.small) {
-          NBMetricCard(
-            title: "최근 값",
-            value: viewModel.latestSample.map { UnifiedMetricFormatting.valueString($0.value, unit: $0.unit) } ?? "--",
-            systemImage: metricIcon(for: metric),
-            tint: metricTint(for: metric)
-          )
-          NBMetricCard(
-            title: "단위",
-            value: metric.unit.isEmpty ? "--" : metric.unit,
-            systemImage: "ruler",
-            tint: NBColor.privacyTint
-          )
-          NBMetricCard(
-            title: "최근 측정",
-            value: viewModel.latestSample.map { SleepFormatters.shortDate($0.measuredAt) } ?? "--",
-            systemImage: "clock",
-            tint: NBColor.dawn
-          )
-          NBMetricCard(
-            title: "데이터 출처",
-            value: viewModel.latestSample?.sourceType.displayName ?? "--",
-            systemImage: "square.stack.3d.up",
-            tint: NBColor.mistTeal
-          )
-        }
-      }
-    }
-  }
-
-  private var rawSampleListSection: some View {
-    NBReportSection(title: "기록 목록", systemImage: "list.bullet.rectangle") {
-      if viewModel.rawSampleList.isEmpty {
-        NBEmptyStateView(
-          title: "표시할 기록이 없습니다",
-          message: "기간 또는 출처 필터를 바꾸면 다른 기록을 볼 수 있습니다.",
-          systemImage: "tray"
-        )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(viewModel.rawSampleList) { sample in
-            MetricSampleListRow(
-              sample: sample,
-              metric: metric
-            )
+          if viewModel.aggregationSourceBreakdown.isEmpty {
+            Text("선택한 구간에 표시할 출처 정보가 없습니다.")
+              .font(NBTypography.caption)
+              .foregroundStyle(NBColor.secondaryText)
+          } else {
+            ForEach(viewModel.aggregationSourceBreakdown) { source in
+              MetricDetailSourceRow(source: source)
+            }
           }
         }
-      }
-    }
-  }
-
-  private var sourceSection: some View {
-    NBReportSection(title: "데이터 출처", systemImage: "square.stack.3d.up") {
-      if viewModel.sourceBreakdown.isEmpty {
-        NBEmptyStateView(
-          title: "선택한 기간에 출처가 없습니다",
-          message: "다른 기간이나 출처 필터를 선택해 보세요.",
-          systemImage: "tray"
-        )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.small) {
-          ForEach(viewModel.sourceBreakdown) { source in
-            NBListRow(
-              title: source.sourceType.displayName,
-              value: "\(source.sampleCount)개",
-              subtitle: "\(source.sourceName) · 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt)) \(SleepFormatters.shortTime(source.latestMeasuredAt))",
-              systemImage: sourceIcon(for: source.sourceType),
-              tint: sourceTint(for: source.sourceType)
-            )
-          }
+        .padding(.top, NBSpacing.small)
+      } label: {
+        HStack(spacing: NBSpacing.small) {
+          Image(systemName: "line.3.horizontal.decrease.circle")
+            .foregroundStyle(NBColor.privacyTint)
+          Text("출처와 필터")
+            .font(NBTypography.callout.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Spacer()
+          Text("\(viewModel.aggregationSourceBreakdown.count)개")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
         }
       }
     }
   }
 
-  private var manualInputPlaceholder: some View {
-    NBReportSection(title: "수동 입력", systemImage: "pencil") {
-      NBSecondaryButton(
-        title: "수동 입력은 다음 작업에서 추가",
-        systemImage: "plus",
-        isDisabled: true
-      ) {}
+  private var rangeTitle: String {
+    let range = viewModel.aggregationDateRange
+    switch aggregationInterval {
+    case .day:
+      let formatter = DateFormatter()
+      formatter.locale = Locale(identifier: "ko_KR")
+      formatter.dateFormat = "yyyy년 M월"
+      return formatter.string(from: range.start)
+    case .week:
+      return "\(SleepFormatters.shortDate(range.start))~\(SleepFormatters.shortDate(range.end))"
+    case .month:
+      let formatter = DateFormatter()
+      formatter.locale = Locale(identifier: "ko_KR")
+      formatter.dateFormat = "yyyy.MM"
+      return "\(formatter.string(from: range.start))~\(formatter.string(from: range.end))"
     }
+  }
+
+  private var horizontalPagingGesture: some Gesture {
+    DragGesture(minimumDistance: 36)
+      .onEnded { value in
+        guard value.startLocation.x > 44,
+              abs(value.translation.width) > abs(value.translation.height),
+              abs(value.translation.width) > 48 else {
+          return
+        }
+        moveRange(by: value.translation.width < 0 ? 1 : -1)
+      }
+  }
+
+  private func moveRange(by offset: Int) {
+    rangeAnchorDate = aggregationInterval.movingAnchor(
+      rangeAnchorDate,
+      byPageOffset: offset
+    )
+  }
+
+  private static func aggregationInterval(for period: MetricDetailPeriod) -> MetricAggregationInterval {
+    switch period {
+    case .sevenDays, .thirtyDays:
+      .day
+    case .ninetyDays:
+      .week
+    case .oneYear, .all:
+      .month
+    }
+  }
+
+}
+
+private struct MetricRangeNavigator: View {
+  let title: String
+  let onPrevious: () -> Void
+  let onNext: () -> Void
+  let onToday: () -> Void
+
+  var body: some View {
+    HStack(spacing: NBSpacing.small) {
+      Button(action: onPrevious) {
+        Image(systemName: "chevron.left")
+          .frame(width: 34, height: 34)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("이전 구간")
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(NBTypography.subheadline.weight(.semibold))
+          .foregroundStyle(NBColor.primaryText)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      Button(action: onToday) {
+        Text("최근")
+          .font(NBTypography.caption.weight(.semibold))
+          .foregroundStyle(NBColor.privacyTint)
+          .padding(.horizontal, 10)
+          .padding(.vertical, 7)
+          .background(NBColor.privacyTint.opacity(0.10))
+          .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+      }
+      .buttonStyle(.plain)
+
+      Button(action: onNext) {
+        Image(systemName: "chevron.right")
+          .frame(width: 34, height: 34)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("다음 구간")
+    }
+    .padding(.vertical, 2)
   }
 }
 
-private struct MetricDetailPeriodPicker: View {
-  @Binding var selection: MetricDetailPeriod
+struct MetricAggregationIntervalPicker: View {
+  @Binding var selection: MetricAggregationInterval
 
   var body: some View {
     NBCard {
       VStack(alignment: .leading, spacing: NBSpacing.small) {
-        Label("기간 선택", systemImage: "calendar")
+        Label("그래프 단위", systemImage: "chart.bar.xaxis")
           .font(NBTypography.subheadline)
           .foregroundStyle(NBColor.primaryText)
 
-        Picker("기간 선택", selection: $selection) {
-          ForEach(MetricDetailPeriod.allCases) { period in
-            Text(period.displayName).tag(period)
+        Picker("그래프 단위", selection: $selection) {
+          ForEach(MetricAggregationInterval.allCases) { interval in
+            Text(interval.displayName).tag(interval)
           }
         }
         .pickerStyle(.segmented)
@@ -426,31 +431,29 @@ private struct MetricDetailSourceFilterMenu: View {
   @Binding var selection: MetricDetailSourceFilter
 
   var body: some View {
-    NBCard {
-      HStack(spacing: NBSpacing.medium) {
-        Label("출처 필터", systemImage: "line.3.horizontal.decrease.circle")
-          .font(NBTypography.subheadline)
-          .foregroundStyle(NBColor.primaryText)
+    HStack(spacing: NBSpacing.medium) {
+      Label("출처 필터", systemImage: "line.3.horizontal.decrease.circle")
+        .font(NBTypography.subheadline)
+        .foregroundStyle(NBColor.primaryText)
 
-        Spacer()
+      Spacer()
 
-        Menu {
-          ForEach(options) { option in
-            Button {
-              selection = option
-            } label: {
-              Label(option.displayName, systemImage: selection == option ? "checkmark" : "circle")
-            }
+      Menu {
+        ForEach(options) { option in
+          Button {
+            selection = option
+          } label: {
+            Label(option.displayName, systemImage: selection == option ? "checkmark" : "circle")
           }
-        } label: {
-          Label(selection.displayName, systemImage: "chevron.down")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(NBColor.privacyTint)
-            .padding(.horizontal, NBSpacing.medium)
-            .padding(.vertical, NBSpacing.small)
-            .background(NBColor.privacyTint.opacity(0.10))
-            .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
         }
+      } label: {
+        Label(selection.displayName, systemImage: "chevron.down")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(NBColor.privacyTint)
+          .padding(.horizontal, NBSpacing.medium)
+          .padding(.vertical, NBSpacing.small)
+          .background(NBColor.privacyTint.opacity(0.10))
+          .clipShape(RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
       }
     }
   }
@@ -464,113 +467,177 @@ private struct MetricDetailSourceFilterMenu: View {
   }
 }
 
-private struct MetricSampleListRow: View {
-  let sample: UnifiedHealthMetricSample
-  let metric: MetricDisplayMetadata
+private struct MetricDetailSourceRow: View {
+  let source: MetricSourceBreakdown
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      NBListRow(
-        title: "\(SleepFormatters.shortDate(sample.measuredAt)) \(SleepFormatters.shortTime(sample.measuredAt))",
-        value: UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit),
-        subtitle: "\(sample.sourceType.displayName) · \(sample.sourceName)",
-        systemImage: sourceIcon(for: sample.sourceType),
-        tint: sourceTint(for: sample.sourceType),
-        accessibilityLabel: "\(metric.displayNameKo), \(UnifiedMetricFormatting.valueString(sample.value, unit: sample.unit))"
-      )
+    HStack(alignment: .top, spacing: NBSpacing.small) {
+      Image(systemName: sourceIcon(for: source.sourceType))
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(sourceTint(for: source.sourceType))
+        .frame(width: 24, height: 24)
+        .background(sourceTint(for: source.sourceType).opacity(0.10), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+        .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 3) {
-        ForEach(sourceNotes, id: \.self) { note in
-          Text(note)
+        HStack(alignment: .firstTextBaseline, spacing: NBSpacing.small) {
+          Text(source.sourceType.displayName)
+            .font(NBTypography.subheadline.weight(.semibold))
+            .foregroundStyle(NBColor.primaryText)
+          Spacer()
+          Text("\(source.sampleCount)개")
+            .font(NBTypography.captionEmphasis)
+            .foregroundStyle(NBColor.secondaryText)
         }
-        if let notes = sample.notes, !notes.isEmpty {
-          Text(notes)
-        }
+
+        Text("\(source.sourceName) · 최근 \(SleepFormatters.shortDate(source.latestMeasuredAt))")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
-      .font(NBTypography.caption)
-      .foregroundStyle(NBColor.tertiaryText)
-      .padding(.leading, 34)
     }
-  }
-
-  private var sourceNotes: [String] {
-    var notes: [String] = []
-
-    switch sample.sourceType {
-    case .fitdaysCSV:
-      notes.append("Fitdays CSV 로컬 import 샘플")
-      notes.append("HealthKit에 저장하지 않음")
-    case .manual:
-      notes.append("기기 안에 저장된 수동 입력 샘플")
-    case .appComputed:
-      notes.append("밤숨 앱에서 기기 안에서 계산한 샘플")
-    case .healthKit:
-      notes.append("Apple 건강앱 read-only 샘플")
-    case .mock:
-      notes.append("예시 데이터 샘플")
-    }
-
-    if sample.importBatchId?.isEmpty == false {
-      notes.append("가져오기 기록에 연결된 샘플")
-    }
-
-    if metric.isExtendedLocalOnly {
-      notes.append("로컬 전용 지표")
-    }
-
-    return notes
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(source.sourceType.displayName), \(source.sourceName), \(source.sampleCount)개")
   }
 }
 
 struct MetricChartView: View {
   let metric: MetricDisplayMetadata
   let points: [MetricTrendDataPoint]
+  let interval: MetricAggregationInterval
   var tint: Color = NBColor.privacyTint
+  let rangeTitle: String
+  let onPreviousRange: () -> Void
+  let onNextRange: () -> Void
+  let onTodayRange: () -> Void
+  var referenceRange: MetricReferenceRange?
+
+  @State private var selectedPointID: UUID?
 
   var body: some View {
     NBReportSection(title: "그래프", systemImage: "chart.xyaxis.line") {
-      if points.isEmpty {
-        NBEmptyStateView(
-          title: "선택한 기간에 표시할 샘플이 없습니다",
-          message: "기간을 바꾸거나 HealthKit 연결, Fitdays CSV 가져오기 상태를 확인하세요.",
-          systemImage: "chart.xyaxis.line"
+      VStack(alignment: .leading, spacing: NBSpacing.medium) {
+        MetricRangeNavigator(
+          title: rangeTitle,
+          onPrevious: onPreviousRange,
+          onNext: onNextRange,
+          onToday: onTodayRange
         )
-      } else {
-        VStack(alignment: .leading, spacing: NBSpacing.medium) {
+
+        if points.isEmpty {
+          NBEmptyStateView(
+            title: "선택한 구간에 표시할 데이터가 없습니다",
+            message: "그래프 단위를 바꾸거나 HealthKit 연결과 Fitdays CSV 가져오기 상태를 확인하세요.",
+            systemImage: "chart.xyaxis.line"
+          )
+        } else {
           Chart {
             ForEach(points) { point in
               LineMark(
                 x: .value("날짜", point.date),
                 y: .value(metric.displayNameKo, point.value)
               )
-              .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
+              .foregroundStyle(tint)
               .interpolationMethod(.catmullRom)
 
               PointMark(
                 x: .value("날짜", point.date),
                 y: .value(metric.displayNameKo, point.value)
               )
-              .foregroundStyle(by: .value("데이터 출처", sourceLabel(point)))
+              .foregroundStyle(tint)
               .symbolSize(48)
+            }
+
+            if let selectedPoint {
+              RuleMark(x: .value("선택 구간", selectedPoint.date))
+                .foregroundStyle(tint.opacity(0.42))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 4]))
+
+              PointMark(
+                x: .value("선택 날짜", selectedPoint.date),
+                y: .value(metric.displayNameKo, selectedPoint.value)
+              )
+              .foregroundStyle(tint)
+              .symbolSize(118)
+            }
+
+            if let referenceRange,
+               let lowerValue = referenceRange.lowerValue,
+               shouldDrawReferenceValue(lowerValue) {
+              RuleMark(y: .value("참고 범위 하단", lowerValue))
+                .foregroundStyle(referenceRange.tint.opacity(0.76))
+                .lineStyle(referenceRangeLineStyle)
+            }
+
+            if let referenceRange,
+               let upperValue = referenceRange.upperValue,
+               shouldDrawReferenceValue(upperValue) {
+              RuleMark(y: .value("참고 범위 상단", upperValue))
+                .foregroundStyle(referenceRange.tint.opacity(0.88))
+                .lineStyle(referenceRangeLineStyle)
             }
 
             if let averageValue {
               RuleMark(y: .value("평균선", averageValue))
                 .foregroundStyle(NBColor.secondaryText.opacity(0.65))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                .annotation(position: .top, alignment: .trailing) {
-                  Text("평균 \(formattedValue(averageValue))")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(NBColor.secondaryText)
+            }
+          }
+          .chartOverlay { proxy in
+            GeometryReader { geometry in
+              ZStack(alignment: .topLeading) {
+                Rectangle()
+                  .fill(.clear)
+                  .contentShape(Rectangle())
+                  .gesture(
+                    SpatialTapGesture()
+                      .onEnded { value in
+                        selectNearestPoint(at: value.location, proxy: proxy, geometry: geometry)
+                      }
+                  )
+
+                if let averageValue,
+                   let position = averageOverlayPosition(proxy: proxy, geometry: geometry) {
+                  MetricChartOverlayLabel(
+                    title: "구간 평균",
+                    value: formattedValue(averageValue),
+                    tint: NBColor.secondaryText
+                  )
+                  .frame(width: averageOverlayLabelSize.width, height: averageOverlayLabelSize.height)
+                  .position(position)
+                  .allowsHitTesting(false)
                 }
+
+                if let selectedPoint,
+                   let position = selectedOverlayPosition(
+                    selectedPoint,
+                    proxy: proxy,
+                    geometry: geometry
+                   ) {
+                  MetricChartOverlayLabel(
+                    title: selectedPointTitle(selectedPoint),
+                    value: formattedValue(selectedPoint.value),
+                    tint: tint,
+                    isEmphasized: true
+                  )
+                  .frame(width: selectedOverlayLabelSize.width, height: selectedOverlayLabelSize.height)
+                  .position(position)
+                  .allowsHitTesting(false)
+                }
+              }
             }
           }
           .chartXAxis {
             AxisMarks(values: .automatic(desiredCount: 4)) {
               AxisGridLine()
                 .foregroundStyle(NBColor.divider)
-              AxisValueLabel(format: .dateTime.month().day())
-                .foregroundStyle(NBColor.secondaryText)
+              if interval == .month {
+                AxisValueLabel(format: .dateTime.year().month())
+                  .foregroundStyle(NBColor.secondaryText)
+              } else {
+                AxisValueLabel(format: .dateTime.month().day())
+                  .foregroundStyle(NBColor.secondaryText)
+              }
             }
           }
           .chartYAxis {
@@ -582,12 +649,11 @@ struct MetricChartView: View {
             }
           }
           .chartYScale(domain: yDomain)
-          .chartForegroundStyleScale(domain: uniqueSourceLabels, range: uniqueSourceColors)
           .frame(height: 190)
           .accessibilityLabel("\(metric.displayNameKo) 추세 그래프")
 
           chartSummaryStrip
-          sourceLegend
+          referenceRangeLegend
         }
       }
     }
@@ -600,7 +666,7 @@ struct MetricChartView: View {
         value: latestPoint.map { formattedValue($0.value) } ?? "--"
       )
       MetricChartSummaryPill(
-        title: "평균",
+        title: "구간 평균",
         value: averageValue.map(formattedValue) ?? "--"
       )
       MetricChartSummaryPill(
@@ -610,34 +676,21 @@ struct MetricChartView: View {
     }
   }
 
-  private var sourceLegend: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
-        ForEach(uniqueSourceLabels, id: \.self) { source in
-          HStack(spacing: 5) {
-            Circle()
-              .fill(sourceColor(for: source))
-              .frame(width: 7, height: 7)
-            Text(source)
-              .font(.caption)
-              .foregroundStyle(NBColor.secondaryText)
-              .lineLimit(1)
-          }
-        }
+  @ViewBuilder
+  private var referenceRangeLegend: some View {
+    if let referenceRange {
+      HStack(spacing: 6) {
+        ReferenceRangeLegendLine(tint: referenceRange.tint)
+          .frame(width: 28, height: 10)
+          .accessibilityHidden(true)
+        Text("\(referenceRange.label) · \(referenceRange.rangeText)\(referenceRangeVisibilityText)")
+          .font(NBTypography.caption)
+          .foregroundStyle(NBColor.secondaryText)
+          .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .combine)
     }
-  }
-
-  private var uniqueSourceLabels: [String] {
-    var seen = Set<String>()
-    return points
-      .map(sourceLabel)
-      .filter { seen.insert($0).inserted }
-  }
-
-  private var uniqueSourceColors: [Color] {
-    uniqueSourceLabels.map(sourceColor)
   }
 
   private var averageValue: Double? {
@@ -649,6 +702,13 @@ struct MetricChartView: View {
     points.max { $0.date < $1.date }
   }
 
+  private var selectedPoint: MetricTrendDataPoint? {
+    guard let selectedPointID else {
+      return nil
+    }
+    return points.first { $0.id == selectedPointID }
+  }
+
   private var rangeText: String {
     let values = points.map(\.value)
     guard let minimum = values.min(), let maximum = values.max() else {
@@ -657,33 +717,291 @@ struct MetricChartView: View {
     return "\(formattedValue(minimum))~\(formattedValue(maximum))"
   }
 
-  private func sourceLabel(_ point: MetricTrendDataPoint) -> String {
-    "\(point.sourceType.displayName) · \(point.sourceName)"
-  }
-
-  private func sourceColor(for source: String) -> Color {
-    points
-      .first { sourceLabel($0) == source }
-      .map { sourceTint(for: $0.sourceType) } ?? tint
-  }
-
   private func formattedValue(_ value: Double) -> String {
     UnifiedMetricFormatting.valueString(value, unit: metric.unit)
   }
 
+  private func selectNearestPoint(
+    at location: CGPoint,
+    proxy: ChartProxy,
+    geometry: GeometryProxy
+  ) {
+    guard !points.isEmpty else {
+      selectedPointID = nil
+      return
+    }
+
+    guard let plotFrame = plotFrame(proxy: proxy, geometry: geometry) else {
+      return
+    }
+    guard plotFrame.contains(location) else {
+      return
+    }
+
+    let xPosition = location.x - plotFrame.origin.x
+    guard let selectedDate = proxy.value(atX: xPosition, as: Date.self) else {
+      return
+    }
+
+    selectedPointID = nearestPoint(to: selectedDate)?.id
+  }
+
+  private func nearestPoint(to date: Date) -> MetricTrendDataPoint? {
+    points.min { lhs, rhs in
+      abs(lhs.date.timeIntervalSince(date)) < abs(rhs.date.timeIntervalSince(date))
+    }
+  }
+
+  private func selectedPointTitle(_ point: MetricTrendDataPoint) -> String {
+    switch interval {
+    case .day:
+      return dateTitle(point.date)
+    case .week:
+      return weekTitle(startingAt: point.date)
+    case .month:
+      return monthTitle(point.date)
+    }
+  }
+
+  private func dateTitle(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.dateFormat = "yyyy년 M월 d일"
+    return formatter.string(from: date)
+  }
+
+  private func weekTitle(startingAt startDate: Date) -> String {
+    let calendar = Calendar.current
+    let endDate = calendar.date(byAdding: .day, value: 6, to: startDate) ?? startDate
+    return "\(compactDateTitle(startDate))~\(compactDateTitle(endDate))"
+  }
+
+  private func monthTitle(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.dateFormat = "yyyy년 M월"
+    return formatter.string(from: date)
+  }
+
+  private func compactDateTitle(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.dateFormat = "M월 d일"
+    return formatter.string(from: date)
+  }
+
+  private func averageOverlayPosition(
+    proxy: ChartProxy,
+    geometry: GeometryProxy
+  ) -> CGPoint? {
+    guard let averageValue,
+          let plotFrame = plotFrame(proxy: proxy, geometry: geometry),
+          let yPosition = proxy.position(forY: averageValue) else {
+      return nil
+    }
+
+    let y = plotFrame.minY + yPosition
+    return clampedLabelCenter(
+      CGPoint(
+        x: averageOverlayFixedX(in: plotFrame),
+        y: y - averageOverlayLabelSize.height / 2 - 8
+      ),
+      size: averageOverlayLabelSize,
+      in: plotFrame
+    )
+  }
+
+  private func averageOverlayFixedX(in plotFrame: CGRect) -> CGFloat {
+    plotFrame.maxX - averageOverlayLabelSize.width / 2 - overlayLabelPadding
+  }
+
+  private func selectedOverlayPosition(
+    _ point: MetricTrendDataPoint,
+    proxy: ChartProxy,
+    geometry: GeometryProxy
+  ) -> CGPoint? {
+    guard let plotFrame = plotFrame(proxy: proxy, geometry: geometry),
+          let pointPosition = proxy.position(for: (x: point.date, y: point.value)) else {
+      return nil
+    }
+
+    let pointLocation = CGPoint(
+      x: plotFrame.minX + pointPosition.x,
+      y: plotFrame.minY + pointPosition.y
+    )
+    let averageRect = averageOverlayPosition(proxy: proxy, geometry: geometry).map {
+      labelRect(center: $0, size: averageOverlayLabelSize)
+    }
+    let candidateCenters = selectedOverlayCandidateCenters(
+      near: pointLocation,
+      in: plotFrame
+    )
+
+    for center in candidateCenters {
+      let clamped = clampedLabelCenter(center, size: selectedOverlayLabelSize, in: plotFrame)
+      let selectedRect = labelRect(center: clamped, size: selectedOverlayLabelSize)
+      if averageRect?.intersects(selectedRect.insetBy(dx: -4, dy: -4)) != true {
+        return clamped
+      }
+    }
+
+    return candidateCenters.first.map {
+      clampedLabelCenter($0, size: selectedOverlayLabelSize, in: plotFrame)
+    }
+  }
+
+  private func selectedOverlayCandidateCenters(
+    near point: CGPoint,
+    in plotFrame: CGRect
+  ) -> [CGPoint] {
+    let above = CGPoint(
+      x: point.x,
+      y: point.y - selectedOverlayLabelSize.height / 2 - 12
+    )
+    let below = CGPoint(
+      x: point.x,
+      y: point.y + selectedOverlayLabelSize.height / 2 + 12
+    )
+    let left = CGPoint(
+      x: point.x - selectedOverlayLabelSize.width / 2 - 14,
+      y: point.y
+    )
+    let right = CGPoint(
+      x: point.x + selectedOverlayLabelSize.width / 2 + 14,
+      y: point.y
+    )
+
+    if point.y < plotFrame.midY {
+      return point.x > plotFrame.midX ? [below, left, right, above] : [below, right, left, above]
+    }
+    return point.x > plotFrame.midX ? [above, left, right, below] : [above, right, left, below]
+  }
+
+  private func plotFrame(proxy: ChartProxy, geometry: GeometryProxy) -> CGRect? {
+    guard let plotFrameAnchor = proxy.plotFrame else {
+      return nil
+    }
+    return geometry[plotFrameAnchor]
+  }
+
+  private func clampedLabelCenter(
+    _ center: CGPoint,
+    size: CGSize,
+    in plotFrame: CGRect
+  ) -> CGPoint {
+    let halfWidth = size.width / 2
+    let halfHeight = size.height / 2
+    return CGPoint(
+      x: min(
+        max(center.x, plotFrame.minX + halfWidth + overlayLabelPadding),
+        plotFrame.maxX - halfWidth - overlayLabelPadding
+      ),
+      y: min(
+        max(center.y, plotFrame.minY + halfHeight + overlayLabelPadding),
+        plotFrame.maxY - halfHeight - overlayLabelPadding
+      )
+    )
+  }
+
+  private func labelRect(center: CGPoint, size: CGSize) -> CGRect {
+    CGRect(
+      x: center.x - size.width / 2,
+      y: center.y - size.height / 2,
+      width: size.width,
+      height: size.height
+    )
+  }
+
+  private var averageOverlayLabelSize: CGSize {
+    CGSize(width: 132, height: 36)
+  }
+
+  private var selectedOverlayLabelSize: CGSize {
+    CGSize(width: 168, height: 42)
+  }
+
+  private var overlayLabelPadding: CGFloat {
+    6
+  }
+
   private var yDomain: ClosedRange<Double> {
-    let values = points.map(\.value)
+    let values = chartDataValues + referenceValuesForYDomain
     guard let minimum = values.min(), let maximum = values.max() else {
       return 0...1
     }
 
     if minimum == maximum {
-      let padding = max(abs(minimum) * 0.08, minimumChartPadding)
+      let padding = max(abs(minimum) * 0.015, minimumChartPadding * 2)
       return max(0, minimum - padding)...(maximum + padding)
     }
 
     let padding = max((maximum - minimum) * 0.25, minimumChartPadding)
     return max(0, minimum - padding)...(maximum + padding)
+  }
+
+  private var chartDataValues: [Double] {
+    points.map(\.value).filter(\.isFinite)
+  }
+
+  private var referenceValuesForYDomain: [Double] {
+    guard let referenceRange,
+          !chartDataValues.isEmpty else {
+      return []
+    }
+    return referenceRange.domainValues.filter(shouldIncludeReferenceValueInYDomain)
+  }
+
+  private func shouldDrawReferenceValue(_ value: Double) -> Bool {
+    referenceValuesForYDomain.contains { abs($0 - value) < 0.0001 }
+  }
+
+  private func shouldIncludeReferenceValueInYDomain(_ value: Double) -> Bool {
+    guard value.isFinite,
+          let dataMinimum = chartDataValues.min(),
+          let dataMaximum = chartDataValues.max() else {
+      return false
+    }
+
+    if (dataMinimum...dataMaximum).contains(value) {
+      return true
+    }
+
+    let distance: Double
+    if value < dataMinimum {
+      distance = dataMinimum - value
+    } else {
+      distance = value - dataMaximum
+    }
+
+    return distance <= nearbyReferenceBoundaryLimit
+  }
+
+  private var nearbyReferenceBoundaryLimit: Double {
+    let values = chartDataValues
+    guard let minimum = values.min(), let maximum = values.max() else {
+      return minimumChartPadding * 8
+    }
+
+    let dataSpan = maximum - minimum
+    let effectiveSpan = dataSpan > 0
+      ? dataSpan
+      : max(abs(maximum) * 0.02, minimumChartPadding * 2)
+    return max(effectiveSpan * 2, minimumChartPadding * 8)
+  }
+
+  private var referenceRangeVisibilityText: String {
+    guard let referenceRange else {
+      return ""
+    }
+
+    let totalCount = referenceRange.domainValues.count
+    let visibleCount = referenceValuesForYDomain.count
+    guard totalCount > 0,
+          visibleCount < totalCount else {
+      return ""
+    }
+
+    return visibleCount > 0 ? " · 가까운 기준선만 표시" : " · 그래프 축 밖"
   }
 
   private var minimumChartPadding: Double {
@@ -711,6 +1029,82 @@ struct MetricChartView: View {
          .sleepSoundScore, .dailyRhythmScore:
       2
     }
+  }
+
+  private var referenceRangeLineStyle: StrokeStyle {
+    StrokeStyle(lineWidth: 1.4, lineCap: .round, dash: [5, 4])
+  }
+}
+
+private struct ReferenceRangeLegendLine: View {
+  let tint: Color
+
+  var body: some View {
+    Path { path in
+      path.move(to: CGPoint(x: 0, y: 5))
+      path.addLine(to: CGPoint(x: 28, y: 5))
+    }
+    .stroke(tint, style: StrokeStyle(lineWidth: 1.4, lineCap: .round, dash: [5, 4]))
+  }
+}
+
+private struct MetricChartOverlayLabel: View {
+  let title: String
+  let value: String
+  let tint: Color
+  var isEmphasized = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(title)
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(isEmphasized ? tint : NBColor.secondaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+
+      Text(value)
+        .font(.caption.weight(.bold))
+        .foregroundStyle(NBColor.primaryText)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    .padding(.horizontal, 8)
+    .background(NBColor.cardBackground.opacity(0.94), in: RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous))
+    .overlay {
+      RoundedRectangle(cornerRadius: NBCornerRadius.small, style: .continuous)
+        .stroke(tint.opacity(isEmphasized ? 0.42 : 0.24), lineWidth: 1)
+    }
+    .shadow(color: Color.black.opacity(0.06), radius: 6, y: 3)
+  }
+}
+
+struct MetricReferenceRange {
+  var label: String
+  var lowerValue: Double?
+  var upperValue: Double?
+  var unit: String
+  var tint: Color = NBColor.privacyTint
+
+  var domainValues: [Double] {
+    [lowerValue, upperValue].compactMap { $0 }
+  }
+
+  var rangeText: String {
+    switch (lowerValue, upperValue) {
+    case let (.some(lower), .some(upper)):
+      "\(valueText(lower))~\(valueText(upper))"
+    case let (.some(lower), .none):
+      "\(valueText(lower)) 이상"
+    case let (.none, .some(upper)):
+      "\(valueText(upper)) 이하"
+    case (.none, .none):
+      "--"
+    }
+  }
+
+  func valueText(_ value: Double) -> String {
+    UnifiedMetricFormatting.valueString(value, unit: unit)
   }
 }
 
@@ -744,8 +1138,9 @@ private struct MetricChartSummaryPill: View {
 struct MetricSummaryCard: View {
   let metric: MetricDisplayMetadata
   let summary: MetricStatisticsSummary
-  let sources: [MetricSourceBreakdown]
   let periodDisplayName: String
+  let averageTitle: String
+  let countLabel: String
 
   var body: some View {
     NBCard {
@@ -764,13 +1159,13 @@ struct MetricSummaryCard: View {
 
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: NBSpacing.medium) {
           summaryTile("최근 값", summary.latestValue)
-          summaryTile("평균", summary.average)
+          summaryTile(averageTitle, summary.average)
           summaryTile("최소", summary.min)
           summaryTile("최대", summary.max)
         }
 
         HStack(spacing: NBSpacing.small) {
-          NBStatusBadge("측정 \(summary.sampleCount)개", kind: .neutral, systemImage: "number")
+          NBStatusBadge("\(countLabel) \(summary.sampleCount)개", kind: .neutral, systemImage: "number")
           NBStatusBadge(deltaText, kind: .privacy, systemImage: "arrow.left.arrow.right")
         }
 
@@ -790,11 +1185,6 @@ struct MetricSummaryCard: View {
           .font(.caption)
           .foregroundStyle(NBColor.secondaryText)
         }
-
-        Text(sourceText)
-          .font(.caption)
-          .foregroundStyle(NBColor.tertiaryText)
-          .fixedSize(horizontal: false, vertical: true)
       }
     }
   }
@@ -804,19 +1194,6 @@ struct MetricSummaryCard: View {
       return "이전 기간 비교 샘플 부족"
     }
     return "최근 변화 \(UnifiedMetricFormatting.signedValueString(delta, unit: metric.unit))"
-  }
-
-  private var sourceText: String {
-    guard !sources.isEmpty else {
-      return "데이터 출처: 없음"
-    }
-    return "데이터 출처: " + sources
-      .map { "\($0.sourceType.displayName) \(sourceNameText($0.sourceName))" }
-      .joined(separator: " · ")
-  }
-
-  private func sourceNameText(_ sourceName: String) -> String {
-    sourceName.isEmpty ? "" : "(\(sourceName))"
   }
 
   private func summaryTile(_ title: String, _ value: Double?) -> some View {
@@ -831,6 +1208,41 @@ struct MetricSummaryCard: View {
         .minimumScaleFactor(0.75)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+private struct MetricDetailSourceSummaryLine: View {
+  let metric: MetricDisplayMetadata
+  let sources: [MetricSourceBreakdown]
+
+  var body: some View {
+    Text(summaryText)
+      .font(NBTypography.caption)
+      .foregroundStyle(NBColor.secondaryText)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityLabel(summaryText)
+  }
+
+  private var summaryText: String {
+    var parts: [String] = []
+    if metric.isHealthKitBacked {
+      parts.append("HealthKit read-only")
+    }
+    if metric.isExtendedLocalOnly {
+      parts.append("로컬 전용")
+    }
+    if sources.isEmpty {
+      parts.append("출처 없음")
+    } else {
+      let sourceText = sources
+        .prefix(3)
+        .map { $0.sourceType.displayName }
+        .joined(separator: " · ")
+      parts.append(sourceText)
+    }
+    parts.append("개인 참고용")
+    return parts.joined(separator: " · ")
   }
 }
 
@@ -910,32 +1322,6 @@ struct MetricSourceBadgeStrip: View {
   }
 }
 
-private struct MetricSourceContextNotice: View {
-  let metadata: MetricDisplayMetadata
-  let sourceTypes: [HealthMetricSourceType]
-
-  private var summary: MetricDetailSourceSummary {
-    MetricDetailSourceSummary.make(for: metadata, sourceTypes: sourceTypes)
-  }
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: NBSpacing.xSmall) {
-      Label("출처 구분", systemImage: "square.stack.3d.up")
-        .font(NBTypography.caption.weight(.semibold))
-        .foregroundStyle(NBColor.primaryText)
-
-      ForEach(summary.messages, id: \.self) { message in
-        Text(message)
-          .font(NBTypography.caption)
-          .foregroundStyle(NBColor.secondaryText)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
-  }
-}
-
 enum UnifiedMetricFormatting {
   static func valueString(_ value: Double, unit: String) -> String {
     switch unit {
@@ -960,7 +1346,7 @@ enum UnifiedMetricFormatting {
   }
 }
 
-private func metricIcon(for metadata: MetricDisplayMetadata) -> String {
+func metricIcon(for metadata: MetricDisplayMetadata) -> String {
   switch metadata.metricID {
   case .systolicBloodPressure, .diastolicBloodPressure, .heartRate, .restingHeartRate:
     "heart"
@@ -987,7 +1373,7 @@ private func metricIcon(for metadata: MetricDisplayMetadata) -> String {
   }
 }
 
-private func metricTint(for metadata: MetricDisplayMetadata) -> Color {
+func metricTint(for metadata: MetricDisplayMetadata) -> Color {
   switch metadata.category {
   case .sleep:
     NBColor.sleepTint

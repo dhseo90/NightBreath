@@ -22,7 +22,7 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
     private let sessionManager: AudioSessionManaging
     private let retainedSampleLimitPerChunk: Int
     private var continuations: [UUID: AsyncStream<AudioChunk>.Continuation] = [:]
-    private var interruptionObserver: NotificationObserverToken?
+    private var audioSessionObservers: [NotificationObserverToken] = []
     private var stopSafetyTask: Task<Void, Never>?
     private var captureGeneration: UInt64 = 0
     private var didRunPhysicalStop = false
@@ -35,13 +35,13 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         self.engine = engine
         self.sessionManager = sessionManager
         self.retainedSampleLimitPerChunk = max(0, retainedSampleLimitPerChunk)
-        installInterruptionObserver()
+        installAudioSessionObservers()
     }
 
     deinit {
         stopSafetyTask?.cancel()
-        if let interruptionObserver {
-            NotificationCenter.default.removeObserver(interruptionObserver.observer)
+        for observer in audioSessionObservers {
+            NotificationCenter.default.removeObserver(observer.observer)
         }
     }
 
@@ -216,9 +216,9 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
         }
     }
 
-    private func installInterruptionObserver() {
+    private func installAudioSessionObservers() {
         #if os(iOS)
-        let observer = NotificationCenter.default.addObserver(
+        let interruptionObserver = NotificationCenter.default.addObserver(
             forName: AVAudioSession.interruptionNotification,
             object: AVAudioSession.sharedInstance(),
             queue: .main
@@ -229,7 +229,42 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
                 self?.handleInterruption(rawType: rawType)
             }
         }
-        interruptionObserver = NotificationObserverToken(observer: observer)
+        audioSessionObservers.append(NotificationObserverToken(observer: interruptionObserver))
+
+        let routeChangeObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            let rawReason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt
+
+            Task { @MainActor [weak self] in
+                self?.handleRouteChange(rawReason: rawReason)
+            }
+        }
+        audioSessionObservers.append(NotificationObserverToken(observer: routeChangeObserver))
+
+        let mediaServicesLostObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.mediaServicesWereLostNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleMediaServicesEvent("mediaServicesWereLost")
+            }
+        }
+        audioSessionObservers.append(NotificationObserverToken(observer: mediaServicesLostObserver))
+
+        let mediaServicesResetObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.mediaServicesWereResetNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleMediaServicesEvent("mediaServicesWereReset")
+            }
+        }
+        audioSessionObservers.append(NotificationObserverToken(observer: mediaServicesResetObserver))
         #endif
     }
 
@@ -242,10 +277,60 @@ public final class AudioCaptureService: ObservableObject, AudioCaptureServicePro
             return
         }
 
+        metrics.recordAudioSessionEvent("interruption=began")
         forceStopCapture(reason: "audio session interruption")
         metrics.recordInterruption()
         metrics.recordCaptureError()
         state = .failed(message: AudioCaptureError.captureInterrupted.message)
+        #endif
+    }
+
+    private func handleRouteChange(rawReason: UInt?) {
+        #if os(iOS)
+        guard isCapturing else { return }
+        metrics.recordAudioSessionEvent("routeChange=\(routeChangeReasonText(rawReason))")
+        #endif
+    }
+
+    private func handleMediaServicesEvent(_ eventName: String) {
+        #if os(iOS)
+        guard isCapturing else { return }
+        metrics.recordAudioSessionEvent(eventName)
+        metrics.recordCaptureError()
+        forceStopCapture(reason: "audio session \(eventName)")
+        state = .failed(message: AudioCaptureError.audioSessionReset.message)
+        #endif
+    }
+
+    private func routeChangeReasonText(_ rawReason: UInt?) -> String {
+        #if os(iOS)
+        guard let rawReason,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason) else {
+            return "unknown"
+        }
+
+        switch reason {
+        case .newDeviceAvailable:
+            return "newDeviceAvailable"
+        case .oldDeviceUnavailable:
+            return "oldDeviceUnavailable"
+        case .categoryChange:
+            return "categoryChange"
+        case .override:
+            return "override"
+        case .wakeFromSleep:
+            return "wakeFromSleep"
+        case .noSuitableRouteForCategory:
+            return "noSuitableRouteForCategory"
+        case .routeConfigurationChange:
+            return "routeConfigurationChange"
+        case .unknown:
+            return "unknown"
+        @unknown default:
+            return "unknown"
+        }
+        #else
+        return "unknown"
         #endif
     }
 }

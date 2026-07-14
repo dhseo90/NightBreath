@@ -171,6 +171,7 @@ struct SleepAudioProcessingPipelineTests {
         let endedAt = startedAt.addingTimeInterval(120)
         stopMetrics.stop(at: endedAt)
         stopMetrics.recordAnalyzerFinalizeStarted(at: endedAt)
+        stopMetrics.recordAudioSessionEvent("routeChange=oldDeviceUnavailable", at: endedAt)
 
         let result = await pipeline.finalize(endedAt: endedAt, stopMetrics: stopMetrics)
         let diagnostics = try #require(await pipeline.finalizeDiagnostics(
@@ -182,6 +183,7 @@ struct SleepAudioProcessingPipelineTests {
         #expect(result.metrics.firstAudioInputDelaySeconds >= 55)
         #expect(result.metrics.longestChunkGapSeconds >= 55)
         #expect(diagnostics.notes.contains { $0.contains("Audio coverage diagnostics:") })
+        #expect(diagnostics.notes.contains { $0.contains("Audio session diagnostics: routeChange=oldDeviceUnavailable") })
         #expect(diagnostics.notes.contains { $0.contains("firstInputDelay=") })
     }
 

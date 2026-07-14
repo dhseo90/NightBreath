@@ -431,6 +431,8 @@ public struct DetectionSmoothingResult: Equatable, Sendable {
 }
 
 public struct DetectorDiagnostics: Codable, Equatable, Sendable {
+    public static let recoveredUnfinishedRecordingNote = "Recovered unfinished local sleep recording after app relaunch."
+
     public var sessionId: UUID
     public var startedAt: Date
     public var endedAt: Date?
@@ -728,6 +730,10 @@ public struct DetectorDiagnostics: Codable, Equatable, Sendable {
     public var fallbackUsed: Bool { modelFallbackCount > 0 }
 
     public var rejectReasonCounts: [RejectReason: Int] { rejectedCountByReason }
+
+    public var isRecoveredUnfinishedRecording: Bool {
+        notes.contains(Self.recoveredUnfinishedRecordingNote)
+    }
 
     public var snoreRawCandidateCount: Int { rawCandidateCountByType[.snore] ?? 0 }
 

@@ -45,7 +45,7 @@ struct SleepRecordingView: View {
           .frame(width: 64, height: 64)
           .accessibilityHidden(true)
 
-        Text(appState.sleepRecordingPhase.title)
+        Text(recordingTitle)
           .font(.title.bold())
           .foregroundStyle(NBColor.primaryText)
 
@@ -57,7 +57,7 @@ struct SleepRecordingView: View {
         .font(.system(size: 42, weight: .bold, design: .rounded))
         .monospacedDigit()
 
-        Text(appState.sleepRecordingPhase.message)
+        Text(recordingMessage)
           .font(.callout)
           .foregroundStyle(NBColor.secondaryText)
           .multilineTextAlignment(.center)
@@ -78,10 +78,10 @@ struct SleepRecordingView: View {
         )
 
         NBDangerButton(
-          title: appState.sleepRecordingPhase.isStopButtonDisabled ? "종료 처리 중" : "수면 종료",
-          systemImage: appState.sleepRecordingPhase.isStopButtonDisabled ? "hourglass" : "stop.fill",
-          isDisabled: appState.sleepRecordingPhase.isStopButtonDisabled,
-          isBusy: appState.sleepRecordingPhase != .recording
+          title: stopButtonTitle,
+          systemImage: stopButtonIcon,
+          isDisabled: isStopButtonDisabled,
+          isBusy: isStopButtonBusy
         ) {
           appState.endSleepSession()
         }
@@ -97,6 +97,49 @@ struct SleepRecordingView: View {
       systemImage: appState.sleepRecordingPhase == .reportReady ? "checkmark.circle" : "hourglass",
       isLoading: appState.sleepRecordingPhase != .reportReady
     )
+  }
+
+  private var recordingTitle: String {
+    if isCaptureFailed {
+      return "수면 기록 중단됨"
+    }
+    return appState.sleepRecordingPhase.title
+  }
+
+  private var recordingMessage: String {
+    if case .failed(let message) = appState.audioCaptureState {
+      return message
+    }
+    return appState.sleepRecordingPhase.message
+  }
+
+  private var stopButtonTitle: String {
+    if isCaptureFailed {
+      return "리포트 정리"
+    }
+    return appState.sleepRecordingPhase.isStopButtonDisabled ? "종료 처리 중" : "수면 종료"
+  }
+
+  private var stopButtonIcon: String {
+    if isCaptureFailed {
+      return "doc.text.magnifyingglass"
+    }
+    return appState.sleepRecordingPhase.isStopButtonDisabled ? "hourglass" : "stop.fill"
+  }
+
+  private var isStopButtonDisabled: Bool {
+    appState.sleepRecordingPhase.isStopButtonDisabled && !isCaptureFailed
+  }
+
+  private var isStopButtonBusy: Bool {
+    appState.sleepRecordingPhase != .recording && !isCaptureFailed
+  }
+
+  private var isCaptureFailed: Bool {
+    if case .failed = appState.audioCaptureState {
+      return true
+    }
+    return false
   }
 
   private var finalizationDetailText: String {
@@ -211,6 +254,9 @@ struct SleepRecordingView: View {
       if let forceStopReason = metrics.forceStopReason {
         MeasurementStatusRow(title: "Force stop", value: forceStopReason)
       }
+    }
+    if let audioSessionEventSummary = metrics.audioSessionEventSummary {
+      MeasurementStatusRow(title: "오디오 세션 이벤트", value: audioSessionEventSummary)
     }
     MeasurementStatusRow(title: "오디오 중단 횟수", value: "\(metrics.interruptionCount)회")
     MeasurementStatusRow(

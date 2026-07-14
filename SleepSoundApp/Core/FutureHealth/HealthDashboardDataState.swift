@@ -103,7 +103,7 @@ public struct HealthDashboardDataStateSummary: Equatable, Sendable {
             return HealthDashboardDataStateSummary(
                 state: .localImportOnly,
                 title: "로컬 import만 표시",
-                message: "Apple 건강앱 샘플이 없어도 Fitdays CSV로 가져온 로컬 샘플은 전체 건강 지표와 건강 캘린더에서 볼 수 있습니다.",
+                message: "Apple 건강앱 샘플이 없어도 Fitdays CSV로 가져온 로컬 샘플은 캘린더 지표 종합에서 볼 수 있습니다.",
                 healthOrPreviewSampleCount: healthCount,
                 localImportSampleCount: localCount,
                 appComputedSampleCount: appCount,

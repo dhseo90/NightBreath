@@ -113,6 +113,7 @@
 
 ## 실제 iPhone QA
 
+- 수면 시작 실패 상태 정리, AVAudioSession route/media-services diagnostics, interruption 후 로컬 리포트 정리 안내는 실기기 없이 구현/검증 완료
 - foreground 1분 smoke test
 - P0 fix 이후 `Docs/QA_GUIDE.md`의 Foreground stop smoke / Double stop tap / Lock/background short stop 통과
 - stop 이후 actual audio received time이 증가하지 않는 evidence template 기록
@@ -133,6 +134,8 @@
 
 ## Detector / ML
 
+- 2026-05-14 재검토 결과, 현재 repository에 남아 있는 실데이터성 근거와 공개 negative sweep 요약만으로는 Release 기본 threshold를 추가 완화하지 않습니다. `balanced`/`보통`을 유지하고, `sensitive`/`verySensitive`는 DEBUG 비교용으로 둡니다.
+- 공개 negative residual hotspot(`washing_machine`, `engine`, `airplane`, `breathing`, `train`, `thunderstorm`)은 전역 민감도 조절이 아니라 category/texture guard 후보로 추적합니다.
 - 공개 또는 로컬 데이터셋 manifest 작성
 - snore / non-snore labeled segment 정리
 - 실제 iPhone zero-event 세션에서 `DetectorDiagnostics` snapshot 수동 수집

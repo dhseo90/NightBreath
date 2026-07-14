@@ -99,6 +99,7 @@ receivedAudioDurationBeforeStop:
 receivedAudioDurationAfterStop:
 forceStopTriggered:
 forceStopReason:
+audioSessionEventSummary:
 
 Report/finalization diagnostics:
 analyzerFinalizeStartedAt:

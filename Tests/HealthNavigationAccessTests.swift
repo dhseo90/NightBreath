@@ -10,6 +10,8 @@ struct HealthNavigationAccessTests {
 
         #expect(contents.contains("Label(\"건강\", systemImage: \"heart.text.square\")"))
         #expect(contents.contains("Label(\"건강 탭에서 자세히\", systemImage: \"heart.text.square\")"))
+        #expect(contents.contains("selectedTab = .health"))
+        #expect(contents.contains("HomeDashboardActionLabel(\"하루 리듬 카드\""))
         #expect(contents.contains("HealthDashboardView()"))
         #expect(!contents.contains("requestReadPermission"))
         #expect(!contents.contains("healthQuickAccessSection"))
@@ -62,24 +64,40 @@ struct HealthNavigationAccessTests {
     }
 
     @Test
-    func healthDashboardTabProvidesRecentDateShortcutWithoutPermissionRequest() throws {
+    func healthDashboardUsesSingleImportEntryAndHiddenDetailSection() throws {
         let contents = try sourceContents("SleepSoundApp/Features/Dashboard/HealthDashboardView.swift")
 
+        #expect(contents.contains("dashboardEntrySection"))
         #expect(contents.contains("recentMeasurementShortcutSection"))
-        #expect(contents.contains("title: \"바로가기\""))
-        #expect(contents.contains("최근 날짜 자세히 보기"))
-        #expect(contents.contains("HealthDashboardShortcutCard"))
-        #expect(contents.contains("Fitdays 붙여넣기"))
-        #expect(contents.contains("DailyMeasurementDetailView("))
-        #expect(contents.contains("calendarBuilder.detailData"))
+        #expect(contents.contains("HealthCalendarPrimaryCard"))
+        #expect(contents.contains("dataStateSection"))
+        #expect(contents.contains("hiddenDataDetailsSection"))
+        #expect(contents.contains("DisclosureGroup(isExpanded: $isDataDetailsExpanded)"))
+        #expect(contents.contains("Fitdays 가져오기"))
+        #expect(contents.contains("캘린더 지표 종합"))
+        #expect(contents.contains("캘린더 보기"))
+        #expect(contents.contains("날짜별 수면, 체성분, 활동 기록"))
+        #expect(contents.contains("NBReportSection(title: \"건강 화면\""))
+        #expect(contents.contains("DailySleepReportSummary(reports:"))
+        #expect(contents.contains("밤숨 앱 · 하루 합산"))
+        #expect(contents.contains("출처와 로컬 import 값"))
+        #expect(!contents.contains("title: \"건강 지표\""))
+        #expect(!contents.contains("calendarShortcutSection"))
+        #expect(!contents.contains("title: \"바로가기\""))
+        #expect(!contents.contains("최근 날짜 자세히 보기"))
+        #expect(!contents.contains("HealthDashboardShortcutCard"))
+        #expect(!contents.contains("Fitdays 붙여넣기"))
+        #expect(!contents.contains("DailyMeasurementDetailView("))
+        #expect(!contents.contains("calendarBuilder.detailData"))
         #expect(contents.contains("healthCalendarLatestDate"))
-        #expect(contents.contains("가장 최신 측정일 기준"))
 
-        let bodyShortcut = try #require(contents.range(of: "recentMeasurementShortcutSection")?.lowerBound)
+        let bodyCalendarShortcut = try #require(contents.range(of: "recentMeasurementShortcutSection")?.lowerBound)
+        let bodyEntry = try #require(contents.range(of: "dashboardEntrySection")?.lowerBound)
         let bodyDataState = try #require(contents.range(of: "dataStateSection")?.lowerBound)
-        #expect(bodyShortcut < bodyDataState)
+        #expect(bodyCalendarShortcut < bodyEntry)
+        #expect(bodyEntry < bodyDataState)
 
-        let sectionStart = try #require(contents.range(of: "private var recentMeasurementShortcutSection")?.lowerBound)
+        let sectionStart = try #require(contents.range(of: "private var dashboardEntrySection")?.lowerBound)
         let sectionEnd = try #require(contents.range(of: "private var dataStateSection")?.lowerBound)
         let section = contents[sectionStart..<sectionEnd]
         #expect(!section.contains("requestReadPermission"))
